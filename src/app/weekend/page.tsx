@@ -25,6 +25,8 @@ import {
 import { getSessionUser } from "@/lib/auth";
 import type { PredictionState, RaceWinnerOdds } from "@/types/racemate";
 
+export const dynamic = "force-dynamic";
+
 export default async function WeekendPage() {
   const [nextSession, weekendSessions, currentRace, user] = await Promise.all([
     getNextSession(),

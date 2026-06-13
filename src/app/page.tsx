@@ -36,6 +36,8 @@ import type {
   WeekendSession,
 } from "@/types/racemate";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const [newsResult, nextSession, standings, currentRace, sessions, championOdds, constructorOdds] =
     await Promise.all([
