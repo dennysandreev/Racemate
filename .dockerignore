@@ -1,0 +1,12 @@
+.git
+.env
+.env*.local
+.next
+.playwright-mcp
+.pnpm-store
+node_modules
+output
+coverage
+dist
+*.tsbuildinfo
+racemate-*.png
