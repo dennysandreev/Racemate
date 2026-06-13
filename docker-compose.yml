@@ -1,0 +1,35 @@
+services:
+  web:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  worker:
+    build: .
+    env_file:
+      - .env
+    command: ["node", "worker/index.mjs", "rss.fetch_all"]
+    restart: "no"
+
+  cron:
+    build: .
+    env_file:
+      - .env
+    command:
+      - sh
+      - -lc
+      - |
+        while true; do
+          node worker/index.mjs rss.fetch_all || true
+          node worker/index.mjs ai.process_news || true
+          node worker/index.mjs jolpica.sync_calendar || true
+          node worker/index.mjs jolpica.sync_results || true
+          node worker/index.mjs jolpica.sync_standings || true
+          node worker/index.mjs weather.sync_weekend || true
+          node worker/index.mjs predictions.score || true
+          sleep 1800
+        done
+    restart: unless-stopped

@@ -1,0 +1,176 @@
+import { Bot, Database, Play } from "lucide-react";
+
+import { toggleSource, triggerJob } from "@/app/admin/actions";
+import { AppShell } from "@/components/racemate/app-shell";
+import { DataRow } from "@/components/racemate/data-row";
+import { PageHeading } from "@/components/racemate/page-heading";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  getAdminSources,
+  getAdminJobs,
+  getAdminSignals,
+  getAiUsageSummary,
+} from "@/data/racemate-repository";
+import { getSessionUser } from "@/lib/auth";
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ queued?: string; source?: string }>;
+}) {
+  const status = await searchParams;
+  const user = await getSessionUser();
+  const [adminJobs, adminSignals, adminSources, aiUsage] = await Promise.all([
+    getAdminJobs(),
+    getAdminSignals(),
+    getAdminSources(),
+    getAiUsageSummary(),
+  ]);
+
+  return (
+    <AppShell>
+      <PageHeading
+        badge="Операционная админка"
+        description="Админка нужна не для красоты, а чтобы видеть источники, очереди, AI-стоимость и ручные перезапуски задач."
+        title="Контроль ingestion, AI и синхронизаций"
+      />
+
+      <section className="grid gap-5 py-8 lg:grid-cols-[0.68fr_1fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database aria-hidden="true" data-icon="inline-start" />
+              Состояние системы
+            </CardTitle>
+            <CardDescription>
+              Эти показатели станут быстрым входом в источники, job runs и AI usage.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            {adminSignals.map((signal) => (
+              <DataRow
+                helper={signal.status}
+                key={signal.label}
+                label={signal.label}
+                value={signal.value}
+              />
+            ))}
+            <DataRow
+              helper={aiUsage.lastModel}
+              label="AI usage"
+              value={`${aiUsage.totalRuns} / $${aiUsage.estimatedCostUsd.toFixed(4)}`}
+            />
+            {status.queued ? (
+              <p className="text-sm text-muted-foreground">Задача добавлена в очередь.</p>
+            ) : null}
+            {status.source ? (
+              <p className="text-sm text-muted-foreground">Источник обновлен.</p>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="md:flex-row md:items-start md:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Bot aria-hidden="true" data-icon="inline-start" />
+                Последние задачи
+              </CardTitle>
+              <CardDescription>
+                Worker будет писать сюда статус, количество обработанных элементов
+                и ошибку, если задача упала.
+              </CardDescription>
+            </div>
+            <form action={triggerJob} className="flex flex-wrap gap-2">
+              <select
+                className="min-h-9 rounded-md border border-input bg-background px-2 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                name="jobName"
+              >
+                <option value="rss.fetch_all">RSS</option>
+                <option value="ai.process_news">AI новости</option>
+                <option value="ai.retag_news">Теги этапов</option>
+                <option value="ai.generate_daily_digest">Сводка дня</option>
+                <option value="jolpica.sync_calendar">Календарь</option>
+                <option value="jolpica.sync_results">Результаты</option>
+                <option value="jolpica.sync_standings">Таблицы</option>
+                <option value="openf1.sync_sessions">OpenF1</option>
+                <option value="openf1.sync_laps">Лучшие круги</option>
+                <option value="weather.sync_weekend">Погода</option>
+                <option value="predictions.score">Очки прогнозов</option>
+              </select>
+              <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                <Play aria-hidden="true" data-icon="inline-start" />
+                {user ? "Запустить" : "Только для админа"}
+              </Button>
+            </form>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            {adminJobs.map((job) => (
+              <div
+                className="grid gap-3 rounded-md border border-border/70 p-4 md:grid-cols-[1fr_auto_auto]"
+                key={job.name}
+              >
+                <div>
+                  <p className="font-mono text-sm">{job.name}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {job.finishedAt}
+                  </p>
+                </div>
+                <Badge variant={job.status === "Успешно" ? "success" : "warning"}>
+                  {job.status}
+                </Badge>
+                <span className="font-mono text-sm text-muted-foreground">
+                  {job.processed}
+                </span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="grid gap-5 pb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Источники новостей</CardTitle>
+            <CardDescription>
+              Активные источники попадают в следующий запуск RSS worker.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            {adminSources.map((source) => (
+              <div
+                className="grid gap-3 rounded-md border border-border/70 p-4 md:grid-cols-[1fr_auto_auto]"
+                key={source.id}
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{source.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {source.url}
+                  </p>
+                </div>
+                <Badge variant={source.isActive ? "success" : "secondary"}>
+                  {source.isActive ? "Активен" : "На паузе"}
+                </Badge>
+                <form action={toggleSource}>
+                  <input name="sourceId" type="hidden" value={source.id} />
+                  <input name="isActive" type="hidden" value={String(source.isActive)} />
+                  <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                    {source.isActive ? "Пауза" : "Включить"}
+                  </Button>
+                </form>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+    </AppShell>
+  );
+}

@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  color-scheme: dark;
+  --background: oklch(0.145 0.012 250);
+  --foreground: oklch(0.965 0.006 245);
+  --card: oklch(0.19 0.014 250);
+  --card-foreground: oklch(0.965 0.006 245);
+  --primary: oklch(0.62 0.22 27);
+  --primary-foreground: oklch(0.985 0.005 40);
+  --secondary: oklch(0.27 0.016 250);
+  --secondary-foreground: oklch(0.94 0.008 245);
+  --muted: oklch(0.285 0.015 250);
+  --muted-foreground: oklch(0.78 0.018 250);
+  --accent: oklch(0.245 0.021 250);
+  --accent-foreground: oklch(0.965 0.006 245);
+  --border: oklch(0.36 0.018 250);
+  --ring: oklch(0.68 0.12 222);
+  --success: oklch(0.7 0.19 150);
+  --warning: oklch(0.78 0.16 78);
+  --danger: oklch(0.61 0.22 27);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--background);
+}
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 18% 8%, oklch(0.32 0.08 27 / 0.42), transparent 34rem),
+    radial-gradient(circle at 82% 14%, oklch(0.29 0.07 150 / 0.22), transparent 28rem),
+    linear-gradient(180deg, oklch(0.18 0.015 250), var(--background) 34rem);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: oklch(0.62 0.22 27 / 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

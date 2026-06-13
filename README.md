@@ -1,0 +1,86 @@
+# RaceMate
+
+Дата фиксации MVP-прохода: 2026-06-10
+
+## Что это
+
+RaceMate — веб-приложение для русскоязычных фанатов Формулы 1. Оно собирает новости из RSS/API, делает краткие русскоязычные AI-сводки, показывает календарь, результаты, standings, race weekend hub, прогнозы, мини-лиги, опросы и реакции.
+
+Текущий стек:
+- Next.js App Router;
+- Supabase Auth + Postgres + RLS;
+- OpenRouter для AI-сводок;
+- Jolpica, OpenF1 и Open-Meteo для F1/погодных данных;
+- отдельный Node worker для VPS.
+
+## Главные решения
+
+1. Новости берем через RSS/API, не HTML-скрейпинг.
+2. AI используем через OpenRouter.
+3. Теги по пилотам/командам/темам в MVP делаем обычными правилами.
+4. Данные F1 берем через Jolpica и бесплатную историческую OpenF1.
+5. Live-режим в MVP не делаем.
+6. FastF1/OpenF1 используем для аналитики после гонки, не для live.
+7. YouTube в MVP не делаем.
+8. Авторизация — email OTP/passwordless, без хранения паролей.
+9. Telegram, web push и уведомления не входят в первую реализацию.
+10. Бесплатный уровень продукта делаем сразу.
+11. Все внешние данные кешируем в собственной БД.
+
+## Файлы
+
+- `PRODUCT.md` — главный продуктовый контекст RaceMate.
+- `DESIGN.md` — дизайн-система и UI-направление RaceMate.
+- `SKILLS.md` — закрепленный набор скиллов для разработки проекта.
+- `supabase/migrations` — актуальная схема и seed для Supabase.
+- `worker/index.mjs` — worker CLI для ingestion, AI, sync и scoring.
+- `01_product_and_scope.md` — исторический документ продукта и MVP.
+- `02_features_matrix.md` — таблица фич, источников, стоимости и реализации.
+- `03_architecture.md` — архитектура и рекомендуемый стек.
+- `04_auth_telegram.md` — исторический документ; Telegram отложен из V1.
+- `05_database_schema.sql` — первичная схема БД.
+- `06_ai_pipeline.md` — AI-пайплайн и промты.
+- `07_bot_spec.md` — исторический документ; бот отложен из V1.
+- `.env.example` — пример переменных окружения.
+
+## Локальный запуск
+
+```bash
+corepack pnpm install
+corepack pnpm dev
+```
+
+Проверки:
+
+```bash
+corepack pnpm typecheck
+corepack pnpm lint
+corepack pnpm build
+```
+
+Worker:
+
+```bash
+corepack pnpm worker:rss
+corepack pnpm worker:ai
+corepack pnpm worker:calendar
+corepack pnpm worker:results
+corepack pnpm worker:score
+```
+
+Для worker нужен `SUPABASE_SERVICE_ROLE_KEY`. OpenRouter требует `OPENROUTER_API_KEY` и `AI_SUMMARY_MAX_TOKENS`.
+
+Настройка SMTP в Supabase Auth:
+
+```bash
+corepack pnpm supabase:smtp
+```
+
+Команда читает `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SMTP_ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` и `SMTP_SENDER_NAME` из окружения.
+
+## Как использовать в Codex
+
+1. Начинать с `PRODUCT.md`, `DESIGN.md` и `SKILLS.md`.
+2. Для БД использовать `supabase/migrations`.
+3. Для worker смотреть `worker/index.mjs`.
+4. Старые numbered docs читать как архив решений, не как текущий source of truth.

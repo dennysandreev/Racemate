@@ -1,0 +1,48 @@
+{
+  "name": "racemate",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "worker": "node worker/index.mjs",
+    "worker:rss": "node worker/index.mjs rss.fetch_all",
+    "worker:ai": "node worker/index.mjs ai.process_news",
+    "worker:retag": "node worker/index.mjs ai.retag_news",
+    "worker:digest": "node worker/index.mjs ai.generate_daily_digest",
+    "worker:calendar": "node worker/index.mjs jolpica.sync_calendar",
+    "worker:results": "node worker/index.mjs jolpica.sync_results",
+    "worker:standings": "node worker/index.mjs jolpica.sync_standings",
+    "worker:weather": "node worker/index.mjs weather.sync_weekend",
+    "worker:laps": "node worker/index.mjs openf1.sync_laps",
+    "worker:score": "node worker/index.mjs predictions.score",
+    "supabase:smtp": "node scripts/configure-supabase-smtp.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "latest",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.1",
+    "class-variance-authority": "latest",
+    "clsx": "latest",
+    "geist": "latest",
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "tailwind-merge": "latest"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "latest",
+    "tailwindcss": "latest",
+    "typescript": "latest"
+  }
+}
