@@ -17,6 +17,7 @@ ENV NODE_ENV=production
 RUN corepack enable
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/worker ./worker
 COPY --from=builder /app/package.json ./package.json
 EXPOSE 3000
