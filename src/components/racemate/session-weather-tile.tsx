@@ -17,16 +17,20 @@ export function SessionWeatherTile({
   compact,
   showStatusBadge = true,
 }: SessionWeatherTileProps) {
+  const isLive = session.status === "Live";
   const isCompleted = session.status === "Завершена";
+  const isHighlighted = isLive || (isActive && !isCompleted);
 
   return (
     <div
       className={cn(
         "relative min-h-24 rounded-md border p-3 transition-colors",
-        isActive
-          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+        isLive
+          ? "border-success bg-success text-background shadow-sm"
+          : isHighlighted
+            ? "border-primary bg-muted text-foreground shadow-[inset_0_0_0_1px_oklch(0.62_0.22_27_/_0.55)]"
           : "border-border/70 bg-muted",
-        isCompleted && !isActive && "bg-muted/45 text-muted-foreground",
+        isCompleted && !isLive && "bg-muted/45 text-muted-foreground",
         compact && "min-h-20",
       )}
     >
@@ -36,7 +40,11 @@ export function SessionWeatherTile({
           <p
             className={cn(
               "mt-1 truncate text-[0.7rem]",
-              isActive ? "text-primary-foreground/75" : "text-muted-foreground",
+              isLive
+                ? "text-background/75"
+                : isHighlighted
+                  ? "text-muted-foreground"
+                  : "text-muted-foreground",
             )}
           >
             {session.startsAt}
@@ -56,15 +64,19 @@ export function SessionWeatherTile({
           <p
             className={cn(
               "mt-2 text-xs",
-              isActive ? "text-primary-foreground/75" : "text-muted-foreground",
+              isLive
+                ? "text-background/75"
+                : isHighlighted
+                  ? "text-muted-foreground"
+                  : "text-muted-foreground",
             )}
           >
             {getWeatherLabel(session.weather?.precipitationMm)}
           </p>
         </div>
         {showStatusBadge ? (
-          <Badge variant={isActive ? "secondary" : isCompleted ? "outline" : "warning"}>
-            {isActive ? "Сейчас" : isCompleted ? "Завершена" : "Ожидается"}
+          <Badge variant={isLive ? "success" : isCompleted ? "outline" : "warning"}>
+            {isLive ? "Live" : isHighlighted ? "Сейчас" : isCompleted ? "Завершена" : "Ожидается"}
           </Badge>
         ) : null}
       </div>

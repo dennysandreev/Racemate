@@ -51,6 +51,7 @@ export default async function RaceCalendarPage({
   ]);
   const selectedSession = sessions.find((session) => session.id === query.session) ?? sessions[0];
   const results = await getSessionResults(selectedSession?.id);
+  const selectedSessionStatus = results.length ? "Завершена" : selectedSession?.status;
 
   return (
     <AppShell>
@@ -117,8 +118,8 @@ export default async function RaceCalendarPage({
                       {selectedSession.startsAt}
                     </p>
                   </div>
-                  <Badge variant={selectedSession.status === "Завершена" ? "success" : "warning"}>
-                    {selectedSession.status}
+                  <Badge variant={selectedSessionStatus === "Завершена" ? "success" : "warning"}>
+                    {selectedSessionStatus}
                   </Badge>
                 </div>
                 {selectedSession.weather ? (
@@ -149,15 +150,7 @@ export default async function RaceCalendarPage({
                               {result.position ?? "-"}
                             </td>
                             <td className="px-4 py-3 font-medium">
-                              <span className="flex items-center gap-2">
-                                <TeamLogo
-                                  code={result.teamCode}
-                                  color={result.teamColor}
-                                  logo={result.teamLogo}
-                                  name={result.team}
-                                />
-                                <span>{result.driver}</span>
-                              </span>
+                              {result.driver}
                             </td>
                             <td className="px-4 py-3 text-muted-foreground">
                               <span className="flex items-center gap-2">

@@ -25,6 +25,7 @@ export type NextSession = {
   circuit: string;
   session: string;
   startsAt: string;
+  startsAtIso?: string;
   status: string;
 };
 
@@ -151,6 +152,7 @@ export type WeekendSession = {
   type?: string;
   name: string;
   startsAt: string;
+  startsAtIso?: string;
   status: string;
   href?: string;
   weather?: SessionWeather;

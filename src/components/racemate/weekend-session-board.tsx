@@ -53,17 +53,23 @@ export function WeekendSessionBoard({
       <div className="grid gap-2 sm:grid-cols-2">
         {sessions.map((item) => {
           const isRace = item.session.type === "race" || item.session.name === "Гонка";
-          const isActive = item.session.name === activeSessionName;
-          const isCompleted = item.session.status === "Завершена";
+          const sessionStatus = item.results.length ? "Завершена" : item.session.status;
+          const isLive = sessionStatus === "Live";
+          const isCurrentTarget = item.session.name === activeSessionName;
+          const isCompleted = sessionStatus === "Завершена";
+          const isHighlighted = isLive || (isCurrentTarget && !isCompleted);
 
           return (
             <button
               className={cn(
                 "group relative min-h-[4.35rem] rounded-md border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[4.7rem] sm:p-4",
-                isActive
-                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                  : "border-border/70 bg-muted hover:bg-accent",
-                isCompleted && !isActive && "bg-muted/45 text-muted-foreground",
+                isLive
+                  ? "border-success bg-success text-background shadow-sm"
+                  : isHighlighted
+                    ? "border-primary bg-muted text-foreground shadow-[inset_0_0_0_1px_oklch(0.62_0.22_27_/_0.55)]"
+                    : "border-border/70 bg-muted hover:bg-accent",
+                isCompleted && "bg-muted/45 text-muted-foreground",
+                "touch-manipulation",
                 isRace && "sm:col-span-2",
               )}
               key={item.session.id ?? item.session.name}
@@ -83,7 +89,11 @@ export function WeekendSessionBoard({
                   <p
                     className={cn(
                       "mt-1 whitespace-nowrap text-xs",
-                      isActive ? "text-primary-foreground/75" : "text-muted-foreground",
+                      isLive
+                        ? "text-background/75"
+                        : isHighlighted
+                          ? "text-muted-foreground"
+                          : "text-muted-foreground",
                     )}
                   >
                     {item.session.startsAt}
@@ -102,7 +112,11 @@ export function WeekendSessionBoard({
                     <p
                       className={cn(
                         "whitespace-nowrap text-xs",
-                        isActive ? "text-primary-foreground/75" : "text-muted-foreground",
+                        isLive
+                          ? "text-background/75"
+                          : isHighlighted
+                            ? "text-muted-foreground"
+                            : "text-muted-foreground",
                       )}
                     >
                       {getWeatherLabel(item.session.weather?.precipitationMm)}
@@ -110,9 +124,9 @@ export function WeekendSessionBoard({
                   </div>
                   <Badge
                     className="shrink-0"
-                    variant={isActive ? "secondary" : isCompleted ? "outline" : "warning"}
+                    variant={isLive ? "success" : isCompleted ? "outline" : "warning"}
                   >
-                    {isActive ? "Сейчас" : isCompleted ? "Завершена" : "Ожидается"}
+                    {isLive ? "Live" : isCompleted ? "Завершена" : "Ожидается"}
                   </Badge>
                 </div>
               </div>
@@ -133,8 +147,8 @@ export function WeekendSessionBoard({
           }}
           role="dialog"
         >
-          <div className="max-h-[88dvh] w-full max-w-4xl overflow-hidden rounded-lg border border-border bg-card shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-border/70 p-4 sm:p-5">
+          <div className="flex max-h-[88dvh] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-border bg-card shadow-2xl">
+            <div className="shrink-0 flex items-start justify-between gap-4 border-b border-border/70 p-4 sm:p-5">
               <div>
                 <h2 className="text-xl font-semibold" id={titleId}>
                   {selected.session.name}
@@ -154,7 +168,7 @@ export function WeekendSessionBoard({
               </Button>
             </div>
 
-            <div className="grid gap-4 overflow-y-auto p-4 sm:p-5">
+            <div className="grid min-h-0 gap-4 overflow-y-auto p-4 sm:p-5">
               <div className="grid gap-3 rounded-md border border-border/70 bg-muted/50 p-3 text-sm sm:grid-cols-4">
                 <Metric label="Статус" value={selected.session.status} />
                 <Metric label="Температура" value={selected.session.weather?.temperature ?? "Нет данных"} />
@@ -185,15 +199,7 @@ export function WeekendSessionBoard({
                             {result.position ?? "-"}
                           </td>
                           <td className="px-4 py-3 font-medium">
-                            <span className="flex items-center gap-2">
-                              <TeamLogo
-                                code={result.teamCode}
-                                color={result.teamColor}
-                                logo={result.teamLogo}
-                                name={result.team}
-                              />
-                              <span>{result.driver}</span>
-                            </span>
+                            {result.driver}
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">
                             <span className="flex items-center gap-2">

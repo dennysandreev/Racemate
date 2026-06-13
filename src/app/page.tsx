@@ -99,7 +99,9 @@ function CurrentRaceCard({
   return (
     <div className="flex h-full flex-col rounded-lg border border-border bg-card p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="warning">{nextSession.status}</Badge>
+        <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
+          {nextSession.status}
+        </Badge>
         <Badge variant="outline">Сезон 2026</Badge>
       </div>
 

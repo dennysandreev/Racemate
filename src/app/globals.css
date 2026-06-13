@@ -43,6 +43,7 @@
   --success: oklch(0.7 0.19 150);
   --warning: oklch(0.78 0.16 78);
   --danger: oklch(0.61 0.22 27);
+  --racemate-css-revision: 20260613;
 }
 
 * {
@@ -85,4 +86,3 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
-

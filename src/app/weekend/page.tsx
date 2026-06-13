@@ -66,7 +66,9 @@ export default async function WeekendPage() {
           <CardContent className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
             <div className="grid min-w-0 gap-4">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="warning">{nextSession.status}</Badge>
+                <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
+                  {nextSession.status}
+                </Badge>
                 <Badge variant="outline">Сезон {currentRace?.season ?? 2026}</Badge>
               </div>
               <div>
@@ -256,7 +258,7 @@ function FantasyPredictionCard({
           </p>
         )}
         <Button asChild className="w-full" variant={current ? "secondary" : "default"}>
-          <Link href={userSignedIn ? "/predictions" : "/auth"}>
+          <Link href={userSignedIn ? "/fantasy" : "/auth"}>
             {userSignedIn
               ? current
                 ? "Изменить прогноз"

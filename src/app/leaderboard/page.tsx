@@ -122,7 +122,7 @@ export default async function LeaderboardPage({
                         </td>
                         {drivers.rounds.map((round) => (
                           <td className="whitespace-nowrap px-3 py-3 text-right font-mono" key={round.round}>
-                            {row.pointsByRound[round.round] || "—"}
+                            {row.pointsByRound[round.round] ?? "—"}
                           </td>
                         ))}
                       </tr>
@@ -175,7 +175,7 @@ export default async function LeaderboardPage({
                         </td>
                         {constructors.rounds.map((round) => (
                           <td className="whitespace-nowrap px-3 py-3 text-right font-mono" key={round.round}>
-                            {row.pointsByRound?.[round.round] || "—"}
+                            {row.pointsByRound?.[round.round] ?? "—"}
                           </td>
                         ))}
                       </tr>

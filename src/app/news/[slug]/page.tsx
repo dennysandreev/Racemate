@@ -55,14 +55,15 @@ export default async function NewsArticlePage({
               </Link>
             ) : null}
           </div>
-          <p className="mt-5 max-w-[72ch] text-base leading-7 text-muted-foreground">
-            {article.summary}
-          </p>
           {article.details ? (
-            <p className="mt-5 max-w-[72ch] text-sm leading-7 text-muted-foreground">
+            <p className="mt-5 max-w-[72ch] text-base leading-7 text-muted-foreground">
               {article.details}
             </p>
-          ) : null}
+          ) : (
+            <p className="mt-5 max-w-[72ch] text-base leading-7 text-muted-foreground">
+              {article.summary}
+            </p>
+          )}
           {article.keyPoints?.length ? (
             <div className="mt-6 grid gap-2">
               {article.keyPoints.map((point) => (

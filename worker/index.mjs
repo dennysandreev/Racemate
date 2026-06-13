@@ -227,7 +227,7 @@ async function processNewsWithAi() {
             {
               role: "system",
               content:
-                "Ты редактор RaceMate для русскоязычных фанатов Формулы-1. Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, race_round, race_confidence. summary_ru — 2-3 предложения. details_ru — 4-6 спокойных предложений без выдуманных фактов. key_points_ru — массив из 3 коротких пунктов. race_round — номер этапа из списка или null.",
+                "Ты редактор RaceMate для русскоязычных фанатов Формулы-1. Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, race_round, race_confidence. summary_ru — короткий лид на 1-2 предложения. details_ru — 5-8 спокойных предложений, которые раскрывают контекст, последствия для пилотов/команд/этапа и не повторяют summary_ru другими словами. Не выдумывай факты. key_points_ru — массив из 3 коротких пунктов. race_round — номер этапа из списка или null.",
             },
             {
               role: "user",

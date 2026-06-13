@@ -132,6 +132,25 @@ type SessionResultDbRow = {
   teams: TeamRelationObject | TeamRelationObject[] | null;
 };
 
+type RaceRoundDbRow = {
+  id: string;
+  round: number;
+};
+
+type SessionRoundDbRow = {
+  id: string;
+  race_id: string;
+  session_type: string;
+};
+
+type SessionResultPointsDbRow = {
+  session_id: string;
+  driver_id: string | null;
+  position: number | null;
+  team_id: string | null;
+  points: number | string | null;
+};
+
 type RaceWinnerDbRow = {
   drivers: { full_name: string } | { full_name: string }[] | null;
   sessions:
@@ -388,8 +407,10 @@ export async function getNextSession(): Promise<NextSession> {
   const race = await getCurrentRace();
   const sessions = race ? await getWeekendSessions(race.id) : await getWeekendSessions();
   const first =
+    sessions.find((session) => session.status === "Live") ??
     sessions.find((session) => session.status === "Ожидается") ??
     sessions.find((session) => session.status !== "Завершена") ??
+    sessions.at(-1) ??
     sessions[0];
 
   if (!first) {
@@ -402,7 +423,8 @@ export async function getNextSession(): Promise<NextSession> {
     circuit: getRelationName(race?.circuits ?? null, nextSession.circuit),
     session: first.name,
     startsAt: first.startsAt,
-    status: first.status === "Ожидается" ? nextSession.status : first.status,
+    startsAtIso: first.startsAtIso,
+    status: getWeekendRuntimeStatus(sessions),
   };
 }
 
@@ -464,7 +486,13 @@ export async function getWeekendSessions(raceId?: string): Promise<WeekendSessio
     type: session.session_type,
     name: session.name,
     startsAt: formatDateTime(session.start_at),
-    status: mapSessionStatus(session.status),
+    startsAtIso: session.start_at ?? undefined,
+    status: getRuntimeSessionStatus({
+      rawStatus: session.status,
+      sessionName: session.name,
+      sessionType: session.session_type,
+      startsAt: session.start_at,
+    }),
   }));
   const weatherBySession = await getSessionWeatherByIds(
     sessions.map((session) => session.id).filter(Boolean) as string[],
@@ -579,13 +607,14 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     };
   }
 
-  const latestRound = latest.round;
+  const roundPointTotals = await getChampionshipRoundPointTotals(latest.season_year);
+  const standingsLatestRound = latest.round;
 
   const { data, error } = await supabase
     .from("driver_standings")
     .select("driver_id, team_id, round, position, points, drivers(full_name), teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
-    .lte("round", latestRound)
+    .lte("round", standingsLatestRound)
     .order("round", { ascending: true })
     .order("position", { ascending: true, nullsFirst: false });
 
@@ -596,6 +625,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
   const rowsByDriver = new Map<
     string,
     {
+      driverId: string;
       driver: string;
       team: string;
       teamCode?: string;
@@ -614,6 +644,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
 
     const teamVisual = getTeamVisualFields(row.teams, "Команда уточняется");
     const existing = rowsByDriver.get(row.driver_id) ?? {
+      driverId: row.driver_id,
       driver: getRelationName(row.drivers, "Пилот уточняется"),
       team: teamVisual.team,
       teamCode: teamVisual.teamCode,
@@ -626,7 +657,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
 
     existing.cumulative.set(row.round, Number(row.points));
 
-    if (row.round === latestRound) {
+    if (row.round === standingsLatestRound) {
       existing.latestPosition = row.position ?? existing.latestPosition;
       existing.total = Number(row.points);
       existing.team = teamVisual.team;
@@ -638,20 +669,35 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     rowsByDriver.set(row.driver_id, existing);
   });
 
-  const rounds = await getRaceRoundVisuals(latest.season_year, latestRound);
+  const rounds = await getRaceRoundVisualsForRounds(latest.season_year, [
+    ...roundPointTotals.scoredRounds,
+    ...getCumulativeScoredRounds(
+      [...rowsByDriver.values()].map((row) => row.cumulative),
+      standingsLatestRound,
+    ),
+  ]);
   const roundNumbers = rounds.map((round) => round.round);
   const rows = [...rowsByDriver.values()]
-    .filter((row) => row.cumulative.has(latestRound))
+    .filter((row) => row.cumulative.has(standingsLatestRound))
     .sort((a, b) => a.latestPosition - b.latestPosition)
     .map((row) => {
       const pointsByRound: Record<number, number> = {};
-      let previous = 0;
+      const resultPoints = roundPointTotals.driverPoints.get(row.driverId);
+      let displayedTotal = 0;
 
       roundNumbers.forEach((round) => {
-        const current = row.cumulative.get(round) ?? previous;
-        pointsByRound[round] = Math.max(0, current - previous);
-        previous = current;
+        const points = resultPoints?.has(round)
+          ? (resultPoints.get(round) ?? 0)
+          : getCumulativeRoundPointsAfterDisplayedTotal(
+              row.cumulative,
+              round,
+              displayedTotal,
+            );
+
+        pointsByRound[round] = points;
+        displayedTotal += points;
       });
+      const totalFromResults = sumRoundPoints(pointsByRound);
 
       return {
         position: row.latestPosition,
@@ -660,7 +706,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
         teamCode: row.teamCode,
         teamLogo: row.teamLogo,
         teamColor: row.teamColor,
-        total: row.total,
+        total: Math.max(row.total, totalFromResults),
         pointsByRound,
       };
     });
@@ -720,13 +766,14 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
     return { rounds: [], rows };
   }
 
-  const latestRound = latest.round;
+  const roundPointTotals = await getChampionshipRoundPointTotals(latest.season_year);
+  const standingsLatestRound = latest.round;
 
   const { data, error } = await supabase
     .from("constructor_standings")
     .select("team_id, round, position, points, wins, teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
-    .lte("round", latestRound)
+    .lte("round", standingsLatestRound)
     .order("round", { ascending: true })
     .order("position", { ascending: true, nullsFirst: false });
 
@@ -737,6 +784,7 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
   const rowsByTeam = new Map<
     string,
     {
+      teamId: string;
       team: string;
       teamCode?: string;
       teamLogo?: string;
@@ -755,6 +803,7 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
 
     const teamVisual = getTeamVisualFields(row.teams, "Команда уточняется");
     const existing = rowsByTeam.get(row.team_id) ?? {
+      teamId: row.team_id,
       team: teamVisual.team,
       teamCode: teamVisual.teamCode,
       teamLogo: teamVisual.teamLogo,
@@ -767,7 +816,7 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
 
     existing.cumulative.set(row.round, Number(row.points));
 
-    if (row.round === latestRound) {
+    if (row.round === standingsLatestRound) {
       existing.latestPosition = row.position ?? existing.latestPosition;
       existing.total = Number(row.points);
       existing.wins = row.wins ?? existing.wins;
@@ -780,20 +829,35 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
     rowsByTeam.set(row.team_id, existing);
   });
 
-  const rounds = await getRaceRoundVisuals(latest.season_year, latestRound);
+  const rounds = await getRaceRoundVisualsForRounds(latest.season_year, [
+    ...roundPointTotals.scoredRounds,
+    ...getCumulativeScoredRounds(
+      [...rowsByTeam.values()].map((row) => row.cumulative),
+      standingsLatestRound,
+    ),
+  ]);
   const roundNumbers = rounds.map((round) => round.round);
   const rows = [...rowsByTeam.values()]
-    .filter((row) => row.cumulative.has(latestRound))
+    .filter((row) => row.cumulative.has(standingsLatestRound))
     .sort((a, b) => a.latestPosition - b.latestPosition)
     .map((row) => {
       const pointsByRound: Record<number, number> = {};
-      let previous = 0;
+      const resultPoints = roundPointTotals.constructorPoints.get(row.teamId);
+      let displayedTotal = 0;
 
       roundNumbers.forEach((round) => {
-        const current = row.cumulative.get(round) ?? previous;
-        pointsByRound[round] = Math.max(0, current - previous);
-        previous = current;
+        const points = resultPoints?.has(round)
+          ? (resultPoints.get(round) ?? 0)
+          : getCumulativeRoundPointsAfterDisplayedTotal(
+              row.cumulative,
+              round,
+              displayedTotal,
+            );
+
+        pointsByRound[round] = points;
+        displayedTotal += points;
       });
+      const totalFromResults = sumRoundPoints(pointsByRound);
 
       return {
         position: row.latestPosition,
@@ -801,7 +865,7 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
         teamCode: row.teamCode,
         teamLogo: row.teamLogo,
         teamColor: row.teamColor,
-        points: row.total,
+        points: Math.max(row.total, totalFromResults),
         wins: row.wins,
         pointsByRound,
       };
@@ -848,6 +912,43 @@ export async function getRaceRoundVisuals(season: number, latestRound: number) {
       round: index + 1,
       flag: "🏁",
       raceName: `Раунд ${index + 1}`,
+    }));
+  }
+
+  return (data as unknown as RaceRoundVisualDbRow[]).map((race) => {
+    const circuit = getRelationObject(race.circuits);
+    const country = circuit?.country ?? "";
+
+    return {
+      round: race.round,
+      flag: getCountryFlag(country),
+      raceName: race.race_name,
+    };
+  });
+}
+
+async function getRaceRoundVisualsForRounds(season: number, rounds: number[]) {
+  const uniqueRounds = [...new Set(rounds)]
+    .filter((round) => Number.isFinite(round) && round > 0)
+    .sort((a, b) => a - b);
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase || !uniqueRounds.length) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("races")
+    .select("round, race_name, circuits(country)")
+    .eq("season_year", season)
+    .in("round", uniqueRounds)
+    .order("round", { ascending: true });
+
+  if (error || !data?.length) {
+    return uniqueRounds.map((round) => ({
+      round,
+      flag: "🏁",
+      raceName: `Раунд ${round}`,
     }));
   }
 
@@ -1447,6 +1548,7 @@ function mapArticleRow(row: ArticleRow): NewsItem {
     row.ai_summary_ru ??
     row.original_description ??
     "Короткое саммари появится после обработки новости.";
+  const details = normalizeArticleDetails(row.ai_summary_long_ru, summary);
   const race = row.races;
   const raceTag = race ? `${race.race_name}, ${race.season_year}` : undefined;
   const tags = getArticleTags(row.news_article_tags);
@@ -1459,7 +1561,7 @@ function mapArticleRow(row: ArticleRow): NewsItem {
     source: getRelationName(row.news_sources, "Источник"),
     title,
     summary,
-    details: row.ai_summary_long_ru ?? summary,
+    details,
     keyPoints: row.ai_key_points_ru ?? [],
     tags,
     raceTag,
@@ -1524,6 +1626,201 @@ async function getSessionWeatherByIds(sessionIds: string[]) {
   });
 
   return weatherBySession;
+}
+
+async function getChampionshipRoundPointTotals(season: number) {
+  const empty = {
+    constructorPoints: new Map<string, Map<number, number>>(),
+    driverPoints: new Map<string, Map<number, number>>(),
+    scoredRounds: [] as number[],
+  };
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return empty;
+  }
+
+  const { data: raceData, error: raceError } = await supabase
+    .from("races")
+    .select("id, round")
+    .eq("season_year", season)
+    .order("round", { ascending: true });
+
+  if (raceError || !raceData?.length) {
+    return empty;
+  }
+
+  const races = raceData as RaceRoundDbRow[];
+  const roundByRaceId = new Map(races.map((race) => [race.id, race.round]));
+  const { data: sessionData, error: sessionError } = await supabase
+    .from("sessions")
+    .select("id, race_id, session_type")
+    .in("race_id", races.map((race) => race.id))
+    .order("start_at", { ascending: true, nullsFirst: false });
+
+  if (sessionError || !sessionData?.length) {
+    return empty;
+  }
+
+  const sessions = sessionData as SessionRoundDbRow[];
+  const sessionMetaById = new Map(
+    sessions.map((session) => [
+      session.id,
+      {
+        round: roundByRaceId.get(session.race_id),
+        type: session.session_type,
+      },
+    ]),
+  );
+  const { data: resultData, error: resultError } = await supabase
+    .from("session_results")
+    .select("session_id, driver_id, position, team_id, points")
+    .in("session_id", sessions.map((session) => session.id));
+
+  if (resultError || !resultData?.length) {
+    return empty;
+  }
+
+  const driverPoints = new Map<string, Map<number, number>>();
+  const constructorPoints = new Map<string, Map<number, number>>();
+  const scoredRounds = new Set<number>();
+
+  (resultData as unknown as SessionResultPointsDbRow[]).forEach((result) => {
+    const session = sessionMetaById.get(result.session_id);
+
+    if (!session?.round) {
+      return;
+    }
+
+    if (result.points === null || result.points === undefined) {
+      return;
+    }
+
+    const points = getRoundResultPoints(result.points, session.type, result.position);
+
+    if (points === null) {
+      return;
+    }
+
+    scoredRounds.add(session.round);
+
+    if (result.driver_id) {
+      addRoundPoints(driverPoints, result.driver_id, session.round, points);
+    }
+
+    if (result.team_id) {
+      addRoundPoints(constructorPoints, result.team_id, session.round, points);
+    }
+  });
+
+  return {
+    constructorPoints,
+    driverPoints,
+    scoredRounds: [...scoredRounds].sort((a, b) => a - b),
+  };
+}
+
+function addRoundPoints(
+  totals: Map<string, Map<number, number>>,
+  key: string,
+  round: number,
+  points: number,
+) {
+  const byRound = totals.get(key) ?? new Map<number, number>();
+
+  byRound.set(round, (byRound.get(round) ?? 0) + points);
+  totals.set(key, byRound);
+}
+
+function sumRoundPoints(pointsByRound: Record<number, number>) {
+  return Object.values(pointsByRound).reduce((sum, points) => sum + points, 0);
+}
+
+function getCumulativeScoredRounds(
+  cumulativeRows: Map<number, number>[],
+  latestRound: number,
+) {
+  const scoredRounds = new Set<number>();
+
+  for (let round = 1; round <= latestRound; round += 1) {
+    const hasRoundPoints = cumulativeRows.some(
+      (cumulative) => getCumulativeRoundPoints(cumulative, round) > 0,
+    );
+
+    if (hasRoundPoints) {
+      scoredRounds.add(round);
+    }
+  }
+
+  return [...scoredRounds].sort((a, b) => a - b);
+}
+
+function getCumulativeRoundPoints(cumulative: Map<number, number>, round: number) {
+  const total = cumulative.get(round);
+
+  if (total === undefined) {
+    return 0;
+  }
+
+  const previousRound = [...cumulative.keys()]
+    .filter((candidate) => candidate < round)
+    .sort((a, b) => b - a)[0];
+  const previousTotal = previousRound ? cumulative.get(previousRound) ?? 0 : 0;
+  const points = total - previousTotal;
+
+  return points > 0 ? Number(points.toFixed(2)) : 0;
+}
+
+function getCumulativeRoundPointsAfterDisplayedTotal(
+  cumulative: Map<number, number>,
+  round: number,
+  displayedTotal: number,
+) {
+  const total = cumulative.get(round);
+
+  if (total === undefined) {
+    return 0;
+  }
+
+  const points = total - displayedTotal;
+
+  return points > 0 ? Number(points.toFixed(2)) : 0;
+}
+
+function getRoundResultPoints(
+  rawPoints: number | string | null,
+  sessionType: string,
+  position: number | null,
+) {
+  const normalizedType = sessionType.toLowerCase();
+  const points = rawPoints === null || rawPoints === undefined ? null : Number(rawPoints);
+  const maxExpectedPoints = normalizedType === "sprint" ? 8 : normalizedType === "race" ? 25 : 0;
+
+  if (points !== null && Number.isFinite(points) && points <= maxExpectedPoints) {
+    return points;
+  }
+
+  if (normalizedType === "sprint") {
+    return getSprintPointsByPosition(position);
+  }
+
+  if (normalizedType === "race") {
+    return getRacePointsByPosition(position);
+  }
+
+  return null;
+}
+
+function getRacePointsByPosition(position: number | null) {
+  const pointsByPosition = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+
+  return position && position > 0 ? pointsByPosition[position - 1] ?? 0 : 0;
+}
+
+function getSprintPointsByPosition(position: number | null) {
+  const pointsByPosition = [8, 7, 6, 5, 4, 3, 2, 1];
+
+  return position && position > 0 ? pointsByPosition[position - 1] ?? 0 : 0;
 }
 
 async function getLatestCompleteStandingRound(
@@ -2288,6 +2585,25 @@ function normalizeTagKey(value: string) {
   return slugify(value.replace(/,\s*\d{4}/, ""));
 }
 
+function normalizeArticleDetails(details: string | null, summary: string) {
+  const normalizedDetails = details?.trim();
+
+  if (!normalizedDetails) {
+    return undefined;
+  }
+
+  const normalizedSummary = summary.trim();
+
+  if (
+    normalizedDetails === normalizedSummary ||
+    normalizedDetails.toLowerCase() === normalizedSummary.toLowerCase()
+  ) {
+    return undefined;
+  }
+
+  return normalizedDetails;
+}
+
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -2376,6 +2692,118 @@ function mapSessionStatus(status: string) {
   }
 
   return status;
+}
+
+function getRuntimeSessionStatus({
+  hasResults = false,
+  rawStatus,
+  sessionName,
+  sessionType,
+  startsAt,
+}: {
+  hasResults?: boolean;
+  rawStatus: string;
+  sessionName: string;
+  sessionType?: string | null;
+  startsAt: string | null;
+}) {
+  if (hasResults || rawStatus === "completed") {
+    return "Завершена";
+  }
+
+  const startMs = getTimeMs(startsAt);
+
+  if (!startMs) {
+    return mapSessionStatus(rawStatus);
+  }
+
+  const now = Date.now();
+  const endMs = startMs + getSessionDurationMs(sessionType, sessionName);
+
+  if (now >= startMs && now < endMs) {
+    return "Live";
+  }
+
+  if (now >= endMs) {
+    return "Завершена";
+  }
+
+  return "Ожидается";
+}
+
+function getWeekendRuntimeStatus(sessions: WeekendSession[]) {
+  const starts = sessions
+    .map((session) => getTimeMs(session.startsAtIso ?? null))
+    .filter((value): value is number => Boolean(value))
+    .sort((a, b) => a - b);
+
+  if (!starts.length) {
+    return nextSession.status;
+  }
+
+  const raceSession = [...sessions]
+    .reverse()
+    .find((session) => session.type === "race" || session.name.toLowerCase().includes("гонка"));
+  const firstStart = starts[0];
+  const raceEnd =
+    getTimeMs(raceSession?.startsAtIso ?? null) !== null
+      ? (getTimeMs(raceSession?.startsAtIso ?? null) ?? 0) +
+        getSessionDurationMs(raceSession?.type, raceSession?.name ?? "")
+      : starts.at(-1)! + 3 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  if (now >= firstStart && now < raceEnd) {
+    return "Live";
+  }
+
+  if (now >= raceEnd) {
+    return "Завершен";
+  }
+
+  return formatCountdownTo(firstStart);
+}
+
+function getSessionDurationMs(sessionType?: string | null, sessionName = "") {
+  const normalizedType = (sessionType ?? "").toLowerCase();
+  const normalizedName = sessionName.toLowerCase();
+
+  if (normalizedType === "race" || normalizedName.includes("гонка")) {
+    return 3 * 60 * 60 * 1000;
+  }
+
+  if (normalizedType === "sprint" || normalizedName.includes("спринт")) {
+    return 75 * 60 * 1000;
+  }
+
+  return 90 * 60 * 1000;
+}
+
+function getTimeMs(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const time = new Date(value).getTime();
+
+  return Number.isFinite(time) ? time : null;
+}
+
+function formatCountdownTo(startMs: number) {
+  const diffMs = Math.max(0, startMs - Date.now());
+  const totalMinutes = Math.ceil(diffMs / (60 * 1000));
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes - days * 24 * 60) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) {
+    return `До старта ${days} дн. ${hours} ч`;
+  }
+
+  if (hours > 0) {
+    return `До старта ${hours} ч ${minutes} мин`;
+  }
+
+  return `До старта ${Math.max(1, minutes)} мин`;
 }
 
 function isPast(value: string | null) {
