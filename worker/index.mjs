@@ -270,12 +270,20 @@ async function fetchSocialSources({ platform } = {}) {
           "user-agent": "RaceMate/1.0 by racemate.ru",
         },
       });
+      const xml = await response.text();
+
+      logSocialFeedDiagnostics({
+        contentType: response.headers.get("content-type"),
+        feedUrl,
+        source,
+        status: `${response.status} ${response.statusText}`.trim(),
+        xml,
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status} ${response.statusText}`);
       }
 
-      const xml = await response.text();
       const items = parseFeedItems(xml).slice(0, Number(process.env.SOCIAL_MAX_POSTS_PER_SOURCE ?? 30));
 
       for (const [index, item] of items.entries()) {
@@ -340,6 +348,40 @@ function getSocialFeedUrl(source) {
   }
 
   throw new Error(`Unsupported social adapter: ${source.adapter}`);
+}
+
+function logSocialFeedDiagnostics({ contentType, feedUrl, source, status, xml }) {
+  const items = getFeedItemBlocks(xml);
+
+  console.log(
+    JSON.stringify({
+      event: "social.feed.fetch",
+      source: source.name,
+      platform: source.platform,
+      url: sanitizeDiagnosticText(feedUrl),
+      status,
+      contentType,
+      itemCount: items.length,
+      items: items.map((item, index) => ({
+        index,
+        guid: sanitizeDiagnosticText(cleanXml(readTag(item, "guid") || readTag(item, "id"))),
+        link: sanitizeDiagnosticText(cleanXml(readLinkHref(item) || readTag(item, "link"))),
+        hasExtendedMediaUrl: extractFeedImage(item) !== null,
+        imageUrl: sanitizeDiagnosticText(extractFeedImage(item)),
+      })),
+      rawRssPreview: sanitizeDiagnosticText(xml).slice(0, 1000),
+    }),
+  );
+}
+
+function getFeedItemBlocks(xml) {
+  const rssItems = [...xml.matchAll(/<item\b[\s\S]*?<\/item>/gi)].map((match) => match[0]);
+
+  if (rssItems.length) {
+    return rssItems;
+  }
+
+  return [...xml.matchAll(/<entry\b[\s\S]*?<\/entry>/gi)].map((match) => match[0]);
 }
 
 function getXAccountsFromEnv() {
@@ -2051,16 +2093,45 @@ function extractFeedImage(xml) {
     xml.match(/<enclosure\b[^>]*url=["']([^"']+)["'][^>]*(?:type=["']image\/[^"']+["'])[^>]*\/?>/i)?.[1] ??
     xml.match(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1] ??
     decoded.match(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1] ??
-    decoded.match(/https?:\/\/pbs\.twimg\.com\/media\/[^\s"'<>]+/i)?.[0];
+    extractFeedImageUrl(decoded);
 
   return media ? normalizeFeedImageUrl(decodeXml(media.trim())) : null;
+}
+
+function extractFeedImageUrl(value) {
+  const imageUrls = [
+    ...String(value ?? "").matchAll(/https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|gif|webp)(?:\?[^\s"'<>]+)?/gi),
+    ...String(value ?? "").matchAll(/https?:\/\/pbs\.twimg\.com\/(?:media|ext_tw_video_thumb)\/[^\s"'<>]+/gi),
+    ...String(value ?? "").matchAll(/https?:\/\/video\.twimg\.com\/[^\s"'<>]+/gi),
+  ].map((match) => match[0]);
+
+  return imageUrls.find(isLikelyFeedImageUrl) ?? null;
+}
+
+function isLikelyFeedImageUrl(value) {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+
+    return (
+      (host === "pbs.twimg.com" &&
+        (url.pathname.startsWith("/media/") || url.pathname.startsWith("/ext_tw_video_thumb/"))) ||
+      (host === "video.twimg.com" && /\.(jpe?g|png|webp)$/i.test(url.pathname)) ||
+      /\.(jpe?g|png|gif|webp)$/i.test(url.pathname)
+    );
+  } catch {
+    return false;
+  }
 }
 
 function normalizeFeedImageUrl(value) {
   try {
     const url = new URL(value);
 
-    if (url.hostname === "pbs.twimg.com" && url.pathname.startsWith("/media/")) {
+    if (
+      url.hostname === "pbs.twimg.com" &&
+      (url.pathname.startsWith("/media/") || url.pathname.startsWith("/ext_tw_video_thumb/"))
+    ) {
       const format = url.searchParams.get("format") ?? url.pathname.match(/\.(jpe?g|png|gif|webp)$/i)?.[1];
 
       if (format) {
@@ -2074,6 +2145,14 @@ function normalizeFeedImageUrl(value) {
   } catch {
     return value;
   }
+}
+
+function sanitizeDiagnosticText(value) {
+  return String(value ?? "")
+    .replace(/(auth_token=)[^;&\s"']+/gi, "$1[redacted]")
+    .replace(/(ct0=)[^;&\s"']+/gi, "$1[redacted]")
+    .replace(/(authorization:\s*bearer\s+)[^;&\s"']+/gi, "$1[redacted]")
+    .replace(/(TWITTER_AUTH_TOKEN=)[^;&\s"']+/gi, "$1[redacted]");
 }
 
 function parseReactionCount(xml) {
