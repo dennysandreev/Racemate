@@ -274,7 +274,7 @@ async function fetchSocialSources({ platform } = {}) {
       const response = await fetch(feedUrl, {
         headers: {
           accept: "application/rss+xml, application/atom+xml, text/xml;q=0.9, */*;q=0.8",
-          "user-agent": "RaceMate/0.1 (+https://racemate.local)",
+          "user-agent": "RaceMate/1.0 by racemate.ru",
         },
       });
 
