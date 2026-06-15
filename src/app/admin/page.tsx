@@ -1,6 +1,11 @@
 import { Bot, Database, Play } from "lucide-react";
 
-import { toggleSource, triggerJob } from "@/app/admin/actions";
+import {
+  addManualXPost,
+  toggleSocialSource,
+  toggleSource,
+  triggerJob,
+} from "@/app/admin/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
 import { PageHeading } from "@/components/racemate/page-heading";
@@ -15,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import {
   getAdminSources,
+  getAdminSocialSources,
   getAdminJobs,
   getAdminSignals,
   getAiUsageSummary,
@@ -28,10 +34,11 @@ export default async function AdminPage({
 }) {
   const status = await searchParams;
   const user = await getSessionUser();
-  const [adminJobs, adminSignals, adminSources, aiUsage] = await Promise.all([
+  const [adminJobs, adminSignals, adminSources, adminSocialSources, aiUsage] = await Promise.all([
     getAdminJobs(),
     getAdminSignals(),
     getAdminSources(),
+    getAdminSocialSources(),
     getAiUsageSummary(),
   ]);
 
@@ -95,6 +102,7 @@ export default async function AdminPage({
                 name="jobName"
               >
                 <option value="rss.fetch_all">RSS</option>
+                <option value="social.fetch_all">Соцлента</option>
                 <option value="ai.process_news">AI новости</option>
                 <option value="ai.retag_news">Теги этапов</option>
                 <option value="ai.generate_daily_digest">Сводка дня</option>
@@ -160,6 +168,87 @@ export default async function AdminPage({
                   {source.isActive ? "Активен" : "На паузе"}
                 </Badge>
                 <form action={toggleSource}>
+                  <input name="sourceId" type="hidden" value={source.id} />
+                  <input name="isActive" type="hidden" value={String(source.isActive)} />
+                  <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                    {source.isActive ? "Пауза" : "Включить"}
+                  </Button>
+                </form>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Соцлента</CardTitle>
+            <CardDescription>
+              Reddit обновляется через RSS, X — через RSSHub или ручные ссылки.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-5">
+            <form action={addManualXPost} className="grid gap-3 rounded-md border border-border/70 p-4">
+              <div>
+                <p className="text-sm font-medium">Добавить X-пост вручную</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Резервный путь, если бесплатный X-источник временно не работает.
+                </p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-[1fr_0.6fr]">
+                <input
+                  className="min-h-10 rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                  name="url"
+                  placeholder="https://x.com/user/status/..."
+                  required
+                  type="url"
+                />
+                <input
+                  className="min-h-10 rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                  name="author"
+                  placeholder="@author"
+                  type="text"
+                />
+              </div>
+              <div className="grid gap-3 md:grid-cols-[1fr_0.8fr_auto]">
+                <input
+                  className="min-h-10 rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                  name="title"
+                  placeholder="Короткий текст поста"
+                  type="text"
+                />
+                <input
+                  className="min-h-10 rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                  name="imageUrl"
+                  placeholder="Ссылка на изображение"
+                  type="url"
+                />
+                <Button disabled={!user} type="submit" variant="secondary">
+                  Добавить
+                </Button>
+              </div>
+            </form>
+
+            {adminSocialSources.map((source) => (
+              <div
+                className="grid gap-3 rounded-md border border-border/70 p-4 md:grid-cols-[1fr_auto_auto]"
+                key={source.id}
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={source.platform === "x" ? "outline" : "secondary"}>
+                      {source.platform === "x" ? "X" : "Reddit"}
+                    </Badge>
+                    <p className="truncate text-sm font-medium">{source.name}</p>
+                  </div>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                    {source.adapter} · {source.url}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">{source.lastStatus}</p>
+                </div>
+                <Badge variant={source.isActive ? "success" : "secondary"}>
+                  {source.isActive ? "Активен" : "На паузе"}
+                </Badge>
+                <form action={toggleSocialSource}>
                   <input name="sourceId" type="hidden" value={source.id} />
                   <input name="isActive" type="hidden" value={String(source.isActive)} />
                   <Button disabled={!user} size="sm" type="submit" variant="secondary">

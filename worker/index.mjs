@@ -6,6 +6,9 @@ loadEnvFiles([".env", ".env.local"]);
 
 const commands = new Map([
   ["rss.fetch_all", fetchAllRss],
+  ["social.fetch_all", fetchAllSocial],
+  ["social.fetch_reddit", fetchRedditSocial],
+  ["social.fetch_x", fetchXSocial],
   ["ai.process_news", processNewsWithAi],
   ["ai.retag_news", retagNewsWithAi],
   ["ai.generate_daily_digest", generateDailyDigest],
@@ -182,6 +185,308 @@ async function fetchAllRss() {
   }
 
   return { itemsProcessed };
+}
+
+async function fetchAllSocial() {
+  await ensureSocialSources();
+  return fetchSocialSources();
+}
+
+async function fetchRedditSocial() {
+  await ensureSocialSources({ platform: "reddit" });
+  return fetchSocialSources({ platform: "reddit" });
+}
+
+async function fetchXSocial() {
+  await ensureSocialSources({ platform: "x" });
+  return fetchSocialSources({ platform: "x" });
+}
+
+async function ensureSocialSources({ platform } = {}) {
+  const defaults = [];
+
+  if (!platform || platform === "reddit") {
+    defaults.push(
+      {
+        platform: "reddit",
+        name: "r/formuladank · новые",
+        source_type: "rss",
+        url: "https://www.reddit.com/r/formuladank/new/.rss",
+        adapter: "reddit-rss",
+        feed_kind: "new",
+        fetch_interval_minutes: 15,
+      },
+      {
+        platform: "reddit",
+        name: "r/formuladank · популярное",
+        source_type: "rss",
+        url: "https://www.reddit.com/r/formuladank/hot/.rss",
+        adapter: "reddit-rss",
+        feed_kind: "hot",
+        fetch_interval_minutes: 15,
+      },
+    );
+  }
+
+  if (!platform || platform === "x") {
+    for (const account of getXAccountsFromEnv()) {
+      const handle = getXHandle(account);
+
+      if (!handle) {
+        continue;
+      }
+
+      defaults.push({
+        platform: "x",
+        name: `X · @${handle}`,
+        source_type: "rss",
+        url: `https://x.com/${handle}`,
+        adapter: "rsshub-x-user",
+        feed_kind: "user",
+        fetch_interval_minutes: 15,
+      });
+    }
+  }
+
+  if (!defaults.length) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("social_sources")
+    .upsert(defaults, { onConflict: "platform,url" });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function fetchSocialSources({ platform } = {}) {
+  let query = supabase
+    .from("social_sources")
+    .select("id, platform, name, url, adapter, feed_kind")
+    .eq("is_active", true);
+
+  if (platform) {
+    query = query.eq("platform", platform);
+  }
+
+  const { data: sources, error } = await query.order("platform").order("name");
+
+  if (error) {
+    throw error;
+  }
+
+  let itemsProcessed = 0;
+
+  for (const source of sources ?? []) {
+    try {
+      const feedUrl = getSocialFeedUrl(source);
+      const response = await fetch(feedUrl, {
+        headers: {
+          accept: "application/rss+xml, application/atom+xml, text/xml;q=0.9, */*;q=0.8",
+          "user-agent": "RaceMate/0.1 (+https://racemate.local)",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText}`);
+      }
+
+      const xml = await response.text();
+      const items = parseFeedItems(xml).slice(0, Number(process.env.SOCIAL_MAX_POSTS_PER_SOURCE ?? 30));
+
+      for (const [index, item] of items.entries()) {
+        const post = mapSocialFeedItem(source, item, index);
+
+        if (!post) {
+          continue;
+        }
+
+        const saved = await upsertSocialPost(post);
+
+        if (saved) {
+          itemsProcessed += 1;
+        }
+      }
+
+      await supabase
+        .from("social_sources")
+        .update({
+          last_fetched_at: new Date().toISOString(),
+          last_success_at: new Date().toISOString(),
+          last_error: null,
+        })
+        .eq("id", source.id);
+    } catch (sourceError) {
+      await supabase
+        .from("social_sources")
+        .update({
+          last_fetched_at: new Date().toISOString(),
+          last_error: sourceError instanceof Error ? sourceError.message : String(sourceError),
+        })
+        .eq("id", source.id);
+    }
+  }
+
+  return {
+    itemsProcessed,
+    metadata: {
+      platform: platform ?? "all",
+    },
+  };
+}
+
+function getSocialFeedUrl(source) {
+  if (source.adapter === "reddit-rss") {
+    return source.url;
+  }
+
+  if (source.adapter === "rsshub-x-user") {
+    const baseUrl = process.env.SOCIAL_X_RSSHUB_BASE_URL?.replace(/\/+$/, "");
+    const handle = getXHandle(source.url);
+
+    if (!baseUrl) {
+      throw new Error("SOCIAL_X_RSSHUB_BASE_URL is missing for X social sync");
+    }
+
+    if (!handle) {
+      throw new Error(`Cannot parse X handle from ${source.url}`);
+    }
+
+    return `${baseUrl}/twitter/user/${handle}`;
+  }
+
+  throw new Error(`Unsupported social adapter: ${source.adapter}`);
+}
+
+function getXAccountsFromEnv() {
+  const accounts = process.env.SOCIAL_X_ACCOUNTS?.trim() || "https://x.com/F1TelemetryData";
+
+  return accounts
+    .split(",")
+    .map((account) => account.trim())
+    .filter(Boolean);
+}
+
+function getXHandle(value) {
+  const normalized = String(value ?? "").trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const withoutAt = normalized.replace(/^@/, "");
+  const match =
+    withoutAt.match(/(?:x\.com|twitter\.com)\/([A-Za-z0-9_]+)/i)?.[1] ??
+    withoutAt.match(/^([A-Za-z0-9_]{1,30})$/)?.[1];
+
+  return match && !["i", "intent", "share", "home", "search"].includes(match.toLowerCase())
+    ? match
+    : null;
+}
+
+function mapSocialFeedItem(source, item, index) {
+  const originalUrl = normalizeSocialUrl(item.link || item.guid || item.id);
+
+  if (!originalUrl) {
+    return null;
+  }
+
+  const externalId =
+    source.platform === "x"
+      ? getXPostId(originalUrl) ?? originalUrl
+      : getRedditPostId(originalUrl, item.guid || item.id) ?? originalUrl;
+  const title = normalizeString(item.title) ?? normalizeString(item.description) ?? "Пост без заголовка";
+  const body = normalizeString(item.content) ?? normalizeString(item.description);
+  const reactionCount = numberOrNull(item.reactionCount);
+  const popularityScore =
+    reactionCount ??
+    (source.platform === "reddit" && source.feed_kind === "hot" ? 1000 - index : 0);
+
+  return {
+    platform: source.platform,
+    source_id: source.id,
+    external_id: externalId,
+    author: normalizeSocialAuthor(item.author, source),
+    title,
+    body: body && body !== title ? body : null,
+    original_url: originalUrl,
+    image_url: item.imageUrl ?? null,
+    published_at: item.pubDate ?? new Date().toISOString(),
+    reaction_count: reactionCount,
+    popularity_score: popularityScore,
+    raw_payload: item,
+    last_synced_at: new Date().toISOString(),
+  };
+}
+
+function normalizeSocialUrl(value) {
+  const raw = normalizeString(value);
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const url = new URL(raw);
+
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return raw.startsWith("http") ? raw : null;
+  }
+}
+
+function getXPostId(url) {
+  return String(url).match(/\/status\/(\d+)/i)?.[1] ?? null;
+}
+
+function getRedditPostId(url, fallback) {
+  return (
+    String(url).match(/\/comments\/([a-z0-9]+)/i)?.[1] ??
+    String(fallback ?? "").match(/t3_([a-z0-9]+)/i)?.[1] ??
+    null
+  );
+}
+
+function normalizeSocialAuthor(author, source) {
+  const value = normalizeString(author);
+
+  if (value) {
+    return value.replace(/^\/?u\//i, "u/");
+  }
+
+  if (source.platform === "x") {
+    const handle = getXHandle(source.url);
+    return handle ? `@${handle}` : "X";
+  }
+
+  return "r/formuladank";
+}
+
+async function upsertSocialPost(post) {
+  const { error } = await supabase
+    .from("social_posts")
+    .upsert(post, { onConflict: "platform,external_id" });
+
+  if (!error) {
+    return true;
+  }
+
+  if (error.code === "23505" && post.original_url) {
+    const { error: updateError } = await supabase
+      .from("social_posts")
+      .update({
+        ...post,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("original_url", post.original_url);
+
+    return !updateError;
+  }
+
+  return false;
 }
 
 async function processNewsWithAi() {
@@ -1705,7 +2010,11 @@ function isPastDate(value) {
 }
 
 function parseRss(xml) {
-  return [...xml.matchAll(/<item\b[\s\S]*?<\/item>/gi)].map((match) => {
+  return parseFeedItems(xml);
+}
+
+function parseFeedItems(xml) {
+  const rssItems = [...xml.matchAll(/<item\b[\s\S]*?<\/item>/gi)].map((match) => {
     const item = match[0];
 
     return {
@@ -1713,24 +2022,78 @@ function parseRss(xml) {
       link: cleanXml(readTag(item, "link")),
       guid: cleanXml(readTag(item, "guid")),
       description: cleanXml(readTag(item, "description")),
+      content: cleanXml(readTag(item, "content:encoded") || readTag(item, "content")),
+      author: cleanXml(readTag(item, "author") || readTag(item, "dc:creator")),
+      imageUrl: extractFeedImage(item),
       pubDate: normalizeDate(cleanXml(readTag(item, "pubDate"))),
+      reactionCount: parseReactionCount(item),
     };
   });
+  const atomItems = [...xml.matchAll(/<entry\b[\s\S]*?<\/entry>/gi)].map((match) => {
+    const item = match[0];
+
+    return {
+      title: cleanXml(readTag(item, "title")),
+      link: cleanXml(readLinkHref(item)) || cleanXml(readTag(item, "link")),
+      guid: cleanXml(readTag(item, "id")),
+      id: cleanXml(readTag(item, "id")),
+      description: cleanXml(readTag(item, "summary")),
+      content: cleanXml(readTag(item, "content")),
+      author: cleanXml(readTag(readTag(item, "author"), "name") || readTag(item, "author")),
+      imageUrl: extractFeedImage(item),
+      pubDate: normalizeDate(cleanXml(readTag(item, "published") || readTag(item, "updated"))),
+      reactionCount: parseReactionCount(item),
+    };
+  });
+
+  return rssItems.length ? rssItems : atomItems;
 }
 
 function readTag(xml, tag) {
   return xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i"))?.[1] ?? "";
 }
 
+function readLinkHref(xml) {
+  const alternate =
+    xml.match(/<link\b[^>]*rel=["']alternate["'][^>]*href=["']([^"']+)["'][^>]*\/?>/i)?.[1] ??
+    xml.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*rel=["']alternate["'][^>]*\/?>/i)?.[1];
+
+  return alternate ?? xml.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*\/?>/i)?.[1] ?? "";
+}
+
+function extractFeedImage(xml) {
+  const media =
+    xml.match(/<media:thumbnail\b[^>]*url=["']([^"']+)["'][^>]*\/?>/i)?.[1] ??
+    xml.match(/<media:content\b[^>]*url=["']([^"']+)["'][^>]*\/?>/i)?.[1] ??
+    xml.match(/<enclosure\b[^>]*url=["']([^"']+)["'][^>]*(?:type=["']image\/[^"']+["'])[^>]*\/?>/i)?.[1] ??
+    xml.match(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1];
+
+  return media ? decodeXml(media.trim()) : null;
+}
+
+function parseReactionCount(xml) {
+  const value =
+    xml.match(/<score[^>]*>([\s\S]*?)<\/score>/i)?.[1] ??
+    xml.match(/<ups[^>]*>([\s\S]*?)<\/ups>/i)?.[1] ??
+    xml.match(/<reactions[^>]*>([\s\S]*?)<\/reactions>/i)?.[1];
+
+  return numberOrNull(cleanXml(value));
+}
+
 function cleanXml(value) {
-  return value
+  return decodeXml(value).replace(/<[^>]+>/g, "").trim();
+}
+
+function decodeXml(value) {
+  return String(value ?? "")
     .replace(/<!\[CDATA\[/g, "")
     .replace(/\]\]>/g, "")
-    .replace(/<[^>]+>/g, "")
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
     .replace(/&#39;/g, "'")
-    .trim();
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
 }
 
 function normalizeDate(value) {

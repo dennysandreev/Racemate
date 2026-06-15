@@ -231,6 +231,34 @@ export type AdminSource = {
   lastStatus: string;
 };
 
+export type SocialPlatform = "all" | "x" | "reddit";
+
+export type SocialSort = "new" | "popular";
+
+export type SocialPost = {
+  id: string;
+  platform: "x" | "reddit";
+  author: string;
+  title: string;
+  body?: string;
+  originalUrl: string;
+  imageUrl?: string;
+  publishedAt: string;
+  reactionCount?: number;
+  popularityScore: number;
+};
+
+export type SocialFeedResult = {
+  items: SocialPost[];
+  nextCursor: string | null;
+};
+
+export type AdminSocialSource = AdminSource & {
+  platform: "x" | "reddit";
+  adapter: string;
+  feedKind?: string;
+};
+
 export type AiUsageSummary = {
   totalRuns: number;
   estimatedCostUsd: number;

@@ -8,6 +8,7 @@ import { getIsAdmin, getSessionUser } from "@/lib/auth";
 
 const navigation = [
   { href: "/news", label: "Новости" },
+  { href: "/social", label: "Соцлента" },
   { href: "/leaderboard", label: "Чемпионат" },
   { href: "/calendar", label: "Календарь" },
   { href: "/weekend", label: "Текущий этап" },

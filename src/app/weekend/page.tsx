@@ -115,7 +115,7 @@ export default async function WeekendPage() {
 
       <section className="pb-8">
         <Card>
-          <CardHeader>
+          <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>
               <Link
                 className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -124,6 +124,9 @@ export default async function WeekendPage() {
                 Новости этапа
               </Link>
             </CardTitle>
+            <Button asChild size="sm" variant="secondary">
+              <Link href={raceNewsHref}>Читать все новости</Link>
+            </Button>
           </CardHeader>
           <CardContent className="grid gap-3">
             {raceNews.length ? (

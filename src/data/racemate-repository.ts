@@ -17,6 +17,7 @@ import { getTeamAsset, getTeamMatchNames } from "@/data/f1-assets";
 import type {
   AdminJob,
   AdminSignal,
+  AdminSocialSource,
   AdminSource,
   AiUsageSummary,
   CalendarEvent,
@@ -36,6 +37,10 @@ import type {
   SeasonChampionOdds,
   SessionResult,
   SessionWeather,
+  SocialFeedResult,
+  SocialPlatform,
+  SocialPost,
+  SocialSort,
   StandingsMeta,
   StandingRow,
   TrackLayout,
@@ -44,6 +49,31 @@ import type {
 } from "@/types/racemate";
 
 type SourceRelation = { name: string } | { name: string }[] | null;
+type SocialPostDbRow = {
+  id: string;
+  platform: "x" | "reddit";
+  author: string | null;
+  title: string | null;
+  body: string | null;
+  original_url: string;
+  image_url: string | null;
+  published_at: string | null;
+  reaction_count: number | null;
+  popularity_score: number | string | null;
+};
+
+type SocialSourceDbRow = {
+  id: string;
+  platform: "x" | "reddit";
+  name: string;
+  url: string;
+  adapter: string;
+  feed_kind: string | null;
+  is_active: boolean;
+  last_success_at: string | null;
+  last_error: string | null;
+};
+
 type TagRelation =
   | {
       tags:
@@ -401,6 +431,70 @@ export async function getNewsItems(
     totalPages: Math.max(1, Math.ceil(totalCount / pageSize)),
     totalCount,
   };
+}
+
+export async function getSocialPosts({
+  cursor,
+  pageSize = 12,
+  platform = "all",
+  sort = "new",
+}: {
+  cursor?: string | null;
+  pageSize?: number;
+  platform?: SocialPlatform;
+  sort?: SocialSort;
+}): Promise<SocialFeedResult> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return { items: [], nextCursor: null };
+  }
+
+  const offset = decodeSocialCursor(cursor);
+  const limit = Math.min(Math.max(pageSize, 1), 30);
+  let query = supabase
+    .from("social_posts")
+    .select(
+      "id, platform, author, title, body, original_url, image_url, published_at, reaction_count, popularity_score",
+    );
+
+  if (platform !== "all") {
+    query = query.eq("platform", platform);
+  }
+
+  if (sort === "popular") {
+    query = query
+      .order("popularity_score", { ascending: false, nullsFirst: false })
+      .order("reaction_count", { ascending: false, nullsFirst: false })
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: false });
+  } else {
+    query = query
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: false });
+  }
+
+  const { data, error } = await query.range(offset, offset + limit);
+
+  if (error || !data) {
+    return { items: [], nextCursor: null };
+  }
+
+  const rows = data as unknown as SocialPostDbRow[];
+  const pageRows = rows.slice(0, limit);
+
+  return {
+    items: pageRows.map(mapSocialPostRow),
+    nextCursor: rows.length > limit ? encodeSocialCursor(offset + limit) : null,
+  };
+}
+
+export function normalizeSocialPlatform(value?: string | null): SocialPlatform {
+  return value === "x" || value === "reddit" ? value : "all";
+}
+
+export function normalizeSocialSort(value?: string | null): SocialSort {
+  return value === "popular" ? "popular" : "new";
 }
 
 export async function getNextSession(): Promise<NextSession> {
@@ -952,7 +1046,21 @@ async function getRaceRoundVisualsForRounds(season: number, rounds: number[]) {
     }));
   }
 
-  return (data as unknown as RaceRoundVisualDbRow[]).map((race) => {
+  const raceByRound = new Map(
+    (data as unknown as RaceRoundVisualDbRow[]).map((race) => [race.round, race]),
+  );
+
+  return uniqueRounds.map((round) => {
+    const race = raceByRound.get(round);
+
+    if (!race) {
+      return {
+        round,
+        flag: "🏁",
+        raceName: `Раунд ${round}`,
+      };
+    }
+
     const circuit = getRelationObject(race.circuits);
     const country = circuit?.country ?? "";
 
@@ -1122,6 +1230,39 @@ export async function getAdminSources(): Promise<AdminSource[]> {
     id: source.id,
     name: source.name,
     url: source.url,
+    isActive: source.is_active,
+    lastStatus: source.last_error
+      ? "Есть ошибка"
+      : source.last_success_at
+        ? formatRelativeTime(source.last_success_at)
+        : "Еще не запускался",
+  }));
+}
+
+export async function getAdminSocialSources(): Promise<AdminSocialSource[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("social_sources")
+    .select("id, platform, name, url, adapter, feed_kind, is_active, last_success_at, last_error")
+    .order("platform", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as unknown as SocialSourceDbRow[]).map((source) => ({
+    id: source.id,
+    platform: source.platform,
+    name: source.name,
+    url: source.url,
+    adapter: source.adapter,
+    feedKind: source.feed_kind ?? undefined,
     isActive: source.is_active,
     lastStatus: source.last_error
       ? "Есть ошибка"
@@ -1569,6 +1710,42 @@ function mapArticleRow(row: ArticleRow): NewsItem {
     raceFilter,
     time: formatRelativeTime(row.published_at),
   };
+}
+
+function mapSocialPostRow(row: SocialPostDbRow): SocialPost {
+  return {
+    id: row.id,
+    platform: row.platform,
+    author: row.author?.trim() || (row.platform === "reddit" ? "r/formuladank" : "X"),
+    title: row.title?.trim() || row.body?.trim() || "Пост без заголовка",
+    body: row.body?.trim() || undefined,
+    originalUrl: row.original_url,
+    imageUrl: row.image_url?.trim() || undefined,
+    publishedAt: row.published_at ? formatRelativeTime(row.published_at) : "Дата уточняется",
+    reactionCount: row.reaction_count ?? undefined,
+    popularityScore: Number(row.popularity_score ?? 0),
+  };
+}
+
+function encodeSocialCursor(offset: number) {
+  return Buffer.from(JSON.stringify({ offset }), "utf8").toString("base64url");
+}
+
+function decodeSocialCursor(cursor?: string | null) {
+  if (!cursor) {
+    return 0;
+  }
+
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as {
+      offset?: unknown;
+    };
+    const offset = Number(parsed.offset);
+
+    return Number.isFinite(offset) && offset > 0 ? Math.floor(offset) : 0;
+  } catch {
+    return 0;
+  }
 }
 
 async function getCircuitLayout(circuitId: string): Promise<TrackLayout | null> {
@@ -2430,18 +2607,42 @@ async function getCurrentRace(select?: string): Promise<RaceRow | null> {
   const fields =
     select ??
     "id, season_year, round, race_name, race_start_at, status, circuits(name, country, locality, external_id)";
-  const weekendWindowIso = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
+  const currentRaceWindowIso = new Date(
+    Date.now() - getSessionDurationMs("race", "Гонка"),
+  ).toISOString();
 
   const { data: upcoming } = await supabase
     .from("races")
     .select(fields)
-    .gte("race_start_at", weekendWindowIso)
+    .gte("race_start_at", currentRaceWindowIso)
     .order("race_start_at", { ascending: true, nullsFirst: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(4);
 
-  if (upcoming) {
-    return upcoming as unknown as RaceRow;
+  if (upcoming?.length) {
+    const candidates = upcoming as unknown as RaceRow[];
+    const startedCandidateIds = candidates
+      .filter((race) => {
+        const raceStart = getTimeMs(race.race_start_at);
+
+        return raceStart !== null && raceStart <= Date.now();
+      })
+      .map((race) => race.id);
+    const finishedRaceIds = startedCandidateIds.length
+      ? new Set((await getRaceWinners(startedCandidateIds)).keys())
+      : new Set<string>();
+    const activeOrNextRace =
+      candidates.find((race) => {
+        const raceStart = getTimeMs(race.race_start_at);
+        const isStarted = raceStart !== null && raceStart <= Date.now();
+        const isCompleted =
+          race.status === "completed" ||
+          race.status === "finished" ||
+          (isStarted && finishedRaceIds.has(race.id));
+
+        return !isCompleted;
+      }) ?? candidates[0];
+
+    return activeOrNextRace;
   }
 
   const { data: latest } = await supabase
@@ -2504,34 +2705,103 @@ function mapCalendarRace(race: RaceRow, isCurrent: boolean, winner?: string): Ca
 }
 
 function getCountryFlag(country: string) {
-  const normalized = country.toLowerCase();
+  const value = country.trim();
+
+  if (!value) {
+    return "🏁";
+  }
+
+  if (/[\u{1F1E6}-\u{1F1FF}]{2}/u.test(value)) {
+    return value;
+  }
+
+  const normalized = normalizeCountryName(value);
   const flags: Record<string, string> = {
+    ae: "🇦🇪",
+    au: "🇦🇺",
     australia: "🇦🇺",
+    at: "🇦🇹",
     austria: "🇦🇹",
+    az: "🇦🇿",
     azerbaijan: "🇦🇿",
+    bh: "🇧🇭",
     bahrain: "🇧🇭",
+    be: "🇧🇪",
     belgium: "🇧🇪",
+    br: "🇧🇷",
     brazil: "🇧🇷",
+    ca: "🇨🇦",
     canada: "🇨🇦",
+    cn: "🇨🇳",
     china: "🇨🇳",
+    gb: "🇬🇧",
+    uk: "🇬🇧",
+    "u k": "🇬🇧",
+    england: "🇬🇧",
+    greatbritain: "🇬🇧",
+    "great britain": "🇬🇧",
+    "united kingdom": "🇬🇧",
+    "united kingdom of great britain and northern ireland": "🇬🇧",
+    hu: "🇭🇺",
     hungary: "🇭🇺",
+    it: "🇮🇹",
     italy: "🇮🇹",
+    jp: "🇯🇵",
     japan: "🇯🇵",
+    mc: "🇲🇨",
+    mx: "🇲🇽",
     mexico: "🇲🇽",
     monaco: "🇲🇨",
+    nl: "🇳🇱",
     netherlands: "🇳🇱",
+    qa: "🇶🇦",
     qatar: "🇶🇦",
+    sa: "🇸🇦",
     "saudi arabia": "🇸🇦",
+    sg: "🇸🇬",
     singapore: "🇸🇬",
+    es: "🇪🇸",
     spain: "🇪🇸",
+    uae: "🇦🇪",
+    "u a e": "🇦🇪",
     "united arab emirates": "🇦🇪",
-    "united kingdom": "🇬🇧",
-    uk: "🇬🇧",
-    "united states": "🇺🇸",
+    us: "🇺🇸",
+    "u s": "🇺🇸",
+    "u s a": "🇺🇸",
     usa: "🇺🇸",
+    "united states": "🇺🇸",
+    "united states america": "🇺🇸",
+    "united states of america": "🇺🇸",
   };
 
-  return flags[normalized] ?? "🏁";
+  if (flags[normalized]) {
+    return flags[normalized];
+  }
+
+  return getIsoCountryFlag(value) ?? "🏁";
+}
+
+function getIsoCountryFlag(value: string) {
+  const code = value.trim().toUpperCase();
+
+  if (!/^[A-Z]{2}$/.test(code)) {
+    return null;
+  }
+
+  return Array.from(code)
+    .map((letter) => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65))
+    .join("");
+}
+
+function normalizeCountryName(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
 function getProfileName(

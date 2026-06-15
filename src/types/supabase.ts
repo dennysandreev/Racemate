@@ -125,6 +125,40 @@ export type Database = {
         confidence: number;
         method: string;
       }>;
+      social_sources: TableDefinition<{
+        id: string;
+        platform: string;
+        name: string;
+        source_type: string;
+        url: string;
+        adapter: string;
+        feed_kind: string | null;
+        is_active: boolean;
+        fetch_interval_minutes: number;
+        last_fetched_at: string | null;
+        last_success_at: string | null;
+        last_error: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      social_posts: TableDefinition<{
+        id: string;
+        platform: string;
+        source_id: string | null;
+        external_id: string;
+        author: string | null;
+        title: string | null;
+        body: string | null;
+        original_url: string;
+        image_url: string | null;
+        published_at: string | null;
+        reaction_count: number | null;
+        popularity_score: number;
+        raw_payload: Json | null;
+        last_synced_at: string;
+        created_at: string;
+        updated_at: string;
+      }>;
       article_reactions: TableDefinition<{
         article_id: string;
         user_id: string;

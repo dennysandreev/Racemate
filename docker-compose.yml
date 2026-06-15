@@ -22,14 +22,19 @@ services:
       - sh
       - -lc
       - |
+        tick=0
         while true; do
-          node worker/index.mjs rss.fetch_all || true
-          node worker/index.mjs ai.process_news || true
-          node worker/index.mjs jolpica.sync_calendar || true
-          node worker/index.mjs jolpica.sync_results || true
-          node worker/index.mjs jolpica.sync_standings || true
-          node worker/index.mjs weather.sync_weekend || true
-          node worker/index.mjs predictions.score || true
-          sleep 1800
+          node worker/index.mjs social.fetch_all || true
+          if [ $((tick % 2)) -eq 0 ]; then
+            node worker/index.mjs rss.fetch_all || true
+            node worker/index.mjs ai.process_news || true
+            node worker/index.mjs jolpica.sync_calendar || true
+            node worker/index.mjs jolpica.sync_results || true
+            node worker/index.mjs jolpica.sync_standings || true
+            node worker/index.mjs weather.sync_weekend || true
+            node worker/index.mjs predictions.score || true
+          fi
+          tick=$((tick + 1))
+          sleep 900
         done
     restart: unless-stopped
