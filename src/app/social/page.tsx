@@ -17,7 +17,6 @@ export const dynamic = "force-dynamic";
 const platformFilters: { label: string; value: SocialPlatform }[] = [
   { label: "Все", value: "all" },
   { label: "X", value: "x" },
-  { label: "Reddit", value: "reddit" },
 ];
 
 const sortFilters: { label: string; value: SocialSort }[] = [
@@ -48,8 +47,8 @@ export default async function SocialPage({
             <h2 className="text-base font-semibold">Посты из паддока и фан-сообщества</h2>
           </div>
           <p className="text-sm leading-6 text-muted-foreground">
-            RaceMate показывает только сохранённые записи из нашей базы. Если X или Reddit
-            временно недоступны, старые посты остаются в ленте.
+            RaceMate показывает сохранённые X-посты из нашей базы. Если источник временно
+            недоступен, старые записи остаются в ленте.
           </p>
 
           <FilterGroup
@@ -69,7 +68,6 @@ export default async function SocialPage({
 
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline">X через RSSHub</Badge>
-            <Badge variant="outline">Reddit RSS</Badge>
             <Badge variant="outline">Кеш RaceMate</Badge>
           </div>
         </div>

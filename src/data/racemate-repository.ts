@@ -450,17 +450,18 @@ export async function getSocialPosts({
     return { items: [], nextCursor: null };
   }
 
+  if (platform !== "all" && platform !== "x") {
+    return { items: [], nextCursor: null };
+  }
+
   const offset = decodeSocialCursor(cursor);
   const limit = Math.min(Math.max(pageSize, 1), 30);
   let query = supabase
     .from("social_posts")
     .select(
       "id, platform, author, title, body, original_url, image_url, published_at, reaction_count, popularity_score",
-    );
-
-  if (platform !== "all") {
-    query = query.eq("platform", platform);
-  }
+    )
+    .eq("platform", "x");
 
   if (sort === "popular") {
     query = query
@@ -490,7 +491,7 @@ export async function getSocialPosts({
 }
 
 export function normalizeSocialPlatform(value?: string | null): SocialPlatform {
-  return value === "x" || value === "reddit" ? value : "all";
+  return value === "x" ? value : "all";
 }
 
 export function normalizeSocialSort(value?: string | null): SocialSort {

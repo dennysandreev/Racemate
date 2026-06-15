@@ -188,13 +188,18 @@ async function fetchAllRss() {
 }
 
 async function fetchAllSocial() {
-  await ensureSocialSources();
-  return fetchSocialSources();
+  await ensureSocialSources({ platform: "x" });
+  return fetchSocialSources({ platform: "x" });
 }
 
 async function fetchRedditSocial() {
-  await ensureSocialSources({ platform: "reddit" });
-  return fetchSocialSources({ platform: "reddit" });
+  return {
+    itemsProcessed: 0,
+    metadata: {
+      platform: "reddit",
+      disabled: true,
+    },
+  };
 }
 
 async function fetchXSocial() {
@@ -204,18 +209,6 @@ async function fetchXSocial() {
 
 async function ensureSocialSources({ platform } = {}) {
   const defaults = [];
-
-  if (!platform || platform === "reddit") {
-    defaults.push({
-      platform: "reddit",
-      name: "r/formuladank",
-      source_type: "rss",
-      url: "https://old.reddit.com/r/formuladank/.rss",
-      adapter: "reddit-rss",
-      feed_kind: "hot",
-      fetch_interval_minutes: 15,
-    });
-  }
 
   if (!platform || platform === "x") {
     for (const account of getXAccountsFromEnv()) {
@@ -343,7 +336,7 @@ function getSocialFeedUrl(source) {
       throw new Error(`Cannot parse X handle from ${source.url}`);
     }
 
-    return `${baseUrl}/twitter/user/${handle}`;
+    return `${baseUrl}/twitter/user/${handle}/count=20&addLinkForPics=1&readable=1`;
   }
 
   throw new Error(`Unsupported social adapter: ${source.adapter}`);
@@ -2051,13 +2044,36 @@ function readLinkHref(xml) {
 }
 
 function extractFeedImage(xml) {
+  const decoded = decodeXml(xml);
   const media =
     xml.match(/<media:thumbnail\b[^>]*url=["']([^"']+)["'][^>]*\/?>/i)?.[1] ??
     xml.match(/<media:content\b[^>]*url=["']([^"']+)["'][^>]*\/?>/i)?.[1] ??
     xml.match(/<enclosure\b[^>]*url=["']([^"']+)["'][^>]*(?:type=["']image\/[^"']+["'])[^>]*\/?>/i)?.[1] ??
-    xml.match(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1];
+    xml.match(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1] ??
+    decoded.match(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1] ??
+    decoded.match(/https?:\/\/pbs\.twimg\.com\/media\/[^\s"'<>]+/i)?.[0];
 
-  return media ? decodeXml(media.trim()) : null;
+  return media ? normalizeFeedImageUrl(decodeXml(media.trim())) : null;
+}
+
+function normalizeFeedImageUrl(value) {
+  try {
+    const url = new URL(value);
+
+    if (url.hostname === "pbs.twimg.com" && url.pathname.startsWith("/media/")) {
+      const format = url.searchParams.get("format") ?? url.pathname.match(/\.(jpe?g|png|gif|webp)$/i)?.[1];
+
+      if (format) {
+        url.pathname = url.pathname.replace(/\.(jpe?g|png|gif|webp)$/i, "");
+        url.searchParams.set("format", format === "jpeg" ? "jpg" : format);
+        url.searchParams.set("name", "orig");
+      }
+    }
+
+    return url.toString();
+  } catch {
+    return value;
+  }
 }
 
 function parseReactionCount(xml) {

@@ -183,7 +183,7 @@ export default async function AdminPage({
           <CardHeader>
             <CardTitle>Соцлента</CardTitle>
             <CardDescription>
-              Reddit обновляется через RSS, X — через RSSHub или ручные ссылки.
+              Сейчас в публичную ленту попадает X через RSSHub или ручные ссылки.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5">

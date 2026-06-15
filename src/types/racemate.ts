@@ -231,7 +231,7 @@ export type AdminSource = {
   lastStatus: string;
 };
 
-export type SocialPlatform = "all" | "x" | "reddit";
+export type SocialPlatform = "all" | "x";
 
 export type SocialSort = "new" | "popular";
 
