@@ -3,6 +3,7 @@ import { Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageHeading } from "@/components/racemate/page-heading";
+import { RaceFlag } from "@/components/racemate/race-flag";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -89,9 +90,11 @@ export default async function LeaderboardPage({
                           key={round.round}
                           title={`${round.raceName}, раунд ${round.round}`}
                         >
-                          <span aria-hidden="true" className="inline-block text-base leading-none sm:text-lg">
-                            {round.flag}
-                          </span>
+                          <RaceFlag
+                            className="text-base sm:text-lg"
+                            label={`${round.raceName}, раунд ${round.round}`}
+                            value={round.flag}
+                          />
                         </th>
                       ))}
                     </tr>
@@ -145,9 +148,11 @@ export default async function LeaderboardPage({
                           key={round.round}
                           title={`${round.raceName}, раунд ${round.round}`}
                         >
-                          <span aria-hidden="true" className="inline-block text-base leading-none sm:text-lg">
-                            {round.flag}
-                          </span>
+                          <RaceFlag
+                            className="text-base sm:text-lg"
+                            label={`${round.raceName}, раунд ${round.round}`}
+                            value={round.flag}
+                          />
                         </th>
                       ))}
                     </tr>

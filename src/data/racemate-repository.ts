@@ -2043,7 +2043,7 @@ async function getLatestCompleteStandingRound(
     return (b.round ?? -1) - (a.round ?? -1);
   });
 
-  return ordered.find((round) => round.count >= minimumRows) ?? ordered[0] ?? null;
+  return ordered.find((round) => round.count >= minimumRows) ?? null;
 }
 
 function emptyNewsList(page = 1): NewsListResult {

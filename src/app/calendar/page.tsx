@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageHeading } from "@/components/racemate/page-heading";
+import { RaceFlag } from "@/components/racemate/race-flag";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -49,7 +50,7 @@ export default async function CalendarPage() {
                     </CardTitle>
                     <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                       <MapPin aria-hidden="true" data-icon="inline-start" />
-                      <span aria-hidden="true">{event.countryFlag}</span>
+                      <RaceFlag label={event.country} value={event.countryFlag} />
                       {event.circuit}, {event.country}
                     </p>
                   </div>

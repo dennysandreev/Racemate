@@ -60,6 +60,10 @@ for each row execute function public.touch_updated_at();
 alter table public.social_sources enable row level security;
 alter table public.social_posts enable row level security;
 
+grant select on public.social_posts to anon, authenticated;
+grant select, insert, update, delete on public.social_sources to authenticated;
+grant select, insert, update, delete on public.social_posts to authenticated;
+
 create policy "Public can read social posts" on public.social_posts
 for select using (true);
 
@@ -70,3 +74,5 @@ with check (public.is_admin());
 create policy "Admins can manage social posts" on public.social_posts
 for all using (public.is_admin())
 with check (public.is_admin());
+
+notify pgrst, 'reload schema';
