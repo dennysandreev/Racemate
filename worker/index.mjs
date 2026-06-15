@@ -206,26 +206,15 @@ async function ensureSocialSources({ platform } = {}) {
   const defaults = [];
 
   if (!platform || platform === "reddit") {
-    defaults.push(
-      {
-        platform: "reddit",
-        name: "r/formuladank · новые",
-        source_type: "rss",
-        url: "https://www.reddit.com/r/formuladank/new/.rss",
-        adapter: "reddit-rss",
-        feed_kind: "new",
-        fetch_interval_minutes: 15,
-      },
-      {
-        platform: "reddit",
-        name: "r/formuladank · популярное",
-        source_type: "rss",
-        url: "https://www.reddit.com/r/formuladank/hot/.rss",
-        adapter: "reddit-rss",
-        feed_kind: "hot",
-        fetch_interval_minutes: 15,
-      },
-    );
+    defaults.push({
+      platform: "reddit",
+      name: "r/formuladank",
+      source_type: "rss",
+      url: "https://old.reddit.com/r/formuladank/.rss",
+      adapter: "reddit-rss",
+      feed_kind: "hot",
+      fetch_interval_minutes: 15,
+    });
   }
 
   if (!platform || platform === "x") {
