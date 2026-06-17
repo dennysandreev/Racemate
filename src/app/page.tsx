@@ -5,9 +5,11 @@ import {
   Newspaper,
   TrendingUp,
   ExternalLink,
+  Trophy,
 } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { GrandPrixReportDialog } from "@/components/racemate/grand-prix-report-dialog";
 import { SessionWeatherTile } from "@/components/racemate/session-weather-tile";
 import { TrackMap } from "@/components/racemate/track-map";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +24,8 @@ import {
   getConstructorChampionOdds,
   getCurrentRaceDetail,
   getDriverStandings,
+  getGrandPrixReportBySlug,
+  getLatestGrandPrixReport,
   getNewsItems,
   getNextSession,
   getSeasonChampionOdds,
@@ -29,6 +33,7 @@ import {
 } from "@/data/racemate-repository";
 import type {
   MarketOdds,
+  GrandPrixReport,
   NextSession,
   NewsItem,
   RaceDetail,
@@ -38,8 +43,13 @@ import type {
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const [newsResult, nextSession, standings, currentRace, sessions, championOdds, constructorOdds] =
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ raceReport?: string }>;
+}) {
+  const query = await searchParams;
+  const [newsResult, nextSession, standings, currentRace, sessions, championOdds, constructorOdds, latestReport, queryReport] =
     await Promise.all([
       getNewsItems({ pageSize: 5 }),
       getNextSession(),
@@ -48,9 +58,13 @@ export default async function Home() {
       getWeekendSessions(),
       getSeasonChampionOdds(),
       getConstructorChampionOdds(),
+      getLatestGrandPrixReport(),
+      getGrandPrixReportBySlug(query.raceReport),
     ]);
   const newsItems = newsResult.items;
   const topStandings = standings.slice(0, 6);
+  const dialogReport = queryReport ?? latestReport;
+  const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
 
   return (
     <AppShell>
@@ -70,19 +84,21 @@ export default async function Home() {
           </div>
 
           <aside className="grid gap-5">
-          <MarketOddsCard
-            emptyText="На Polymarket пока нет рынка чемпионства сезона."
-            odds={championOdds}
-            title="Шансы на титул"
-          />
-          <MarketOddsCard
-            emptyText="На Polymarket пока нет рынка Кубка конструкторов."
-            odds={constructorOdds}
-            title="Шансы на Кубок конструкторов"
-          />
+            <LatestReportCard report={latestReport} />
+            <MarketOddsCard
+              emptyText="На Polymarket пока нет рынка чемпионства сезона."
+              odds={championOdds}
+              title="Шансы на титул"
+            />
+            <MarketOddsCard
+              emptyText="На Polymarket пока нет рынка Кубка конструкторов."
+              odds={constructorOdds}
+              title="Шансы на Кубок конструкторов"
+            />
           </aside>
         </div>
       </section>
+      <GrandPrixReportDialog open={isReportOpen} report={dialogReport} />
     </AppShell>
   );
 }
@@ -208,6 +224,62 @@ function NewsCard({ items }: { items: NewsItem[] }) {
         )) : (
           <p className="rounded-md border border-border/70 p-4 text-sm text-muted-foreground">
             Свежих новостей пока нет.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
+  const podium = Array.isArray(report?.highlights.podium)
+    ? report.highlights.podium.map((item) => String(item)).join(", ")
+    : "";
+  const summary = report?.aiSummary?.split(/\n{2,}/)[0];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Trophy aria-hidden="true" data-icon="inline-start" />
+          Отчет прошлого Гран-при
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {report ? (
+          <div className="grid gap-4">
+            <div>
+              <p className="font-medium">{report.raceName}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {report.raceDate}
+              </p>
+            </div>
+            <div className="grid gap-2 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Победитель</span>
+                <span className="text-right font-medium">
+                  {String(report.highlights.winner ?? report.results[0]?.driver ?? "Уточняется")}
+                </span>
+              </div>
+              {podium ? (
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-muted-foreground">Подиум</span>
+                  <span className="max-w-[65%] text-right font-medium">{podium}</span>
+                </div>
+              ) : null}
+            </div>
+            {summary ? (
+              <p className="text-sm leading-6 text-muted-foreground">{summary}</p>
+            ) : null}
+            <Button asChild className="w-full" variant="secondary">
+              <Link href={`/?raceReport=${report.raceSlug}`} scroll={false}>
+                Открыть полный отчет
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm leading-6 text-muted-foreground">
+            Отчет появится после завершения гонки и синхронизации результатов.
           </p>
         )}
       </CardContent>

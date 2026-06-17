@@ -2,6 +2,10 @@ import { Bot, Database, Play } from "lucide-react";
 
 import {
   addManualXPost,
+  editGrandPrixReportSummary,
+  queueGrandPrixReportReload,
+  queueGrandPrixReportSummary,
+  toggleGrandPrixReportVisibility,
   toggleSocialSource,
   toggleSource,
   triggerJob,
@@ -21,6 +25,7 @@ import {
 import {
   getAdminSources,
   getAdminSocialSources,
+  getAdminGrandPrixReports,
   getAdminJobs,
   getAdminSignals,
   getAiUsageSummary,
@@ -34,11 +39,12 @@ export default async function AdminPage({
 }) {
   const status = await searchParams;
   const user = await getSessionUser();
-  const [adminJobs, adminSignals, adminSources, adminSocialSources, aiUsage] = await Promise.all([
+  const [adminJobs, adminSignals, adminSources, adminSocialSources, adminReports, aiUsage] = await Promise.all([
     getAdminJobs(),
     getAdminSignals(),
     getAdminSources(),
     getAdminSocialSources(),
+    getAdminGrandPrixReports(),
     getAiUsageSummary(),
   ]);
 
@@ -103,6 +109,9 @@ export default async function AdminPage({
               >
                 <option value="rss.fetch_all">RSS</option>
                 <option value="social.fetch_all">Соцлента</option>
+                <option value="reports.check_latest">Отчет Гран-при</option>
+                <option value="reports.refresh_due">Обновить отчеты</option>
+                <option value="reports.generate_summary">AI отчетов</option>
                 <option value="ai.process_news">AI новости</option>
                 <option value="ai.retag_news">Теги этапов</option>
                 <option value="ai.generate_daily_digest">Сводка дня</option>
@@ -145,6 +154,91 @@ export default async function AdminPage({
       </section>
 
       <section className="grid gap-5 pb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Отчеты Гран-при</CardTitle>
+            <CardDescription>
+              Готовые и частичные отчеты видны на сайте. Остальные ждут данных или повторной обработки.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {adminReports.length ? adminReports.map((report) => (
+              <div
+                className="grid gap-4 rounded-md border border-border/70 p-4"
+                key={report.id}
+              >
+                <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-start">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={report.isHidden ? "secondary" : "outline"}>
+                        {report.isHidden ? "Скрыт" : "На сайте"}
+                      </Badge>
+                      <Badge variant={report.status === "Готов" ? "success" : "warning"}>
+                        {report.status}
+                      </Badge>
+                      <Badge variant="outline">{report.summaryStatus}</Badge>
+                    </div>
+                    <p className="mt-3 font-medium">
+                      {report.raceName} · {report.season}, раунд {report.round}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Сформирован: {report.generatedAt} · следующее обновление: {report.nextRefreshAt}
+                    </p>
+                    {report.lastError ? (
+                      <p className="mt-2 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs leading-5 text-danger">
+                        {report.lastError}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap gap-2 md:justify-end">
+                    <form action={toggleGrandPrixReportVisibility}>
+                      <input name="reportId" type="hidden" value={report.id} />
+                      <input name="isHidden" type="hidden" value={String(report.isHidden)} />
+                      <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                        {report.isHidden ? "Показать" : "Скрыть"}
+                      </Button>
+                    </form>
+                    <form action={queueGrandPrixReportReload}>
+                      <input name="reportId" type="hidden" value={report.id} />
+                      <input name="season" type="hidden" value={report.season} />
+                      <input name="round" type="hidden" value={report.round} />
+                      <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                        Загрузить заново
+                      </Button>
+                    </form>
+                    <form action={queueGrandPrixReportSummary}>
+                      <input name="reportId" type="hidden" value={report.id} />
+                      <input name="season" type="hidden" value={report.season} />
+                      <input name="round" type="hidden" value={report.round} />
+                      <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                        Повторить AI
+                      </Button>
+                    </form>
+                  </div>
+                </div>
+                <form action={editGrandPrixReportSummary} className="grid gap-2">
+                  <input name="reportId" type="hidden" value={report.id} />
+                  <textarea
+                    className="min-h-28 rounded-md border border-input bg-background px-3 py-2 text-sm leading-6 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                    defaultValue={report.aiSummary ?? ""}
+                    name="summary"
+                    placeholder="Короткий итог гонки для блока отчета"
+                  />
+                  <div className="flex justify-end">
+                    <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                      Сохранить саммари
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            )) : (
+              <div className="rounded-md border border-border/70 p-5 text-sm text-muted-foreground">
+                Отчетов пока нет. Запусти задачу «Отчет Гран-при», когда появятся результаты гонки.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Источники новостей</CardTitle>

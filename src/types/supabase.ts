@@ -159,6 +159,38 @@ export type Database = {
         created_at: string;
         updated_at: string;
       }>;
+      grand_prix_reports: TableDefinition<{
+        id: string;
+        season: number;
+        round: number;
+        race_slug: string;
+        race_name: string;
+        circuit_name: string | null;
+        country: string | null;
+        race_date: string | null;
+        status: string;
+        is_hidden: boolean;
+        source_updated_at: string | null;
+        generated_at: string | null;
+        summary_status: string;
+        ai_summary: string | null;
+        weather: Json;
+        race_statistics: Json;
+        results: Json;
+        key_events: Json;
+        pit_stops: Json;
+        strategies: Json;
+        teammate_comparisons: Json;
+        highlights: Json;
+        championship_impact: Json;
+        source_errors: Json;
+        last_error: string | null;
+        refresh_stage: number;
+        next_refresh_at: string | null;
+        structured_hash: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
       article_reactions: TableDefinition<{
         article_id: string;
         user_id: string;

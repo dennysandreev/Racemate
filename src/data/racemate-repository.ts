@@ -16,6 +16,7 @@ import {
 import { getTeamAsset, getTeamMatchNames } from "@/data/f1-assets";
 import type {
   AdminJob,
+  AdminGrandPrixReport,
   AdminSignal,
   AdminSocialSource,
   AdminSource,
@@ -26,6 +27,7 @@ import type {
   ConstructorStandingRow,
   DailyDigest,
   DriverChampionshipMatrix,
+  GrandPrixReport,
   LeagueSummary,
   NextSession,
   NewsItem,
@@ -72,6 +74,37 @@ type SocialSourceDbRow = {
   is_active: boolean;
   last_success_at: string | null;
   last_error: string | null;
+};
+
+type GrandPrixReportDbRow = {
+  id: string;
+  season: number;
+  round: number;
+  race_slug: string;
+  race_name: string;
+  circuit_name: string | null;
+  country: string | null;
+  race_date: string | null;
+  status: "ready" | "partial";
+  summary_status: string;
+  ai_summary: string | null;
+  weather: unknown;
+  race_statistics: unknown;
+  results: unknown;
+  key_events: unknown;
+  pit_stops: unknown;
+  strategies: unknown;
+  teammate_comparisons: unknown;
+  highlights: unknown;
+  championship_impact: unknown;
+  source_errors: unknown;
+  generated_at: string | null;
+};
+
+type AdminGrandPrixReportDbRow = GrandPrixReportDbRow & {
+  is_hidden: boolean;
+  last_error: string | null;
+  next_refresh_at: string | null;
 };
 
 type TagRelation =
@@ -333,6 +366,8 @@ const POLYMARKET_F1_TAG_ID = "435";
 
 const NEWS_ARTICLE_SELECT =
   "id, canonical_url, original_title, original_description, published_at, ai_title_ru, ai_summary_ru, ai_summary_long_ru, ai_key_points_ru, related_race_id, news_sources(name), news_article_tags(tags(name, slug, type)), races:related_race_id(race_name, season_year, round)";
+const GRAND_PRIX_REPORT_SELECT =
+  "id, season, round, race_slug, race_name, circuit_name, country, race_date, status, summary_status, ai_summary, weather, race_statistics, results, key_events, pit_stops, strategies, teammate_comparisons, highlights, championship_impact, source_errors, generated_at";
 
 type NewsItemsOptions = {
   page?: number;
@@ -496,6 +531,79 @@ export function normalizeSocialPlatform(value?: string | null): SocialPlatform {
 
 export function normalizeSocialSort(value?: string | null): SocialSort {
   return value === "popular" ? "popular" : "new";
+}
+
+export async function getLatestGrandPrixReport(): Promise<GrandPrixReport | null> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("grand_prix_reports")
+    .select(GRAND_PRIX_REPORT_SELECT)
+    .eq("is_hidden", false)
+    .in("status", ["ready", "partial"])
+    .order("race_date", { ascending: false, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapGrandPrixReportRow(data as unknown as GrandPrixReportDbRow);
+}
+
+export async function getRaceGrandPrixReport(
+  season: number,
+  round: number,
+): Promise<GrandPrixReport | null> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("grand_prix_reports")
+    .select(GRAND_PRIX_REPORT_SELECT)
+    .eq("season", season)
+    .eq("round", round)
+    .eq("is_hidden", false)
+    .in("status", ["ready", "partial"])
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapGrandPrixReportRow(data as unknown as GrandPrixReportDbRow);
+}
+
+export async function getGrandPrixReportBySlug(
+  slug?: string | null,
+): Promise<GrandPrixReport | null> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase || !slug) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("grand_prix_reports")
+    .select(GRAND_PRIX_REPORT_SELECT)
+    .eq("race_slug", slug)
+    .eq("is_hidden", false)
+    .in("status", ["ready", "partial"])
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapGrandPrixReportRow(data as unknown as GrandPrixReportDbRow);
 }
 
 export async function getNextSession(): Promise<NextSession> {
@@ -1273,6 +1381,40 @@ export async function getAdminSocialSources(): Promise<AdminSocialSource[]> {
   }));
 }
 
+export async function getAdminGrandPrixReports(): Promise<AdminGrandPrixReport[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("grand_prix_reports")
+    .select(`${GRAND_PRIX_REPORT_SELECT}, is_hidden, last_error, next_refresh_at`)
+    .order("season", { ascending: false })
+    .order("round", { ascending: false })
+    .limit(12);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as unknown as AdminGrandPrixReportDbRow[]).map((report) => ({
+    id: report.id,
+    season: report.season,
+    round: report.round,
+    raceName: report.race_name,
+    raceSlug: report.race_slug,
+    status: mapReportStatus(report.status),
+    summaryStatus: mapReportSummaryStatus(report.summary_status),
+    isHidden: report.is_hidden,
+    generatedAt: formatRelativeTime(report.generated_at),
+    nextRefreshAt: report.next_refresh_at ? formatRelativeTime(report.next_refresh_at) : "Обновлений нет",
+    lastError: report.last_error ?? undefined,
+    aiSummary: report.ai_summary ?? undefined,
+  }));
+}
+
 export async function getAiUsageSummary(): Promise<AiUsageSummary> {
   const supabase = await createSupabaseServerClient();
 
@@ -1726,6 +1868,43 @@ function mapSocialPostRow(row: SocialPostDbRow): SocialPost {
     reactionCount: row.reaction_count ?? undefined,
     popularityScore: Number(row.popularity_score ?? 0),
   };
+}
+
+function mapGrandPrixReportRow(row: GrandPrixReportDbRow): GrandPrixReport {
+  return {
+    id: row.id,
+    season: row.season,
+    round: row.round,
+    raceSlug: row.race_slug,
+    raceName: row.race_name,
+    circuitName: row.circuit_name ?? "Трасса уточняется",
+    country: row.country ?? "Страна уточняется",
+    raceDate: formatDateTime(row.race_date),
+    status: row.status,
+    summaryStatus: row.summary_status,
+    aiSummary: row.ai_summary,
+    weather: asObject(row.weather),
+    raceStatistics: asObject(row.race_statistics),
+    results: asArray(row.results) as GrandPrixReport["results"],
+    keyEvents: asArray(row.key_events) as GrandPrixReport["keyEvents"],
+    pitStops: asArray(row.pit_stops),
+    strategies: asArray(row.strategies),
+    teammateComparisons: asArray(row.teammate_comparisons),
+    highlights: asObject(row.highlights),
+    championshipImpact: asObject(row.championship_impact),
+    sourceErrors: asObject(row.source_errors),
+    generatedAt: formatRelativeTime(row.generated_at),
+  };
+}
+
+function asObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
 }
 
 function encodeSocialCursor(offset: number) {
@@ -3161,4 +3340,29 @@ function mapJobStatus(status: string) {
   }
 
   return status;
+}
+
+function mapReportStatus(status: string) {
+  const labels: Record<string, string> = {
+    pending: "Ждет данные",
+    collecting: "Собираем данные",
+    processing: "Считаем отчет",
+    summary_pending: "Ждет AI-саммари",
+    ready: "Готов",
+    partial: "Частично готов",
+    failed: "Ошибка",
+  };
+
+  return labels[status] ?? status;
+}
+
+function mapReportSummaryStatus(status: string) {
+  const labels: Record<string, string> = {
+    pending: "Ждет AI",
+    generated: "AI готов",
+    edited: "Отредактировано",
+    failed: "AI не сработал",
+  };
+
+  return labels[status] ?? status;
 }

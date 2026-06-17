@@ -33,6 +33,8 @@ services:
             node worker/index.mjs jolpica.sync_standings || true
             node worker/index.mjs weather.sync_weekend || true
             node worker/index.mjs predictions.score || true
+            node worker/index.mjs reports.check_latest || true
+            node worker/index.mjs reports.refresh_due || true
           fi
           tick=$((tick + 1))
           sleep 900

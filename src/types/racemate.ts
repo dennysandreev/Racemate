@@ -189,6 +189,56 @@ export type SessionResult = {
   points: number | null;
 };
 
+export type GrandPrixReportStatus = "ready" | "partial";
+
+export type GrandPrixReportResult = {
+  position: number | null;
+  driver: string;
+  team: string;
+  grid: number | null;
+  positionDelta: number | null;
+  points: number | null;
+  status: string;
+  bestLap?: string | null;
+  isWinner?: boolean;
+  isPodium?: boolean;
+  isFastestLap?: boolean;
+  isBestGain?: boolean;
+  isBiggestDrop?: boolean;
+};
+
+export type GrandPrixReportEvent = {
+  lap: number | null;
+  type: string;
+  title: string;
+  detail?: string | null;
+};
+
+export type GrandPrixReport = {
+  id: string;
+  season: number;
+  round: number;
+  raceSlug: string;
+  raceName: string;
+  circuitName: string;
+  country: string;
+  raceDate: string;
+  status: GrandPrixReportStatus;
+  summaryStatus: string;
+  aiSummary?: string | null;
+  weather: Record<string, unknown>;
+  raceStatistics: Record<string, unknown>;
+  results: GrandPrixReportResult[];
+  keyEvents: GrandPrixReportEvent[];
+  pitStops: unknown[];
+  strategies: unknown[];
+  teammateComparisons: unknown[];
+  highlights: Record<string, unknown>;
+  championshipImpact: Record<string, unknown>;
+  sourceErrors: Record<string, unknown>;
+  generatedAt: string;
+};
+
 export type DailyDigest = {
   id?: string;
   title: string;
@@ -257,6 +307,21 @@ export type AdminSocialSource = AdminSource & {
   platform: "x" | "reddit";
   adapter: string;
   feedKind?: string;
+};
+
+export type AdminGrandPrixReport = {
+  id: string;
+  season: number;
+  round: number;
+  raceName: string;
+  raceSlug: string;
+  status: string;
+  summaryStatus: string;
+  isHidden: boolean;
+  generatedAt: string;
+  nextRefreshAt: string;
+  lastError?: string;
+  aiSummary?: string;
 };
 
 export type AiUsageSummary = {

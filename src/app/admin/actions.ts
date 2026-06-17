@@ -9,6 +9,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 const allowedJobs = new Set([
   "rss.fetch_all",
   "social.fetch_all",
+  "reports.check_latest",
+  "reports.refresh_due",
+  "reports.generate_summary",
   "ai.process_news",
   "ai.retag_news",
   "ai.generate_daily_digest",
@@ -131,6 +134,111 @@ export async function addManualXPost(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/social");
   redirect("/admin?social=1");
+}
+
+export async function toggleGrandPrixReportVisibility(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  const reportId = String(formData.get("reportId") ?? "");
+  const isHidden = String(formData.get("isHidden") ?? "") === "true";
+
+  if (!supabase || !reportId) {
+    redirect("/admin?reports=1");
+  }
+
+  await supabase
+    .from("grand_prix_reports")
+    .update({ is_hidden: !isHidden })
+    .eq("id", reportId);
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/calendar");
+  redirect("/admin?reports=1");
+}
+
+export async function queueGrandPrixReportReload(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  const reportId = String(formData.get("reportId") ?? "");
+  const season = Number(formData.get("season"));
+  const round = Number(formData.get("round"));
+
+  if (!supabase || !reportId || !Number.isFinite(season) || !Number.isFinite(round)) {
+    redirect("/admin?reports=1");
+  }
+
+  await supabase
+    .from("grand_prix_reports")
+    .update({
+      status: "pending",
+      summary_status: "pending",
+      next_refresh_at: new Date().toISOString(),
+      last_error: null,
+    })
+    .eq("id", reportId);
+
+  await supabase.from("job_runs").insert({
+    job_name: "reports.generate",
+    status: "queued",
+    items_processed: 0,
+    metadata: { manual: true, season, round },
+  });
+
+  revalidatePath("/admin");
+  redirect("/admin?reports=1");
+}
+
+export async function queueGrandPrixReportSummary(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  const reportId = String(formData.get("reportId") ?? "");
+  const season = Number(formData.get("season"));
+  const round = Number(formData.get("round"));
+
+  if (!supabase || !reportId || !Number.isFinite(season) || !Number.isFinite(round)) {
+    redirect("/admin?reports=1");
+  }
+
+  await supabase
+    .from("grand_prix_reports")
+    .update({ summary_status: "pending", last_error: null })
+    .eq("id", reportId);
+
+  await supabase.from("job_runs").insert({
+    job_name: "reports.generate_summary",
+    status: "queued",
+    items_processed: 0,
+    metadata: { manual: true, season, round },
+  });
+
+  revalidatePath("/admin");
+  redirect("/admin?reports=1");
+}
+
+export async function editGrandPrixReportSummary(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  const reportId = String(formData.get("reportId") ?? "");
+  const summary = normalizeOptionalString(formData.get("summary"));
+
+  if (!supabase || !reportId) {
+    redirect("/admin?reports=1");
+  }
+
+  await supabase
+    .from("grand_prix_reports")
+    .update({
+      ai_summary: summary,
+      summary_status: summary ? "edited" : "pending",
+      status: summary ? "ready" : "partial",
+    })
+    .eq("id", reportId);
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/calendar");
+  redirect("/admin?reports=1");
 }
 
 function normalizeOptionalString(value: FormDataEntryValue | null) {

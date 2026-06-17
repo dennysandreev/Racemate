@@ -7,7 +7,9 @@ import { DataRow } from "@/components/racemate/data-row";
 import { PageHeading } from "@/components/racemate/page-heading";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import { TrackMap } from "@/components/racemate/track-map";
+import { GrandPrixReportDialog } from "@/components/racemate/grand-prix-report-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,6 +19,8 @@ import {
 } from "@/components/ui/card";
 import {
   getRaceDetail,
+  getRaceGrandPrixReport,
+  getGrandPrixReportBySlug,
   getRaceNews,
   getRaceSessions,
   getSessionResults,
@@ -29,7 +33,7 @@ export default async function RaceCalendarPage({
   searchParams,
 }: {
   params: Promise<{ season: string; round: string }>;
-  searchParams: Promise<{ session?: string }>;
+  searchParams: Promise<{ session?: string; raceReport?: string }>;
 }) {
   const [{ season, round }, query] = await Promise.all([params, searchParams]);
   const seasonYear = Number(season);
@@ -45,13 +49,17 @@ export default async function RaceCalendarPage({
     notFound();
   }
 
-  const [sessions, raceNews] = await Promise.all([
+  const [sessions, raceNews, raceReport, queryReport] = await Promise.all([
     getRaceSessions(seasonYear, raceRound),
     getRaceNews(race.id, 5),
+    getRaceGrandPrixReport(seasonYear, raceRound),
+    getGrandPrixReportBySlug(query.raceReport),
   ]);
   const selectedSession = sessions.find((session) => session.id === query.session) ?? sessions[0];
   const results = await getSessionResults(selectedSession?.id);
   const selectedSessionStatus = results.length ? "Завершена" : selectedSession?.status;
+  const dialogReport = queryReport ?? raceReport;
+  const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
 
   return (
     <AppShell>
@@ -78,6 +86,16 @@ export default async function RaceCalendarPage({
               <DataRow label="Старт гонки" value={race.startsAt} />
               <DataRow label="Статус" value={race.status} />
               <DataRow label="Трасса" value={race.circuit} />
+              {raceReport ? (
+                <Button asChild className="mt-2 w-full" variant="secondary">
+                  <Link
+                    href={`/calendar/${seasonYear}/${raceRound}?raceReport=${raceReport.raceSlug}`}
+                    scroll={false}
+                  >
+                    Открыть отчет Гран-при
+                  </Link>
+                </Button>
+              ) : null}
             </CardContent>
           </Card>
         </div>
@@ -223,6 +241,7 @@ export default async function RaceCalendarPage({
           </div>
         )}
       </section>
+      <GrandPrixReportDialog open={isReportOpen} report={dialogReport} />
     </AppShell>
   );
 }

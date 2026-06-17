@@ -21,6 +21,9 @@
     "worker:weather": "node worker/index.mjs weather.sync_weekend",
     "worker:laps": "node worker/index.mjs openf1.sync_laps",
     "worker:score": "node worker/index.mjs predictions.score",
+    "worker:reports": "node worker/index.mjs reports.check_latest",
+    "worker:reports:refresh": "node worker/index.mjs reports.refresh_due",
+    "worker:reports:summary": "node worker/index.mjs reports.generate_summary",
     "supabase:smtp": "node scripts/configure-supabase-smtp.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
