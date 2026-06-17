@@ -87,7 +87,7 @@ export default async function RaceCalendarPage({
               <DataRow label="Статус" value={race.status} />
               <DataRow label="Трасса" value={race.circuit} />
               {raceReport ? (
-                <Button asChild className="mt-2 w-full" variant="secondary">
+                <Button asChild className="mt-2 w-full">
                   <Link
                     href={`/calendar/${seasonYear}/${raceRound}?raceReport=${raceReport.raceSlug}`}
                     scroll={false}

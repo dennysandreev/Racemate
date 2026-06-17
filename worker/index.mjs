@@ -1339,13 +1339,23 @@ async function updateGrandPrixReportSummary(report) {
       circuit: report.circuit_name,
       country: report.country,
     },
-    statistics: report.race_statistics,
-    top10: (report.results ?? []).slice(0, 10),
-    keyEvents: (report.key_events ?? []).slice(0, 12),
-    strategies: (report.strategies ?? []).slice(0, 10),
-    highlights: report.highlights,
-    newsSummary: report.news_summary ?? { articles: [] },
-    championshipImpact: report.championship_impact,
+    top3: (report.results ?? []).slice(0, 3).map((result) => ({
+      position: result.position,
+      driver: result.driver,
+      team: result.team,
+      points: result.points,
+      time: result.time,
+    })),
+    highlights: {
+      winner: report.highlights?.winner,
+      podium: report.highlights?.podium,
+    },
+    newsSummary: {
+      articles: (report.news_summary?.articles ?? []).slice(0, 1).map((article) => ({
+        title: article.title,
+        summary: article.summary,
+      })),
+    },
   };
 
   try {
@@ -1363,14 +1373,14 @@ async function updateGrandPrixReportSummary(report) {
           {
             role: "system",
             content:
-              "Ты редактор RaceMate. Напиши итог Гран-при на русском в 3-6 абзацах только по переданным фактам. Если есть newsSummary.articles, добавь короткий раздел «Что обсуждали вокруг этапа» по этим новостям. Не придумывай события, не добавляй неподтвержденные оценки, не уходи в нерелевантные темы.",
+              "Ты редактор RaceMate. Напиши компактный итог Гран-при на русском в 2-4 абзацах только по переданным фактам. Если есть newsSummary.articles, добавь короткий раздел «Что обсуждали вокруг этапа» по этим новостям. Не придумывай события, не добавляй неподтвержденные оценки, не уходи в нерелевантные темы.",
           },
           {
             role: "user",
             content: JSON.stringify(facts),
           },
         ],
-        max_tokens: Number(process.env.REPORT_SUMMARY_MAX_TOKENS ?? 1200),
+        max_tokens: Number(process.env.REPORT_SUMMARY_MAX_TOKENS ?? 250),
       }),
     });
     const payload = await response.json();
@@ -2023,9 +2033,24 @@ async function syncResults() {
   const racePayload = await raceResponse.json();
   const qualifyingPayload = await qualifyingResponse.json();
   const sprintPayload = await sprintResponse.json();
-  const raceRows = racePayload.MRData?.RaceTable?.Races ?? [];
+  let raceRows = racePayload.MRData?.RaceTable?.Races ?? [];
   const qualifyingRows = qualifyingPayload.MRData?.RaceTable?.Races ?? [];
-  const sprintRows = sprintPayload.MRData?.RaceTable?.Races ?? [];
+  let sprintRows = sprintPayload.MRData?.RaceTable?.Races ?? [];
+
+  raceRows = await addPerRoundJolpicaRowsForCompletedRaces({
+    baseUrl,
+    endpoint: "results",
+    resultKey: "Results",
+    rows: raceRows,
+    season,
+  });
+  sprintRows = await addPerRoundJolpicaRowsForCompletedRaces({
+    baseUrl,
+    endpoint: "sprint",
+    resultKey: "SprintResults",
+    rows: sprintRows,
+    season,
+  });
   let itemsProcessed = 0;
 
   for (const race of raceRows) {
@@ -2156,8 +2181,23 @@ async function repairRaceResults() {
   ]);
   const racePayload = await raceResponse.json();
   const sprintPayload = await sprintResponse.json();
-  const raceRows = racePayload.MRData?.RaceTable?.Races ?? [];
-  const sprintRows = sprintPayload.MRData?.RaceTable?.Races ?? [];
+  let raceRows = racePayload.MRData?.RaceTable?.Races ?? [];
+  let sprintRows = sprintPayload.MRData?.RaceTable?.Races ?? [];
+
+  raceRows = await addPerRoundJolpicaRowsForCompletedRaces({
+    baseUrl,
+    endpoint: "results",
+    resultKey: "Results",
+    rows: raceRows,
+    season,
+  });
+  sprintRows = await addPerRoundJolpicaRowsForCompletedRaces({
+    baseUrl,
+    endpoint: "sprint",
+    resultKey: "SprintResults",
+    rows: sprintRows,
+    season,
+  });
   let itemsProcessed = 0;
 
   for (const race of raceRows) {
@@ -2181,6 +2221,76 @@ async function repairRaceResults() {
   }
 
   return { itemsProcessed, metadata: { season, raceRows: raceRows.length, sprintRows: sprintRows.length } };
+}
+
+async function addPerRoundJolpicaRowsForCompletedRaces({ baseUrl, endpoint, resultKey, rows, season }) {
+  const byRound = new Map(
+    (rows ?? [])
+      .map((race) => [Number(race.round), race])
+      .filter(([round]) => Number.isFinite(round) && round > 0),
+  );
+  const rounds = await getCompletedRaceRounds(season);
+
+  for (const round of rounds) {
+    if (byRound.has(round)) {
+      continue;
+    }
+
+    try {
+      const payload = await fetchJolpicaJsonObject(`${baseUrl}/${season}/${round}/${endpoint}.json?limit=1000`);
+      const race = payload.MRData?.RaceTable?.Races?.[0];
+      const results = race?.[resultKey] ?? [];
+
+      if (race && results.length) {
+        byRound.set(round, race);
+      }
+    } catch (error) {
+      console.warn(`Jolpica per-round ${endpoint} fetch failed for ${season}/${round}: ${error.message}`);
+    }
+  }
+
+  return [...byRound.values()].sort((a, b) => Number(a.round) - Number(b.round));
+}
+
+async function fetchJolpicaJsonObject(url, attempt = 1) {
+  const response = await fetch(url, {
+    headers: { "user-agent": "RaceMate/0.1 (+https://racemate.local)" },
+  });
+  const payload = await response.json();
+
+  if (response.status === 429 && attempt < 4) {
+    await sleep(2500 * attempt);
+    return fetchJolpicaJsonObject(url, attempt + 1);
+  }
+
+  if (!response.ok || !payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error(`Jolpica fetch failed ${response.status}: ${url}`);
+  }
+
+  return payload;
+}
+
+async function getCompletedRaceRounds(season) {
+  const { data, error } = await supabase
+    .from("races")
+    .select("round, race_start_at, status")
+    .eq("season_year", season)
+    .order("round", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  const now = Date.now();
+
+  return (data ?? [])
+    .filter((race) => {
+      const raceTime = race.race_start_at ? new Date(race.race_start_at).getTime() : 0;
+
+      return race.status === "completed" || (raceTime > 0 && raceTime < now);
+    })
+    .map((race) => Number(race.round))
+    .filter((round) => Number.isFinite(round) && round > 0);
 }
 
 async function repairJolpicaClassificationSession({ race, season, sessionType, sessionName, results }) {

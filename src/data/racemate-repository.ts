@@ -192,6 +192,11 @@ type SessionResultDbRow = {
   grid: number | null;
   laps: number | null;
   points: number | string | null;
+  raw_payload?: unknown;
+  sessions:
+    | { session_type: string }
+    | { session_type: string }[]
+    | null;
   drivers: { full_name: string } | { full_name: string }[] | null;
   teams: TeamRelationObject | TeamRelationObject[] | null;
 };
@@ -213,6 +218,8 @@ type SessionResultPointsDbRow = {
   position: number | null;
   team_id: string | null;
   points: number | string | null;
+  status?: string | null;
+  raw_payload?: unknown;
 };
 
 type RaceWinnerDbRow = {
@@ -1741,7 +1748,7 @@ export async function getSessionResults(sessionId?: string | null): Promise<Sess
 
   const { data, error } = await supabase
     .from("session_results")
-    .select("position, time_text, status, grid, laps, points, drivers(full_name), teams(name, code, color_hex)")
+    .select("position, time_text, status, grid, laps, points, raw_payload, sessions(session_type), drivers(full_name), teams(name, code, color_hex)")
     .eq("session_id", sessionId)
     .order("position", { ascending: true, nullsFirst: false });
 
@@ -1749,16 +1756,26 @@ export async function getSessionResults(sessionId?: string | null): Promise<Sess
     return [];
   }
 
-  return (data as unknown as SessionResultDbRow[]).map((row) => ({
-    ...getTeamVisualFields(row.teams, "Команда уточняется"),
-    position: row.position,
-    driver: getRelationName(row.drivers, "Пилот уточняется"),
-    time: row.time_text ?? "Без времени",
-    status: row.status ?? "Классифицирован",
-    grid: row.grid,
-    laps: row.laps,
-    points: row.points === null ? null : Number(row.points),
-  }));
+  return (data as unknown as SessionResultDbRow[])
+    .filter((row) => {
+      const session = getRelationObject(row.sessions);
+
+      if (session?.session_type !== "race" && session?.session_type !== "sprint") {
+        return true;
+      }
+
+      return !isLapOnlyResult(row);
+    })
+    .map((row) => ({
+      ...getTeamVisualFields(row.teams, "Команда уточняется"),
+      position: row.position,
+      driver: getRelationName(row.drivers, "Пилот уточняется"),
+      time: row.time_text ?? "Без времени",
+      status: row.status ?? "Классифицирован",
+      grid: row.grid,
+      laps: row.laps,
+      points: row.points === null ? null : Number(row.points),
+    }));
 }
 
 export async function getRaceNews(raceId: string, limit = 5): Promise<NewsItem[]> {
@@ -2064,7 +2081,7 @@ async function getChampionshipRoundPointTotals(season: number) {
   );
   const { data: resultData, error: resultError } = await supabase
     .from("session_results")
-    .select("session_id, driver_id, position, team_id, points")
+    .select("session_id, driver_id, position, team_id, points, status, raw_payload")
     .in("session_id", sessions.map((session) => session.id));
 
   if (resultError || !resultData?.length) {
@@ -2086,13 +2103,13 @@ async function getChampionshipRoundPointTotals(season: number) {
       return;
     }
 
-    if (result.points === null || result.points === undefined) {
+    if (isLapOnlyResult(result)) {
       return;
     }
 
     const points = getRoundResultPoints(result.points, session.type, result.position);
 
-    if (points === null) {
+    if (points === null || points <= 0) {
       return;
     }
 
@@ -2203,6 +2220,27 @@ function getRoundResultPoints(
   }
 
   return null;
+}
+
+function isLapOnlyResult(row: { status?: string | null; raw_payload?: unknown }) {
+  const status = row.status?.trim().toLowerCase() ?? "";
+
+  if (status === "лучший круг" || status === "лучшее время") {
+    return true;
+  }
+
+  if (!row.raw_payload || typeof row.raw_payload !== "object" || Array.isArray(row.raw_payload)) {
+    return false;
+  }
+
+  const payload = row.raw_payload as Record<string, unknown>;
+
+  return (
+    "lap_duration" in payload &&
+    "session_key" in payload &&
+    "lap_number" in payload &&
+    !("Driver" in payload)
+  );
 }
 
 function getRacePointsByPosition(position: number | null) {

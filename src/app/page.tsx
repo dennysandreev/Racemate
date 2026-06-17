@@ -271,7 +271,7 @@ function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
             {summary ? (
               <p className="text-sm leading-6 text-muted-foreground">{summary}</p>
             ) : null}
-            <Button asChild className="w-full" variant="secondary">
+            <Button asChild className="w-full">
               <Link href={`/?raceReport=${report.raceSlug}`} scroll={false}>
                 Открыть полный отчет
               </Link>
