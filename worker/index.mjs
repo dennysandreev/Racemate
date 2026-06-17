@@ -617,7 +617,19 @@ async function generateGrandPrixReportForRace(race) {
 
   const sourceErrors = {};
   const openF1 = await collectOpenF1ReportData(raceSession.openf1_session_key, sourceErrors);
-  const fastF1 = collectFastF1ReportData(race.season_year, race.round, sourceErrors);
+  const fastF1Result = collectFastF1ReportData(race.season_year, race.round);
+  let fastF1 = fastF1Result.data;
+
+  if (!hasLapMetrics(fastF1)) {
+    const openF1LapMetrics = buildOpenF1LapMetrics(openF1.laps ?? []);
+
+    if (hasLapMetrics(openF1LapMetrics)) {
+      fastF1 = openF1LapMetrics;
+    } else if (fastF1Result.error) {
+      sourceErrors.fastf1 = fastF1Result.error;
+    }
+  }
+
   const structured = buildGrandPrixReportStructuredData(race, raceSession, resultRows, openF1, fastF1, sourceErrors);
   const structuredHash = hashJson({
     race_statistics: structured.race_statistics,
@@ -794,13 +806,12 @@ async function collectOpenF1ReportData(sessionKey, sourceErrors) {
   return result;
 }
 
-function collectFastF1ReportData(season, round, sourceErrors) {
+function collectFastF1ReportData(season, round) {
   const python = process.env.FASTF1_PYTHON_BIN ?? "python3";
   const script = "worker/fastf1/report_metrics.py";
 
   if (!existsSync(script)) {
-    sourceErrors.fastf1 = "FastF1 script is missing.";
-    return {};
+    return { data: {}, error: "FastF1 script is missing." };
   }
 
   const result = spawnSync(python, [script, String(season), String(round)], {
@@ -809,11 +820,64 @@ function collectFastF1ReportData(season, round, sourceErrors) {
   });
 
   if (result.error || result.status !== 0) {
-    sourceErrors.fastf1 = result.error?.message ?? result.stderr?.trim() ?? "FastF1 failed.";
-    return {};
+    return { data: {}, error: result.error?.message ?? result.stderr?.trim() ?? "FastF1 failed." };
   }
 
-  return safeJson(result.stdout) ?? {};
+  return { data: safeJson(result.stdout) ?? {}, error: null };
+}
+
+function hasLapMetrics(value) {
+  return Boolean(Object.keys(value?.driversByNumber ?? value?.drivers ?? {}).length);
+}
+
+function buildOpenF1LapMetrics(laps) {
+  const byNumber = new Map();
+
+  for (const lap of laps ?? []) {
+    const driverNumber = numberOrNull(lap.driver_number);
+    const lapDuration = numberOrNull(lap.lap_duration);
+
+    if (!driverNumber || lapDuration === null) {
+      continue;
+    }
+
+    const key = String(driverNumber);
+    const driverLaps = byNumber.get(key) ?? [];
+    driverLaps.push({
+      lapDuration,
+      isPitOutLap: Boolean(lap.is_pit_out_lap),
+    });
+    byNumber.set(key, driverLaps);
+  }
+
+  const driversByNumber = {};
+
+  for (const [driverNumber, driverLaps] of byNumber.entries()) {
+    const timedLaps = driverLaps.map((lap) => lap.lapDuration).filter(Number.isFinite);
+    const cleanLaps = driverLaps
+      .filter((lap) => !lap.isPitOutLap)
+      .map((lap) => lap.lapDuration)
+      .filter(Number.isFinite);
+    const sample = cleanLaps.length ? cleanLaps : timedLaps;
+
+    if (!sample.length) {
+      continue;
+    }
+
+    driversByNumber[driverNumber] = {
+      driverNumber: Number(driverNumber),
+      bestLapSeconds: roundNumber(Math.min(...sample), 3),
+      medianLapSeconds: medianNumber(sample),
+      laps: driverLaps.length,
+      quickLaps: cleanLaps.length,
+    };
+  }
+
+  return {
+    source: "openf1",
+    drivers: driversByNumber,
+    driversByNumber,
+  };
 }
 
 function buildGrandPrixReportStructuredData(race, raceSession, resultRows, openF1, fastF1, sourceErrors) {
@@ -925,14 +989,23 @@ function mapReportStrategies(stints, pitStops, results, fastF1) {
 
   const pitCountByDriver = countBy(pitStops, (pit) => pit.driver);
 
-  return results.slice(0, 20).map((result) => ({
-    driver: result.driver,
-    team: result.team,
-    pitStops: pitCountByDriver.get(result.driver) ?? 0,
-    compounds: [...new Set([...(stintsByDriver.get(String(result.driverNumber ?? "")) ?? []).map((stint) => stint.compound)])],
-    stints: stintsByDriver.get(String(result.driverNumber ?? "")) ?? [],
-    fastF1: fastF1?.drivers?.[result.driver] ?? null,
-  }));
+  return results.slice(0, 20).map((result) => {
+    const driverNumber = String(result.driverNumber ?? "");
+    const fastF1Metrics =
+      fastF1?.driversByNumber?.[driverNumber] ??
+      fastF1?.drivers?.[driverNumber] ??
+      fastF1?.drivers?.[result.driver] ??
+      null;
+
+    return {
+      driver: result.driver,
+      team: result.team,
+      pitStops: pitCountByDriver.get(result.driver) ?? 0,
+      compounds: [...new Set([...(stintsByDriver.get(driverNumber) ?? []).map((stint) => stint.compound)])],
+      stints: stintsByDriver.get(driverNumber) ?? [],
+      fastF1: fastF1Metrics,
+    };
+  });
 }
 
 function buildReportKeyEvents(results, pitStops, raceControl, positions) {
@@ -2891,6 +2964,32 @@ function numberOrNull(value) {
 
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function roundNumber(value, digits = 0) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return null;
+  }
+
+  const factor = 10 ** digits;
+  return Math.round(number * factor) / factor;
+}
+
+function medianNumber(values) {
+  const numbers = values.map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+
+  if (!numbers.length) {
+    return null;
+  }
+
+  const middle = Math.floor(numbers.length / 2);
+  const value = numbers.length % 2 === 1
+    ? numbers[middle]
+    : (numbers[middle - 1] + numbers[middle]) / 2;
+
+  return roundNumber(value, 3);
 }
 
 function getBestQualifyingTime(result) {

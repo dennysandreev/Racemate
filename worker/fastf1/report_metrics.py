@@ -41,6 +41,7 @@ def main():
     session.load(laps=True, telemetry=False, weather=False, messages=False)
     laps = session.laps
     drivers = {}
+    drivers_by_number = {}
 
     for driver_code in sorted(str(item) for item in laps["Driver"].dropna().unique()):
         driver_laps = laps.pick_drivers(driver_code)
@@ -51,14 +52,31 @@ def main():
             continue
 
         lap_times = sample["LapTime"].dropna()
-        drivers[driver_code] = {
+        driver_number = None
+
+        if "DriverNumber" in sample:
+            driver_numbers = sample["DriverNumber"].dropna()
+            if not driver_numbers.empty:
+                try:
+                    driver_number = int(driver_numbers.iloc[0])
+                except Exception:
+                    driver_number = str(driver_numbers.iloc[0])
+
+        metrics = {
+            "driverCode": driver_code,
+            "driverNumber": driver_number,
             "bestLapSeconds": seconds(lap_times.min() if not lap_times.empty else None),
             "medianLapSeconds": seconds(lap_times.median() if not lap_times.empty else None),
             "laps": int(len(driver_laps)),
             "quickLaps": int(len(quick_laps)),
         }
 
-    print(json.dumps({"drivers": drivers}, ensure_ascii=False))
+        drivers[driver_code] = metrics
+
+        if driver_number is not None:
+            drivers_by_number[str(driver_number)] = metrics
+
+    print(json.dumps({"source": "fastf1", "drivers": drivers, "driversByNumber": drivers_by_number}, ensure_ascii=False))
     return 0
 
 
