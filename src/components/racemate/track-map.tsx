@@ -28,8 +28,7 @@ export function TrackMap({ circuit, compact }: TrackMapProps) {
             alt={`Официальная схема трассы ${circuit}`}
             className="object-contain"
             fill
-            priority={Boolean(compact)}
-            sizes="(min-width: 1024px) 56rem, 100vw"
+            sizes={compact ? "(max-width: 640px) 360px, (max-width: 1024px) 720px, 56rem" : "(max-width: 640px) 360px, 48rem"}
             src={asset.src}
           />
         </div>
