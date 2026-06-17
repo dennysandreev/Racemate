@@ -184,7 +184,7 @@ function StandingsCard({ rows }: { rows: StandingRow[] }) {
           ))}
         </div>
         <Button asChild className="w-full" variant="secondary">
-          <Link href="/leaderboard">Открыть чемпионат</Link>
+          <Link href="/leaderboard" prefetch={false}>Открыть чемпионат</Link>
         </Button>
       </CardContent>
     </Card>
@@ -206,6 +206,7 @@ function NewsCard({ items }: { items: NewsItem[] }) {
             className="grid gap-3 rounded-md border border-border/70 p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             href={`/news/${item.slug}`}
             key={item.slug}
+            prefetch={false}
           >
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">{item.source}</Badge>
@@ -272,7 +273,7 @@ function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
               <p className="text-sm leading-6 text-muted-foreground">{summary}</p>
             ) : null}
             <Button asChild className="w-full">
-              <Link href={`/?raceReport=${report.raceSlug}`} scroll={false}>
+              <Link href={`/?raceReport=${report.raceSlug}`} prefetch={false} scroll={false}>
                 Открыть полный отчет
               </Link>
             </Button>
@@ -317,6 +318,7 @@ function MarketOddsCard({
               <Link
                 className="inline-flex items-center gap-1 rounded-md text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 href={odds.marketUrl}
+                prefetch={false}
                 rel="noreferrer"
                 target="_blank"
               >

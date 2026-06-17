@@ -27,6 +27,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <Link
           className="group flex items-center gap-3 rounded-full pr-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           href="/"
+          prefetch={false}
         >
           <span className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_0_24px_oklch(0.62_0.22_27_/_0.35)] transition-transform group-hover:scale-105 sm:size-11">
             <Flag aria-hidden="true" data-icon="inline-start" />
@@ -51,6 +52,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                 className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 href={item.href}
                 key={item.href}
+                prefetch={false}
               >
                 {item.label}
               </Link>
@@ -65,7 +67,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                 </form>
               ) : (
                 <Button asChild className="w-full justify-center" size="sm">
-                  <Link href="/auth">
+                  <Link href="/auth" prefetch={false}>
                     Войти
                     <ArrowRight aria-hidden="true" data-icon="inline-end" />
                   </Link>
@@ -84,7 +86,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           </form>
         ) : (
           <Button asChild className="hidden lg:inline-flex" size="sm">
-            <Link href="/auth">
+            <Link href="/auth" prefetch={false}>
               Войти
               <ArrowRight aria-hidden="true" data-icon="inline-end" />
             </Link>

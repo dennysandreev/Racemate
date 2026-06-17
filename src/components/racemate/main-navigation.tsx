@@ -32,6 +32,7 @@ export function MainNavigation({ items }: MainNavigationProps) {
             )}
             href={item.href}
             key={item.href}
+            prefetch={false}
           >
             {item.label}
           </Link>
