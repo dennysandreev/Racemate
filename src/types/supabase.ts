@@ -183,6 +183,7 @@ export type Database = {
         teammate_comparisons: Json;
         highlights: Json;
         championship_impact: Json;
+        news_summary: Json;
         source_errors: Json;
         last_error: string | null;
         refresh_stage: number;

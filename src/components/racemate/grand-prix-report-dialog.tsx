@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TyreSequence } from "@/components/racemate/tyre-sequence";
 import type { GrandPrixReport } from "@/types/racemate";
 
 type GrandPrixReportDialogProps = {
@@ -55,6 +56,10 @@ export function GrandPrixReportDialog({
   const bestGain = asHighlight(report.highlights.bestGain);
   const biggestDrop = asHighlight(report.highlights.biggestDrop);
   const bestTeam = asHighlight(report.highlights.bestTeam, "team", "points");
+  const fastestLap = asHighlight(report.highlights.fastestLap);
+  const fastestPitStop = asHighlight(report.highlights.fastestPitStop, "driver", "duration");
+  const safetyCarSummary = asText(report.highlights.safetyCarSummary);
+  const mostCommonStrategy = asHighlight(report.highlights.mostCommonStrategy, "sequence", "drivers");
 
   return (
     <div
@@ -119,9 +124,13 @@ export function GrandPrixReportDialog({
               <div className="grid gap-3 rounded-md border border-border/70 p-4">
                 <ReportFact label="Победитель" value={winner} />
                 <ReportFact label="Подиум" value={podium.length ? podium.join(", ") : "Подиум уточняется"} />
+                <ReportFact label="Лучший круг" value={fastestLap ?? "Нет данных"} />
                 <ReportFact label="Лучший прорыв" value={bestGain ?? "Нет данных"} />
                 <ReportFact label="Самая сильная команда" value={bestTeam ?? "Нет данных"} />
                 <ReportFact label="Главная потеря" value={biggestDrop ?? "Нет данных"} />
+                <ReportFact label="Быстрый пит-стоп" value={fastestPitStop ?? "Нет данных"} />
+                <ReportFact label="SC/VSC/красный флаг" value={safetyCarSummary ?? "Нет данных"} />
+                <ReportFact label="Частая стратегия" value={mostCommonStrategy ?? "Нет данных"} />
               </div>
             </section>
 
@@ -136,6 +145,7 @@ export function GrandPrixReportDialog({
                       <th className="px-4 py-3 font-medium">Команда</th>
                       <th className="px-4 py-3 font-medium">Старт</th>
                       <th className="px-4 py-3 font-medium">+/-</th>
+                      <th className="px-4 py-3 font-medium">Шины</th>
                       <th className="px-4 py-3 font-medium">Лучший круг</th>
                       <th className="px-4 py-3 text-right font-medium">Очки</th>
                     </tr>
@@ -161,6 +171,9 @@ export function GrandPrixReportDialog({
                         <td className="px-4 py-3 font-mono text-muted-foreground">
                           {formatDelta(result.positionDelta)}
                         </td>
+                        <td className="px-4 py-3">
+                          <TyreSequence tyres={result.tyres} />
+                        </td>
                         <td className="px-4 py-3 font-mono text-muted-foreground">
                           {result.bestLap ?? "-"}
                         </td>
@@ -174,7 +187,7 @@ export function GrandPrixReportDialog({
               </div>
             </section>
 
-            <section className="grid gap-4 lg:grid-cols-2">
+            <section className="grid gap-4">
               <ReportList title="Ключевые события">
                 {report.keyEvents.length ? report.keyEvents.map((event, index) => (
                   <li className="rounded-md border border-border/70 p-3" key={`${index}-${event.type}-${event.lap}-${event.title}`}>
@@ -189,20 +202,6 @@ export function GrandPrixReportDialog({
                 )) : (
                   <li className="text-sm text-muted-foreground">Значимые события пока не найдены.</li>
                 )}
-              </ReportList>
-
-              <ReportList title="Стратегия и пит-стопы">
-                {report.strategies.slice(0, 10).map((strategy) => {
-                  const item = strategy as Record<string, unknown>;
-                  return (
-                    <li className="rounded-md border border-border/70 p-3" key={String(item.driver)}>
-                      <p className="text-sm font-medium">{String(item.driver ?? "Пилот")}</p>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        Пит-стопы: {String(item.pitStops ?? 0)} · составы: {asStringArray(item.compounds).join(", ") || "нет данных"}
-                      </p>
-                    </li>
-                  );
-                })}
               </ReportList>
             </section>
 

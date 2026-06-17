@@ -92,6 +92,7 @@ export default async function LeaderboardPage({
                         >
                           <RaceFlag
                             className="text-base sm:text-lg"
+                            countryCode={round.countryCode}
                             label={`${round.raceName}, раунд ${round.round}`}
                             value={round.flag}
                           />
@@ -150,6 +151,7 @@ export default async function LeaderboardPage({
                         >
                           <RaceFlag
                             className="text-base sm:text-lg"
+                            countryCode={round.countryCode}
                             label={`${round.raceName}, раунд ${round.round}`}
                             value={round.flag}
                           />

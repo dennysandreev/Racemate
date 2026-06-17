@@ -97,6 +97,7 @@ type GrandPrixReportDbRow = {
   teammate_comparisons: unknown;
   highlights: unknown;
   championship_impact: unknown;
+  news_summary: unknown;
   source_errors: unknown;
   generated_at: string | null;
 };
@@ -367,7 +368,7 @@ const POLYMARKET_F1_TAG_ID = "435";
 const NEWS_ARTICLE_SELECT =
   "id, canonical_url, original_title, original_description, published_at, ai_title_ru, ai_summary_ru, ai_summary_long_ru, ai_key_points_ru, related_race_id, news_sources(name), news_article_tags(tags(name, slug, type)), races:related_race_id(race_name, season_year, round)";
 const GRAND_PRIX_REPORT_SELECT =
-  "id, season, round, race_slug, race_name, circuit_name, country, race_date, status, summary_status, ai_summary, weather, race_statistics, results, key_events, pit_stops, strategies, teammate_comparisons, highlights, championship_impact, source_errors, generated_at";
+  "id, season, round, race_slug, race_name, circuit_name, country, race_date, status, summary_status, ai_summary, weather, race_statistics, results, key_events, pit_stops, strategies, teammate_comparisons, highlights, championship_impact, news_summary, source_errors, generated_at";
 
 type NewsItemsOptions = {
   page?: number;
@@ -468,6 +469,29 @@ export async function getNewsItems(
   };
 }
 
+export async function getNewsDriverTags(): Promise<{ name: string; slug: string }[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("tags")
+    .select("name, slug")
+    .eq("type", "driver")
+    .order("name", { ascending: true })
+    .limit(40);
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return data
+    .filter((tag) => tag.name && tag.slug)
+    .map((tag) => ({ name: tag.name, slug: tag.slug }));
+}
+
 export async function getSocialPosts({
   cursor,
   pageSize = 12,
@@ -485,7 +509,7 @@ export async function getSocialPosts({
     return { items: [], nextCursor: null };
   }
 
-  if (platform !== "all" && platform !== "x") {
+  if (platform !== "all" && platform !== "x" && platform !== "reddit") {
     return { items: [], nextCursor: null };
   }
 
@@ -495,8 +519,11 @@ export async function getSocialPosts({
     .from("social_posts")
     .select(
       "id, platform, author, title, body, original_url, image_url, published_at, reaction_count, popularity_score",
-    )
-    .eq("platform", "x");
+    );
+
+  if (platform !== "all") {
+    query = query.eq("platform", platform);
+  }
 
   if (sort === "popular") {
     query = query
@@ -526,7 +553,7 @@ export async function getSocialPosts({
 }
 
 export function normalizeSocialPlatform(value?: string | null): SocialPlatform {
-  return value === "x" ? value : "all";
+  return value === "x" || value === "reddit" ? value : "all";
 }
 
 export function normalizeSocialSort(value?: string | null): SocialSort {
@@ -1114,6 +1141,7 @@ export async function getRaceRoundVisuals(season: number, latestRound: number) {
     return Array.from({ length: latestRound }, (_, index) => ({
       round: index + 1,
       flag: "🏁",
+      countryCode: undefined,
       raceName: `Раунд ${index + 1}`,
     }));
   }
@@ -1125,6 +1153,7 @@ export async function getRaceRoundVisuals(season: number, latestRound: number) {
     return {
       round: race.round,
       flag: getCountryFlag(country),
+      countryCode: getCountryCode(country),
       raceName: race.race_name,
     };
   });
@@ -1166,6 +1195,7 @@ async function getRaceRoundVisualsForRounds(season: number, rounds: number[]) {
       return {
         round,
         flag: "🏁",
+        countryCode: undefined,
         raceName: `Раунд ${round}`,
       };
     }
@@ -1176,6 +1206,7 @@ async function getRaceRoundVisualsForRounds(season: number, rounds: number[]) {
     return {
       round: race.round,
       flag: getCountryFlag(country),
+      countryCode: getCountryCode(country),
       raceName: race.race_name,
     };
   });
@@ -1564,6 +1595,7 @@ export async function getRaceDetail(
     circuitId: circuit?.id ?? null,
     country: circuit?.country ?? "Страна уточняется",
     countryFlag: getCountryFlag(circuit?.country ?? ""),
+    countryCode: getCountryCode(circuit?.country ?? ""),
     locality: circuit?.locality ?? "Город уточняется",
     startsAt: formatDateTime(race.race_start_at),
     status: mapRaceStatus(race.status, race.race_start_at, 0),
@@ -1892,6 +1924,7 @@ function mapGrandPrixReportRow(row: GrandPrixReportDbRow): GrandPrixReport {
     teammateComparisons: asArray(row.teammate_comparisons),
     highlights: asObject(row.highlights),
     championshipImpact: asObject(row.championship_impact),
+    newsSummary: asObject(row.news_summary),
     sourceErrors: asObject(row.source_errors),
     generatedAt: formatRelativeTime(row.generated_at),
   };
@@ -2046,6 +2079,10 @@ async function getChampionshipRoundPointTotals(season: number) {
     const session = sessionMetaById.get(result.session_id);
 
     if (!session?.round) {
+      return;
+    }
+
+    if (session.type !== "race" && session.type !== "sprint") {
       return;
     }
 
@@ -2877,6 +2914,7 @@ function mapCalendarRace(race: RaceRow, isCurrent: boolean, winner?: string): Ca
     circuit: circuit?.name ?? "Трасса уточняется",
     country,
     countryFlag: getCountryFlag(country),
+    countryCode: getCountryCode(country),
     date: formatDateRange(race.race_start_at),
     status: mapRaceStatus(race.status, race.race_start_at, isCurrent ? 0 : 1),
     winner,
@@ -2959,6 +2997,79 @@ function getCountryFlag(country: string) {
   }
 
   return getIsoCountryFlag(value) ?? "🏁";
+}
+
+function getCountryCode(country: string) {
+  const value = country.trim();
+
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = normalizeCountryName(value);
+  const codes: Record<string, string> = {
+    ae: "ae",
+    au: "au",
+    australia: "au",
+    at: "at",
+    austria: "at",
+    az: "az",
+    azerbaijan: "az",
+    bh: "bh",
+    bahrain: "bh",
+    be: "be",
+    belgium: "be",
+    br: "br",
+    brazil: "br",
+    ca: "ca",
+    canada: "ca",
+    cn: "cn",
+    china: "cn",
+    gb: "gb",
+    uk: "gb",
+    "u k": "gb",
+    england: "gb",
+    greatbritain: "gb",
+    "great britain": "gb",
+    "united kingdom": "gb",
+    "united kingdom of great britain and northern ireland": "gb",
+    hu: "hu",
+    hungary: "hu",
+    it: "it",
+    italy: "it",
+    jp: "jp",
+    japan: "jp",
+    mc: "mc",
+    monaco: "mc",
+    mx: "mx",
+    mexico: "mx",
+    nl: "nl",
+    netherlands: "nl",
+    qa: "qa",
+    qatar: "qa",
+    sa: "sa",
+    "saudi arabia": "sa",
+    sg: "sg",
+    singapore: "sg",
+    es: "es",
+    spain: "es",
+    uae: "ae",
+    "u a e": "ae",
+    "united arab emirates": "ae",
+    us: "us",
+    "u s": "us",
+    "u s a": "us",
+    usa: "us",
+    "united states": "us",
+    "united states america": "us",
+    "united states of america": "us",
+  };
+
+  if (codes[normalized]) {
+    return codes[normalized];
+  }
+
+  return /^[a-z]{2}$/i.test(value) ? value.toLowerCase() : undefined;
 }
 
 function getIsoCountryFlag(value: string) {

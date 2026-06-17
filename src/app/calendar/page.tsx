@@ -50,7 +50,7 @@ export default async function CalendarPage() {
                     </CardTitle>
                     <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                       <MapPin aria-hidden="true" data-icon="inline-start" />
-                      <RaceFlag label={event.country} value={event.countryFlag} />
+                      <RaceFlag countryCode={event.countryCode} label={event.country} value={event.countryFlag} />
                       {event.circuit}, {event.country}
                     </p>
                   </div>

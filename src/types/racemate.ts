@@ -70,6 +70,7 @@ export type DriverChampionshipRow = {
 export type ChampionshipRound = {
   round: number;
   flag: string;
+  countryCode?: string;
   raceName: string;
 };
 
@@ -108,6 +109,7 @@ export type CalendarEvent = {
   circuit: string;
   country: string;
   countryFlag: string;
+  countryCode?: string;
   date: string;
   status: string;
   winner?: string;
@@ -123,6 +125,7 @@ export type RaceDetail = {
   circuitId?: string | null;
   country: string;
   countryFlag: string;
+  countryCode?: string;
   locality: string;
   startsAt: string;
   status: string;
@@ -200,11 +203,18 @@ export type GrandPrixReportResult = {
   points: number | null;
   status: string;
   bestLap?: string | null;
+  tyres?: TyreStint[];
   isWinner?: boolean;
   isPodium?: boolean;
   isFastestLap?: boolean;
   isBestGain?: boolean;
   isBiggestDrop?: boolean;
+};
+
+export type TyreStint = {
+  compound: string;
+  startLap?: number | null;
+  endLap?: number | null;
 };
 
 export type GrandPrixReportEvent = {
@@ -235,6 +245,7 @@ export type GrandPrixReport = {
   teammateComparisons: unknown[];
   highlights: Record<string, unknown>;
   championshipImpact: Record<string, unknown>;
+  newsSummary: Record<string, unknown>;
   sourceErrors: Record<string, unknown>;
   generatedAt: string;
 };
@@ -281,7 +292,7 @@ export type AdminSource = {
   lastStatus: string;
 };
 
-export type SocialPlatform = "all" | "x";
+export type SocialPlatform = "all" | "x" | "reddit";
 
 export type SocialSort = "new" | "popular";
 

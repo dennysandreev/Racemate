@@ -13,6 +13,7 @@ const commands = new Map([
   ["social.fetch_x", fetchXSocial],
   ["reports.check_latest", checkLatestGrandPrixReport],
   ["reports.generate", generateGrandPrixReport],
+  ["reports.generate_all_completed", generateAllCompletedGrandPrixReports],
   ["reports.generate_summary", generateGrandPrixReportSummary],
   ["reports.refresh_due", refreshDueGrandPrixReports],
   ["ai.process_news", processNewsWithAi],
@@ -20,6 +21,7 @@ const commands = new Map([
   ["ai.generate_daily_digest", generateDailyDigest],
   ["jolpica.sync_calendar", syncCalendar],
   ["jolpica.sync_results", syncResults],
+  ["jolpica.repair_race_results", repairRaceResults],
   ["jolpica.sync_standings", syncStandings],
   ["openf1.sync_sessions", syncOpenF1Sessions],
   ["openf1.sync_laps", syncOpenF1Laps],
@@ -572,6 +574,25 @@ async function generateGrandPrixReportSummary() {
   return { itemsProcessed: updated ? 1 : 0, metadata: { raceSlug: data.race_slug } };
 }
 
+async function generateAllCompletedGrandPrixReports() {
+  const season = numberOrNull(getCliOption("season")) ?? Number(process.env.F1_SEASON ?? new Date().getUTCFullYear());
+  const races = await findCompletedRacesReadyForReports(season, { requireDelay: false });
+  let itemsProcessed = 0;
+
+  for (const race of races) {
+    const result = await generateGrandPrixReportForRace(race);
+    itemsProcessed += result.itemsProcessed ?? 0;
+  }
+
+  return {
+    itemsProcessed,
+    metadata: {
+      season,
+      rounds: races.map((race) => race.round),
+    },
+  };
+}
+
 async function refreshDueGrandPrixReports() {
   const { data, error } = await supabase
     .from("grand_prix_reports")
@@ -630,7 +651,16 @@ async function generateGrandPrixReportForRace(race) {
     }
   }
 
-  const structured = buildGrandPrixReportStructuredData(race, raceSession, resultRows, openF1, fastF1, sourceErrors);
+  const newsSummary = await getRaceNewsSummaryForReport(race.id);
+  const structured = buildGrandPrixReportStructuredData(
+    race,
+    raceSession,
+    resultRows,
+    openF1,
+    fastF1,
+    sourceErrors,
+    newsSummary,
+  );
   const structuredHash = hashJson({
     race_statistics: structured.race_statistics,
     results: structured.results,
@@ -639,6 +669,7 @@ async function generateGrandPrixReportForRace(race) {
     strategies: structured.strategies,
     teammate_comparisons: structured.teammate_comparisons,
     highlights: structured.highlights,
+    news_summary: structured.news_summary,
     championship_impact: structured.championship_impact,
   });
   const existing = await getExistingGrandPrixReport(race.season_year, race.round);
@@ -672,6 +703,7 @@ async function generateGrandPrixReportForRace(race) {
         strategies: structured.strategies,
         teammate_comparisons: structured.teammate_comparisons,
         highlights: structured.highlights,
+        news_summary: structured.news_summary,
         championship_impact: structured.championship_impact,
         source_errors: sourceErrors,
         last_error: null,
@@ -702,27 +734,49 @@ async function generateGrandPrixReportForRace(race) {
 }
 
 async function findLatestCompletedRaceForReport() {
+  const races = await findCompletedRacesReadyForReports(undefined, { requireDelay: true, limit: 12 });
+
+  return races[0] ?? null;
+}
+
+async function findCompletedRacesReadyForReports(season, { requireDelay = true, limit = 80 } = {}) {
   const { data, error } = await supabase
     .from("races")
     .select("id, season_year, round, race_name, race_start_at, status, circuits(name, country)")
-    .eq("status", "completed")
     .order("race_start_at", { ascending: false, nullsFirst: false })
-    .limit(8);
+    .limit(limit);
 
   if (error) {
     throw error;
   }
 
+  const now = Date.now();
+  const ready = [];
+
   for (const race of data ?? []) {
+    if (season && Number(race.season_year) !== season) {
+      continue;
+    }
+
+    const raceTime = race.race_start_at ? new Date(race.race_start_at).getTime() : 0;
+
+    if (requireDelay && (!raceTime || now - raceTime < 27 * 60 * 60 * 1000)) {
+      continue;
+    }
+
     const session = await getRaceSessionForReport(race.id);
     const results = session ? await getRaceResultRows(session.id) : [];
 
     if (session && hasFinalRaceResults(results)) {
-      return race;
+      ready.push(race);
     }
   }
 
-  return null;
+  return ready.sort(
+    (a, b) =>
+      new Date(b.race_start_at ?? 0).getTime() -
+      new Date(a.race_start_at ?? 0).getTime(),
+  );
 }
 
 async function getRaceForReport(season, round) {
@@ -767,6 +821,29 @@ async function getRaceResultRows(sessionId) {
   }
 
   return data ?? [];
+}
+
+async function getRaceNewsSummaryForReport(raceId) {
+  if (!raceId) {
+    return { articles: [] };
+  }
+
+  const { data } = await supabase
+    .from("news_articles")
+    .select("ai_title_ru, original_title, ai_summary_ru, ai_summary_long_ru, published_at")
+    .eq("status", "processed")
+    .eq("related_race_id", raceId)
+    .is("duplicate_of", null)
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .limit(Number(process.env.REPORT_NEWS_LIMIT ?? 8));
+
+  return {
+    articles: (data ?? []).map((article) => ({
+      title: article.ai_title_ru ?? article.original_title,
+      summary: article.ai_summary_ru ?? article.ai_summary_long_ru ?? null,
+      publishedAt: article.published_at ?? null,
+    })),
+  };
 }
 
 function hasFinalRaceResults(results) {
@@ -880,13 +957,14 @@ function buildOpenF1LapMetrics(laps) {
   };
 }
 
-function buildGrandPrixReportStructuredData(race, raceSession, resultRows, openF1, fastF1, sourceErrors) {
-  const results = mapReportResults(resultRows, openF1.laps ?? []);
+function buildGrandPrixReportStructuredData(race, raceSession, resultRows, openF1, fastF1, sourceErrors, newsSummary) {
+  const tyreStintsByDriver = getTyreStintsByDriverNumber(openF1.stints ?? []);
+  const results = mapReportResults(resultRows, openF1.laps ?? [], tyreStintsByDriver);
   const pitStops = mapReportPitStops(openF1.pits ?? [], results);
   const strategies = mapReportStrategies(openF1.stints ?? [], pitStops, results, fastF1);
   const keyEvents = buildReportKeyEvents(results, pitStops, openF1.raceControl ?? [], openF1.positions ?? []);
   const teammateComparisons = buildTeammateComparisons(results, pitStops);
-  const highlights = buildReportHighlights(results);
+  const highlights = buildReportHighlights(results, pitStops, keyEvents, strategies);
   const weather = summarizeReportWeather(openF1.weather ?? []);
   const raceStatistics = buildRaceStatistics(results, keyEvents, weather);
 
@@ -905,6 +983,7 @@ function buildGrandPrixReportStructuredData(race, raceSession, resultRows, openF
     strategies,
     teammate_comparisons: teammateComparisons,
     highlights,
+    news_summary: newsSummary,
     championship_impact: {
       note: "Таблица чемпионата обновляется отдельной синхронизацией standings.",
       topResult: results.slice(0, 3).map((result) => `${result.position}. ${result.driver}`),
@@ -913,7 +992,7 @@ function buildGrandPrixReportStructuredData(race, raceSession, resultRows, openF
   };
 }
 
-function mapReportResults(rows, openF1Laps) {
+function mapReportResults(rows, openF1Laps, tyreStintsByDriver) {
   const bestLapByDriverNumber = getBestOpenF1LapByDriverNumber(openF1Laps);
   const results = (rows ?? []).map((row) => {
     const driver = getRelationObject(row.drivers);
@@ -934,6 +1013,7 @@ function mapReportResults(rows, openF1Laps) {
       laps: numberOrNull(row.laps),
       time: row.time_text ?? null,
       bestLap,
+      tyres: tyreStintsByDriver.get(String(driver?.permanent_number ?? "")) ?? [],
     };
   });
   const fastestLap = getFastestLapResult(results);
@@ -948,6 +1028,47 @@ function mapReportResults(rows, openF1Laps) {
     isBestGain: bestGain?.driver === result.driver && (bestGain.positionDelta ?? 0) > 0,
     isBiggestDrop: biggestDrop?.driver === result.driver && (biggestDrop.positionDelta ?? 0) < 0,
   }));
+}
+
+function getTyreStintsByDriverNumber(stints) {
+  const byDriver = new Map();
+
+  for (const stint of stints ?? []) {
+    const driverNumber = String(stint.driver_number ?? "");
+
+    if (!driverNumber) {
+      continue;
+    }
+
+    const items = byDriver.get(driverNumber) ?? [];
+    items.push({
+      compound: normalizeTyreCompound(stint.compound),
+      startLap: numberOrNull(stint.lap_start),
+      endLap: numberOrNull(stint.lap_end),
+    });
+    byDriver.set(driverNumber, items);
+  }
+
+  for (const [driverNumber, items] of byDriver.entries()) {
+    byDriver.set(
+      driverNumber,
+      items
+        .filter((item) => item.compound)
+        .sort((a, b) => Number(a.startLap ?? 999) - Number(b.startLap ?? 999)),
+    );
+  }
+
+  return byDriver;
+}
+
+function normalizeTyreCompound(value) {
+  const compound = normalizeString(value)?.toUpperCase() ?? "";
+
+  if (["SOFT", "MEDIUM", "HARD", "INTERMEDIATE", "WET"].includes(compound)) {
+    return compound;
+  }
+
+  return compound || "UNKNOWN";
 }
 
 function mapReportPitStops(pits, results) {
@@ -1089,11 +1210,16 @@ function buildTeammateComparisons(results, pitStops) {
   }));
 }
 
-function buildReportHighlights(results) {
+function buildReportHighlights(results, pitStops, keyEvents, strategies) {
   const podium = results.filter((result) => result.position !== null && result.position <= 3);
   const bestGain = getExtremeByDelta(results, "max");
   const biggestDrop = getExtremeByDelta(results, "min");
   const fastestLap = getFastestLapResult(results);
+  const fastestPitStop = [...pitStops]
+    .filter((pit) => pit.duration !== null)
+    .sort((a, b) => Number(a.duration) - Number(b.duration))[0];
+  const mostCommonStrategy = getMostCommonStrategy(strategies);
+  const safetyCarSummary = getSafetyCarSummary(keyEvents);
   const teamPoints = new Map();
 
   for (const result of results) {
@@ -1106,7 +1232,12 @@ function buildReportHighlights(results) {
   return {
     winner: podium[0]?.driver ?? null,
     podium: podium.map((result) => result.driver),
-    fastestLap: fastestLap?.driver ?? null,
+    fastestLap: fastestLap ? { driver: fastestLap.driver, time: fastestLap.bestLap ?? null } : null,
+    fastestPitStop: fastestPitStop
+      ? { driver: fastestPitStop.driver, duration: fastestPitStop.duration, lap: fastestPitStop.lap }
+      : null,
+    safetyCarSummary,
+    mostCommonStrategy,
     bestGain: bestGain ? { driver: bestGain.driver, delta: bestGain.positionDelta } : null,
     biggestDrop: biggestDrop ? { driver: biggestDrop.driver, delta: biggestDrop.positionDelta } : null,
     bestTeam: bestTeam ? { team: bestTeam[0], points: bestTeam[1] } : null,
@@ -1114,6 +1245,49 @@ function buildReportHighlights(results) {
     surpriseResult: bestGain && (bestGain.positionDelta ?? 0) >= 5 ? bestGain.driver : null,
     retirements: results.filter((result) => !isFinisherStatus(result.status)).map((result) => result.driver),
   };
+}
+
+function getMostCommonStrategy(strategies) {
+  const counts = new Map();
+
+  for (const strategy of strategies ?? []) {
+    const compounds = (strategy.stints ?? [])
+      .map((stint) => normalizeTyreCompound(stint.compound))
+      .filter((compound) => compound && compound !== "UNKNOWN");
+
+    if (!compounds.length) {
+      continue;
+    }
+
+    const key = compounds.join("-");
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  const mostCommon = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  return mostCommon ? { sequence: mostCommon[0], drivers: mostCommon[1] } : null;
+}
+
+function getSafetyCarSummary(keyEvents) {
+  const text = (keyEvents ?? [])
+    .map((event) => `${event.title ?? ""} ${event.detail ?? ""}`)
+    .join(" ")
+    .toLowerCase();
+  const safetyCar = (text.match(/safety car/g) ?? []).length;
+  const vsc = (text.match(/virtual safety car|vsc/g) ?? []).length;
+  const redFlag = (text.match(/red flag|красн/g) ?? []).length;
+
+  if (!safetyCar && !vsc && !redFlag) {
+    return "SC/VSC/красных флагов не найдено";
+  }
+
+  return [
+    safetyCar ? `SC: ${safetyCar}` : null,
+    vsc ? `VSC: ${vsc}` : null,
+    redFlag ? `красные флаги: ${redFlag}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 function summarizeReportWeather(weatherRows) {
@@ -1170,6 +1344,7 @@ async function updateGrandPrixReportSummary(report) {
     keyEvents: (report.key_events ?? []).slice(0, 12),
     strategies: (report.strategies ?? []).slice(0, 10),
     highlights: report.highlights,
+    newsSummary: report.news_summary ?? { articles: [] },
     championshipImpact: report.championship_impact,
   };
 
@@ -1188,7 +1363,7 @@ async function updateGrandPrixReportSummary(report) {
           {
             role: "system",
             content:
-              "Ты редактор RaceMate. Напиши итог Гран-при на русском в 3-6 абзацах только по переданным фактам. Не придумывай события, не добавляй неподтвержденные оценки, не уходи в нерелевантные темы.",
+              "Ты редактор RaceMate. Напиши итог Гран-при на русском в 3-6 абзацах только по переданным фактам. Если есть newsSummary.articles, добавь короткий раздел «Что обсуждали вокруг этапа» по этим новостям. Не придумывай события, не добавляй неподтвержденные оценки, не уходи в нерелевантные темы.",
           },
           {
             role: "user",
@@ -1546,7 +1721,7 @@ async function processNewsWithAi() {
     throw error;
   }
 
-  const races = await getRaceChoices();
+  const [races, drivers] = await Promise.all([getRaceChoices(), getDriverTagChoices()]);
   let itemsProcessed = 0;
 
   for (const article of articles ?? []) {
@@ -1619,6 +1794,10 @@ async function processNewsWithAi() {
       await upsertRaceTagForArticle(article.id, relatedRace, 0.84, "ai");
     }
 
+    for (const driver of matchDriversByText(article, drivers)) {
+      await upsertDriverTagForArticle(article.id, driver, 0.7, "rule");
+    }
+
     await supabase.from("ai_usage_logs").insert({
       purpose: "news.summary",
       provider: "openrouter",
@@ -1648,21 +1827,29 @@ async function retagNewsWithAi() {
     throw error;
   }
 
-  const races = await getRaceChoices();
+  const [races, drivers] = await Promise.all([getRaceChoices(), getDriverTagChoices()]);
   let itemsProcessed = 0;
 
   for (const article of articles ?? []) {
     const race = matchRaceByText(article, races);
+    const matchedDrivers = matchDriversByText(article, drivers);
 
-    if (!race) {
+    if (!race && !matchedDrivers.length) {
       continue;
     }
 
-    await supabase
-      .from("news_articles")
-      .update({ related_race_id: race.id })
-      .eq("id", article.id);
-    await upsertRaceTagForArticle(article.id, race, 0.62, "rule");
+    if (race) {
+      await supabase
+        .from("news_articles")
+        .update({ related_race_id: race.id })
+        .eq("id", article.id);
+      await upsertRaceTagForArticle(article.id, race, 0.62, "rule");
+    }
+
+    for (const driver of matchedDrivers) {
+      await upsertDriverTagForArticle(article.id, driver, 0.7, "rule");
+    }
+
     itemsProcessed += 1;
   }
 
@@ -1960,6 +2147,94 @@ async function syncResults() {
   return { itemsProcessed, metadata: { season } };
 }
 
+async function repairRaceResults() {
+  const baseUrl = process.env.JOLPICA_BASE_URL ?? "https://api.jolpi.ca/ergast/f1";
+  const season = numberOrNull(getCliOption("season")) ?? Number(process.env.F1_SEASON ?? new Date().getUTCFullYear());
+  const [raceResponse, sprintResponse] = await Promise.all([
+    fetch(`${baseUrl}/${season}/results.json?limit=1000`),
+    fetch(`${baseUrl}/${season}/sprint.json?limit=1000`),
+  ]);
+  const racePayload = await raceResponse.json();
+  const sprintPayload = await sprintResponse.json();
+  const raceRows = racePayload.MRData?.RaceTable?.Races ?? [];
+  const sprintRows = sprintPayload.MRData?.RaceTable?.Races ?? [];
+  let itemsProcessed = 0;
+
+  for (const race of raceRows) {
+    itemsProcessed += await repairJolpicaClassificationSession({
+      race,
+      season,
+      sessionType: "race",
+      sessionName: "Гонка",
+      results: race.Results ?? [],
+    });
+  }
+
+  for (const race of sprintRows) {
+    itemsProcessed += await repairJolpicaClassificationSession({
+      race,
+      season,
+      sessionType: "sprint",
+      sessionName: "Спринт",
+      results: race.SprintResults ?? [],
+    });
+  }
+
+  return { itemsProcessed, metadata: { season, raceRows: raceRows.length, sprintRows: sprintRows.length } };
+}
+
+async function repairJolpicaClassificationSession({ race, season, sessionType, sessionName, results }) {
+  const raceId = await findRaceId(season, Number(race.round));
+  const sessionId = raceId
+    ? await findOrCreateSession(raceId, sessionType, sessionName, race.date, race.time)
+    : null;
+
+  if (!raceId || !sessionId || !results.length) {
+    return 0;
+  }
+
+  await supabase
+    .from("session_results")
+    .delete()
+    .eq("session_id", sessionId)
+    .in("status", ["Лучший круг", "Лучшее время"]);
+
+  if (sessionType === "race") {
+    await supabase.from("races").update({ status: "completed" }).eq("id", raceId);
+  }
+
+  let itemsProcessed = 0;
+
+  for (const result of results) {
+    const team = await upsertTeamFromJolpica(result.Constructor);
+    const driver = await upsertDriverFromJolpica(result.Driver, team?.id);
+
+    if (!driver?.id) {
+      continue;
+    }
+
+    await supabase.from("session_results").upsert(
+      {
+        session_id: sessionId,
+        driver_id: driver.id,
+        team_id: team?.id ?? driver.current_team_id,
+        position: numberOrNull(result.position),
+        classified_position: result.positionText ?? null,
+        grid: numberOrNull(result.grid),
+        laps: numberOrNull(result.laps),
+        points: numberOrNull(result.points),
+        status: result.status ?? null,
+        time_text: result.Time?.time ?? null,
+        raw_payload: result,
+      },
+      { onConflict: "session_id,driver_id" },
+    );
+    itemsProcessed += 1;
+  }
+
+  return itemsProcessed;
+}
+
 async function syncStandings() {
   const baseUrl = process.env.JOLPICA_BASE_URL ?? "https://api.jolpi.ca/ergast/f1";
   const season = Number(process.env.F1_SEASON ?? new Date().getUTCFullYear());
@@ -2129,17 +2404,8 @@ async function syncOpenF1Laps() {
     }
 
     const sessionType = String(session.session_type);
-    const isClassificationSession = ["race", "sprint"].includes(sessionType);
-
-    if (isClassificationSession) {
-      const { count } = await supabase
-        .from("session_results")
-        .select("id", { count: "exact", head: true })
-        .eq("session_id", session.id);
-
-      if ((count ?? 0) > 0) {
-        continue;
-      }
+    if (["race", "sprint"].includes(sessionType)) {
+      continue;
     }
 
     let laps = [];
@@ -2167,7 +2433,7 @@ async function syncOpenF1Laps() {
           position: index + 1,
           classified_position: String(index + 1),
           laps: numberOrNull(lap.lap_number),
-          status: isClassificationSession ? "Лучший круг" : "Лучшее время",
+          status: "Лучшее время",
           time_text: formatLapDuration(lap.lap_duration),
           raw_payload: lap,
         },
@@ -2843,6 +3109,23 @@ async function getRaceChoices() {
   });
 }
 
+async function getDriverTagChoices() {
+  const { data } = await supabase
+    .from("drivers")
+    .select("id, code, first_name, last_name, full_name")
+    .eq("is_active", true)
+    .order("full_name", { ascending: true });
+
+  return (data ?? []).map((driver) => ({
+    id: driver.id,
+    code: driver.code ?? "",
+    firstName: driver.first_name ?? "",
+    lastName: driver.last_name ?? "",
+    fullName: driver.full_name ?? "",
+    slug: `driver-${slugify(driver.full_name ?? driver.code ?? driver.id)}`,
+  }));
+}
+
 async function upsertRaceTagForArticle(articleId, race, confidence, method) {
   const slug = `race-${race.season_year}-${String(race.round).padStart(2, "0")}`;
   const { data: tag } = await supabase
@@ -2852,6 +3135,39 @@ async function upsertRaceTagForArticle(articleId, race, confidence, method) {
         type: "race",
         slug,
         name: race.race_name,
+      },
+      { onConflict: "slug" },
+    )
+    .select("id")
+    .single();
+
+  if (!tag?.id) {
+    return;
+  }
+
+  await supabase.from("news_article_tags").upsert(
+    {
+      article_id: articleId,
+      tag_id: tag.id,
+      confidence,
+      method,
+    },
+    { onConflict: "article_id,tag_id" },
+  );
+}
+
+async function upsertDriverTagForArticle(articleId, driver, confidence, method) {
+  if (!driver?.fullName) {
+    return;
+  }
+
+  const { data: tag } = await supabase
+    .from("tags")
+    .upsert(
+      {
+        type: "driver",
+        slug: driver.slug,
+        name: driver.fullName,
       },
       { onConflict: "slug" },
     )
@@ -2891,6 +3207,27 @@ function matchRaceByText(article, races) {
       return candidates.some((value) => value.length > 3 && text.includes(value));
     }) ?? null
   );
+}
+
+function matchDriversByText(article, drivers) {
+  const text = ` ${article.original_title ?? ""} ${article.original_description ?? ""} `.toLowerCase();
+
+  return drivers.filter((driver) => {
+    const aliases = [
+      driver.fullName,
+      `${driver.firstName} ${driver.lastName}`.trim(),
+      driver.code?.length === 3 ? driver.code : "",
+      driver.lastName?.length > 4 ? driver.lastName : "",
+    ]
+      .filter(Boolean)
+      .map((alias) => alias.toLowerCase());
+
+    return aliases.some((alias) => new RegExp(`(^|[^a-zа-яё0-9])${escapeRegExp(alias)}([^a-zа-яё0-9]|$)`, "i").test(text));
+  });
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 async function upsertTeamFromJolpica(constructor) {

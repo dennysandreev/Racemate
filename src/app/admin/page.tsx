@@ -108,7 +108,7 @@ export default async function AdminPage({
                 name="jobName"
               >
                 <option value="rss.fetch_all">RSS</option>
-                <option value="social.fetch_all">Соцлента</option>
+                <option value="social.fetch_all">Соцсети</option>
                 <option value="reports.check_latest">Отчет Гран-при</option>
                 <option value="reports.refresh_due">Обновить отчеты</option>
                 <option value="reports.generate_summary">AI отчетов</option>
@@ -275,7 +275,7 @@ export default async function AdminPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Соцлента</CardTitle>
+            <CardTitle>Соцсети</CardTitle>
             <CardDescription>
               Сейчас в публичную ленту попадает X через RSSHub или ручные ссылки.
             </CardDescription>

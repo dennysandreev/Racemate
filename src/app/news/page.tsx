@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import {
   getLatestDailyDigest,
+  getNewsDriverTags,
   getNewsItems,
 } from "@/data/racemate-repository";
 
@@ -27,9 +28,10 @@ export default async function NewsPage({
 }) {
   const { page, tag, race } = await searchParams;
   const currentPage = Math.max(1, Number(page ?? 1) || 1);
-  const [newsResult, digest] = await Promise.all([
+  const [newsResult, digest, driverTags] = await Promise.all([
     getNewsItems({ page: currentPage, pageSize: 20, tagSlug: tag, race }),
     getLatestDailyDigest(),
+    getNewsDriverTags(),
   ]);
 
   return (
@@ -157,6 +159,31 @@ export default async function NewsPage({
               </form>
             </CardContent>
           </Card>
+
+          {driverTags.length ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Пилоты</CardTitle>
+                <CardDescription>
+                  Быстро открой новости про конкретного пилота.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {driverTags.map((driverTag) => (
+                  <Button
+                    asChild
+                    key={driverTag.slug}
+                    size="sm"
+                    variant={tag === driverTag.slug ? "default" : "secondary"}
+                  >
+                    <Link href={`/news?tag=${driverTag.slug}`}>
+                      {driverTag.name}
+                    </Link>
+                  </Button>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
         </aside>
       </section>
     </AppShell>
