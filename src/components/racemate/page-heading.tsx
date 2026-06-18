@@ -7,8 +7,8 @@ export function PageHeading({
   title: string;
 }) {
   return (
-    <section className="border-b border-border/70 py-8">
-      <h1 className="max-w-4xl text-balance text-3xl font-semibold leading-tight sm:text-4xl">
+    <section className="border-b border-border py-7">
+      <h1 className="font-display max-w-4xl text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
         {title}
       </h1>
       {description ? (

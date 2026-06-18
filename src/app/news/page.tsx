@@ -1,18 +1,16 @@
 import { Sparkles } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { generateDailyDigest } from "@/app/news/digest-actions";
 import { AppShell } from "@/components/racemate/app-shell";
-import { PageHeading } from "@/components/racemate/page-heading";
+import {
+  StitchMetric,
+  StitchPanel,
+  StitchPanelHeader,
+} from "@/components/racemate/stitch-primitives";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   getLatestDailyDigest,
   getNewsDriverTags,
@@ -33,15 +31,41 @@ export default async function NewsPage({
     getLatestDailyDigest(),
     getNewsDriverTags(),
   ]);
+  const [featured, ...restItems] = newsResult.items;
 
   return (
     <AppShell>
-      <PageHeading title="Новостной блог" />
+      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-7">
+        <Image
+          alt=""
+          className="object-cover opacity-80"
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, 72rem"
+          src="/stitch/news-blog-hero-v2.webp"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/76 to-background/18" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgb(255_255_255_/_0.06),transparent_44%)]" />
+        <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+          <div className="min-w-0">
+            <h1 className="font-display max-w-4xl text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
+              Новостной блог
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+              Последние материалы Формулы 1 без лишнего шума: новости, контекст этапов и быстрые фильтры по пилотам.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <StitchMetric label="Материалов" tone="red" value={String(newsResult.totalCount)} />
+            <StitchMetric label="Страница" value={`${newsResult.page}/${newsResult.totalPages}`} />
+          </div>
+        </div>
+      </section>
 
-      <section className="grid gap-5 py-8 lg:grid-cols-[1fr_0.42fr]">
-        <div className="grid content-start gap-3">
+      <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="grid content-start gap-5">
           {tag || race ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border/70 bg-muted p-3">
+            <div className="stitch-panel flex flex-wrap items-center justify-between gap-3 p-3">
               <span className="text-sm text-muted-foreground">
                 Показаны новости по выбранному фильтру
               </span>
@@ -51,38 +75,49 @@ export default async function NewsPage({
             </div>
           ) : null}
 
-          {newsResult.items.length ? (
-            newsResult.items.map((item) => (
-              <Link
-                className="group block rounded-lg border border-border bg-card p-5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                href={`/news/${item.slug}`}
-                key={item.slug}
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">{item.source}</Badge>
-                  {item.tags.map((newsTag) => (
-                    <Badge key={newsTag.slug} variant="secondary">
-                      {newsTag.name}
-                    </Badge>
-                  ))}
-                  {item.raceTag && !item.tags.some((newsTag) => newsTag.type === "race") ? (
-                    <Badge variant="warning">{item.raceTag}</Badge>
-                  ) : null}
-                  <span className="text-xs text-muted-foreground">{item.time}</span>
-                </div>
-                <h2 className="mt-4 text-xl font-semibold leading-7">
-                  {item.title}
+          {featured ? (
+            <Link
+              className="group stitch-panel relative grid min-h-[11rem] content-end overflow-hidden p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[13rem] sm:p-5"
+              href={`/news/${featured.slug}`}
+              prefetch={false}
+            >
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgb(255_255_255_/_0.07),transparent_44%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.18))]" />
+              <div className="relative">
+                <NewsMeta item={featured} />
+                <h2 className="mt-4 max-w-3xl text-balance font-display text-2xl font-extrabold leading-tight tracking-[-0.04em] transition-colors group-hover:text-primary sm:text-3xl">
+                  {featured.title}
                 </h2>
                 <p className="mt-3 max-w-[72ch] text-sm leading-6 text-muted-foreground">
-                  {item.summary}
+                  {featured.summary}
                 </p>
-              </Link>
-            ))
+              </div>
+            </Link>
           ) : (
-            <div className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
+            <div className="stitch-panel p-5 text-sm text-muted-foreground">
               Свежих обработанных новостей пока нет.
             </div>
           )}
+
+          {restItems.length ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {restItems.map((item) => (
+              <Link
+                className="group stitch-panel grid content-between gap-4 p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                href={`/news/${item.slug}`}
+                key={item.slug}
+                prefetch={false}
+              >
+                <NewsMeta item={item} />
+                <h2 className="line-clamp-3 text-lg font-semibold leading-6 transition-colors group-hover:text-primary">
+                  {item.title}
+                </h2>
+                <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                  {item.summary}
+                </p>
+              </Link>
+              ))}
+            </div>
+          ) : null}
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
             <p className="text-sm text-muted-foreground">
@@ -124,17 +159,13 @@ export default async function NewsPage({
         </div>
 
         <aside className="grid content-start gap-5">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles aria-hidden="true" data-icon="inline-start" />
-                AI-сводка
-              </CardTitle>
-              <CardDescription>
-                Нажми, чтобы собрать короткий дайджест из последних новостей.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
+          <StitchPanel>
+            <StitchPanelHeader
+              icon={Sparkles}
+              meta="Нажми, чтобы собрать короткий дайджест из последних новостей."
+              title="AI-сводка"
+            />
+            <div className="grid gap-4 p-4">
               {digest ? (
                 <div className="rounded-md border border-border/70 bg-muted p-4">
                   <p className="font-medium">{digest.title}</p>
@@ -157,18 +188,16 @@ export default async function NewsPage({
                   Собрать сводку
                 </Button>
               </form>
-            </CardContent>
-          </Card>
+            </div>
+          </StitchPanel>
 
           {driverTags.length ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Пилоты</CardTitle>
-                <CardDescription>
-                  Быстро открой новости про конкретного пилота.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
+            <StitchPanel>
+              <StitchPanelHeader
+                meta="Быстро открой новости про конкретного пилота."
+                title="Пилоты"
+              />
+              <div className="flex flex-wrap gap-2 p-4">
                 {driverTags.map((driverTag) => (
                   <Button
                     asChild
@@ -181,8 +210,8 @@ export default async function NewsPage({
                     </Link>
                   </Button>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </StitchPanel>
           ) : null}
         </aside>
       </section>
@@ -208,4 +237,36 @@ function getNewsHref(page: number, tag?: string, race?: string) {
   const query = params.toString();
 
   return query ? `/news?${query}` : "/news";
+}
+
+function NewsMeta({
+  item,
+  allTags = false,
+}: {
+  allTags?: boolean;
+  item: {
+    raceTag?: string;
+    source: string;
+    tags: { name: string; slug: string; type?: string }[];
+    time: string;
+  };
+}) {
+  const tags = allTags ? item.tags : item.tags.slice(0, 2);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Badge variant="outline">{item.source}</Badge>
+      {tags.map((newsTag) => (
+        <Badge key={newsTag.slug} variant="secondary">
+          {newsTag.name}
+        </Badge>
+      ))}
+      {item.raceTag && !item.tags.some((newsTag) => newsTag.type === "race") ? (
+        <Badge variant="warning">{item.raceTag}</Badge>
+      ) : null}
+      <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+        {item.time}
+      </span>
+    </div>
+  );
 }

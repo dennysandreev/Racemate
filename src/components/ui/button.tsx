@@ -5,20 +5,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition-[background-color,border-color,color,opacity,transform] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "font-telemetry inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md px-4 text-xs font-bold uppercase tracking-[0.08em] transition-[background-color,border-color,color,opacity,transform,filter] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 active:translate-y-px [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/90",
+          "bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255_/_0.22),0_10px_24px_rgb(225_6_0_/_0.22)] hover:brightness-110",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border border-border bg-secondary/70 text-secondary-foreground backdrop-blur-md hover:bg-accent",
         outline:
           "border border-border bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground",
         ghost:
           "text-muted-foreground hover:bg-accent hover:text-foreground",
         subtle:
-          "bg-muted text-foreground hover:bg-muted/80",
+          "border border-border bg-muted/70 text-foreground hover:bg-accent",
       },
       size: {
         default: "h-10 px-4",
@@ -56,4 +56,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
-

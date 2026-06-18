@@ -13,6 +13,11 @@ import {
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
 import { PageHeading } from "@/components/racemate/page-heading";
+import {
+  StitchMetric,
+  StitchPanel,
+  StitchPanelHeader,
+} from "@/components/racemate/stitch-primitives";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,24 +55,23 @@ export default async function AdminPage({
 
   return (
     <AppShell>
-      <PageHeading
-        badge="Операционная админка"
-        description="Админка нужна не для красоты, а чтобы видеть источники, очереди, AI-стоимость и ручные перезапуски задач."
-        title="Контроль ingestion, AI и синхронизаций"
-      />
+      <PageHeading title="Админка RaceMate" />
 
-      <section className="grid gap-5 py-8 lg:grid-cols-[0.68fr_1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database aria-hidden="true" data-icon="inline-start" />
-              Состояние системы
-            </CardTitle>
-            <CardDescription>
-              Эти показатели станут быстрым входом в источники, job runs и AI usage.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3">
+      <section className="grid grid-cols-2 gap-3 pt-8 lg:grid-cols-4">
+        <StitchMetric label="AI runs" value={String(aiUsage.totalRuns)} />
+        <StitchMetric label="AI cost" value={`$${aiUsage.estimatedCostUsd.toFixed(4)}`} />
+        <StitchMetric label="Jobs" tone="live" value={String(adminJobs.length)} />
+        <StitchMetric label="Sources" value={String(adminSources.length + adminSocialSources.length)} />
+      </section>
+
+      <section className="grid gap-5 py-5 lg:grid-cols-[0.68fr_1fr]">
+        <StitchPanel>
+          <StitchPanelHeader
+            icon={Database}
+            meta="Быстрый вход в источники, job runs и AI usage."
+            title="Состояние системы"
+          />
+          <div className="grid gap-3 p-4">
             {adminSignals.map((signal) => (
               <DataRow
                 helper={signal.status}
@@ -87,20 +91,20 @@ export default async function AdminPage({
             {status.source ? (
               <p className="text-sm text-muted-foreground">Источник обновлен.</p>
             ) : null}
-          </CardContent>
-        </Card>
+          </div>
+        </StitchPanel>
 
-        <Card>
-          <CardHeader className="md:flex-row md:items-start md:justify-between">
+        <StitchPanel>
+          <div className="border-b stitch-divider p-4 md:flex md:items-start md:justify-between md:gap-4">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <h2 className="flex items-center gap-2 font-display text-lg font-bold">
                 <Bot aria-hidden="true" data-icon="inline-start" />
                 Последние задачи
-              </CardTitle>
-              <CardDescription>
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
                 Worker будет писать сюда статус, количество обработанных элементов
                 и ошибку, если задача упала.
-              </CardDescription>
+              </p>
             </div>
             <form action={triggerJob} className="flex flex-wrap gap-2">
               <select
@@ -128,8 +132,8 @@ export default async function AdminPage({
                 {user ? "Запустить" : "Только для админа"}
               </Button>
             </form>
-          </CardHeader>
-          <CardContent className="grid gap-3">
+          </div>
+          <div className="grid gap-3 p-4">
             {adminJobs.map((job) => (
               <div
                 className="grid gap-3 rounded-md border border-border/70 p-4 md:grid-cols-[1fr_auto_auto]"
@@ -149,8 +153,8 @@ export default async function AdminPage({
                 </span>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </StitchPanel>
       </section>
 
       <section className="grid gap-5 pb-8">

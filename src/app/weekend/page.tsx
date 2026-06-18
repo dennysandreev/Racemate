@@ -1,8 +1,9 @@
-import { CalendarDays, ExternalLink, Target, TrendingUp } from "lucide-react";
+import { CalendarDays, ExternalLink, MapPin, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 import { AppShell } from "@/components/racemate/app-shell";
-import { PageHeading } from "@/components/racemate/page-heading";
+import { RaceFlag } from "@/components/racemate/race-flag";
+import { TeamColorProgress } from "@/components/racemate/team-color";
 import { TrackMap } from "@/components/racemate/track-map";
 import { WeekendSessionBoard } from "@/components/racemate/weekend-session-board";
 import { Badge } from "@/components/ui/badge";
@@ -16,23 +17,27 @@ import {
 import {
   getNextSession,
   getCurrentRaceDetail,
+  getDriverStandings,
   getPredictionState,
   getRaceNews,
   getSessionResults,
   getRaceWinnerOdds,
   getWeekendSessions,
 } from "@/data/racemate-repository";
+import { getTeamAssetForMarketOutcome } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
-import type { PredictionState, RaceWinnerOdds } from "@/types/racemate";
+import { formatSessionName } from "@/lib/session-display";
+import type { PredictionState, RaceDetail, RaceWinnerOdds, StandingRow } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
 
 export default async function WeekendPage() {
-  const [nextSession, weekendSessions, currentRace, user] = await Promise.all([
+  const [nextSession, weekendSessions, currentRace, user, standings] = await Promise.all([
     getNextSession(),
     getWeekendSessions(),
     getCurrentRaceDetail(),
     getSessionUser(),
+    getDriverStandings(),
   ]);
   const [raceNews, winnerOdds, predictionState, sessionResults] = await Promise.all([
     currentRace ? getRaceNews(currentRace.id, 4) : [],
@@ -57,105 +62,164 @@ export default async function WeekendPage() {
 
   return (
     <AppShell>
-      <PageHeading
-        title={`${currentRace?.countryFlag ?? "🏁"} ${nextSession.race}`}
-      />
+      <section className="grid gap-5 py-5">
+        <WeekendHero
+          currentRace={currentRace}
+          nextRace={nextSession.race}
+          nextSession={nextSession.session}
+        />
 
-      <section className="py-6">
-        <Card className="overflow-hidden">
-          <CardContent className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
-            <div className="grid min-w-0 gap-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
-                  {nextSession.status}
-                </Badge>
-                <Badge variant="outline">Сезон {currentRace?.season ?? 2026}</Badge>
-              </div>
-              <div>
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CalendarDays aria-hidden="true" data-icon="inline-start" />
-                  Ближайшая сессия
-                </p>
-                <h2 className="mt-2 text-balance text-2xl font-semibold leading-tight sm:text-3xl">
-                  {nextSession.session}
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {nextSession.circuit}
-                </p>
-              </div>
-              <div className="grid gap-3">
-                <TrackMap compact circuit={nextSession.circuit} label={nextSession.race} layout={currentRace?.layout} />
-                <Button asChild className="w-full justify-center" variant="secondary">
-                  <Link href="https://vk.com/versportaa" rel="noreferrer" target="_blank">
-                    Смотреть онлайн
-                    <ExternalLink aria-hidden="true" data-icon="inline-end" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid min-w-0 gap-3 rounded-md border border-border/70 bg-background/35 p-3 sm:p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <CardTitle className="text-lg">Расписание уикенда</CardTitle>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+          <div className="grid min-w-0 gap-5">
+            <section className="stitch-panel overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
+                <div>
+                  <p className="stitch-label text-muted-foreground">Уикенд</p>
+                  <h2 className="mt-2 font-display text-2xl font-bold">Расписание уикенда</h2>
+                </div>
                 <Badge variant="secondary">{sessionResults.length} сессий</Badge>
               </div>
-              <WeekendSessionBoard
-                activeSessionName={nextSession.session}
-                sessions={sessionResults}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+              <div className="p-4 sm:p-5">
+                <WeekendSessionBoard
+                  activeSessionName={nextSession.session}
+                  sessions={sessionResults}
+                />
+              </div>
+            </section>
 
-      <section className="grid gap-5 pb-8 lg:grid-cols-2">
-        <WinnerOddsCard odds={winnerOdds} />
-        <FantasyPredictionCard predictionState={predictionState} userSignedIn={Boolean(user)} />
-      </section>
+            <StageNewsCard href={raceNewsHref} items={raceNews} />
+          </div>
 
-      <section className="pb-8">
-        <Card>
-          <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>
-              <Link
-                className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                href={raceNewsHref}
-              >
-                Новости этапа
-              </Link>
-            </CardTitle>
-            <Button asChild size="sm" variant="secondary">
-              <Link href={raceNewsHref}>Читать все новости</Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            {raceNews.length ? (
-              raceNews.map((item) => (
-                <Link
-                  className="rounded-md border border-border/70 p-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  href={`/news/${item.slug}`}
-                  key={item.slug}
-                >
-                  <Badge variant="secondary">{item.source}</Badge>
-                  <p className="mt-2 text-sm font-medium leading-5">{item.title}</p>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    {item.summary}
-                  </p>
-                </Link>
-              ))
-            ) : (
-              <p className="text-sm leading-6 text-muted-foreground">
-                Пока нет новостей, привязанных к этому этапу.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+          <aside className="grid gap-5">
+            <WinnerOddsCard odds={winnerOdds} teamLookupRows={standings} />
+            <FantasyPredictionCard predictionState={predictionState} userSignedIn={Boolean(user)} />
+          </aside>
+        </div>
       </section>
     </AppShell>
   );
 }
 
-function WinnerOddsCard({ odds }: { odds: RaceWinnerOdds | null }) {
+function WeekendHero({
+  currentRace,
+  nextRace,
+  nextSession,
+}: {
+  currentRace: RaceDetail | null;
+  nextRace: string;
+  nextSession: string;
+}) {
+  return (
+    <section className="stitch-panel relative min-h-[24rem] overflow-hidden p-0">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgb(225_6_0_/_0.28),transparent_24rem),linear-gradient(125deg,rgb(255_255_255_/_0.08),transparent_38%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.28))]" />
+      <div className="relative grid gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+        <div className="min-w-0">
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            {currentRace ? (
+              <RaceFlag
+                className="text-xl"
+                countryCode={currentRace.countryCode}
+                label={currentRace.country}
+                value={currentRace.countryFlag}
+              />
+            ) : null}
+            <Badge variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
+          </div>
+          <p className="font-telemetry mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+            <MapPin aria-hidden="true" data-icon="inline-start" />
+            {currentRace?.circuit ?? "Трасса этапа"}
+          </p>
+          <h1 className="font-display max-w-4xl text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
+            {nextRace}
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+            Следи за расписанием, открывай результаты сессий и сверяй прогнозы перед стартом гонки.
+          </p>
+          <div className="mt-5 max-w-3xl overflow-hidden rounded-xl border border-border/75 bg-background/35 p-3 shadow-[0_18px_60px_rgb(0_0_0_/_0.28)] backdrop-blur">
+            <TrackMap
+              compact
+              circuit={currentRace?.circuit ?? nextRace}
+              label={nextRace}
+              layout={currentRace?.layout}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-3 rounded-lg border border-border bg-background/45 p-4 backdrop-blur">
+          <div className="flex items-center justify-between gap-3">
+            <span className="stitch-label text-muted-foreground">Ближайшая сессия</span>
+            <CalendarDays aria-hidden="true" className="size-5 text-primary" />
+          </div>
+          <p className="font-display text-2xl font-bold leading-tight">{formatSessionName(nextSession)}</p>
+          <Button asChild className="mt-2 w-full justify-center">
+            <Link href="https://vk.com/versportaa" rel="noreferrer" target="_blank">
+              Смотреть онлайн
+              <ExternalLink aria-hidden="true" data-icon="inline-end" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StageNewsCard({
+  href,
+  items,
+}: {
+  href: string;
+  items: Awaited<ReturnType<typeof getRaceNews>>;
+}) {
+  return (
+    <section className="stitch-panel">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4">
+        <div>
+          <p className="stitch-label text-muted-foreground">Новости</p>
+          <h2 className="mt-2 font-display text-2xl font-bold">
+            <Link
+              className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={href}
+            >
+              Новости этапа
+            </Link>
+          </h2>
+        </div>
+        <Button asChild size="sm" variant="secondary">
+          <Link href={href}>Читать все новости</Link>
+        </Button>
+      </div>
+      <div className="grid gap-3 p-4 sm:grid-cols-2">
+        {items.length ? (
+          items.map((item) => (
+            <Link
+              className="rounded-md border border-border/70 p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/news/${item.slug}`}
+              key={item.slug}
+            >
+              <Badge variant="secondary">{item.source}</Badge>
+              <p className="mt-3 text-sm font-semibold leading-5">{item.title}</p>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                {item.summary}
+              </p>
+            </Link>
+          ))
+        ) : (
+          <p className="rounded-md border border-border/70 p-4 text-sm leading-6 text-muted-foreground sm:col-span-2">
+            Пока нет новостей, привязанных к этому этапу.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function WinnerOddsCard({
+  odds,
+  teamLookupRows,
+}: {
+  odds: RaceWinnerOdds | null;
+  teamLookupRows: StandingRow[];
+}) {
   return (
     <Card>
       <CardHeader>
@@ -185,7 +249,10 @@ function WinnerOddsCard({ odds }: { odds: RaceWinnerOdds | null }) {
               </Link>
             </div>
             <div className="grid gap-3">
-              {odds.outcomes.map((outcome) => (
+              {odds.outcomes.map((outcome) => {
+                const teamVisual = getTeamAssetForMarketOutcome(outcome.name, teamLookupRows);
+
+                return (
                 <div className="grid gap-1.5" key={outcome.name}>
                   <div className="flex items-center justify-between gap-3 text-sm">
                     <span className="min-w-0 truncate font-medium">{outcome.name}</span>
@@ -193,14 +260,13 @@ function WinnerOddsCard({ odds }: { odds: RaceWinnerOdds | null }) {
                       {outcome.label}
                     </span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-primary"
-                      style={{ width: `${Math.round(outcome.probability * 100)}%` }}
-                    />
-                  </div>
+                  <TeamColorProgress
+                    color={teamVisual?.color}
+                    value={outcome.probability * 100}
+                  />
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ) : (

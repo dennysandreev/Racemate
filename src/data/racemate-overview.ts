@@ -1,7 +1,7 @@
 export const nextSession = {
   race: "Гран-при Канады",
   circuit: "Жиль-Вильнев",
-  session: "Свободная практика 1",
+  session: "Практика 1",
   startsAt: "Пт, 21:30 МСК",
   status: "До старта 2 дня",
 };
@@ -66,12 +66,12 @@ export const calendarEvents = [
 
 export const weekendSessions = [
   {
-    name: "Свободная практика 1",
+    name: "Практика 1",
     startsAt: "Пт, 21:30 МСК",
     status: "Ожидается",
   },
   {
-    name: "Свободная практика 2",
+    name: "Практика 2",
     startsAt: "Сб, 01:00 МСК",
     status: "Ожидается",
   },

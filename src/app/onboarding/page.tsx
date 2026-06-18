@@ -3,14 +3,12 @@ import { Star } from "lucide-react";
 import { saveOnboarding } from "@/app/onboarding/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageHeading } from "@/components/racemate/page-heading";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  StitchMetric,
+  StitchPanel,
+  StitchPanelHeader,
+} from "@/components/racemate/stitch-primitives";
+import { Button } from "@/components/ui/button";
 import { ensureProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -33,24 +31,16 @@ export default async function OnboardingPage() {
 
   return (
     <AppShell>
-      <PageHeading
-        badge="Первый круг"
-        description="Настроим профиль, чтобы RaceMate показывал время и любимые команды ближе к тебе."
-        title="Собери свой RaceMate"
-      />
+      <PageHeading title="Настройка профиля" />
 
-      <section className="py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star aria-hidden="true" data-icon="inline-start" />
-              Профиль болельщика
-            </CardTitle>
-            <CardDescription>
-              Эти настройки можно будет поменять позже.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+      <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <StitchPanel>
+          <StitchPanelHeader
+            icon={Star}
+            meta="Эти настройки можно будет поменять позже."
+            title="Профиль болельщика"
+          />
+          <div className="p-5">
             <form action={saveOnboarding} className="grid gap-5">
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-medium" htmlFor="displayName">
@@ -103,8 +93,21 @@ export default async function OnboardingPage() {
                 Продолжить
               </Button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </StitchPanel>
+
+        <aside className="grid content-start gap-4">
+          <StitchMetric label="Шаг" tone="red" value="1 / 3" />
+          <StitchMetric label="Профиль" tone="live" value="Готовится" />
+          <StitchPanel>
+            <div className="p-4">
+              <p className="font-display text-lg font-bold">Что изменится</p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                RaceMate будет ближе показывать расписание, любимых пилотов и команды в новостях, прогнозах и таблицах.
+              </p>
+            </div>
+          </StitchPanel>
+        </aside>
       </section>
     </AppShell>
   );
@@ -128,7 +131,7 @@ function ChoiceGroup({
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
             <label
-              className="flex min-h-11 items-center gap-2 rounded-md border border-border/70 px-3 text-sm"
+              className="flex min-h-11 items-center gap-2 rounded-md border border-border/70 bg-background/35 px-3 text-sm transition-colors hover:bg-accent"
               key={item.id}
             >
               <input name={name} type="checkbox" value={item.id} />

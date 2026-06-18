@@ -2,14 +2,12 @@ import { Mail } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageHeading } from "@/components/racemate/page-heading";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  StitchMetric,
+  StitchPanel,
+  StitchPanelHeader,
+} from "@/components/racemate/stitch-primitives";
+import { Button } from "@/components/ui/button";
 import { signInWithEmail } from "@/app/auth/actions";
 
 export default async function AuthPage({
@@ -21,24 +19,16 @@ export default async function AuthPage({
 
   return (
     <AppShell>
-      <PageHeading
-        badge="Вход"
-        description="Отправим ссылку на почту. Пароль не нужен."
-        title="Вернись к прогнозам и лигам"
-      />
+      <PageHeading title="Вход в RaceMate" />
 
-      <section className="grid gap-5 py-8 lg:grid-cols-[0.58fr_1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail aria-hidden="true" data-icon="inline-start" />
-              Почта для входа
-            </CardTitle>
-            <CardDescription>
-              Ссылка действует ограниченное время и откроет RaceMate в этом браузере.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+      <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(22rem,0.58fr)]">
+        <StitchPanel>
+          <StitchPanelHeader
+            icon={Mail}
+            meta="Ссылка действует ограниченное время и откроет RaceMate в этом браузере."
+            title="Почта для входа"
+          />
+          <div className="p-5">
             <form action={signInWithEmail} className="grid gap-3">
               <input name="next" type="hidden" value={next ?? "/onboarding"} />
               <label className="grid gap-2 text-sm font-medium" htmlFor="email">
@@ -57,19 +47,24 @@ export default async function AuthPage({
                   Не получилось отправить ссылку. Проверь почту и попробуй еще раз.
                 </p>
               ) : null}
-              <Button type="submit">Получить ссылку</Button>
+              <Button type="submit">Отправить ссылку</Button>
             </form>
-          </CardContent>
-        </Card>
-
-        <div className="rounded-lg border border-border/70 bg-card p-5">
-          <h2 className="text-lg font-semibold">Что откроется после входа</h2>
-          <div className="mt-4 grid gap-3 text-sm leading-6 text-muted-foreground">
-            <p>Личный прогноз на ближайший этап и история очков.</p>
-            <p>Мини-лиги с друзьями и вступление по коду.</p>
-            <p>Голосования и реакции к новостям.</p>
           </div>
-        </div>
+        </StitchPanel>
+
+        <aside className="grid content-start gap-4">
+          <StitchMetric label="Доступ" tone="live" value="Без пароля" />
+          <StitchPanel>
+            <div className="p-5">
+              <h2 className="font-display text-xl font-bold">Что откроется после входа</h2>
+              <div className="mt-4 grid gap-3 text-sm leading-6 text-muted-foreground">
+                <p>Личный прогноз на ближайший этап и история очков.</p>
+                <p>Мини-лиги с друзьями и вступление по коду.</p>
+                <p>Голосования и реакции к новостям.</p>
+              </div>
+            </div>
+          </StitchPanel>
+        </aside>
       </section>
     </AppShell>
   );

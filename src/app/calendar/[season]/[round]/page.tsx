@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clock, Flag, MapPin, Trophy } from "lucide-react";
+import { Clock, Flag, MapPin, Sparkles, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
@@ -25,6 +25,8 @@ import {
   getRaceSessions,
   getSessionResults,
 } from "@/data/racemate-repository";
+import { formatSessionName } from "@/lib/session-display";
+import type { GrandPrixReport } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
 
@@ -87,14 +89,10 @@ export default async function RaceCalendarPage({
               <DataRow label="Статус" value={race.status} />
               <DataRow label="Трасса" value={race.circuit} />
               {raceReport ? (
-                <Button asChild className="mt-2 w-full">
-                  <Link
-                    href={`/calendar/${seasonYear}/${raceRound}?raceReport=${raceReport.raceSlug}`}
-                    scroll={false}
-                  >
-                    Открыть отчет Гран-при
-                  </Link>
-                </Button>
+                <RaceReportPreview
+                  href={`/calendar/${seasonYear}/${raceRound}?raceReport=${raceReport.raceSlug}`}
+                  report={raceReport}
+                />
               ) : null}
             </CardContent>
           </Card>
@@ -122,7 +120,7 @@ export default async function RaceCalendarPage({
                   href={session.href ?? `/calendar/${seasonYear}/${raceRound}`}
                   key={session.id ?? session.name}
                 >
-                  {session.name}
+                  {formatSessionName(session.name)}
                 </Link>
               ))}
             </div>
@@ -131,7 +129,7 @@ export default async function RaceCalendarPage({
               <div className="min-w-0 overflow-hidden rounded-md border border-border/70">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
                   <div>
-                    <p className="font-medium">{selectedSession.name}</p>
+                    <p className="font-medium">{formatSessionName(selectedSession.name)}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {selectedSession.startsAt}
                     </p>
@@ -149,45 +147,53 @@ export default async function RaceCalendarPage({
                 ) : null}
 
                 {results.length ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[42rem] text-sm">
+                  <div className="overflow-hidden">
+                    <table className="w-full table-fixed text-xs sm:text-sm">
+                      <colgroup>
+                        <col className="w-10 sm:w-12" />
+                        <col className="w-[24%]" />
+                        <col className="w-[24%]" />
+                        <col className="w-[22%]" />
+                        <col className="w-12 sm:w-16" />
+                        <col className="w-12 sm:w-16" />
+                      </colgroup>
                       <thead className="text-left text-xs text-muted-foreground">
                         <tr className="border-b border-border/70">
-                          <th className="px-4 py-3 font-medium">Поз.</th>
-                          <th className="px-4 py-3 font-medium">Пилот</th>
-                          <th className="px-4 py-3 font-medium">Команда</th>
-                          <th className="px-4 py-3 font-medium">Время</th>
-                          <th className="px-4 py-3 font-medium">Круги</th>
-                          <th className="px-4 py-3 text-right font-medium">Очки</th>
+                          <th className="px-2 py-3 font-medium sm:px-3">Поз.</th>
+                          <th className="px-2 py-3 font-medium sm:px-3">Пилот</th>
+                          <th className="px-2 py-3 font-medium sm:px-3">Команда</th>
+                          <th className="px-2 py-3 font-medium sm:px-3">Время</th>
+                          <th className="px-2 py-3 font-medium sm:px-3">Кр.</th>
+                          <th className="px-2 py-3 text-right font-medium sm:px-3">Оч.</th>
                         </tr>
                       </thead>
                       <tbody>
                         {results.map((result) => (
                           <tr className="border-b border-border/70 last:border-b-0" key={`${result.position}-${result.driver}`}>
-                            <td className="px-4 py-3 font-mono text-muted-foreground">
+                            <td className="px-2 py-3 font-mono text-muted-foreground sm:px-3">
                               {result.position ?? "-"}
                             </td>
-                            <td className="px-4 py-3 font-medium">
+                            <td className="break-words px-2 py-3 font-medium leading-5 sm:px-3">
                               {result.driver}
                             </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              <span className="flex items-center gap-2">
+                            <td className="px-2 py-3 text-muted-foreground sm:px-3">
+                              <span className="flex min-w-0 items-center gap-2">
                                 <TeamLogo
                                   code={result.teamCode}
                                   color={result.teamColor}
                                   logo={result.teamLogo}
                                   name={result.team}
                                 />
-                                <span>{result.team}</span>
+                                <span className="min-w-0 truncate">{result.team}</span>
                               </span>
                             </td>
-                            <td className="px-4 py-3 font-mono text-muted-foreground">
+                            <td className="break-words px-2 py-3 font-mono text-muted-foreground sm:px-3">
                               {result.time}
                             </td>
-                            <td className="px-4 py-3 font-mono text-muted-foreground">
+                            <td className="px-2 py-3 font-mono text-muted-foreground sm:px-3">
                               {result.laps ?? "-"}
                             </td>
-                            <td className="px-4 py-3 text-right font-mono">
+                            <td className="px-2 py-3 text-right font-mono sm:px-3">
                               {result.points ?? "-"}
                             </td>
                           </tr>
@@ -243,5 +249,52 @@ export default async function RaceCalendarPage({
       </section>
       <GrandPrixReportDialog open={isReportOpen} report={dialogReport} />
     </AppShell>
+  );
+}
+
+function RaceReportPreview({
+  href,
+  report,
+}: {
+  href: string;
+  report: GrandPrixReport;
+}) {
+  const podium = Array.isArray(report.highlights.podium)
+    ? report.highlights.podium.map((item) => String(item)).filter(Boolean).slice(0, 3)
+    : [];
+  const winner = String(report.highlights.winner ?? report.results[0]?.driver ?? "Уточняется");
+  const summary = report.aiSummary?.split(/\n{2,}/)[0]?.trim();
+
+  return (
+    <div className="mt-2 overflow-hidden rounded-xl border border-primary/35 bg-primary/10">
+      <div className="border-b border-primary/20 p-4">
+        <div className="flex items-center gap-2">
+          <Sparkles aria-hidden="true" className="size-5 text-primary" />
+          <p className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-primary">
+            Отчет Гран-при
+          </p>
+        </div>
+        {summary ? (
+          <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">{summary}</p>
+        ) : null}
+      </div>
+      <div className="grid gap-3 p-4 text-sm">
+        <div className="flex items-start justify-between gap-4">
+          <span className="text-muted-foreground">Победитель</span>
+          <span className="max-w-[62%] text-right font-semibold">{winner}</span>
+        </div>
+        {podium.length ? (
+          <div className="flex items-start justify-between gap-4">
+            <span className="text-muted-foreground">Подиум</span>
+            <span className="max-w-[62%] text-right font-semibold">{podium.join(", ")}</span>
+          </div>
+        ) : null}
+        <Button asChild className="mt-1 w-full">
+          <Link href={href} scroll={false}>
+            Открыть полный отчет
+          </Link>
+        </Button>
+      </div>
+    </div>
   );
 }

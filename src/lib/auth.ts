@@ -19,6 +19,38 @@ export async function getSessionUser() {
   return user;
 }
 
+export async function getSessionProfileSummary() {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const fallbackName =
+    typeof user.user_metadata?.display_name === "string" && user.user_metadata.display_name.trim()
+      ? user.user_metadata.display_name.trim()
+      : user.email?.split("@")[0] ?? "Гость RaceMate";
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, email")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return {
+    displayName: profile?.display_name?.trim() || fallbackName,
+    email: profile?.email ?? user.email ?? null,
+  };
+}
+
 export async function requireUser() {
   const user = await getSessionUser();
 

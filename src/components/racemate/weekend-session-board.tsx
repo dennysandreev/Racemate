@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import { cn } from "@/lib/utils";
+import { formatSessionName } from "@/lib/session-display";
 import type { SessionResult, WeekendSession } from "@/types/racemate";
 
 type WeekendSessionWithResults = {
@@ -50,9 +51,8 @@ export function WeekendSessionBoard({
 
   return (
     <>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="overflow-hidden rounded-lg border border-border/70 bg-background/35">
         {sessions.map((item) => {
-          const isRace = item.session.type === "race" || item.session.name === "Гонка";
           const sessionStatus = item.results.length ? "Завершена" : item.session.status;
           const isLive = sessionStatus === "Live";
           const isCurrentTarget = item.session.name === activeSessionName;
@@ -62,72 +62,58 @@ export function WeekendSessionBoard({
           return (
             <button
               className={cn(
-                "group relative min-h-[4.35rem] rounded-md border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[4.7rem] sm:p-4",
+                "group relative grid min-h-[3.9rem] w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border/70 px-3 py-2.5 text-left transition-colors last:border-b-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4",
                 isLive
-                  ? "border-success bg-success text-background shadow-sm"
+                  ? "bg-success/10 text-foreground"
                   : isHighlighted
-                    ? "border-primary bg-muted text-foreground shadow-[inset_0_0_0_1px_oklch(0.62_0.22_27_/_0.55)]"
-                    : "border-border/70 bg-muted hover:bg-accent",
-                isCompleted && "bg-muted/45 text-muted-foreground",
+                    ? "bg-primary/10 text-foreground"
+                    : "hover:bg-accent/70",
+                isCompleted && "bg-muted/25 text-muted-foreground",
                 "touch-manipulation",
-                isRace && "sm:col-span-2",
               )}
               key={item.session.id ?? item.session.name}
               onClick={() => setSelected(item)}
               type="button"
             >
-              <div
+              <span
+                aria-hidden="true"
                 className={cn(
-                  "flex h-full flex-col justify-between gap-2",
-                  isRace && "sm:mx-auto sm:w-full sm:max-w-xl",
+                  "absolute bottom-2 left-0 top-2 w-0.5 rounded-r-full bg-border",
+                  isLive && "bg-success",
+                  isHighlighted && !isLive && "bg-primary",
+                  isCompleted && "bg-muted-foreground/35",
                 )}
-              >
-                <div className="min-w-0 text-left">
-                  <p className="text-sm font-semibold leading-tight sm:text-base">
-                    {item.session.name}
+              />
+              <div className="flex min-w-0 items-center gap-3 pl-2">
+                <Badge
+                  className="hidden shrink-0 sm:inline-flex"
+                  variant={isLive ? "success" : isCompleted ? "outline" : "warning"}
+                >
+                  {isLive ? "Live" : isCompleted ? "Завершена" : "Ожидается"}
+                </Badge>
+                <div className="min-w-0">
+                  <p className="truncate font-display text-sm font-bold leading-tight sm:text-base">
+                    {formatSessionName(item.session.name)}
                   </p>
-                  <p
-                    className={cn(
-                      "mt-1 whitespace-nowrap text-xs",
-                      isLive
-                        ? "text-background/75"
-                        : isHighlighted
-                          ? "text-muted-foreground"
-                          : "text-muted-foreground",
-                    )}
-                  >
+                  <p className="mt-1 truncate font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
                     {item.session.startsAt}
                   </p>
                 </div>
-                <div className="flex items-end justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-2">
-                    {isCompleted ? (
-                      <CheckCircle2 className="size-5 shrink-0" aria-hidden="true" />
-                    ) : (
-                      <WeatherIcon precipitationMm={item.session.weather?.precipitationMm} />
-                    )}
-                    <p className="whitespace-nowrap font-mono text-base leading-none sm:text-lg">
-                      {item.session.weather?.temperature ?? "—"}
-                    </p>
-                    <p
-                      className={cn(
-                        "whitespace-nowrap text-xs",
-                        isLive
-                          ? "text-background/75"
-                          : isHighlighted
-                            ? "text-muted-foreground"
-                            : "text-muted-foreground",
-                      )}
-                    >
-                      {getWeatherLabel(item.session.weather?.precipitationMm)}
-                    </p>
-                  </div>
-                  <Badge
-                    className="shrink-0"
-                    variant={isLive ? "success" : isCompleted ? "outline" : "warning"}
-                  >
-                    {isLive ? "Live" : isCompleted ? "Завершена" : "Ожидается"}
-                  </Badge>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {isCompleted ? (
+                  <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+                ) : (
+                  <WeatherIcon precipitationMm={item.session.weather?.precipitationMm} />
+                )}
+                <div className="text-right">
+                  <p className="font-telemetry whitespace-nowrap text-base font-bold leading-none text-foreground">
+                    {item.session.weather?.temperature ?? "—"}
+                  </p>
+                  <p className="mt-1 hidden whitespace-nowrap text-[0.68rem] text-muted-foreground sm:block">
+                    {getWeatherLabel(item.session.weather?.precipitationMm)}
+                  </p>
                 </div>
               </div>
             </button>
@@ -151,7 +137,7 @@ export function WeekendSessionBoard({
             <div className="shrink-0 flex items-start justify-between gap-4 border-b border-border/70 p-4 sm:p-5">
               <div>
                 <h2 className="text-xl font-semibold" id={titleId}>
-                  {selected.session.name}
+                  {formatSessionName(selected.session.name)}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {selected.session.startsAt}

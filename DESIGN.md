@@ -4,26 +4,47 @@
 
 RaceMate is a product UI for a premium Formula 1 companion: public fan surfaces, authenticated prediction workflows, and operational admin. The default visual register is product, with occasional brand-led moments on the public home and race weekend pages.
 
+## Stitch Source Of Truth
+
+The current visual source of truth is the Google Stitch project `RaceMate Premium UI System`, design system `Apex Performance`.
+
+Canonical screen mapping:
+- `/` — `RaceMate Dashboard`
+- `/weekend` — `RaceMate Austrian GP Weekend`
+- `/news` — `RaceMate News Hub`
+- `/news/[slug]` — `RaceMate Article Detail`
+- `/calendar` — `RaceMate Season Calendar`
+- `/calendar/[season]/[round]` and report popup — Barcelona GP results/report screens
+- `/leaderboard` — `RaceMate Championship Leaderboard Only`
+- `/fantasy` — `RaceMate Fantasy League`
+- `/social` — `RaceMate Social Networks Feed`
+- `/polls` — `RaceMate Polls`
+- `/auth` and `/auth/check-email` — `RaceMate Auth Flow`
+- `/onboarding` — `RaceMate Onboarding`
+- `/admin` — `RaceMate Admin Operations`
+
+Implementation rule: static Stitch HTML is a visual specification, not production code. Production code must keep RaceMate's Next.js App Router, Server Components by default, existing repositories/actions, and Russian product copy.
+
 ## Design Direction
 
-Reading this as: a motorsport product for engaged Russian-speaking F1 fans, with a premium sport-app language, leaning toward a dark graphite interface, sharp editorial hierarchy, restrained motion, shadcn/ui primitives, and custom RaceMate tokens.
+Reading this as: a motorsport product for engaged Russian-speaking F1 fans, with a premium sport-app language, leaning toward Stitch's dark `Apex Performance` cockpit system: obsidian surfaces, Ferrari red active states, neon-green live status, sharp editorial hierarchy, dense race-control modules, shadcn/ui primitives, and custom RaceMate tokens.
 
 Scene sentence: a fan opens RaceMate on a phone or laptop in the hour before a race session, wants the key story, the next start time, and their prediction status immediately, and should feel the product is fast, current, and composed.
 
 Design dials:
-- Design variance: 6/10.
+- Design variance: 7/10.
 - Motion intensity: 5/10.
-- Visual density: 7/10 for app/admin surfaces, 5/10 for public editorial pages.
+- Visual density: 8/10 for app/admin surfaces, 6/10 for public editorial pages.
 
 ## Color System
 
-Use OKLCH tokens in CSS. Avoid purple gradients, beige/cream defaults, and one-note slate-only dark mode.
+Use semantic tokens in CSS based on the Stitch Apex Performance palette. Avoid purple gradients, beige/cream defaults, and one-note slate-only dark mode.
 
 Strategy:
-- Base: near-black graphite with a slight cool-neutral tint.
-- Surface: layered carbon, pit-wall charcoal, and raised graphite.
-- Primary accent: race red for decisive actions and live/urgent emphasis.
-- Secondary accent: track green for positive scoring, confirmed states, and progress.
+- Base: Obsidian Base `#0B0B0B`.
+- Surface: Obsidian Elevated `#121212`, Obsidian Surface `#1E1E1E`, and hairline glass stroke `rgba(255,255,255,0.08)`.
+- Primary accent: Ferrari/F1 red `#E10600` for primary actions, active nav, current race/session emphasis.
+- Secondary accent: Live neon `#39FF14` for live/available states only.
 - Tertiary accent: timing amber for upcoming sessions, warnings, and lock windows.
 - Team colors appear only as contextual accents, never as the global palette.
 
@@ -54,13 +75,13 @@ Contrast requirements:
 
 ## Typography
 
-Use `next/font`; do not link Google Fonts with raw `<link>` tags.
+Use `next/font`; do not link Google Fonts with raw `<link>` tags or CSS `@import`.
 
 Recommended stack:
-- UI and display: Geist Sans.
-- Timing, codes, session labels, and technical metadata: Geist Mono or IBM Plex Mono.
+- UI and display: Geist Sans in production, tuned to match Stitch's Hanken Grotesk proportions.
+- Timing, codes, session labels, and technical metadata: Geist Mono.
 
-Do not use Inter, Roboto, Arial, or default system fonts as the main brand choice unless a later explicit design decision overrides this. Avoid serif as the default product font; RaceMate should feel sharp and modern, not magazine-vintage.
+Stitch references may mention Hanken Grotesk, Inter, and JetBrains Mono. In this repo, use `geist` via `next/font` unless a local font file is added explicitly. Avoid serif as the default product font; RaceMate should feel sharp and modern, not magazine-vintage.
 
 Type rules:
 - H1/H2 use balanced wrapping.
@@ -72,12 +93,13 @@ Type rules:
 ## Layout
 
 Public surfaces:
-- Use a strong first viewport: current race context, latest digest, or next session.
+- Use a strong cockpit first viewport: current race context, next session, weather/session strip, track module, and one high-signal right rail.
 - News and race hub pages can use asymmetric layouts, but must collapse cleanly to a single-column mobile view.
 - Avoid a generic landing page unless explicitly needed; the app experience should be visible immediately.
 
 App surfaces:
 - Favor dense but organized panels, tables, segmented controls, tabs, filters, and side/top navigation.
+- Desktop uses the Stitch shell: fixed top navigation plus left command sidebar. Mobile collapses to a burger/drawer.
 - Cards are for repeated content, modals, and framed tools. Do not nest cards.
 - Fixed-format UI such as prediction picks, standings rows, and session cards must have stable dimensions to avoid layout jumps.
 

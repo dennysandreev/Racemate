@@ -101,14 +101,14 @@ const teamAssets = [
     name: "Alpine",
     code: "ALP",
     logo: "/f1/teams/alpine.webp",
-    color: "#2293D1",
+    color: "#0093CC",
     aliases: ["alpine", "bwt alpine", "alp"],
   },
   {
     name: "Aston Martin",
     code: "AMR",
     logo: "/f1/teams/aston-martin.svg",
-    color: "#006F62",
+    color: "#229971",
     aliases: ["aston martin", "aston martin aramco", "aston martin aramco f1 team", "amr", "ast"],
   },
   {
@@ -129,7 +129,7 @@ const teamAssets = [
     name: "Ferrari",
     code: "FER",
     logo: "/f1/teams/ferrari.webp",
-    color: "#E80020",
+    color: "#E8002D",
     aliases: ["ferrari", "scuderia ferrari", "fer"],
   },
   {
@@ -210,6 +210,55 @@ export function getTeamAsset(teamNameOrCode?: string | null): TeamVisual | null 
     logo: match.logo,
     color: match.color,
   };
+}
+
+type DriverTeamLookup = {
+  driver?: string | null;
+  team?: string | null;
+  teamCode?: string | null;
+  teamColor?: string | null;
+  teamLogo?: string | null;
+};
+
+export function getTeamAssetForDriver(
+  driverName?: string | null,
+  rows: DriverTeamLookup[] = [],
+): TeamVisual | null {
+  if (!driverName) {
+    return null;
+  }
+
+  const normalizedDriver = normalizeAssetKey(driverName);
+  const match = rows.find((row) => {
+    const normalizedRowDriver = normalizeAssetKey(row.driver ?? "");
+
+    return (
+      normalizedRowDriver === normalizedDriver ||
+      normalizedRowDriver.includes(normalizedDriver) ||
+      normalizedDriver.includes(normalizedRowDriver)
+    );
+  });
+
+  if (!match) {
+    return null;
+  }
+
+  return (
+    getTeamAsset(match.teamCode) ??
+    getTeamAsset(match.team) ?? {
+      name: match.team ?? driverName,
+      code: match.teamCode ?? undefined,
+      logo: match.teamLogo ?? undefined,
+      color: match.teamColor ?? undefined,
+    }
+  );
+}
+
+export function getTeamAssetForMarketOutcome(
+  outcomeName?: string | null,
+  rows: DriverTeamLookup[] = [],
+): TeamVisual | null {
+  return getTeamAsset(outcomeName) ?? getTeamAssetForDriver(outcomeName, rows);
 }
 
 export function getTeamMatchNames() {

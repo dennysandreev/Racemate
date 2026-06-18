@@ -15,12 +15,12 @@ export function TrackMap({ circuit, compact }: TrackMapProps) {
   const asset = getCircuitAsset(circuit);
 
   return (
-    <div className="relative overflow-hidden rounded-md border border-border bg-[oklch(0.14_0.014_250)] p-3">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,oklch(0.62_0.22_27_/_0.16),transparent_15rem)]" />
+    <div className="race-track-surface relative overflow-hidden rounded-md p-3">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgb(225_6_0_/_0.16),transparent_15rem)]" />
       {asset ? (
         <div
           className={cn(
-            "relative grid place-items-center rounded border border-white/10 bg-[oklch(0.08_0.012_250)] p-2",
+            "relative grid place-items-center rounded border border-white/10 bg-black/40 p-2",
             compact ? "h-32 sm:h-36" : "h-48",
           )}
         >
@@ -28,6 +28,7 @@ export function TrackMap({ circuit, compact }: TrackMapProps) {
             alt={`Официальная схема трассы ${circuit}`}
             className="object-contain"
             fill
+            priority
             sizes={compact ? "(max-width: 640px) 360px, (max-width: 1024px) 720px, 56rem" : "(max-width: 640px) 360px, 48rem"}
             src={asset.src}
           />

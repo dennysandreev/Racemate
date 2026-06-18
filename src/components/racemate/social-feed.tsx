@@ -84,7 +84,7 @@ export function SocialFeed({ initialResult, platform, sort }: SocialFeedProps) {
 
   if (!items.length) {
     return (
-      <div className="rounded-lg border border-border bg-card p-5 text-sm leading-6 text-muted-foreground">
+      <div className="stitch-panel p-5 text-sm leading-6 text-muted-foreground">
         Пока нет постов для выбранного фильтра. Старые записи не удаляются, поэтому лента
         вернётся, когда worker получит первый успешный ответ от источников.
       </div>

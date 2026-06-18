@@ -1,9 +1,14 @@
-import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageHeading } from "@/components/racemate/page-heading";
 import { SocialFeed } from "@/components/racemate/social-feed";
+import {
+  StitchMetric,
+  StitchPanel,
+  StitchPanelHeader,
+  StitchSegmentedLinks,
+} from "@/components/racemate/stitch-primitives";
 import { Badge } from "@/components/ui/badge";
 import {
   getSocialPosts,
@@ -37,42 +42,52 @@ export default async function SocialPage({
 
   return (
     <AppShell>
-      <PageHeading
-        title="Соцсети"
-      />
+      <PageHeading title="Соцсети" />
 
-      <section className="grid gap-5 py-8 lg:grid-cols-[0.72fr_1fr] lg:items-start">
-        <div className="grid gap-4 rounded-lg border border-border bg-card p-5">
-          <div className="flex items-center gap-2">
-            <MessageCircle aria-hidden="true" data-icon="inline-start" />
-            <h2 className="text-base font-semibold">Посты из паддока и фан-сообщества</h2>
+      <section className="grid gap-5 py-8 lg:grid-cols-[21rem_minmax(0,1fr)] lg:items-start">
+        <aside className="grid gap-4">
+          <StitchPanel>
+            <StitchPanelHeader icon={MessageCircle} title="Поток из паддока" />
+            <div className="grid gap-4 p-4">
+              <p className="text-sm leading-6 text-muted-foreground">
+                RaceMate показывает сохранённые посты из нашей базы. Если источник временно
+                недоступен, старые записи остаются в ленте.
+              </p>
+
+              <div className="grid gap-2">
+                <p className="stitch-label text-muted-foreground">Платформа</p>
+                <StitchSegmentedLinks
+                  items={platformFilters.map((option) => ({
+                    active: option.value === platform,
+                    href: getSocialHref(option.value, sort),
+                    label: option.label,
+                  }))}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <p className="stitch-label text-muted-foreground">Порядок</p>
+                <StitchSegmentedLinks
+                  items={sortFilters.map((option) => ({
+                    active: option.value === sort,
+                    href: getSocialHref(platform, option.value),
+                    label: option.label,
+                  }))}
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline">X через RSSHub</Badge>
+                <Badge variant="outline">Reddit RSS</Badge>
+                <Badge variant="outline">Кеш RaceMate</Badge>
+              </div>
+            </div>
+          </StitchPanel>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+            <StitchMetric label="Режим" tone="live" value={platform === "all" ? "Все" : platform.toUpperCase()} />
+            <StitchMetric label="Сортировка" value={sort === "popular" ? "Популярные" : "Новые"} />
           </div>
-          <p className="text-sm leading-6 text-muted-foreground">
-            RaceMate показывает сохранённые посты из нашей базы. Если источник временно
-            недоступен, старые записи остаются в ленте.
-          </p>
-
-          <FilterGroup
-            label="Платформа"
-            options={platformFilters}
-            platform={platform}
-            sort={sort}
-            type="platform"
-          />
-          <FilterGroup
-            label="Порядок"
-            options={sortFilters}
-            platform={platform}
-            sort={sort}
-            type="sort"
-          />
-
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">X через RSSHub</Badge>
-            <Badge variant="outline">Reddit RSS</Badge>
-            <Badge variant="outline">Кеш RaceMate</Badge>
-          </div>
-        </div>
+        </aside>
 
         <SocialFeed
           initialResult={initialResult}
@@ -82,48 +97,6 @@ export default async function SocialPage({
         />
       </section>
     </AppShell>
-  );
-}
-
-function FilterGroup({
-  label,
-  options,
-  platform,
-  sort,
-  type,
-}: {
-  label: string;
-  options: { label: string; value: string }[];
-  platform: SocialPlatform;
-  sort: SocialSort;
-  type: "platform" | "sort";
-}) {
-  return (
-    <div className="grid gap-2">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <div className="flex flex-wrap gap-2">
-        {options.map((option) => {
-          const isActive = type === "platform" ? option.value === platform : option.value === sort;
-          const nextPlatform = type === "platform" ? option.value : platform;
-          const nextSort = type === "sort" ? option.value : sort;
-          const href = getSocialHref(nextPlatform, nextSort);
-
-          return (
-            <Link
-              className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                isActive
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border/70 bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
-              }`}
-              href={href}
-              key={option.value}
-            >
-              {option.label}
-            </Link>
-          );
-        })}
-      </div>
-    </div>
   );
 }
 

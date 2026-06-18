@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { cn } from "@/lib/utils";
 
 export function DataRow({
@@ -7,7 +9,7 @@ export function DataRow({
   className,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   helper?: string;
   className?: string;
 }) {
