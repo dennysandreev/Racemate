@@ -33,6 +33,7 @@ export default async function NewsArticlePage({
     getArticleReactionCounts(article.slug),
     getNewsItems({ pageSize: 4 }),
   ]);
+  const detailParagraphs = splitArticleDetails(article.details);
 
   return (
     <AppShell>
@@ -58,10 +59,14 @@ export default async function NewsArticlePage({
               </Link>
             ) : null}
           </div>
-          {article.details ? (
-            <p className="mt-5 max-w-[72ch] text-base leading-7 text-muted-foreground">
-              {article.details}
-            </p>
+          {detailParagraphs.length ? (
+            <div className="mt-5 grid max-w-[72ch] gap-4 text-base leading-7 text-muted-foreground">
+              {detailParagraphs.map((paragraph) => (
+                <p className="text-pretty" key={paragraph}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
           ) : (
             <p className="mt-5 max-w-[72ch] text-base leading-7 text-muted-foreground">
               {article.summary}
@@ -145,4 +150,11 @@ export default async function NewsArticlePage({
       </section>
     </AppShell>
   );
+}
+
+function splitArticleDetails(details?: string) {
+  return (details ?? "")
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
 }

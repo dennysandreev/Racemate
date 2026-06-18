@@ -1717,11 +1717,11 @@ async function processNewsWithAi() {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model =
     process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
-  const maxTokens = Number(process.env.AI_SUMMARY_MAX_TOKENS ?? 900);
+  const maxTokens = Number(process.env.AI_SUMMARY_MAX_TOKENS ?? 1800);
 
   const { data: articles, error } = await supabase
     .from("news_articles")
-    .select("id, original_title, original_description")
+    .select("id, canonical_url, original_url, original_title, original_description, raw_payload")
     .eq("status", "pending")
     .is("duplicate_of", null)
     .order("published_at", { ascending: false, nullsFirst: false })
@@ -1735,6 +1735,7 @@ async function processNewsWithAi() {
   let itemsProcessed = 0;
 
   for (const article of articles ?? []) {
+    const articleContext = await getArticleContext(article);
     const fallback = makeFallbackNewsPayload(article);
     let aiPayload = fallback;
     let title = article.original_title;
@@ -1757,11 +1758,11 @@ async function processNewsWithAi() {
               {
                 role: "system",
                 content:
-                  "Ты редактор RaceMate для русскоязычных фанатов Формулы-1. Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, race_round, race_confidence. summary_ru — короткий лид на 1-2 предложения. details_ru — 5-8 спокойных предложений, которые раскрывают контекст, последствия для пилотов/команд/этапа и не повторяют summary_ru другими словами. Не выдумывай факты. key_points_ru — массив из 3 коротких пунктов. race_round — номер этапа из списка или null.",
+                  "Ты редактор RaceMate для русскоязычных фанатов Формулы-1. Твоя задача — прочитать переданные материалы, перевести смысл на русский и написать подробный редакторский пересказ своими словами. Не копируй фразы источника дословно, не выдавай текст за оригинальную публикацию и не придумывай факты. Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, race_round, race_confidence. summary_ru — короткий лид на 2-3 предложения. details_ru — полноценный материал RaceMate: 5-8 абзацев, разделенных пустой строкой, с контекстом, участниками, причиной важности и возможными последствиями только из переданных фактов. key_points_ru — массив из 4-5 коротких пунктов. race_round — номер этапа из списка или null.",
               },
               {
                 role: "user",
-                content: `Новость:\n${article.original_title}\n\n${article.original_description ?? ""}\n\nЭтапы сезона:\n${races
+                content: `Источник: ${article.canonical_url ?? article.original_url ?? "RSS"}\nОригинальный заголовок: ${article.original_title}\n\nRSS-описание:\n${article.original_description ?? "Нет"}\n\nТекст оригинальной статьи или расширенный контекст:\n${articleContext || "Полный текст недоступен, используй только RSS-описание и не расширяй факты."}\n\nЭтапы сезона:\n${races
                   .map((race) => `${race.round}: ${race.race_name} (${race.circuit_name}, ${race.country})`)
                   .join("\n")}`,
               },
@@ -3747,6 +3748,113 @@ function normalizeStringArray(value) {
     .slice(0, 5);
 
   return items.length ? items : null;
+}
+
+async function getArticleContext(article) {
+  const snippets = [
+    normalizeString(article.raw_payload?.content),
+    normalizeString(article.original_description),
+  ].filter(Boolean);
+  const fetchedText = await fetchReadableArticleText(article.original_url ?? article.canonical_url);
+
+  if (fetchedText) {
+    snippets.push(fetchedText);
+  }
+
+  return clampText(dedupeTextBlocks(snippets).join("\n\n"), Number(process.env.AI_ARTICLE_TEXT_MAX_CHARS ?? 12000));
+}
+
+async function fetchReadableArticleText(url) {
+  if (!url) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+        "user-agent": "RaceMate/1.0 (+https://racemate.ru)",
+      },
+      signal: AbortSignal.timeout(Number(process.env.AI_ARTICLE_FETCH_TIMEOUT_MS ?? 8000)),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+
+    if (contentType && !contentType.includes("text/html") && !contentType.includes("application/xhtml")) {
+      return null;
+    }
+
+    const html = await response.text();
+    return extractReadableTextFromHtml(html);
+  } catch (fetchError) {
+    logWorkerWarning("news.article_text.unavailable", {
+      url: sanitizeDiagnosticText(url),
+      reason: getSafeErrorMessage(fetchError),
+    });
+    return null;
+  }
+}
+
+function extractReadableTextFromHtml(html) {
+  const body =
+    html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1] ??
+    html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1] ??
+    html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)?.[1] ??
+    html;
+  const text = decodeXml(
+    body
+      .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+      .replace(/<noscript\b[\s\S]*?<\/noscript>/gi, " ")
+      .replace(/<svg\b[\s\S]*?<\/svg>/gi, " ")
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/<\/(?:p|div|section|article|h[1-6]|li|blockquote)>/gi, "\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\u00a0/g, " "),
+  );
+
+  const paragraphs = text
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter((line) => line.length >= 80)
+    .filter((line) => !/^(advertisement|subscribe|sign up|read more|cookies?|privacy|terms)/i.test(line))
+    .slice(0, 24);
+
+  return paragraphs.length ? paragraphs.join("\n\n") : null;
+}
+
+function dedupeTextBlocks(blocks) {
+  const seen = new Set();
+  const result = [];
+
+  for (const block of blocks) {
+    const normalized = block.replace(/\s+/g, " ").trim();
+    const key = normalized.toLowerCase().slice(0, 240);
+
+    if (!normalized || seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    result.push(normalized);
+  }
+
+  return result;
+}
+
+function clampText(value, maxLength) {
+  const text = String(value ?? "").trim();
+
+  if (!text || text.length <= maxLength) {
+    return text || null;
+  }
+
+  return `${text.slice(0, maxLength).replace(/\s+\S*$/, "")}\n\n[Текст обрезан для лимита AI-контекста]`;
 }
 
 function makeFallbackNewsPayload(article) {
