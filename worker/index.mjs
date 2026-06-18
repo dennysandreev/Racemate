@@ -1742,48 +1742,60 @@ async function processNewsWithAi() {
     let relatedRace = matchRaceByText(article, races);
 
     if (apiKey) {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${apiKey}`,
-          "content-type": "application/json",
-          "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-          "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: "system",
-              content:
-                "Ты редактор RaceMate для русскоязычных фанатов Формулы-1. Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, race_round, race_confidence. summary_ru — короткий лид на 1-2 предложения. details_ru — 5-8 спокойных предложений, которые раскрывают контекст, последствия для пилотов/команд/этапа и не повторяют summary_ru другими словами. Не выдумывай факты. key_points_ru — массив из 3 коротких пунктов. race_round — номер этапа из списка или null.",
-            },
-            {
-              role: "user",
-              content: `Новость:\n${article.original_title}\n\n${article.original_description ?? ""}\n\nЭтапы сезона:\n${races
-                .map((race) => `${race.round}: ${race.race_name} (${race.circuit_name}, ${race.country})`)
-                .join("\n")}`,
-            },
-          ],
-          response_format: { type: "json_object" },
-          max_tokens: maxTokens,
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(`OpenRouter failed for article ${article.id}: ${response.status} ${JSON.stringify(payload).slice(0, 220)}`);
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${apiKey}`,
+            "content-type": "application/json",
+            "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
+            "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Ты редактор RaceMate для русскоязычных фанатов Формулы-1. Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, race_round, race_confidence. summary_ru — короткий лид на 1-2 предложения. details_ru — 5-8 спокойных предложений, которые раскрывают контекст, последствия для пилотов/команд/этапа и не повторяют summary_ru другими словами. Не выдумывай факты. key_points_ru — массив из 3 коротких пунктов. race_round — номер этапа из списка или null.",
+              },
+              {
+                role: "user",
+                content: `Новость:\n${article.original_title}\n\n${article.original_description ?? ""}\n\nЭтапы сезона:\n${races
+                  .map((race) => `${race.round}: ${race.race_name} (${race.circuit_name}, ${race.country})`)
+                  .join("\n")}`,
+              },
+            ],
+            response_format: { type: "json_object" },
+            max_tokens: maxTokens,
+          }),
+        });
+        const payload = await readJsonResponse(response);
+        if (!response.ok) {
+          logWorkerWarning("openrouter.news_summary.fallback", {
+            articleId: article.id,
+            status: response.status,
+            reason: getOpenRouterFailureReason(payload),
+          });
+        } else {
+          const content = payload.choices?.[0]?.message?.content;
+          const parsed = safeJson(content);
+          title = normalizeString(parsed?.title_ru) ?? title;
+          aiPayload = {
+            summary: normalizeString(parsed?.summary_ru) ?? aiPayload.summary,
+            details: normalizeString(parsed?.details_ru) ?? aiPayload.details,
+            keyPoints: normalizeStringArray(parsed?.key_points_ru) ?? aiPayload.keyPoints,
+          };
+          const aiRace = races.find((race) => race.round === numberOrNull(parsed?.race_round));
+          relatedRace = aiRace ?? relatedRace;
+          usage = payload.usage ?? null;
+        }
+      } catch (aiError) {
+        logWorkerWarning("openrouter.news_summary.fallback", {
+          articleId: article.id,
+          reason: getSafeErrorMessage(aiError),
+        });
       }
-      const content = payload.choices?.[0]?.message?.content;
-      const parsed = safeJson(content);
-      title = normalizeString(parsed?.title_ru) ?? title;
-      aiPayload = {
-        summary: normalizeString(parsed?.summary_ru) ?? aiPayload.summary,
-        details: normalizeString(parsed?.details_ru) ?? aiPayload.details,
-        keyPoints: normalizeStringArray(parsed?.key_points_ru) ?? aiPayload.keyPoints,
-      };
-      const aiRace = races.find((race) => race.round === numberOrNull(parsed?.race_round));
-      relatedRace = aiRace ?? relatedRace;
-      usage = payload.usage ?? null;
     }
 
     await supabase
@@ -1794,7 +1806,7 @@ async function processNewsWithAi() {
         ai_summary_long_ru: aiPayload.details,
         ai_key_points_ru: aiPayload.keyPoints,
         related_race_id: relatedRace?.id ?? null,
-        ai_model: model,
+        ai_model: usage ? model : "fallback",
         ai_processed_at: new Date().toISOString(),
         status: "processed",
       })
@@ -1808,15 +1820,17 @@ async function processNewsWithAi() {
       await upsertDriverTagForArticle(article.id, driver, 0.7, "rule");
     }
 
-    await supabase.from("ai_usage_logs").insert({
-      purpose: "news.summary",
-      provider: "openrouter",
-      model,
-      input_tokens: usage?.prompt_tokens ?? null,
-      output_tokens: usage?.completion_tokens ?? null,
-      estimated_cost_usd: null,
-      related_article_id: article.id,
-    });
+    if (usage) {
+      await supabase.from("ai_usage_logs").insert({
+        purpose: "news.summary",
+        provider: "openrouter",
+        model,
+        input_tokens: usage.prompt_tokens ?? null,
+        output_tokens: usage.completion_tokens ?? null,
+        estimated_cost_usd: null,
+        related_article_id: article.id,
+      });
+    }
 
     itemsProcessed += 1;
   }
@@ -1902,43 +1916,53 @@ async function generateDailyDigest() {
   let usage = null;
 
   if (apiKey && articles?.length) {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${apiKey}`,
-        "content-type": "application/json",
-        "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-        "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: "system",
-            content:
-              "Собери дневную F1-сводку RaceMate по-русски. Верни JSON: title_ru, body_md. body_md — 4-6 коротких пунктов Markdown, без выдуманных фактов.",
-          },
-          {
-            role: "user",
-            content: articles
-              .map(
-                (article, index) =>
-                  `${index + 1}. ${article.ai_title_ru ?? article.original_title}\n${article.ai_summary_long_ru ?? article.ai_summary_ru ?? ""}`,
-              )
-              .join("\n\n"),
-          },
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: Number(process.env.AI_DIGEST_MAX_TOKENS ?? 800),
-      }),
-    });
-    const payload = await response.json();
-    if (!response.ok) {
-      throw new Error(`OpenRouter failed for daily digest: ${response.status} ${JSON.stringify(payload).slice(0, 220)}`);
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${apiKey}`,
+          "content-type": "application/json",
+          "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
+          "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: "system",
+              content:
+                "Собери дневную F1-сводку RaceMate по-русски. Верни JSON: title_ru, body_md. body_md — 4-6 коротких пунктов Markdown, без выдуманных фактов.",
+            },
+            {
+              role: "user",
+              content: articles
+                .map(
+                  (article, index) =>
+                    `${index + 1}. ${article.ai_title_ru ?? article.original_title}\n${article.ai_summary_long_ru ?? article.ai_summary_ru ?? ""}`,
+                )
+                .join("\n\n"),
+            },
+          ],
+          response_format: { type: "json_object" },
+          max_tokens: Number(process.env.AI_DIGEST_MAX_TOKENS ?? 800),
+        }),
+      });
+      const payload = await readJsonResponse(response);
+      if (!response.ok) {
+        logWorkerWarning("openrouter.daily_digest.fallback", {
+          status: response.status,
+          reason: getOpenRouterFailureReason(payload),
+        });
+      } else {
+        const parsed = safeJson(payload.choices?.[0]?.message?.content);
+        body = normalizeString(parsed?.body_md) ?? body;
+        usage = payload.usage ?? null;
+      }
+    } catch (aiError) {
+      logWorkerWarning("openrouter.daily_digest.fallback", {
+        reason: getSafeErrorMessage(aiError),
+      });
     }
-    const parsed = safeJson(payload.choices?.[0]?.message?.content);
-    body = normalizeString(parsed?.body_md) ?? body;
-    usage = payload.usage ?? null;
   }
 
   const { data: digest } = await supabase
@@ -1955,13 +1979,13 @@ async function generateDailyDigest() {
     .select("id")
     .single();
 
-  if (digest?.id) {
+  if (digest?.id && usage) {
     await supabase.from("ai_usage_logs").insert({
       purpose: "news.daily_digest",
       provider: "openrouter",
       model,
-      input_tokens: usage?.prompt_tokens ?? null,
-      output_tokens: usage?.completion_tokens ?? null,
+      input_tokens: usage.prompt_tokens ?? null,
+      output_tokens: usage.completion_tokens ?? null,
       estimated_cost_usd: null,
       related_digest_id: digest.id,
     });
@@ -3687,6 +3711,24 @@ function safeJson(value) {
   } catch {
     return null;
   }
+}
+
+async function readJsonResponse(response) {
+  const text = await response.text();
+  return safeJson(text) ?? { message: text.slice(0, 500) };
+}
+
+function getOpenRouterFailureReason(payload) {
+  return getSafeErrorMessage(payload?.error?.message ?? payload?.message ?? payload?.error ?? "request failed");
+}
+
+function getSafeErrorMessage(error) {
+  const message = error instanceof Error ? error.message : String(error ?? "unknown error");
+  return message.replace(/https?:\/\/\S+/g, "[url]").slice(0, 240);
+}
+
+function logWorkerWarning(event, metadata) {
+  console.warn(JSON.stringify({ event, ...metadata }));
 }
 
 function normalizeString(value) {
