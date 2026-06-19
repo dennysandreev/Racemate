@@ -101,7 +101,15 @@ export type Database = {
         ai_summary_ru: string | null;
         ai_summary_long_ru: string | null;
         ai_key_points_ru: string[];
+        ai_highlights_ru: string[];
         ai_title_ru: string | null;
+        image_url: string | null;
+        source_image_url: string | null;
+        image_prompt: string | null;
+        image_model: string | null;
+        image_status: string;
+        image_generated_at: string | null;
+        image_metadata: Json;
         importance_score: number;
         status: string;
         duplicate_of: string | null;

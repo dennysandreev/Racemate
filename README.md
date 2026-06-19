@@ -63,20 +63,21 @@ Worker:
 ```bash
 corepack pnpm worker:rss
 corepack pnpm worker:ai
+corepack pnpm worker:news-images
 corepack pnpm worker:calendar
 corepack pnpm worker:results
 corepack pnpm worker:score
 ```
 
-Для worker нужен `SUPABASE_SERVICE_ROLE_KEY`. OpenRouter требует `OPENROUTER_API_KEY` и `AI_SUMMARY_MAX_TOKENS`.
+Для worker нужен `SUPABASE_SERVICE_ROLE_KEY`. OpenRouter требует `OPENROUTER_API_KEY`, `AI_SUMMARY_MAX_TOKENS`; для картинок можно указать `OPENROUTER_IMAGE_MODEL`.
 
-Настройка SMTP в Supabase Auth:
+Настройка Supabase Auth для массовой passwordless-авторизации:
 
 ```bash
-corepack pnpm supabase:smtp
+corepack pnpm supabase:auth
 ```
 
-Команда читает `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SMTP_ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` и `SMTP_SENDER_NAME` из окружения.
+Команда читает `.env`/`.env.local`, включает custom SMTP и поднимает лимиты Auth. Нужны `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SMTP_ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SENDER_NAME`, а также лимиты `AUTH_SMTP_MAX_FREQUENCY`, `AUTH_RATE_LIMIT_EMAIL_SENT`, `AUTH_RATE_LIMIT_OTP`, `AUTH_RATE_LIMIT_VERIFY` и `AUTH_RATE_LIMIT_TOKEN_REFRESH`.
 
 ## Как использовать в Codex
 

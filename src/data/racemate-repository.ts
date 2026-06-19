@@ -132,6 +132,9 @@ type ArticleRow = {
   ai_summary_ru: string | null;
   ai_summary_long_ru: string | null;
   ai_key_points_ru: string[] | null;
+  ai_highlights_ru?: string[] | null;
+  image_url?: string | null;
+  source_image_url?: string | null;
   related_race_id: string | null;
   news_sources: SourceRelation;
   news_article_tags: TagRelation | null;
@@ -373,6 +376,8 @@ type PolymarketEvent = {
 const POLYMARKET_F1_TAG_ID = "435";
 
 const NEWS_ARTICLE_SELECT =
+  "id, canonical_url, original_title, original_description, published_at, ai_title_ru, ai_summary_ru, ai_summary_long_ru, ai_key_points_ru, ai_highlights_ru, image_url, source_image_url, related_race_id, news_sources(name), news_article_tags(tags(name, slug, type)), races:related_race_id(race_name, season_year, round)";
+const LEGACY_NEWS_ARTICLE_SELECT =
   "id, canonical_url, original_title, original_description, published_at, ai_title_ru, ai_summary_ru, ai_summary_long_ru, ai_key_points_ru, related_race_id, news_sources(name), news_article_tags(tags(name, slug, type)), races:related_race_id(race_name, season_year, round)";
 const GRAND_PRIX_REPORT_SELECT =
   "id, season, round, race_slug, race_name, circuit_name, country, race_date, status, summary_status, ai_summary, weather, race_statistics, results, key_events, pit_stops, strategies, teammate_comparisons, highlights, championship_impact, news_summary, source_errors, generated_at";
@@ -444,23 +449,41 @@ export async function getNewsItems(
     raceId = race.id;
   }
 
-  let query = supabase
-    .from("news_articles")
-    .select(NEWS_ARTICLE_SELECT, { count: "exact" })
-    .eq("status", "processed")
-    .is("duplicate_of", null)
-    .order("published_at", { ascending: false, nullsFirst: false });
+  const buildQuery = (select: string) => {
+    let baseQuery = supabase
+      .from("news_articles")
+      .select(select, { count: "exact" })
+      .eq("status", "processed")
+      .is("duplicate_of", null)
+      .order("published_at", { ascending: false, nullsFirst: false });
 
-  if (articleIds) {
-    query = query.in("id", articleIds);
-  }
+    if (articleIds) {
+      baseQuery = baseQuery.in("id", articleIds);
+    }
 
-  if (raceId) {
-    query = query.eq("related_race_id", raceId);
-  }
+    if (raceId) {
+      baseQuery = baseQuery.eq("related_race_id", raceId);
+    }
+
+    return baseQuery;
+  };
 
   const from = (page - 1) * pageSize;
-  const { data, error, count } = await query.range(from, from + pageSize - 1);
+  let { data, error, count } = await buildQuery(NEWS_ARTICLE_SELECT).range(
+    from,
+    from + pageSize - 1,
+  );
+
+  if (error && isMissingNewsImageColumnsError(error)) {
+    const fallback = await buildQuery(LEGACY_NEWS_ARTICLE_SELECT).range(
+      from,
+      from + pageSize - 1,
+    );
+
+    data = fallback.data;
+    error = fallback.error;
+    count = fallback.count;
+  }
 
   if (error) {
     return emptyNewsList(page);
@@ -1785,7 +1808,7 @@ export async function getRaceNews(raceId: string, limit = 5): Promise<NewsItem[]
     return [];
   }
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("news_articles")
     .select(NEWS_ARTICLE_SELECT)
     .eq("status", "processed")
@@ -1793,6 +1816,20 @@ export async function getRaceNews(raceId: string, limit = 5): Promise<NewsItem[]
     .is("duplicate_of", null)
     .order("published_at", { ascending: false, nullsFirst: false })
     .limit(limit);
+
+  if (error && isMissingNewsImageColumnsError(error)) {
+    const fallback = await supabase
+      .from("news_articles")
+      .select(LEGACY_NEWS_ARTICLE_SELECT)
+      .eq("status", "processed")
+      .eq("related_race_id", raceId)
+      .is("duplicate_of", null)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .limit(limit);
+
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error || !data?.length) {
     return [];
@@ -1839,13 +1876,26 @@ export async function getNewsArticle(id: string) {
     return null;
   }
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("news_articles")
     .select(NEWS_ARTICLE_SELECT)
     .eq("id", id)
     .eq("status", "processed")
     .is("duplicate_of", null)
     .maybeSingle();
+
+  if (error && isMissingNewsImageColumnsError(error)) {
+    const fallback = await supabase
+      .from("news_articles")
+      .select(LEGACY_NEWS_ARTICLE_SELECT)
+      .eq("id", id)
+      .eq("status", "processed")
+      .is("duplicate_of", null)
+      .maybeSingle();
+
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error || !data) {
     return null;
@@ -1896,6 +1946,9 @@ function mapArticleRow(row: ArticleRow): NewsItem {
     summary,
     details,
     keyPoints: row.ai_key_points_ru ?? [],
+    highlights: row.ai_highlights_ru ?? [],
+    imageUrl: row.image_url?.trim() || row.source_image_url?.trim() || undefined,
+    sourceImageUrl: row.source_image_url?.trim() || undefined,
     tags,
     raceTag,
     raceTagSlug,
@@ -3461,6 +3514,17 @@ function formatRelativeTime(value: string | null) {
   const diffDays = Math.round(diffHours / 24);
 
   return `${diffDays} дн назад`;
+}
+
+function isMissingNewsImageColumnsError(error: unknown) {
+  const message =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message?: unknown }).message ?? "")
+      : String(error ?? "");
+
+  return /news_articles\.(?:image_url|source_image_url|image_prompt|ai_highlights_ru)|Could not find.*(?:image_url|source_image_url|image_prompt|ai_highlights_ru)/i.test(
+    message,
+  );
 }
 
 function emptyWeather(): WeekendWeather {

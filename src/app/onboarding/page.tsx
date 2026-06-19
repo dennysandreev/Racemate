@@ -15,8 +15,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export default async function OnboardingPage() {
   const profile = await ensureProfile();
   const supabase = await createSupabaseServerClient();
+  const userId = profile?.id;
 
-  const [teams, drivers] = await Promise.all([
+  const [teams, drivers, favoriteTeams, favoriteDrivers] = await Promise.all([
     supabase
       ?.from("teams")
       .select("id, name")
@@ -27,7 +28,21 @@ export default async function OnboardingPage() {
       .select("id, full_name")
       .eq("is_active", true)
       .order("full_name"),
+    userId
+      ? supabase
+          ?.from("user_favorite_teams")
+          .select("team_id")
+          .eq("user_id", userId)
+      : null,
+    userId
+      ? supabase
+          ?.from("user_favorite_drivers")
+          .select("driver_id")
+          .eq("user_id", userId)
+      : null,
   ]);
+  const selectedTeamIds = (favoriteTeams?.data ?? []).map((item) => item.team_id);
+  const selectedDriverIds = (favoriteDrivers?.data ?? []).map((item) => item.driver_id);
 
   return (
     <AppShell>
@@ -77,6 +92,7 @@ export default async function OnboardingPage() {
                   label: team.name,
                 }))}
                 name="teamIds"
+                selectedIds={selectedTeamIds}
                 title="Любимые команды"
               />
               <ChoiceGroup
@@ -86,11 +102,12 @@ export default async function OnboardingPage() {
                   label: driver.full_name,
                 }))}
                 name="driverIds"
+                selectedIds={selectedDriverIds}
                 title="Любимые пилоты"
               />
 
               <Button className="w-full sm:w-fit" type="submit">
-                Продолжить
+                Сохранить профиль
               </Button>
             </form>
           </div>
@@ -117,13 +134,17 @@ function ChoiceGroup({
   emptyText,
   items,
   name,
+  selectedIds = [],
   title,
 }: {
   emptyText: string;
   items: { id: string; label: string }[];
   name: string;
+  selectedIds?: string[];
   title: string;
 }) {
+  const selected = new Set(selectedIds);
+
   return (
     <fieldset className="grid gap-3">
       <legend className="text-sm font-medium">{title}</legend>
@@ -134,7 +155,12 @@ function ChoiceGroup({
               className="flex min-h-11 items-center gap-2 rounded-md border border-border/70 bg-background/35 px-3 text-sm transition-colors hover:bg-accent"
               key={item.id}
             >
-              <input name={name} type="checkbox" value={item.id} />
+              <input
+                defaultChecked={selected.has(item.id)}
+                name={name}
+                type="checkbox"
+                value={item.id}
+              />
               {item.label}
             </label>
           ))}

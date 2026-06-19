@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ExternalLink, Flame, Newspaper, Sparkles } from "lucide-react";
+import { ExternalLink, Flame, Newspaper } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { reactToArticle } from "@/app/news/actions";
 import { AppShell } from "@/components/racemate/app-shell";
+import { NewsImage } from "@/components/racemate/news-image";
 import { PageHeading } from "@/components/racemate/page-heading";
 import {
   StitchPanel,
@@ -59,17 +60,28 @@ export default async function NewsArticlePage({
               </Link>
             ) : null}
           </div>
+          <p className="mt-5 max-w-[72ch] text-lg leading-8 text-foreground">
+            {article.summary}
+          </p>
+          <NewsImage
+            alt=""
+            className="relative mt-6 aspect-video overflow-hidden rounded-lg border border-border bg-muted"
+            priority
+            src={article.imageUrl}
+          />
           {detailParagraphs.length ? (
             <div className="mt-5 grid max-w-[72ch] gap-4 text-base leading-7 text-muted-foreground">
               {detailParagraphs.map((paragraph) => (
-                <p className="text-pretty" key={paragraph}>
-                  {paragraph}
-                </p>
+                <HighlightedParagraph
+                  highlights={article.highlights ?? []}
+                  key={paragraph}
+                  text={paragraph}
+                />
               ))}
             </div>
           ) : (
             <p className="mt-5 max-w-[72ch] text-base leading-7 text-muted-foreground">
-              {article.summary}
+              Подробности появятся после обработки материала.
             </p>
           )}
           {article.keyPoints?.length ? (
@@ -95,22 +107,6 @@ export default async function NewsArticlePage({
         </article>
 
         <aside className="grid content-start gap-5">
-          <StitchPanel>
-            <StitchPanelHeader
-              icon={Sparkles}
-              meta="Нажми, чтобы собрать короткий дайджест из последних новостей."
-              title="AI-блок"
-            />
-            <div className="grid gap-3 p-4">
-              <p className="text-sm leading-6 text-muted-foreground">
-                RaceMate собирает короткий контекст из последних материалов, чтобы быстро понять общий фон дня.
-              </p>
-              <Button asChild variant="secondary">
-                <Link href="/news">Открыть новости</Link>
-              </Button>
-            </div>
-          </StitchPanel>
-
           <StitchPanel>
             <StitchPanelHeader
               icon={Flame}
@@ -157,4 +153,46 @@ function splitArticleDetails(details?: string) {
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+}
+
+function HighlightedParagraph({
+  highlights,
+  text,
+}: {
+  highlights: string[];
+  text: string;
+}) {
+  const phrases = highlights
+    .map((highlight) => highlight.trim())
+    .filter((highlight) => highlight.length >= 4 && text.toLowerCase().includes(highlight.toLowerCase()))
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 4);
+
+  if (!phrases.length) {
+    return <p className="text-pretty">{text}</p>;
+  }
+
+  const pattern = new RegExp(`(${phrases.map(escapeRegExp).join("|")})`, "gi");
+  const parts = text.split(pattern).filter(Boolean);
+
+  return (
+    <p className="text-pretty">
+      {parts.map((part, index) =>
+        phrases.some((phrase) => phrase.toLowerCase() === part.toLowerCase()) ? (
+          <mark
+            className="rounded-sm bg-primary/16 px-1 text-foreground ring-1 ring-primary/25"
+            key={`${part}-${index}`}
+          >
+            {part}
+          </mark>
+        ) : (
+          <span key={`${part}-${index}`}>{part}</span>
+        ),
+      )}
+    </p>
+  );
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

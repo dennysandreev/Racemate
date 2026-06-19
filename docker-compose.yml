@@ -28,6 +28,7 @@ services:
           if [ $((tick % 2)) -eq 0 ]; then
             node worker/index.mjs rss.fetch_all || true
             node worker/index.mjs ai.process_news || true
+            node worker/index.mjs ai.generate_news_images || true
             node worker/index.mjs jolpica.sync_calendar || true
             node worker/index.mjs jolpica.sync_results || true
             node worker/index.mjs jolpica.sync_standings || true

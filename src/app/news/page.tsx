@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { generateDailyDigest } from "@/app/news/digest-actions";
 import { AppShell } from "@/components/racemate/app-shell";
+import { NewsImage } from "@/components/racemate/news-image";
 import {
   StitchMetric,
   StitchPanel,
@@ -90,6 +91,12 @@ export default async function NewsPage({
                 <p className="mt-3 max-w-[72ch] text-sm leading-6 text-muted-foreground">
                   {featured.summary}
                 </p>
+                <NewsImage
+                  alt=""
+                  className="relative mt-4 aspect-video overflow-hidden rounded-lg border border-border/70 bg-muted"
+                  priority
+                  src={featured.imageUrl}
+                />
               </div>
             </Link>
           ) : (
@@ -114,6 +121,7 @@ export default async function NewsPage({
                 <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
                   {item.summary}
                 </p>
+                <NewsImage alt="" src={item.imageUrl} />
               </Link>
               ))}
             </div>

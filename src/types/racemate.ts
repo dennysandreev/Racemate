@@ -6,6 +6,9 @@ export type NewsItem = {
   summary: string;
   details?: string;
   keyPoints?: string[];
+  highlights?: string[];
+  imageUrl?: string;
+  sourceImageUrl?: string;
   tags: { name: string; slug: string; type?: string }[];
   raceTag?: string;
   raceTagSlug?: string;

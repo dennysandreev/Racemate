@@ -12,6 +12,7 @@ import {
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { GrandPrixReportDialog } from "@/components/racemate/grand-prix-report-dialog";
+import { NewsImage } from "@/components/racemate/news-image";
 import { SessionWeatherTile } from "@/components/racemate/session-weather-tile";
 import { TeamColorBar, TeamColorProgress } from "@/components/racemate/team-color";
 import { TrackMap } from "@/components/racemate/track-map";
@@ -255,6 +256,7 @@ function NewsCard({ items }: { items: NewsItem[] }) {
             <p className="text-sm leading-6 text-muted-foreground">
               {item.summary}
             </p>
+            <NewsImage alt="" src={item.imageUrl} />
           </Link>
         )) : (
           <p className="rounded-md border border-border/70 p-4 text-sm text-muted-foreground">

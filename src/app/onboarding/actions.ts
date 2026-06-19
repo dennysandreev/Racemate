@@ -49,5 +49,5 @@ export async function saveOnboarding(formData: FormData) {
     );
   }
 
-  redirect("/predictions");
+  redirect("/account");
 }
