@@ -2,12 +2,13 @@
 
 import { redirect } from "next/navigation";
 
+import { normalizeAuthNext } from "@/lib/auth-redirect";
 import { getSiteUrl } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function signInWithEmail(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const next = String(formData.get("next") ?? "/onboarding");
+  const next = normalizeAuthNext(formData.get("next"));
   const supabase = await createSupabaseServerClient();
 
   if (!supabase || !email) {

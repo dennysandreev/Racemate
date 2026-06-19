@@ -44,6 +44,7 @@ import type {
   StandingRow,
   WeekendSession,
 } from "@/types/racemate";
+import { normalizeAuthNext } from "@/lib/auth-redirect";
 import { formatSessionName } from "@/lib/session-display";
 
 export const dynamic = "force-dynamic";
@@ -58,7 +59,7 @@ export default async function Home({
   if (query.code) {
     const callbackParams = new URLSearchParams({
       code: query.code,
-      next: query.next ?? "/onboarding",
+      next: normalizeAuthNext(query.next),
     });
 
     redirect(`/auth/callback?${callbackParams.toString()}`);
