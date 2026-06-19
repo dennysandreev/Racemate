@@ -22,7 +22,7 @@ export default async function LeaguesPage({
 }) {
   const status = await searchParams;
   const user = await getSessionUser();
-  const leagues = await getLeagues();
+  const leagues = await getLeagues(user?.id);
 
   return (
     <AppShell>

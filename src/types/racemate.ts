@@ -68,6 +68,7 @@ export type DriverChampionshipRow = {
   teamColor?: string;
   total: number;
   pointsByRound: Record<number, number>;
+  podiumByRound: Record<number, "winner" | "second" | "third">;
 };
 
 export type ChampionshipRound = {
@@ -278,6 +279,53 @@ export type LeagueSummary = {
   leader: string;
   score: number;
   inviteCode?: string;
+};
+
+export type NewsTagFilter = {
+  name: string;
+  slug: string;
+};
+
+export type FavoriteNewsFilters = {
+  drivers: NewsTagFilter[];
+  teams: NewsTagFilter[];
+};
+
+export type LeaguePredictionPick = {
+  label: string;
+  value: string;
+};
+
+export type LeagueMemberPrediction = {
+  userId: string;
+  name: string;
+  role: string;
+  joinedAt: string;
+  currentScore: number | null;
+  totalScore: number;
+  scoredCount: number;
+  averageScore: number;
+  bestScore: number | null;
+  picks: LeaguePredictionPick[];
+};
+
+export type LeagueHistoryEntry = {
+  raceName: string;
+  round: number;
+  predictions: {
+    userId: string;
+    name: string;
+    score: number | null;
+    picks: LeaguePredictionPick[];
+  }[];
+};
+
+export type LeagueDetail = {
+  id: string;
+  name: string;
+  inviteCode?: string;
+  members: LeagueMemberPrediction[];
+  history: LeagueHistoryEntry[];
 };
 
 export type AdminJob = {

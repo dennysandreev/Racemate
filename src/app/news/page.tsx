@@ -13,25 +13,42 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  getFavoriteNewsFilters,
   getLatestDailyDigest,
   getNewsDriverTags,
   getNewsItems,
+  getNewsTeamTags,
 } from "@/data/racemate-repository";
+import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; tag?: string; race?: string }>;
+  searchParams: Promise<{ filter?: string; page?: string; tag?: string; race?: string }>;
 }) {
-  const { page, tag, race } = await searchParams;
+  const { filter, page, tag, race } = await searchParams;
   const currentPage = Math.max(1, Number(page ?? 1) || 1);
-  const [newsResult, digest, driverTags] = await Promise.all([
-    getNewsItems({ page: currentPage, pageSize: 20, tagSlug: tag, race }),
+  const user = await getSessionUser();
+  const [favoriteFilters, digest, driverTags, teamTags] = await Promise.all([
+    getFavoriteNewsFilters(user?.id),
     getLatestDailyDigest(),
     getNewsDriverTags(),
+    getNewsTeamTags(),
   ]);
+  const favoriteTagSlugs = [
+    ...favoriteFilters.drivers.map((item) => item.slug),
+    ...favoriteFilters.teams.map((item) => item.slug),
+  ];
+  const activeFavoriteFilter = filter === "favorites";
+  const newsResult = await getNewsItems({
+    page: currentPage,
+    pageSize: 20,
+    tagSlug: tag,
+    tagSlugs: activeFavoriteFilter ? favoriteTagSlugs : undefined,
+    race,
+  });
   const [featured, ...restItems] = newsResult.items;
 
   return (
@@ -53,7 +70,7 @@ export default async function NewsPage({
               Новостной блог
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-              Последние материалы Формулы 1 без лишнего шума: новости, контекст этапов и быстрые фильтры по пилотам.
+              Последние материалы Формулы 1 без лишнего шума: новости, контекст этапов и быстрые фильтры по любимым пилотам и командам.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -65,7 +82,33 @@ export default async function NewsPage({
 
       <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="grid content-start gap-5">
-          {tag || race ? (
+          <div className="stitch-panel flex flex-wrap items-center justify-between gap-3 p-3">
+            <div className="min-w-0">
+              <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+                Персональная лента
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Новости по пилотам и командам, которые ты отметил в профиле.
+              </p>
+            </div>
+            {user ? (
+              <Button
+                asChild
+                size="sm"
+                variant={activeFavoriteFilter ? "default" : "secondary"}
+              >
+                <Link href={activeFavoriteFilter ? "/news" : "/news?filter=favorites"}>
+                  Мои новости
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/auth">Войти</Link>
+              </Button>
+            )}
+          </div>
+
+          {tag || race || activeFavoriteFilter ? (
             <div className="stitch-panel flex flex-wrap items-center justify-between gap-3 p-3">
               <span className="text-sm text-muted-foreground">
                 Показаны новости по выбранному фильтру
@@ -140,7 +183,7 @@ export default async function NewsPage({
               >
                 <Link
                   aria-disabled={newsResult.page <= 1}
-                  href={getNewsHref(newsResult.page - 1, tag, race)}
+                  href={getNewsHref(newsResult.page - 1, { filter, race, tag })}
                   tabIndex={newsResult.page <= 1 ? -1 : undefined}
                 >
                   Назад
@@ -156,7 +199,7 @@ export default async function NewsPage({
               >
                 <Link
                   aria-disabled={newsResult.page >= newsResult.totalPages}
-                  href={getNewsHref(newsResult.page + 1, tag, race)}
+                  href={getNewsHref(newsResult.page + 1, { filter, race, tag })}
                   tabIndex={newsResult.page >= newsResult.totalPages ? -1 : undefined}
                 >
                   Вперед
@@ -221,25 +264,55 @@ export default async function NewsPage({
               </div>
             </StitchPanel>
           ) : null}
+
+          {teamTags.length ? (
+            <StitchPanel>
+              <StitchPanelHeader
+                meta="Фильтр по командам и их пилотам."
+                title="Команды"
+              />
+              <div className="flex flex-wrap gap-2 p-4">
+                {teamTags.map((teamTag) => (
+                  <Button
+                    asChild
+                    key={teamTag.slug}
+                    size="sm"
+                    variant={tag === teamTag.slug ? "default" : "secondary"}
+                  >
+                    <Link href={`/news?tag=${teamTag.slug}`}>
+                      {teamTag.name}
+                    </Link>
+                  </Button>
+                ))}
+              </div>
+            </StitchPanel>
+          ) : null}
         </aside>
       </section>
     </AppShell>
   );
 }
 
-function getNewsHref(page: number, tag?: string, race?: string) {
+function getNewsHref(
+  page: number,
+  filters: { filter?: string; tag?: string; race?: string },
+) {
   const params = new URLSearchParams();
 
   if (page > 1) {
     params.set("page", String(page));
   }
 
-  if (tag) {
-    params.set("tag", tag);
+  if (filters.filter) {
+    params.set("filter", filters.filter);
   }
 
-  if (race) {
-    params.set("race", race);
+  if (filters.tag) {
+    params.set("tag", filters.tag);
+  }
+
+  if (filters.race) {
+    params.set("race", filters.race);
   }
 
   const query = params.toString();
@@ -249,9 +322,7 @@ function getNewsHref(page: number, tag?: string, race?: string) {
 
 function NewsMeta({
   item,
-  allTags = false,
 }: {
-  allTags?: boolean;
   item: {
     raceTag?: string;
     source: string;
@@ -259,22 +330,14 @@ function NewsMeta({
     time: string;
   };
 }) {
-  const tags = allTags ? item.tags : item.tags.slice(0, 2);
+  const raceTag = item.tags.find((tag) => tag.type === "race")?.name ?? item.raceTag;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Badge variant="outline">{item.source}</Badge>
-      {tags.map((newsTag) => (
-        <Badge key={newsTag.slug} variant="secondary">
-          {newsTag.name}
-        </Badge>
-      ))}
-      {item.raceTag && !item.tags.some((newsTag) => newsTag.type === "race") ? (
-        <Badge variant="warning">{item.raceTag}</Badge>
+      {raceTag ? (
+        <Badge variant="warning">{raceTag}</Badge>
       ) : null}
-      <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-        {item.time}
-      </span>
     </div>
   );
 }

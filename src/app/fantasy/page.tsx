@@ -17,6 +17,7 @@ import {
 } from "@/app/fantasy/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
+import { LeagueDialog } from "@/components/racemate/league-dialog";
 import {
   StitchMetric,
   StitchPanel,
@@ -25,9 +26,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  getDriverStandings,
+  getLeagueDetail,
   getLeagues,
-  getNewsItems,
   getPolls,
   getPredictionState,
 } from "@/data/racemate-repository";
@@ -37,15 +37,14 @@ import { cn } from "@/lib/utils";
 import type {
   DriverOption,
   LeagueSummary,
-  NewsItem,
   PollSummary,
   PredictionState,
-  StandingRow,
 } from "@/types/racemate";
 
 type FantasySearchParams = {
   created?: string;
   joined?: string;
+  league?: string;
   message?: string;
   saved?: string;
 };
@@ -64,12 +63,11 @@ export default async function FantasyPage({
   searchParams: Promise<FantasySearchParams>;
 }) {
   const [status, user] = await Promise.all([searchParams, getSessionUser()]);
-  const [predictionState, leagues, standings, news, polls] = await Promise.all([
+  const [predictionState, leagues, polls, selectedLeague] = await Promise.all([
     getPredictionState(user?.id),
-    getLeagues(),
-    getDriverStandings(),
-    getNewsItems({ pageSize: 2 }),
+    getLeagues(user?.id),
     getPolls(),
+    getLeagueDetail(status.league, user?.id),
   ]);
   const current = predictionState.current;
   const picks = buildPredictionFields(current);
@@ -97,17 +95,16 @@ export default async function FantasyPage({
               saved={Boolean(status.saved)}
               userSignedIn={Boolean(user)}
             />
-            <FantasyNewsGrid items={news.items} />
-            <LeagueActivity leagues={leagues} />
+            <LeagueActivity leagues={leagues} selectedLeagueId={status.league} />
           </div>
 
           <aside className="grid min-w-0 content-start gap-6 xl:col-span-4">
-            <FantasyStandings standings={standings} />
             <CommunityPoll poll={polls[0]} />
             <LeagueControlPanel userSignedIn={Boolean(user)} />
             <RaceSystemCard currentScore={current?.score} progress={progress} />
           </aside>
         </div>
+        <LeagueDialog league={selectedLeague} />
       </section>
     </AppShell>
   );
@@ -302,86 +299,6 @@ function PredictionPickCard({
   );
 }
 
-function FantasyNewsGrid({ items }: { items: NewsItem[] }) {
-  const visibleItems = items.slice(0, 2);
-
-  return (
-    <section className="grid gap-6 sm:grid-cols-2">
-      {visibleItems.length ? (
-        visibleItems.map((item) => (
-          <Link
-            className="group stitch-panel overflow-hidden transition-colors hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/news/${item.slug}`}
-            key={item.slug}
-          >
-            <div className="h-36 border-b stitch-divider bg-[radial-gradient(circle_at_18%_20%,rgb(225_6_0_/_0.24),transparent_12rem),linear-gradient(135deg,rgb(255_255_255_/_0.08),transparent_55%)]" />
-            <div className="p-5">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <Badge variant="secondary">{item.source}</Badge>
-                <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                  {item.time}
-                </span>
-              </div>
-              <h3 className="font-display text-lg font-bold leading-tight transition-colors group-hover:text-primary">
-                {item.title}
-              </h3>
-              <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">
-                {item.summary}
-              </p>
-            </div>
-          </Link>
-        ))
-      ) : (
-        <p className="stitch-panel p-5 text-sm leading-6 text-muted-foreground sm:col-span-2">
-          Пока нет свежих историй для фентази-контекста.
-        </p>
-      )}
-    </section>
-  );
-}
-
-function FantasyStandings({ standings }: { standings: StandingRow[] }) {
-  return (
-    <StitchPanel className="overflow-hidden">
-      <div className="flex items-center justify-between border-b stitch-divider p-5">
-        <h2 className="font-telemetry text-xs font-bold uppercase tracking-[0.1em]">
-          Положение
-        </h2>
-        <Trophy aria-hidden="true" className="size-5 text-primary" />
-      </div>
-      <div className="divide-y stitch-divider">
-        {standings.slice(0, 4).map((row) => (
-          <div
-            className="flex items-center gap-3 p-4 transition-colors hover:bg-accent/50"
-            key={row.driver}
-          >
-            <span
-              aria-hidden="true"
-              className="h-8 w-1 rounded-full bg-primary"
-              style={{ backgroundColor: row.teamColor ?? getTeamAsset(row.team)?.color ?? undefined }}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-telemetry text-sm font-bold">
-                {row.position}. {row.driver}
-              </p>
-              <p className="mt-1 truncate font-telemetry text-[0.65rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                {row.team}
-              </p>
-            </div>
-            <p className="font-telemetry text-sm font-bold text-primary">{row.points}</p>
-          </div>
-        ))}
-      </div>
-      <Link
-        className="block border-t stitch-divider bg-background/45 p-4 text-center font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:text-primary"
-        href="/leaderboard"
-      >
-        Открыть чемпионат
-      </Link>
-    </StitchPanel>
-  );
-}
-
 function CommunityPoll({ poll }: { poll?: PollSummary }) {
   const options = Array.isArray(poll?.options) ? poll.options.slice(0, 3) : [];
   const normalizedOptions = options.map((option) =>
@@ -519,7 +436,13 @@ function RaceSystemCard({
   );
 }
 
-function LeagueActivity({ leagues }: { leagues: LeagueSummary[] }) {
+function LeagueActivity({
+  leagues,
+  selectedLeagueId,
+}: {
+  leagues: LeagueSummary[];
+  selectedLeagueId?: string;
+}) {
   return (
     <section className="stitch-panel overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
@@ -532,9 +455,14 @@ function LeagueActivity({ leagues }: { leagues: LeagueSummary[] }) {
       <div className="divide-y stitch-divider">
         {leagues.length ? (
           leagues.slice(0, 4).map((league) => (
-            <article
-              className="grid gap-3 p-4 transition-colors hover:bg-accent/45 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+            <Link
+              className={cn(
+                "grid gap-3 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center",
+                selectedLeagueId === league.id && "bg-accent/60",
+              )}
+              href={league.id ? `/fantasy?league=${league.id}` : "/fantasy"}
               key={league.id ?? league.name}
+              prefetch={false}
             >
               <div className="min-w-0">
                 <h3 className="truncate font-display text-lg font-bold">{league.name}</h3>
@@ -546,7 +474,7 @@ function LeagueActivity({ leagues }: { leagues: LeagueSummary[] }) {
                 <DataRow label="Очки лидера" value={String(league.score)} />
                 <DataRow label="Код" value={league.inviteCode ?? "Закрытая"} />
               </div>
-            </article>
+            </Link>
           ))
         ) : (
           <p className="p-5 text-sm leading-6 text-muted-foreground">

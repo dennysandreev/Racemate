@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
+import type { NextRequest, NextResponse } from "next/server";
 
 import { getSupabaseEnv, getSupabaseServiceEnv } from "@/lib/env";
 import type { Database } from "@/types/supabase";
@@ -27,6 +28,30 @@ export async function createSupabaseServerClient() {
         } catch {
           // Server Components cannot set cookies. Route handlers and actions can.
         }
+      },
+    },
+  });
+}
+
+export function createSupabaseRouteHandlerClient(
+  request: NextRequest,
+  response: NextResponse,
+) {
+  const env = getSupabaseEnv();
+
+  if (!env) {
+    return null;
+  }
+
+  return createServerClient<Database>(env.url, env.anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
       },
     },
   });

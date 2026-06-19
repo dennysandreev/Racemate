@@ -60,9 +60,11 @@ export default async function NewsArticlePage({
               </Link>
             ) : null}
           </div>
-          <p className="mt-5 max-w-[72ch] text-lg leading-8 text-foreground">
-            {article.summary}
-          </p>
+          <HighlightedParagraph
+            className="mt-5 max-w-[72ch] text-lg leading-8 text-foreground"
+            highlights={article.highlights ?? []}
+            text={article.summary}
+          />
           <NewsImage
             alt=""
             className="relative mt-6 aspect-video overflow-hidden rounded-lg border border-border bg-muted"
@@ -73,6 +75,7 @@ export default async function NewsArticlePage({
             <div className="mt-5 grid max-w-[72ch] gap-4 text-base leading-7 text-muted-foreground">
               {detailParagraphs.map((paragraph) => (
                 <HighlightedParagraph
+                  className="text-pretty"
                   highlights={article.highlights ?? []}
                   key={paragraph}
                   text={paragraph}
@@ -156,9 +159,11 @@ function splitArticleDetails(details?: string) {
 }
 
 function HighlightedParagraph({
+  className,
   highlights,
   text,
 }: {
+  className?: string;
   highlights: string[];
   text: string;
 }) {
@@ -169,18 +174,18 @@ function HighlightedParagraph({
     .slice(0, 4);
 
   if (!phrases.length) {
-    return <p className="text-pretty">{text}</p>;
+    return <p className={className}>{text}</p>;
   }
 
   const pattern = new RegExp(`(${phrases.map(escapeRegExp).join("|")})`, "gi");
   const parts = text.split(pattern).filter(Boolean);
 
   return (
-    <p className="text-pretty">
+    <p className={className}>
       {parts.map((part, index) =>
         phrases.some((phrase) => phrase.toLowerCase() === part.toLowerCase()) ? (
           <mark
-            className="rounded-sm bg-primary/16 px-1 text-foreground ring-1 ring-primary/25"
+            className="bg-transparent font-medium text-foreground decoration-2 decoration-primary underline underline-offset-4"
             key={`${part}-${index}`}
           >
             {part}

@@ -6,7 +6,6 @@ import {
   adminJobs,
   adminSignals,
   calendarEvents,
-  leagues,
   nextSession,
   polls,
   predictionPicks,
@@ -28,10 +27,15 @@ import type {
   DailyDigest,
   DriverChampionshipMatrix,
   GrandPrixReport,
+  FavoriteNewsFilters,
+  LeagueDetail,
+  LeagueHistoryEntry,
+  LeagueMemberPrediction,
   LeagueSummary,
   NextSession,
   NewsItem,
   NewsListResult,
+  NewsTagFilter,
   PollSummary,
   PredictionState,
   RaceDetail,
@@ -320,12 +324,62 @@ type PredictionDbRow = {
 
 type LeagueDbRow = {
   id: string;
+  owner_user_id: string;
   name: string;
   invite_code: string;
   prediction_league_members: { user_id: string }[] | null;
   profiles:
     | { display_name: string | null; email: string | null }
     | { display_name: string | null; email: string | null }[]
+    | null;
+};
+
+type LeagueMemberRow = {
+  league_id: string;
+  user_id: string;
+  role: string;
+  joined_at: string;
+};
+
+type LeagueProfileRow = {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+};
+
+type LeaguePredictionRow = {
+  user_id: string;
+  race_id: string;
+  pole_driver_id: string | null;
+  winner_driver_id: string | null;
+  fastest_lap_driver_id: string | null;
+  dnf_driver_id: string | null;
+  score: number | null;
+  scored_at: string | null;
+  submitted_at: string;
+  races:
+    | { round: number; race_name: string; race_start_at: string | null }
+    | { round: number; race_name: string; race_start_at: string | null }[]
+    | null;
+};
+
+type NewsFavoriteDriverRow = {
+  drivers:
+    | {
+        full_name: string | null;
+        teams: { name: string | null; code: string | null } | { name: string | null; code: string | null }[] | null;
+      }
+    | {
+        full_name: string | null;
+        teams: { name: string | null; code: string | null } | { name: string | null; code: string | null }[] | null;
+      }[]
+    | null;
+};
+
+type NewsFavoriteTeamRow = {
+  teams:
+    | { name: string | null; code: string | null }
+    | { name: string | null; code: string | null }[]
     | null;
 };
 
@@ -386,6 +440,7 @@ type NewsItemsOptions = {
   page?: number;
   pageSize?: number;
   tagSlug?: string;
+  tagSlugs?: string[];
   race?: string;
 };
 
@@ -402,22 +457,34 @@ export async function getNewsItems(
   }
 
   let articleIds: string[] | null = null;
+  const explicitTagListRequested = Array.isArray(options.tagSlugs);
 
-  if (options.tagSlug) {
-    const { data: tag } = await supabase
+  const requestedTagSlugs = [
+    ...(options.tagSlug ? [options.tagSlug] : []),
+    ...(options.tagSlugs ?? []),
+  ].filter(Boolean);
+
+  if (explicitTagListRequested && !requestedTagSlugs.length) {
+    return emptyNewsList(page);
+  }
+
+  if (requestedTagSlugs.length) {
+    const uniqueTagSlugs = [...new Set(requestedTagSlugs)];
+    const { data: tags } = await supabase
       .from("tags")
       .select("id")
-      .eq("slug", options.tagSlug)
-      .maybeSingle();
+      .in("slug", uniqueTagSlugs);
 
-    if (!tag?.id) {
+    const tagIds = [...new Set((tags ?? []).map((row) => row.id).filter(Boolean))];
+
+    if (!tagIds.length) {
       return emptyNewsList(page);
     }
 
     const { data: taggedArticles } = await supabase
       .from("news_article_tags")
       .select("article_id")
-      .eq("tag_id", tag.id);
+      .in("tag_id", tagIds);
 
     articleIds = [...new Set((taggedArticles ?? []).map((row) => row.article_id))];
 
@@ -520,6 +587,103 @@ export async function getNewsDriverTags(): Promise<{ name: string; slug: string 
   return data
     .filter((tag) => tag.name && tag.slug)
     .map((tag) => ({ name: tag.name, slug: tag.slug }));
+}
+
+export async function getNewsTeamTags(): Promise<{ name: string; slug: string }[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("tags")
+    .select("name, slug")
+    .eq("type", "team")
+    .order("name", { ascending: true })
+    .limit(40);
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return data
+    .filter((tag) => tag.name && tag.slug)
+    .map((tag) => ({ name: tag.name, slug: tag.slug }));
+}
+
+export async function getFavoriteNewsFilters(
+  userId?: string | null,
+): Promise<FavoriteNewsFilters> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase || !userId) {
+    return { drivers: [], teams: [] };
+  }
+
+  const [driversResult, teamsResult] = await Promise.all([
+    supabase
+      .from("user_favorite_drivers")
+      .select("drivers(full_name, teams:current_team_id(name, code))")
+      .eq("user_id", userId),
+    supabase
+      .from("user_favorite_teams")
+      .select("teams(name, code)")
+      .eq("user_id", userId),
+  ]);
+
+  const teamMap = new Map<string, NewsTagFilter>();
+  const drivers: NewsTagFilter[] = [];
+
+  ((driversResult.data ?? []) as unknown as NewsFavoriteDriverRow[])
+    .map((row) => getRelationObject(row.drivers))
+    .forEach((driver) => {
+      if (!driver) {
+        return;
+      }
+
+      const fullName = driver?.full_name?.trim();
+
+      if (!fullName) {
+        return;
+      }
+
+      const team = getRelationObject(driver.teams);
+      const teamName = team?.name?.trim();
+      const teamCode = team?.code ?? undefined;
+
+      if (teamName) {
+        const teamSlug = makeTeamTagSlug(teamCode ?? teamName);
+        teamMap.set(teamSlug, { name: getTeamAsset(teamCode)?.name ?? teamName, slug: teamSlug });
+      }
+
+      drivers.push({
+        name: fullName,
+        slug: `driver-${slugify(fullName)}`,
+      });
+    });
+
+  ((teamsResult.data ?? []) as unknown as NewsFavoriteTeamRow[]).forEach((row) => {
+    const team = getRelationObject(row.teams);
+
+    if (!team) {
+      return;
+    }
+
+    const teamName = team?.name?.trim();
+
+    if (!teamName) {
+      return;
+    }
+
+    const teamSlug = makeTeamTagSlug(team.code ?? teamName);
+    teamMap.set(teamSlug, { name: getTeamAsset(team.code)?.name ?? teamName, slug: teamSlug });
+  });
+
+  return {
+    drivers: uniqueNewsTagFilters(drivers),
+    teams: uniqueNewsTagFilters([...teamMap.values()]),
+  };
 }
 
 export async function getSocialPosts({
@@ -843,6 +1007,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
         driver: row.driver,
         total: row.points,
         pointsByRound: {},
+        podiumByRound: {},
       })),
     };
   }
@@ -863,6 +1028,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
         teamColor: row.teamColor,
         total: row.points,
         pointsByRound: {},
+        podiumByRound: {},
       })),
     };
   }
@@ -942,7 +1108,9 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     .sort((a, b) => a.latestPosition - b.latestPosition)
     .map((row) => {
       const pointsByRound: Record<number, number> = {};
+      const podiumByRound: Record<number, "winner" | "second" | "third"> = {};
       const resultPoints = roundPointTotals.driverPoints.get(row.driverId);
+      const racePositions = roundPointTotals.driverRacePositions.get(row.driverId);
       let displayedTotal = 0;
 
       roundNumbers.forEach((round) => {
@@ -955,6 +1123,11 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
             );
 
         pointsByRound[round] = points;
+        const podiumFinish = getPodiumFinish(racePositions?.get(round));
+
+        if (podiumFinish) {
+          podiumByRound[round] = podiumFinish;
+        }
         displayedTotal += points;
       });
       const totalFromResults = sumRoundPoints(pointsByRound);
@@ -968,6 +1141,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
         teamColor: row.teamColor,
         total: Math.max(row.total, totalFromResults),
         pointsByRound,
+        podiumByRound,
       };
     });
 
@@ -1503,33 +1677,335 @@ export async function getAiUsageSummary(): Promise<AiUsageSummary> {
   };
 }
 
-export async function getLeagues(): Promise<LeagueSummary[]> {
+export async function getLeagues(userId?: string | null): Promise<LeagueSummary[]> {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return leagues;
+    return [];
   }
 
-  const { data, error } = await supabase
+  const query = supabase
     .from("prediction_leagues")
     .select(
-      "id, name, invite_code, prediction_league_members(user_id), profiles:owner_user_id(display_name, email)",
+      "id, owner_user_id, name, invite_code, prediction_league_members(user_id), profiles:owner_user_id(display_name, email)",
     )
     .order("created_at", { ascending: false })
     .limit(20);
 
+  const { data, error } = await query;
+
   if (error || !data?.length) {
-    return leagues;
+    return [];
   }
 
-  return (data as unknown as LeagueDbRow[]).map((league) => ({
+  const summaries = (data as unknown as LeagueDbRow[])
+    .filter((league) =>
+      userId
+        ? league.owner_user_id === userId ||
+          Boolean(
+            league.prediction_league_members?.some((member) => member.user_id === userId),
+          )
+        : true,
+    )
+    .map((league) => ({
+      id: league.id,
+      name: league.name,
+      members: league.prediction_league_members?.length ?? 1,
+      leader: getProfileName(league.profiles),
+      score: 0,
+      inviteCode: league.invite_code,
+    }));
+
+  return hydrateLeagueScores(summaries);
+}
+
+export async function getLeagueDetail(
+  leagueId?: string | null,
+  userId?: string | null,
+): Promise<LeagueDetail | null> {
+  if (!leagueId || !userId) {
+    return null;
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const { data: membership } = await supabase
+    .from("prediction_league_members")
+    .select("league_id")
+    .eq("league_id", leagueId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!membership) {
+    return null;
+  }
+
+  const admin = createSupabaseAdminClient();
+  const db = admin ?? supabase;
+  const { data: league } = await db
+    .from("prediction_leagues")
+    .select("id, name, invite_code")
+    .eq("id", leagueId)
+    .maybeSingle();
+
+  if (!league) {
+    return null;
+  }
+
+  const { data: membersData } = await db
+    .from("prediction_league_members")
+    .select("league_id, user_id, role, joined_at")
+    .eq("league_id", leagueId)
+    .order("joined_at", { ascending: true });
+
+  const members = (membersData ?? []) as LeagueMemberRow[];
+  const memberIds = members.map((member) => member.user_id);
+
+  if (!memberIds.length) {
+    return {
+      id: league.id,
+      name: league.name,
+      inviteCode: league.invite_code,
+      members: [],
+      history: [],
+    };
+  }
+
+  const [profilesResult, predictionsResult, currentRace] = await Promise.all([
+    db
+      .from("profiles")
+      .select("id, display_name, email")
+      .in("id", memberIds),
+    db
+      .from("predictions")
+      .select(
+        "user_id, race_id, pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, score, scored_at, submitted_at, races(round, race_name, race_start_at)",
+      )
+      .in("user_id", memberIds)
+      .is("league_id", null)
+      .order("submitted_at", { ascending: false }),
+    getCurrentRace("id, round, race_name, race_start_at"),
+  ]);
+
+  const profiles = new Map(
+    ((profilesResult.data ?? []) as LeagueProfileRow[]).map((profile) => [
+      profile.id,
+      getProfileName(profile),
+    ]),
+  );
+  const predictions = (predictionsResult.data ?? []) as unknown as LeaguePredictionRow[];
+  const driverNames = await getPredictionDriverNames(predictions);
+  const currentRaceId = currentRace?.id ?? null;
+
+  const byUser = new Map<string, LeaguePredictionRow[]>();
+  predictions.forEach((prediction) => {
+    byUser.set(prediction.user_id, [...(byUser.get(prediction.user_id) ?? []), prediction]);
+  });
+
+  const detailMembers = members
+    .map<LeagueMemberPrediction>((member) => {
+      const userPredictions = byUser.get(member.user_id) ?? [];
+      const currentPrediction = currentRaceId
+        ? userPredictions.find((prediction) => prediction.race_id === currentRaceId)
+        : userPredictions[0];
+      const scoredPredictions = userPredictions.filter(
+        (prediction) => prediction.score !== null && prediction.score !== undefined,
+      );
+      const totalScore = scoredPredictions.reduce(
+        (sum, prediction) => sum + Number(prediction.score ?? 0),
+        0,
+      );
+      const bestScore = scoredPredictions.length
+        ? Math.max(...scoredPredictions.map((prediction) => Number(prediction.score ?? 0)))
+        : null;
+
+      return {
+        userId: member.user_id,
+        name: profiles.get(member.user_id) ?? "Участник",
+        role: member.role,
+        joinedAt: formatDateTime(member.joined_at),
+        currentScore: currentPrediction?.score ?? null,
+        totalScore,
+        scoredCount: scoredPredictions.length,
+        averageScore: scoredPredictions.length
+          ? Math.round((totalScore / scoredPredictions.length) * 10) / 10
+          : 0,
+        bestScore,
+        picks: mapPredictionPicks(currentPrediction, driverNames),
+      };
+    })
+    .sort((a, b) => b.totalScore - a.totalScore || b.scoredCount - a.scoredCount || a.name.localeCompare(b.name));
+
+  return {
     id: league.id,
     name: league.name,
-    members: league.prediction_league_members?.length ?? 1,
-    leader: getProfileName(league.profiles),
-    score: 0,
     inviteCode: league.invite_code,
-  }));
+    members: detailMembers,
+    history: buildLeagueHistory(predictions, profiles, driverNames),
+  };
+}
+
+async function hydrateLeagueScores(summaries: LeagueSummary[]) {
+  const admin = createSupabaseAdminClient();
+
+  if (!admin || !summaries.length) {
+    return summaries;
+  }
+
+  const leagueIds = summaries.map((league) => league.id).filter(Boolean) as string[];
+  const { data: membersData } = await admin
+    .from("prediction_league_members")
+    .select("league_id, user_id, role, joined_at")
+    .in("league_id", leagueIds);
+
+  const membersByLeague = new Map<string, LeagueMemberRow[]>();
+  ((membersData ?? []) as LeagueMemberRow[]).forEach((member) => {
+    membersByLeague.set(member.league_id, [
+      ...(membersByLeague.get(member.league_id) ?? []),
+      member,
+    ]);
+  });
+
+  const userIds = [...new Set((membersData ?? []).map((member) => member.user_id))];
+
+  if (!userIds.length) {
+    return summaries;
+  }
+
+  const [profilesResult, predictionsResult] = await Promise.all([
+    admin.from("profiles").select("id, display_name, email").in("id", userIds),
+    admin
+      .from("predictions")
+      .select("user_id, score")
+      .in("user_id", userIds)
+      .is("league_id", null)
+      .not("score", "is", null),
+  ]);
+  const profiles = new Map(
+    ((profilesResult.data ?? []) as LeagueProfileRow[]).map((profile) => [
+      profile.id,
+      getProfileName(profile),
+    ]),
+  );
+  const scoreByUser = new Map<string, number>();
+  (predictionsResult.data ?? []).forEach((prediction) => {
+    scoreByUser.set(
+      prediction.user_id,
+      (scoreByUser.get(prediction.user_id) ?? 0) + Number(prediction.score ?? 0),
+    );
+  });
+
+  return summaries.map((summary) => {
+    const members = membersByLeague.get(summary.id ?? "") ?? [];
+    const leader = members
+      .map((member) => ({
+        name: profiles.get(member.user_id) ?? "Участник",
+        score: scoreByUser.get(member.user_id) ?? 0,
+      }))
+      .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))[0];
+
+    return {
+      ...summary,
+      members: members.length || summary.members,
+      leader: leader?.name ?? summary.leader,
+      score: leader?.score ?? summary.score,
+    };
+  });
+}
+
+async function getPredictionDriverNames(predictions: LeaguePredictionRow[]) {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return new Map<string, string>();
+  }
+
+  const driverIds = [
+    ...new Set(
+      predictions
+        .flatMap((prediction) => [
+          prediction.winner_driver_id,
+          prediction.pole_driver_id,
+          prediction.fastest_lap_driver_id,
+          prediction.dnf_driver_id,
+        ])
+        .filter(Boolean),
+    ),
+  ] as string[];
+
+  if (!driverIds.length) {
+    return new Map<string, string>();
+  }
+
+  const { data } = await supabase
+    .from("drivers")
+    .select("id, full_name")
+    .in("id", driverIds);
+
+  return new Map((data ?? []).map((driver) => [driver.id, driver.full_name]));
+}
+
+function mapPredictionPicks(
+  prediction: LeaguePredictionRow | undefined,
+  driverNames: Map<string, string>,
+) {
+  if (!prediction) {
+    return [
+      { label: "Победитель", value: "Не выбран" },
+      { label: "Поул", value: "Не выбран" },
+      { label: "Лучший круг", value: "Не выбран" },
+      { label: "Первый сход", value: "Не выбран" },
+    ];
+  }
+
+  return [
+    { label: "Победитель", value: getDriverPickName(prediction.winner_driver_id, driverNames) },
+    { label: "Поул", value: getDriverPickName(prediction.pole_driver_id, driverNames) },
+    { label: "Лучший круг", value: getDriverPickName(prediction.fastest_lap_driver_id, driverNames) },
+    { label: "Первый сход", value: getDriverPickName(prediction.dnf_driver_id, driverNames) },
+  ];
+}
+
+function getDriverPickName(driverId: string | null, driverNames: Map<string, string>) {
+  return driverId ? driverNames.get(driverId) ?? "Пилот выбран" : "Не выбран";
+}
+
+function buildLeagueHistory(
+  predictions: LeaguePredictionRow[],
+  profiles: Map<string, string>,
+  driverNames: Map<string, string>,
+): LeagueHistoryEntry[] {
+  const byRace = new Map<string, LeaguePredictionRow[]>();
+
+  predictions
+    .filter((prediction) => prediction.score !== null && prediction.score !== undefined)
+    .forEach((prediction) => {
+      byRace.set(prediction.race_id, [...(byRace.get(prediction.race_id) ?? []), prediction]);
+    });
+
+  return [...byRace.values()]
+    .map((racePredictions) => {
+      const race = getRelationObject(racePredictions[0]?.races);
+
+      return {
+        raceName: race?.race_name ?? "Гран-при",
+        round: race?.round ?? 0,
+        predictions: racePredictions
+          .map((prediction) => ({
+            userId: prediction.user_id,
+            name: profiles.get(prediction.user_id) ?? "Участник",
+            score: prediction.score,
+            picks: mapPredictionPicks(prediction, driverNames),
+          }))
+          .sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0)),
+      };
+    })
+    .sort((a, b) => b.round - a.round)
+    .slice(0, 8);
 }
 
 export async function getPolls(): Promise<PollSummary[]> {
@@ -1947,7 +2423,7 @@ function mapArticleRow(row: ArticleRow): NewsItem {
     details,
     keyPoints: row.ai_key_points_ru ?? [],
     highlights: row.ai_highlights_ru ?? [],
-    imageUrl: row.image_url?.trim() || row.source_image_url?.trim() || undefined,
+    imageUrl: row.source_image_url?.trim() || row.image_url?.trim() || undefined,
     sourceImageUrl: row.source_image_url?.trim() || undefined,
     tags,
     raceTag,
@@ -2092,6 +2568,7 @@ async function getChampionshipRoundPointTotals(season: number) {
   const empty = {
     constructorPoints: new Map<string, Map<number, number>>(),
     driverPoints: new Map<string, Map<number, number>>(),
+    driverRacePositions: new Map<string, Map<number, number>>(),
     scoredRounds: [] as number[],
   };
   const supabase = await createSupabaseServerClient();
@@ -2143,6 +2620,7 @@ async function getChampionshipRoundPointTotals(season: number) {
 
   const driverPoints = new Map<string, Map<number, number>>();
   const constructorPoints = new Map<string, Map<number, number>>();
+  const driverRacePositions = new Map<string, Map<number, number>>();
   const scoredRounds = new Set<number>();
 
   (resultData as unknown as SessionResultPointsDbRow[]).forEach((result) => {
@@ -2158,6 +2636,17 @@ async function getChampionshipRoundPointTotals(season: number) {
 
     if (isLapOnlyResult(result)) {
       return;
+    }
+
+    if (session.type === "race" && result.driver_id && result.position && result.position > 0) {
+      const positionsByRound = driverRacePositions.get(result.driver_id) ?? new Map<number, number>();
+      const currentPosition = positionsByRound.get(session.round);
+
+      if (!currentPosition || result.position < currentPosition) {
+        positionsByRound.set(session.round, result.position);
+      }
+
+      driverRacePositions.set(result.driver_id, positionsByRound);
     }
 
     const points = getRoundResultPoints(result.points, session.type, result.position);
@@ -2180,8 +2669,25 @@ async function getChampionshipRoundPointTotals(season: number) {
   return {
     constructorPoints,
     driverPoints,
+    driverRacePositions,
     scoredRounds: [...scoredRounds].sort((a, b) => a - b),
   };
+}
+
+function getPodiumFinish(position?: number) {
+  if (position === 1) {
+    return "winner" as const;
+  }
+
+  if (position === 2) {
+    return "second" as const;
+  }
+
+  if (position === 3) {
+    return "third" as const;
+  }
+
+  return undefined;
 }
 
 function addRoundPoints(
@@ -3235,6 +3741,26 @@ function getArticleTags(tags: TagRelation | null) {
 
 function normalizeTagKey(value: string) {
   return slugify(value.replace(/,\s*\d{4}/, ""));
+}
+
+function makeTeamTagSlug(value: string) {
+  return `team-${slugify(value)}`;
+}
+
+function uniqueNewsTagFilters(filters: { name: string; slug: string }[]) {
+  const seen = new Set<string>();
+  const result: { name: string; slug: string }[] = [];
+
+  filters.forEach((filter) => {
+    if (!filter.name || !filter.slug || seen.has(filter.slug)) {
+      return;
+    }
+
+    seen.add(filter.slug);
+    result.push(filter);
+  });
+
+  return result;
 }
 
 function normalizeArticleDetails(details: string | null, summary: string) {

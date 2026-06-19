@@ -1,10 +1,8 @@
 import Link from "next/link";
 import {
-  CalendarClock,
   CheckCircle2,
   Clock3,
   Mail,
-  Settings,
   Trophy,
   UserRound,
   Users,
@@ -19,13 +17,11 @@ import {
   StitchMetric,
   StitchPanel,
   StitchPanelHeader,
-  StitchStatusBadge,
 } from "@/components/racemate/stitch-primitives";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getTeamAsset } from "@/data/f1-assets";
 import {
-  getNextSession,
   getPredictionState,
 } from "@/data/racemate-repository";
 import { ensureProfile } from "@/lib/auth";
@@ -75,12 +71,6 @@ type FavoriteDriver = {
 };
 
 const quickLinks = [
-  {
-    href: "/onboarding",
-    icon: Settings,
-    label: "Настроить профиль",
-    text: "Обновить имя, часовой пояс, пилотов и команды.",
-  },
   {
     href: "/fantasy",
     icon: Trophy,
@@ -144,7 +134,7 @@ export default async function AccountPage() {
               </div>
               <Button asChild className="mt-1 w-full justify-center">
                 <Link href="/onboarding" prefetch={false}>
-                  Сохранить настройки
+                  Изменить профиль
                 </Link>
               </Button>
             </div>
@@ -171,13 +161,6 @@ export default async function AccountPage() {
               tone={favoriteCount ? "red" : "neutral"}
               value={`${favoriteCount} выбрано`}
             />
-            <NextSessionPanel
-              circuit={overview.nextSession.circuit}
-              race={overview.nextSession.race}
-              session={overview.nextSession.session}
-              startsAt={overview.nextSession.startsAt}
-              status={overview.nextSession.status}
-            />
             <PredictionPanel predictionState={overview.predictionState} />
             <LeaguePanel leagueCount={overview.leagueCount} />
           </aside>
@@ -193,7 +176,6 @@ async function getAccountOverview(userId: string | null) {
     favoriteTeamsResult,
     favoriteDriversResult,
     leagueCountResult,
-    nextSession,
     predictionState,
   ] = await Promise.all([
     userId
@@ -216,7 +198,6 @@ async function getAccountOverview(userId: string | null) {
           .select("league_id", { count: "exact", head: true })
           .eq("user_id", userId)
       : null,
-    getNextSession(),
     getPredictionState(userId),
   ]);
 
@@ -228,7 +209,6 @@ async function getAccountOverview(userId: string | null) {
       .map(mapFavoriteDriver)
       .filter(Boolean) as FavoriteDriver[],
     leagueCount: leagueCountResult?.count ?? 0,
-    nextSession,
     predictionState,
   };
 }
@@ -300,39 +280,6 @@ function FavoriteTeamsPanel({ teams }: { teams: FavoriteTeam[] }) {
             text="Добавь команды, чтобы личный кабинет стал ближе к твоему сезону."
           />
         )}
-      </div>
-    </StitchPanel>
-  );
-}
-
-function NextSessionPanel({
-  circuit,
-  race,
-  session,
-  startsAt,
-  status,
-}: {
-  circuit: string;
-  race: string;
-  session: string;
-  startsAt: string;
-  status: string;
-}) {
-  return (
-    <StitchPanel>
-      <StitchPanelHeader icon={CalendarClock} title="Ближайшая сессия" />
-      <div className="grid gap-3 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <p className="min-w-0 truncate font-display text-xl font-bold">{session}</p>
-          <StitchStatusBadge tone={status === "Live" ? "live" : "warning"}>
-            {status}
-          </StitchStatusBadge>
-        </div>
-        <p className="text-sm text-muted-foreground">{race}</p>
-        <div className="grid gap-2 rounded-md border border-border/70 bg-background/35 p-3 text-sm">
-          <ProfileFact icon={Clock3} label="Старт" value={startsAt} />
-          <ProfileFact icon={Trophy} label="Трасса" value={circuit} />
-        </div>
       </div>
     </StitchPanel>
   );
@@ -412,7 +359,7 @@ function LeaguePanel({ leagueCount }: { leagueCount: number }) {
 
 function QuickActions() {
   return (
-    <div className="grid gap-3 md:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-2">
       {quickLinks.map((item) => (
         <QuickActionCard
           href={item.href}

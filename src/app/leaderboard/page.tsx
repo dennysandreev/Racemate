@@ -125,7 +125,12 @@ export default async function LeaderboardPage({
                           {row.total}
                         </td>
                         {drivers.rounds.map((round) => (
-                          <td className="whitespace-nowrap px-3 py-3 text-right font-mono" key={round.round}>
+                          <td
+                            aria-label={getPodiumLabel(row.podiumByRound[round.round], round.raceName)}
+                            className={`whitespace-nowrap px-3 py-3 text-right font-mono ${getPodiumClassName(row.podiumByRound[round.round])}`}
+                            key={round.round}
+                            title={getPodiumLabel(row.podiumByRound[round.round], round.raceName)}
+                          >
                             {row.pointsByRound[round.round] ?? "—"}
                           </td>
                         ))}
@@ -196,4 +201,36 @@ export default async function LeaderboardPage({
       </section>
     </AppShell>
   );
+}
+
+function getPodiumClassName(finish?: "winner" | "second" | "third") {
+  if (finish === "winner") {
+    return "font-semibold text-[#f4c95d]";
+  }
+
+  if (finish === "second") {
+    return "font-semibold text-slate-200";
+  }
+
+  if (finish === "third") {
+    return "font-semibold text-[#d48a5f]";
+  }
+
+  return "";
+}
+
+function getPodiumLabel(finish: "winner" | "second" | "third" | undefined, raceName: string) {
+  if (finish === "winner") {
+    return `Победа в гонке: ${raceName}`;
+  }
+
+  if (finish === "second") {
+    return `Второе место в гонке: ${raceName}`;
+  }
+
+  if (finish === "third") {
+    return `Третье место в гонке: ${raceName}`;
+  }
+
+  return `Очки за этап: ${raceName}`;
 }

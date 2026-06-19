@@ -83,16 +83,22 @@ export async function createFantasyLeague(formData: FormData) {
     .single();
 
   if (!error && data) {
-    await supabase.from("prediction_league_members").insert({
+    const { error: memberError } = await supabase.from("prediction_league_members").insert({
       league_id: data.id,
       user_id: user.id,
       role: "owner",
     });
+
+    if (memberError) {
+      redirect("/fantasy?message=create");
+    }
+  } else {
+    redirect("/fantasy?message=create");
   }
 
   revalidatePath("/fantasy");
   revalidatePath("/leagues");
-  redirect("/fantasy?created=1");
+  redirect(`/fantasy?created=1&league=${data.id}`);
 }
 
 export async function joinFantasyLeague(formData: FormData) {
@@ -121,15 +127,19 @@ export async function joinFantasyLeague(formData: FormData) {
     redirect("/fantasy?message=not-found");
   }
 
-  await supabase.from("prediction_league_members").upsert({
+  const { error } = await supabase.from("prediction_league_members").upsert({
     league_id: league.id,
     user_id: user.id,
     role: "member",
   });
 
+  if (error) {
+    redirect("/fantasy?message=join");
+  }
+
   revalidatePath("/fantasy");
   revalidatePath("/leagues");
-  redirect("/fantasy?joined=1");
+  redirect(`/fantasy?joined=1&league=${league.id}`);
 }
 
 function nullableFormValue(value: FormDataEntryValue | null) {

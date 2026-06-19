@@ -34,11 +34,17 @@ export async function createLeague(formData: FormData) {
     .single();
 
   if (!error && data) {
-    await supabase.from("prediction_league_members").insert({
+    const { error: memberError } = await supabase.from("prediction_league_members").insert({
       league_id: data.id,
       user_id: user.id,
       role: "owner",
     });
+
+    if (memberError) {
+      redirect("/leagues?message=create");
+    }
+  } else {
+    redirect("/leagues?message=create");
   }
 
   revalidatePath("/leagues");
@@ -71,11 +77,15 @@ export async function joinLeague(formData: FormData) {
     redirect("/leagues?message=not-found");
   }
 
-  await supabase.from("prediction_league_members").upsert({
+  const { error } = await supabase.from("prediction_league_members").upsert({
     league_id: league.id,
     user_id: user.id,
     role: "member",
   });
+
+  if (error) {
+    redirect("/leagues?message=join");
+  }
 
   revalidatePath("/leagues");
   redirect("/leagues?joined=1");

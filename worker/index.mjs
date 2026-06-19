@@ -18,7 +18,9 @@ const commands = new Map([
   ["reports.generate_summary", generateGrandPrixReportSummary],
   ["reports.refresh_due", refreshDueGrandPrixReports],
   ["ai.process_news", processNewsWithAi],
+  ["ai.rehighlight_news", rehighlightNewsWithAi],
   ["ai.generate_news_images", generateNewsImages],
+  ["news.backfill_source_images", backfillNewsSourceImages],
   ["ai.retag_news", retagNewsWithAi],
   ["ai.generate_daily_digest", generateDailyDigest],
   ["jolpica.sync_calendar", syncCalendar],
@@ -143,6 +145,11 @@ async function fetchAllRss() {
       const response = await fetch(source.url, {
         headers: { "user-agent": "RaceMate/0.1 (+https://racemate.local)" },
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
       const xml = await response.text();
       const items = parseRss(xml).slice(0, Number(process.env.AI_MAX_ARTICLES_PER_RUN ?? 50));
 
@@ -1741,7 +1748,11 @@ async function processNewsWithAi() {
     throw error;
   }
 
-  const [races, drivers] = await Promise.all([getRaceChoices(), getDriverTagChoices()]);
+  const [races, drivers, teams] = await Promise.all([
+    getRaceChoices(),
+    getDriverTagChoices(),
+    getTeamTagChoices(),
+  ]);
   let itemsProcessed = 0;
 
   for (const article of articles ?? []) {
@@ -1773,6 +1784,8 @@ async function processNewsWithAi() {
                 role: "user",
                 content: `Источник: ${article.canonical_url ?? article.original_url ?? "RSS"}\nОригинальный заголовок: ${article.original_title}\n\nRSS-описание:\n${article.original_description ?? "Нет"}\n\nТекст оригинальной статьи или расширенный контекст:\n${articleContext.text || "Полный текст недоступен, используй только RSS-описание и не расширяй факты."}\n\nЭтапы сезона:\n${races
                   .map((race) => `${race.round}: ${race.race_name} (${race.circuit_name}, ${race.country})`)
+                  .join("\n")}\n\nКоманды для team_slugs:\n${teams
+                  .map((team) => `${team.slug}: ${team.name}`)
                   .join("\n")}`,
               },
             ],
@@ -1795,11 +1808,16 @@ async function processNewsWithAi() {
             summary: normalizeString(parsed?.summary_ru) ?? aiPayload.summary,
             details: normalizeString(parsed?.details_ru) ?? aiPayload.details,
             keyPoints: normalizeStringArray(parsed?.key_points_ru) ?? aiPayload.keyPoints,
-            highlights: normalizeStringArray(parsed?.highlight_phrases_ru) ?? aiPayload.highlights,
+            highlights: selectArticleHighlights(
+              normalizeStringArray(parsed?.highlight_phrases_ru) ?? aiPayload.highlights,
+              normalizeString(parsed?.summary_ru) ?? aiPayload.summary,
+              normalizeString(parsed?.details_ru) ?? aiPayload.details,
+            ),
             imagePrompt: normalizeString(parsed?.image_prompt_en) ?? aiPayload.imagePrompt,
           };
           const aiRace = races.find((race) => race.round === numberOrNull(parsed?.race_round));
           relatedRace = aiRace ?? relatedRace;
+          aiPayload.teamSlugs = normalizeStringArray(parsed?.team_slugs) ?? [];
           usage = payload.usage ?? null;
         }
       } catch (aiError) {
@@ -1831,8 +1849,34 @@ async function processNewsWithAi() {
       await upsertRaceTagForArticle(article.id, relatedRace, 0.84, "ai");
     }
 
+    const matchedTeams = new Map();
+
+    for (const team of matchTeamsByText(article, teams)) {
+      matchedTeams.set(team.slug, { team, confidence: 0.66, method: "rule" });
+    }
+
+    for (const teamSlug of aiPayload.teamSlugs ?? []) {
+      const team = teams.find((item) => item.slug === teamSlug);
+
+      if (team) {
+        matchedTeams.set(team.slug, { team, confidence: 0.82, method: "ai" });
+      }
+    }
+
     for (const driver of matchDriversByText(article, drivers)) {
       await upsertDriverTagForArticle(article.id, driver, 0.7, "rule");
+
+      if (driver.team) {
+        matchedTeams.set(driver.team.slug, {
+          team: driver.team,
+          confidence: 0.72,
+          method: "driver-rule",
+        });
+      }
+    }
+
+    for (const { team, confidence, method } of matchedTeams.values()) {
+      await upsertTeamTagForArticle(article.id, team, confidence, method);
     }
 
     if (usage) {
@@ -1851,6 +1895,92 @@ async function processNewsWithAi() {
   }
 
   return { itemsProcessed, metadata: { model, openrouter: Boolean(apiKey) } };
+}
+
+async function rehighlightNewsWithAi() {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model =
+    process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
+  const limit = Math.max(1, Math.min(Number(getCliOption("limit") ?? 100), 200));
+
+  if (!apiKey) {
+    throw new Error("OPENROUTER_API_KEY is missing for news highlight refresh.");
+  }
+
+  const { data: articles, error } = await supabase
+    .from("news_articles")
+    .select("id, ai_summary_ru, ai_summary_long_ru, original_description")
+    .eq("status", "processed")
+    .is("duplicate_of", null)
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  let itemsProcessed = 0;
+  let skipped = 0;
+
+  for (const article of articles ?? []) {
+    const summary = normalizeString(article.ai_summary_ru) ?? normalizeString(article.original_description) ?? "";
+    const details = normalizeString(article.ai_summary_long_ru) ?? "";
+
+    if (!summary && !details) {
+      skipped += 1;
+      continue;
+    }
+
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${apiKey}`,
+          "content-type": "application/json",
+          "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
+          "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: buildNewsHighlightSystemPrompt() },
+            {
+              role: "user",
+              content: `Лид:\n${summary || "Нет"}\n\nТекст статьи:\n${details || "Нет"}`,
+            },
+          ],
+          response_format: { type: "json_object" },
+          max_tokens: 500,
+        }),
+      });
+      const payload = await readJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(`OpenRouter returned HTTP ${response.status}: ${getOpenRouterFailureReason(payload)}`);
+      }
+
+      const parsed = safeJson(payload.choices?.[0]?.message?.content);
+      const highlights = selectArticleHighlights(parsed?.highlight_phrases_ru, summary, details);
+      const { error: updateError } = await supabase
+        .from("news_articles")
+        .update({ ai_highlights_ru: highlights })
+        .eq("id", article.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      itemsProcessed += 1;
+    } catch (highlightError) {
+      skipped += 1;
+      logWorkerWarning("openrouter.news_highlights.skip", {
+        articleId: article.id,
+        reason: getSafeErrorMessage(highlightError),
+      });
+    }
+  }
+
+  return { itemsProcessed, metadata: { limit, skipped } };
 }
 
 async function generateNewsImages() {
@@ -1977,6 +2107,69 @@ async function generateNewsImages() {
   }
 
   return { itemsProcessed, metadata: { model, limit, force, refreshPrompts, bucket: bucketName } };
+}
+
+async function backfillNewsSourceImages() {
+  const limit = Math.max(
+    1,
+    Math.min(Number(getCliOption("limit") ?? process.env.NEWS_SOURCE_IMAGE_BACKFILL_LIMIT ?? 80), 200),
+  );
+  const force = process.argv.includes("--force");
+
+  let query = supabase
+    .from("news_articles")
+    .select("id, canonical_url, original_url, original_title, original_description, source_image_url, raw_payload")
+    .eq("status", "processed")
+    .is("duplicate_of", null)
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .limit(limit);
+
+  if (!force) {
+    query = query.is("source_image_url", null);
+  }
+
+  const { data: articles, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  let itemsProcessed = 0;
+  let itemsWithImage = 0;
+
+  for (const article of articles ?? []) {
+    const existingImage =
+      normalizeString(article.source_image_url) ??
+      normalizeString(article.raw_payload?.imageUrl) ??
+      extractFeedImageFromPayload(article.raw_payload);
+    let fetchedArticle = existingImage
+      ? { imageUrl: existingImage }
+      : await fetchReadableArticleMetadata(article.original_url ?? article.canonical_url);
+
+    if (!fetchedArticle.imageUrl && shouldUseReaderFallback(article.original_url ?? article.canonical_url)) {
+      fetchedArticle = await fetchReadableArticleMetadataViaReader(
+        article.original_url ?? article.canonical_url,
+        fetchedArticle,
+      );
+    }
+
+    const imageUrl = normalizeString(fetchedArticle.imageUrl);
+
+    if (!imageUrl) {
+      itemsProcessed += 1;
+      continue;
+    }
+
+    await supabase
+      .from("news_articles")
+      .update({ source_image_url: imageUrl })
+      .eq("id", article.id);
+
+    itemsProcessed += 1;
+    itemsWithImage += 1;
+  }
+
+  return { itemsProcessed, metadata: { force, itemsWithImage, limit } };
 }
 
 async function resolveOpenRouterImageModel(apiKey) {
@@ -2189,14 +2382,33 @@ async function retagNewsWithAi() {
     throw error;
   }
 
-  const [races, drivers] = await Promise.all([getRaceChoices(), getDriverTagChoices()]);
+  const [races, drivers, teams] = await Promise.all([
+    getRaceChoices(),
+    getDriverTagChoices(),
+    getTeamTagChoices(),
+  ]);
   let itemsProcessed = 0;
 
   for (const article of articles ?? []) {
     const race = matchRaceByText(article, races);
     const matchedDrivers = matchDriversByText(article, drivers);
+    const matchedTeams = new Map();
 
-    if (!race && !matchedDrivers.length) {
+    for (const team of matchTeamsByText(article, teams)) {
+      matchedTeams.set(team.slug, { team, confidence: 0.66, method: "rule" });
+    }
+
+    matchedDrivers.forEach((driver) => {
+      if (driver.team) {
+        matchedTeams.set(driver.team.slug, {
+          team: driver.team,
+          confidence: 0.72,
+          method: "driver-rule",
+        });
+      }
+    });
+
+    if (!race && !matchedDrivers.length && !matchedTeams.size) {
       continue;
     }
 
@@ -2210,6 +2422,10 @@ async function retagNewsWithAi() {
 
     for (const driver of matchedDrivers) {
       await upsertDriverTagForArticle(article.id, driver, 0.7, "rule");
+    }
+
+    for (const { team, confidence, method } of matchedTeams.values()) {
+      await upsertTeamTagForArticle(article.id, team, confidence, method);
     }
 
     itemsProcessed += 1;
@@ -3584,17 +3800,45 @@ async function getRaceChoices() {
 async function getDriverTagChoices() {
   const { data } = await supabase
     .from("drivers")
-    .select("id, code, first_name, last_name, full_name")
+    .select("id, code, first_name, last_name, full_name, teams:current_team_id(id, name, short_name, code)")
     .eq("is_active", true)
     .order("full_name", { ascending: true });
 
-  return (data ?? []).map((driver) => ({
-    id: driver.id,
-    code: driver.code ?? "",
-    firstName: driver.first_name ?? "",
-    lastName: driver.last_name ?? "",
-    fullName: driver.full_name ?? "",
-    slug: `driver-${slugify(driver.full_name ?? driver.code ?? driver.id)}`,
+  return (data ?? []).map((driver) => {
+    const team = Array.isArray(driver.teams) ? driver.teams[0] : driver.teams;
+
+    return {
+      id: driver.id,
+      code: driver.code ?? "",
+      firstName: driver.first_name ?? "",
+      lastName: driver.last_name ?? "",
+      fullName: driver.full_name ?? "",
+      slug: `driver-${slugify(driver.full_name ?? driver.code ?? driver.id)}`,
+      team: team
+        ? {
+            id: team.id,
+            code: team.code ?? "",
+            name: team.short_name ?? team.name ?? "",
+            slug: makeTeamTagSlug(team.code ?? team.short_name ?? team.name ?? team.id),
+          }
+        : null,
+    };
+  });
+}
+
+async function getTeamTagChoices() {
+  const { data } = await supabase
+    .from("teams")
+    .select("id, name, short_name, code")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  return (data ?? []).map((team) => ({
+    id: team.id,
+    code: team.code ?? "",
+    name: team.short_name ?? team.name ?? "",
+    fullName: team.name ?? "",
+    slug: makeTeamTagSlug(team.code ?? team.short_name ?? team.name ?? team.id),
   }));
 }
 
@@ -3661,6 +3905,43 @@ async function upsertDriverTagForArticle(articleId, driver, confidence, method) 
   );
 }
 
+async function upsertTeamTagForArticle(articleId, team, confidence, method) {
+  if (!team?.name) {
+    return;
+  }
+
+  const { data: tag } = await supabase
+    .from("tags")
+    .upsert(
+      {
+        type: "team",
+        slug: team.slug,
+        name: team.name,
+      },
+      { onConflict: "slug" },
+    )
+    .select("id")
+    .single();
+
+  if (!tag?.id) {
+    return;
+  }
+
+  await supabase.from("news_article_tags").upsert(
+    {
+      article_id: articleId,
+      tag_id: tag.id,
+      confidence,
+      method,
+    },
+    { onConflict: "article_id,tag_id" },
+  );
+}
+
+function makeTeamTagSlug(value) {
+  return `team-${slugify(value)}`;
+}
+
 function matchRaceByText(article, races) {
   const text = `${article.original_title ?? ""} ${article.original_description ?? ""}`.toLowerCase();
 
@@ -3691,6 +3972,18 @@ function matchDriversByText(article, drivers) {
       driver.code?.length === 3 ? driver.code : "",
       driver.lastName?.length > 4 ? driver.lastName : "",
     ]
+      .filter(Boolean)
+      .map((alias) => alias.toLowerCase());
+
+    return aliases.some((alias) => new RegExp(`(^|[^a-zа-яё0-9])${escapeRegExp(alias)}([^a-zа-яё0-9]|$)`, "i").test(text));
+  });
+}
+
+function matchTeamsByText(article, teams) {
+  const text = ` ${article.original_title ?? ""} ${article.original_description ?? ""} `.toLowerCase();
+
+  return teams.filter((team) => {
+    const aliases = [team.name, team.fullName, team.code?.length >= 2 ? team.code : ""]
       .filter(Boolean)
       .map((alias) => alias.toLowerCase());
 
@@ -3940,9 +4233,9 @@ function extractFeedImage(xml) {
   const media =
     xml.match(/<media:thumbnail\b[^>]*url=["']([^"']+)["'][^>]*\/?>/i)?.[1] ??
     xml.match(/<media:content\b[^>]*url=["']([^"']+)["'][^>]*\/?>/i)?.[1] ??
+    xml.match(/<image\b[^>]*url=["']([^"']+)["'][^>]*\/?>/i)?.[1] ??
     xml.match(/<enclosure\b[^>]*url=["']([^"']+)["'][^>]*(?:type=["']image\/[^"']+["'])[^>]*\/?>/i)?.[1] ??
-    xml.match(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1] ??
-    decoded.match(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1] ??
+    extractImageFromHtml(decoded) ??
     extractFeedImageUrl(decoded);
 
   return media ? normalizeFeedImageUrl(decodeXml(media.trim())) : null;
@@ -3950,7 +4243,7 @@ function extractFeedImage(xml) {
 
 function extractFeedImageUrl(value) {
   const imageUrls = [
-    ...String(value ?? "").matchAll(/https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|gif|webp)(?:\?[^\s"'<>]+)?/gi),
+    ...String(value ?? "").matchAll(/https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|gif|webp|avif)(?:\?[^\s"'<>]+)?/gi),
     ...String(value ?? "").matchAll(/https?:\/\/pbs\.twimg\.com\/(?:media|ext_tw_video_thumb)\/[^\s"'<>]+/gi),
     ...String(value ?? "").matchAll(/https?:\/\/video\.twimg\.com\/[^\s"'<>]+/gi),
   ].map((match) => match[0]);
@@ -3966,12 +4259,71 @@ function isLikelyFeedImageUrl(value) {
     return (
       (host === "pbs.twimg.com" &&
         (url.pathname.startsWith("/media/") || url.pathname.startsWith("/ext_tw_video_thumb/"))) ||
-      (host === "video.twimg.com" && /\.(jpe?g|png|webp)$/i.test(url.pathname)) ||
-      /\.(jpe?g|png|gif|webp)$/i.test(url.pathname)
+      (host === "video.twimg.com" && /\.(jpe?g|png|webp|avif)$/i.test(url.pathname)) ||
+      /\.(jpe?g|png|gif|webp|avif)$/i.test(url.pathname) ||
+      /(?:wp-content\/uploads|cdn|images?|media)/i.test(url.pathname)
     );
   } catch {
     return false;
   }
+}
+
+function extractFeedImageFromPayload(payload) {
+  if (!payload) {
+    return null;
+  }
+
+  return (
+    normalizeString(payload.imageUrl) ??
+    extractImageFromHtml(payload.content) ??
+    extractImageFromHtml(payload.description) ??
+    extractFeedImageUrl(`${payload.content ?? ""} ${payload.description ?? ""}`)
+  );
+}
+
+function extractImageFromHtml(html, baseUrl) {
+  const htmlText = String(html ?? "");
+  const candidates = [
+    ...[...htmlText.matchAll(/<img\b[^>]*>/gi)].flatMap((match) => {
+      const tag = match[0];
+
+      return [
+        ...extractImageCandidatesFromSrcset(readAttribute(tag, "srcset")),
+        readAttribute(tag, "src"),
+        readAttribute(tag, "data-src"),
+        readAttribute(tag, "data-lazy-src"),
+        readAttribute(tag, "data-original"),
+        readAttribute(tag, "data-orig-file"),
+      ];
+    }),
+    ...[...htmlText.matchAll(/<source\b[^>]*>/gi)].flatMap((match) =>
+      extractImageCandidatesFromSrcset(readAttribute(match[0], "srcset")),
+    ),
+    ...extractImageCandidatesFromSrcset(htmlText),
+  ]
+    .filter(Boolean)
+    .map((candidate) => resolveUrl(decodeXml(candidate), baseUrl));
+
+  return candidates.find((candidate) => isLikelyFeedImageUrl(candidate)) ?? null;
+}
+
+function readAttribute(tag, attribute) {
+  return (
+    tag.match(new RegExp(`\\b${attribute}=["']([^"']+)["']`, "i"))?.[1] ??
+    tag.match(new RegExp(`\\b${attribute}=([^\\s>]+)`, "i"))?.[1] ??
+    null
+  );
+}
+
+function extractImageCandidatesFromSrcset(value) {
+  if (!value) {
+    return [];
+  }
+
+  return String(value)
+    .split(",")
+    .map((entry) => entry.trim().split(/\s+/)[0])
+    .filter(Boolean);
 }
 
 function normalizeFeedImageUrl(value) {
@@ -4092,7 +4444,12 @@ async function getArticleContext(article) {
     normalizeString(article.raw_payload?.content),
     normalizeString(article.original_description),
   ].filter(Boolean);
-  const fetchedArticle = await fetchReadableArticleMetadata(article.original_url ?? article.canonical_url);
+  const sourceUrl = article.original_url ?? article.canonical_url;
+  let fetchedArticle = await fetchReadableArticleMetadata(sourceUrl);
+
+  if (!fetchedArticle.imageUrl && shouldUseReaderFallback(sourceUrl)) {
+    fetchedArticle = await fetchReadableArticleMetadataViaReader(sourceUrl, fetchedArticle);
+  }
 
   if (fetchedArticle.text) {
     snippets.push(fetchedArticle.text);
@@ -4142,6 +4499,48 @@ async function fetchReadableArticleMetadata(url) {
   }
 }
 
+async function fetchReadableArticleMetadataViaReader(url, fallback = { text: null, imageUrl: null }) {
+  if (!url) {
+    return fallback;
+  }
+
+  try {
+    const response = await fetch(`https://r.jina.ai/http://${url}`, {
+      headers: {
+        accept: "text/plain, text/markdown;q=0.9, */*;q=0.8",
+        "user-agent": "RaceMate/1.0 (+https://racemate.ru)",
+      },
+      signal: AbortSignal.timeout(Number(process.env.AI_ARTICLE_READER_TIMEOUT_MS ?? 15000)),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const markdown = await response.text();
+
+    return {
+      text: fallback.text ?? extractReadableTextFromMarkdown(markdown),
+      imageUrl: fallback.imageUrl ?? extractImageFromMarkdown(markdown, url),
+    };
+  } catch (readerError) {
+    logWorkerWarning("news.article_reader.unavailable", {
+      url: sanitizeDiagnosticText(url),
+      reason: getSafeErrorMessage(readerError),
+    });
+
+    return fallback;
+  }
+}
+
+function shouldUseReaderFallback(url) {
+  try {
+    return new URL(url).hostname.toLowerCase().includes("racefans.net");
+  } catch {
+    return false;
+  }
+}
+
 function extractReadableTextFromHtml(html) {
   const body =
     html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1] ??
@@ -4171,15 +4570,121 @@ function extractReadableTextFromHtml(html) {
   return paragraphs.length ? paragraphs.join("\n\n") : null;
 }
 
-function extractMetadataImageFromHtml(html, baseUrl) {
-  const candidates = [...String(html ?? "").matchAll(/<meta\b[^>]*>/gi)]
-    .map((match) => match[0])
-    .filter((tag) => /(?:property|name)=["'](?:og:image|twitter:image|twitter:image:src)["']/i.test(tag))
-    .map((tag) => tag.match(/\bcontent=["']([^"']+)["']/i)?.[1])
-    .filter(Boolean);
-  const imageUrl = candidates.find((candidate) => isLikelyFeedImageUrl(resolveUrl(candidate, baseUrl)));
+function extractReadableTextFromMarkdown(markdown) {
+  const lines = String(markdown ?? "")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !/^(Title:|URL Source:|Published Time:|Markdown Content:|#+\s|[*-]\s+\[|Advert\b|Menu and widgets|Follow RaceFans)/i.test(line))
+    .map((line) => line.replace(/\[[^\]]+]\([^)]+\)/g, " ").replace(/\s+/g, " ").trim())
+    .filter((line) => line.length >= 80)
+    .slice(0, 24);
 
-  return imageUrl ? normalizeFeedImageUrl(resolveUrl(decodeXml(imageUrl), baseUrl)) : null;
+  return lines.length ? lines.join("\n\n") : null;
+}
+
+function extractMetadataImageFromHtml(html, baseUrl) {
+  const htmlText = String(html ?? "");
+  const metaCandidates = [...htmlText.matchAll(/<meta\b[^>]*>/gi)]
+    .map((match) => match[0])
+    .filter((tag) =>
+      /(?:property|name)=["'](?:og:image|og:image:secure_url|twitter:image|twitter:image:src|thumbnailUrl)["']/i.test(tag),
+    )
+    .map((tag) => readAttribute(tag, "content"))
+    .filter(Boolean);
+  const linkCandidates = [...htmlText.matchAll(/<link\b[^>]*>/gi)]
+    .map((match) => match[0])
+    .filter((tag) => /\brel=["'][^"']*(?:image_src|preload)[^"']*["']/i.test(tag))
+    .map((tag) => readAttribute(tag, "href"))
+    .filter(Boolean);
+  const jsonLdCandidates = extractJsonLdImages(htmlText);
+  const htmlCandidates = [extractImageFromHtml(htmlText, baseUrl)].filter(Boolean);
+  const candidates = [
+    ...metaCandidates,
+    ...linkCandidates,
+    ...jsonLdCandidates,
+    ...htmlCandidates,
+  ]
+    .map((candidate) => resolveUrl(decodeXml(candidate), baseUrl))
+    .filter(Boolean);
+  const imageUrl = candidates.find((candidate) => isLikelyFeedImageUrl(candidate));
+
+  return imageUrl ? normalizeFeedImageUrl(imageUrl) : null;
+}
+
+function extractImageFromMarkdown(markdown, baseUrl) {
+  const title = normalizeString(String(markdown ?? "").match(/^Title:\s*(.+)$/im)?.[1]);
+  const images = [...String(markdown ?? "").matchAll(/!\[[^\]]*]\(([^)]+)\)/g)]
+    .map((match) => resolveUrl(decodeXml(match[1]), baseUrl))
+    .filter(isLikelyFeedImageUrl);
+  const articleImages = images.filter((imageUrl) => {
+    const lower = imageUrl.toLowerCase();
+
+    return (
+      !lower.includes("/themes/") &&
+      !lower.includes("/buttons/") &&
+      !lower.includes("amazon") &&
+      !lower.includes("donate") &&
+      !lower.includes("goadfree")
+    );
+  });
+
+  if (!articleImages.length) {
+    return null;
+  }
+
+  const titleWords = new Set(
+    String(title ?? "")
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((word) => word.length >= 4),
+  );
+
+  return normalizeFeedImageUrl(
+    articleImages.find((imageUrl) =>
+      [...titleWords].some((word) => imageUrl.toLowerCase().includes(word)),
+    ) ??
+      articleImages.find((imageUrl) => /\/wp-content\/uploads\//i.test(imageUrl)) ??
+      articleImages[0],
+  );
+}
+
+function extractJsonLdImages(html) {
+  return [...String(html ?? "").matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
+    .flatMap((match) => {
+      const parsed = safeJson(decodeXml(match[1]));
+
+      return collectJsonImages(parsed);
+    })
+    .filter(Boolean);
+}
+
+function collectJsonImages(value) {
+  if (!value) {
+    return [];
+  }
+
+  if (typeof value === "string") {
+    return isLikelyFeedImageUrl(value) ? [value] : [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(collectJsonImages);
+  }
+
+  if (typeof value === "object") {
+    const direct = [
+      value.url,
+      value.contentUrl,
+      value.thumbnailUrl,
+      value.image,
+      value.logo,
+    ].flatMap(collectJsonImages);
+
+    return [...direct, ...Object.values(value).flatMap(collectJsonImages)];
+  }
+
+  return [];
 }
 
 function resolveUrl(value, baseUrl) {
@@ -4233,6 +4738,7 @@ function makeFallbackNewsPayload(article) {
     keyPoints: [article.original_title, "Источник не передал дополнительных деталей.", "Факты не расширялись без подтверждения."],
     highlights: [article.original_title].filter(Boolean),
     imagePrompt: makeFallbackImagePrompt(article),
+    teamSlugs: [],
   };
 }
 
@@ -4261,12 +4767,13 @@ function buildNewsAiSystemPrompt() {
     "Ты редактор RaceMate для русскоязычных фанатов Формулы-1.",
     "Твоя задача — прочитать переданные материалы, перевести смысл на русский и написать подробный редакторский пересказ своими словами.",
     "Не копируй фразы источника дословно, не выдавай текст за оригинальную публикацию и не придумывай факты.",
-    "Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, highlight_phrases_ru, image_prompt_en, race_round, race_confidence.",
+    "Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, highlight_phrases_ru, image_prompt_en, race_round, race_confidence, team_slugs.",
     "summary_ru — короткий лид на 2-3 предложения.",
     "details_ru — полноценный материал RaceMate: 5-8 абзацев, разделенных пустой строкой, с контекстом, участниками, причиной важности и возможными последствиями только из переданных фактов.",
     "key_points_ru — массив из 4-5 коротких пунктов.",
-    "highlight_phrases_ru — массив из 3-6 точных коротких фраз на русском, которые реально встречаются или почти дословно сформулированы в details_ru и заслуживают визуального акцента.",
+    "highlight_phrases_ru — массив из 3-6 точных коротких фактических фраз на русском, которые дословно встречаются в summary_ru или details_ru. Каждая фраза должна быть 4-140 символов, без оценок и без новых формулировок: RaceMate подчеркнет их в тексте статьи.",
     "race_round — номер этапа из списка или null.",
+    "team_slugs — массив slug команд из списка, если новость прямо связана с командой, ее пилотом, руководителем, болидом, стратегией или результатом команды. Не придумывай slug вне списка.",
     "image_prompt_en — английский prompt для FLUX.2 Klein 4B, 90-130 слов, для 16:9 изображения новости.",
     "Для image_prompt_en сначала определи главный визуальный повод статьи: конкретный пилот, команда, трасса, штраф, обновление болида, стратегия, контракт, авария, погода, статистика или закулисный конфликт.",
     "Prompt должен быть уникальным для этой статьи и привязанным к ее фактам: укажи конкретную сцену, объект в фокусе, окружение, свет, ракурс камеры, настроение и 2-4 визуальные детали из новости.",
@@ -4278,6 +4785,37 @@ function buildNewsAiSystemPrompt() {
     "Добавь в prompt фразу: no readable text, no letters, no numbers, no sponsor wordmarks, no captions, no infographics, no charts, no UI overlays, no watermarks.",
     "Стиль image_prompt_en: premium cinematic motorsport editorial image, realistic lighting, dark RaceMate palette, one clear focal subject, not a poster, not a wallpaper, not a social media graphic.",
   ].join(" ");
+}
+
+function buildNewsHighlightSystemPrompt() {
+  return [
+    "Ты редактор RaceMate для русскоязычных фанатов Формулы-1.",
+    "Верни только JSON: highlight_phrases_ru.",
+    "Выбери 3-6 коротких фактических фраз, которые дословно присутствуют в переданном лиде или тексте статьи.",
+    "Фразы должны выделять ключевые факты: результат, решение, цитату, изменение, срок или причину. Не добавляй оценок, новых слов, заголовков и фраз, которых нет в тексте.",
+    "Каждая фраза: от 4 до 140 символов. Не повторяй похожие фразы.",
+  ].join(" ");
+}
+
+function selectArticleHighlights(value, summary, details) {
+  const articleText = `${summary ?? ""}\n${details ?? ""}`.toLocaleLowerCase("ru-RU");
+  const seen = new Set();
+
+  return (normalizeStringArray(value) ?? [])
+    .map((item) => item.trim())
+    .filter((item) => item.length >= 4 && item.length <= 140)
+    .filter((item) => articleText.includes(item.toLocaleLowerCase("ru-RU")))
+    .filter((item) => {
+      const key = item.toLocaleLowerCase("ru-RU");
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 6);
 }
 
 function buildNewsImagePromptSystemPrompt() {
