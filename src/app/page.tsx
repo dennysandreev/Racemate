@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   Activity,
   Gauge,
@@ -50,9 +51,19 @@ export const dynamic = "force-dynamic";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ raceReport?: string }>;
+  searchParams: Promise<{ code?: string; next?: string; raceReport?: string }>;
 }) {
   const query = await searchParams;
+
+  if (query.code) {
+    const callbackParams = new URLSearchParams({
+      code: query.code,
+      next: query.next ?? "/onboarding",
+    });
+
+    redirect(`/auth/callback?${callbackParams.toString()}`);
+  }
+
   const [newsResult, nextSession, standings, currentRace, sessions, championOdds, constructorOdds, latestReport, queryReport] =
     await Promise.all([
       getNewsItems({ pageSize: 5 }),
