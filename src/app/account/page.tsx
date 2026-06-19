@@ -32,6 +32,9 @@ import { ensureProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { PredictionState } from "@/types/racemate";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type TeamRelation = {
   id?: string | null;
   name: string;

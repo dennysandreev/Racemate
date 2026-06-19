@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { ensureProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function OnboardingPage() {
   const profile = await ensureProfile();
   const supabase = await createSupabaseServerClient();
