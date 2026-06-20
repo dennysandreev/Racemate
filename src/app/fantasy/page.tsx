@@ -4,7 +4,6 @@ import {
   Edit3,
   Lock,
   Plus,
-  Radio,
   Trophy,
   Users,
 } from "lucide-react";
@@ -19,7 +18,6 @@ import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
 import { LeagueDialog } from "@/components/racemate/league-dialog";
 import {
-  StitchMetric,
   StitchPanel,
   StitchPanelHeader,
 } from "@/components/racemate/stitch-primitives";
@@ -54,6 +52,7 @@ type PredictionField = {
   label: string;
   name: "winnerDriverId" | "poleDriverId" | "fastestLapDriverId" | "dnfDriverId";
   short: string;
+  locked?: boolean;
   value?: string | null;
 };
 
@@ -70,7 +69,7 @@ export default async function FantasyPage({
     getLeagueDetail(status.league, user?.id),
   ]);
   const current = predictionState.current;
-  const picks = buildPredictionFields(current);
+  const picks = buildPredictionFields(current, predictionState.race);
   const completedPicks = picks.filter((pick) => Boolean(pick.value)).length;
   const progress = Math.round((completedPicks / picks.length) * 100);
   const notice = getStatusNotice(status);
@@ -101,7 +100,6 @@ export default async function FantasyPage({
           <aside className="grid min-w-0 content-start gap-6 xl:col-span-4">
             <CommunityPoll poll={polls[0]} />
             <LeagueControlPanel userSignedIn={Boolean(user)} />
-            <RaceSystemCard currentScore={current?.score} progress={progress} />
           </aside>
         </div>
         <LeagueDialog league={selectedLeague} />
@@ -138,7 +136,10 @@ function FantasyEventHeader({
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 sm:flex">
+      <div className="flex flex-wrap items-stretch gap-3">
+        <Button asChild className="w-full sm:w-auto" variant="secondary">
+          <Link href="/fantasy/leaderboard">Общий рейтинг</Link>
+        </Button>
         <FantasyCounter label="Выборы" value={`${completedPicks}/4`} />
         <FantasyCounter label="Готово" value={`${progress}%`} />
         <FantasyCounter label="Лиги" value={String(leagues.length)} />
@@ -226,9 +227,13 @@ function PredictionModule({
             ))}
           </div>
           {userSignedIn ? (
-            <Button className="mt-2 h-12 w-full" type="submit">
+            <Button
+              className="mt-2 h-12 w-full"
+              disabled={Boolean(predictionState.race?.raceLocked)}
+              type="submit"
+            >
               <Lock aria-hidden="true" data-icon="inline-start" />
-              Сохранить прогноз
+              {predictionState.race?.raceLocked ? "Прогноз закрыт" : "Сохранить прогноз"}
             </Button>
           ) : (
             <Button asChild className="mt-2 h-12 w-full">
@@ -257,7 +262,10 @@ function PredictionPickCard({
 
   return (
     <label
-      className="group grid gap-3 rounded-lg border border-border bg-muted/35 p-4 transition-colors hover:border-primary/60 hover:bg-accent/70"
+      className={cn(
+        "group grid gap-3 rounded-lg border border-border bg-muted/35 p-4 transition-colors hover:border-primary/60 hover:bg-accent/70",
+        field.locked && "border-warning/50 bg-warning/5",
+      )}
       htmlFor={field.name}
     >
       <span className="flex items-start justify-between gap-3">
@@ -276,15 +284,22 @@ function PredictionPickCard({
             </span>
           </span>
         </span>
-        <Edit3
-          aria-hidden="true"
-          className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
-        />
+        {field.locked ? (
+          <Lock aria-hidden="true" className="size-4 shrink-0 text-warning" />
+        ) : (
+          <Edit3
+            aria-hidden="true"
+            className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+          />
+        )}
       </span>
-      <span className="text-xs font-semibold text-muted-foreground">{field.label}</span>
+      <span className="text-xs font-semibold text-muted-foreground">
+        {field.locked ? `${field.label} уже заблокирован` : field.label}
+      </span>
       <select
-        className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+        className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
         defaultValue={field.value ?? ""}
+        disabled={field.locked}
         id={field.name}
         name={field.name}
       >
@@ -403,39 +418,6 @@ function LeagueControlPanel({ userSignedIn }: { userSignedIn: boolean }) {
   );
 }
 
-function RaceSystemCard({
-  currentScore,
-  progress,
-}: {
-  currentScore?: number | null;
-  progress: number;
-}) {
-  return (
-    <StitchPanel className="relative border-success/30 p-5">
-      <div className="absolute -top-3 left-5 border border-success/50 bg-background px-2">
-        <span className="font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.12em] text-success">
-          Система активна
-        </span>
-      </div>
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="font-telemetry text-xs font-bold uppercase tracking-[0.1em]">
-          Race control
-        </h2>
-        <Radio aria-hidden="true" className="size-5 text-success" />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <StitchMetric label="Готово" tone={progress === 100 ? "live" : "warning"} value={`${progress}%`} />
-        <StitchMetric
-          label="Очки"
-          value={currentScore === null || currentScore === undefined ? "—" : String(currentScore)}
-        />
-        <StitchMetric label="Статус" tone="live" value="Онлайн" />
-        <StitchMetric label="Лок" tone="warning" value="До этапа" />
-      </div>
-    </StitchPanel>
-  );
-}
-
 function LeagueActivity({
   leagues,
   selectedLeagueId,
@@ -515,13 +497,17 @@ function StatusNotice({
   );
 }
 
-function buildPredictionFields(current: PredictionState["current"]): PredictionField[] {
+function buildPredictionFields(
+  current: PredictionState["current"],
+  race?: PredictionState["race"],
+): PredictionField[] {
   return [
     {
       helper: "Выбери пилота",
       label: "Победитель гонки",
       name: "winnerDriverId",
       short: "Race winner",
+      locked: race?.raceLocked,
       value: current?.winnerDriverId,
     },
     {
@@ -529,6 +515,7 @@ function buildPredictionFields(current: PredictionState["current"]): PredictionF
       label: "Поул",
       name: "poleDriverId",
       short: "Pole position",
+      locked: race?.poleLocked,
       value: current?.poleDriverId,
     },
     {
@@ -536,6 +523,7 @@ function buildPredictionFields(current: PredictionState["current"]): PredictionF
       label: "Лучший круг",
       name: "fastestLapDriverId",
       short: "Fastest lap",
+      locked: race?.raceLocked,
       value: current?.fastestLapDriverId,
     },
     {
@@ -543,6 +531,7 @@ function buildPredictionFields(current: PredictionState["current"]): PredictionF
       label: "Первый сход",
       name: "dnfDriverId",
       short: "DNF",
+      locked: race?.raceLocked,
       value: current?.dnfDriverId,
     },
   ];

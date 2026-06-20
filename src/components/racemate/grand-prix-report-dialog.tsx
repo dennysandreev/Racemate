@@ -75,8 +75,6 @@ export function GrandPrixReportDialog({
   const fastestPitStop = asHighlight(report.highlights.fastestPitStop, "driver", "duration");
   const safetyCarSummary = asText(report.highlights.safetyCarSummary);
   const mostCommonStrategy = asHighlight(report.highlights.mostCommonStrategy, "sequence", "drivers");
-  const fastestLapTeam = getTeamVisualFromHighlight(report.highlights.fastestLap, report.results);
-  const bestGainTeam = getTeamVisualFromHighlight(report.highlights.bestGain, report.results);
   const biggestDropTeam = getTeamVisualFromHighlight(report.highlights.biggestDrop, report.results);
   const bestTeamVisual = getTeamVisualFromHighlight(report.highlights.bestTeam, report.results, "team");
   const fastestPitStopTeam = getTeamVisualFromHighlight(report.highlights.fastestPitStop, report.results);
@@ -283,17 +281,13 @@ export function GrandPrixReportDialog({
             <aside className="grid content-start gap-4">
               <PodiumCard podium={podium} results={report.results} winner={winner} />
               <ReportStat
-                color={fastestLapTeam?.color}
                 icon={Timer}
                 label="Лучший круг"
-                tone="red"
                 value={fastestLap ?? "Нет данных"}
               />
               <ReportStat
-                color={bestGainTeam?.color}
                 icon={TrendingUp}
                 label="Прорыв дня"
-                tone="live"
                 value={bestGain ?? "Нет данных"}
               />
               <ReportStat
@@ -362,7 +356,6 @@ function PodiumCard({
               <div className="flex min-w-0 items-center gap-3">
                 <span
                   className="font-telemetry w-5 text-muted-foreground"
-                  style={{ color: teamVisual?.color ?? undefined }}
                 >
                   {String(index + 1).padStart(2, "0")}
                 </span>

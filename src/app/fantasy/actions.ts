@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/lib/auth";
+import {
+  getPredictionLocksForRace,
+  preserveLockedPredictionValues,
+} from "@/lib/prediction-locks";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function saveFantasyPrediction(formData: FormData) {
@@ -24,24 +28,42 @@ export async function saveFantasyPrediction(formData: FormData) {
     redirect("/fantasy");
   }
 
-  const payload = {
-    user_id: user.id,
-    race_id: raceId,
-    league_id: null,
-    winner_driver_id: winnerDriverId,
-    pole_driver_id: poleDriverId,
-    fastest_lap_driver_id: fastestLapDriverId,
-    dnf_driver_id: dnfDriverId,
-    submitted_at: new Date().toISOString(),
-  };
-
   const { data: existing } = await supabase
     .from("predictions")
-    .select("id")
+    .select("id, pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id")
     .eq("user_id", user.id)
     .eq("race_id", raceId)
     .is("league_id", null)
     .maybeSingle();
+
+  const locks = await getPredictionLocksForRace(raceId);
+  const values = preserveLockedPredictionValues({
+    current: existing
+      ? {
+          poleDriverId: existing.pole_driver_id,
+          winnerDriverId: existing.winner_driver_id,
+          fastestLapDriverId: existing.fastest_lap_driver_id,
+          dnfDriverId: existing.dnf_driver_id,
+        }
+      : null,
+    locks,
+    submitted: {
+      poleDriverId,
+      winnerDriverId,
+      fastestLapDriverId,
+      dnfDriverId,
+    },
+  });
+  const payload = {
+    user_id: user.id,
+    race_id: raceId,
+    league_id: null,
+    winner_driver_id: values.winnerDriverId,
+    pole_driver_id: values.poleDriverId,
+    fastest_lap_driver_id: values.fastestLapDriverId,
+    dnf_driver_id: values.dnfDriverId,
+    submitted_at: new Date().toISOString(),
+  };
 
   if (existing) {
     await supabase.from("predictions").update(payload).eq("id", existing.id);

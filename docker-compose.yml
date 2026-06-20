@@ -28,7 +28,6 @@ services:
           if [ $((tick % 2)) -eq 0 ]; then
             node worker/index.mjs rss.fetch_all || true
             node worker/index.mjs ai.process_news || true
-            node worker/index.mjs ai.generate_news_images || true
             node worker/index.mjs jolpica.sync_calendar || true
             node worker/index.mjs jolpica.sync_results || true
             node worker/index.mjs jolpica.sync_standings || true
@@ -40,5 +39,25 @@ services:
           fi
           tick=$((tick + 1))
           sleep 900
+        done
+    restart: unless-stopped
+
+  digest-scheduler:
+    build: .
+    env_file:
+      - .env
+    command:
+      - sh
+      - -lc
+      - |
+        last_run=""
+        while true; do
+          day="$(date -u +%F)"
+          clock="$(date -u +%H:%M)"
+          if [ "$clock" = "12:00" ] && [ "$last_run" != "$day" ]; then
+            node worker/index.mjs ai.generate_daily_digest || true
+            last_run="$day"
+          fi
+          sleep 20
         done
     restart: unless-stopped

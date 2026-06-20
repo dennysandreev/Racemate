@@ -14,7 +14,6 @@
     "worker:social:x": "node worker/index.mjs social.fetch_x",
     "worker:ai": "node worker/index.mjs ai.process_news",
     "worker:rehighlight": "node worker/index.mjs ai.rehighlight_news",
-    "worker:news-images": "node worker/index.mjs ai.generate_news_images",
     "worker:source-images": "node worker/index.mjs news.backfill_source_images",
     "worker:retag": "node worker/index.mjs ai.retag_news",
     "worker:digest": "node worker/index.mjs ai.generate_daily_digest",
@@ -45,7 +44,6 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "sharp": "^0.35.1",
     "tailwind-merge": "latest"
   },
   "devDependencies": {

@@ -2,6 +2,7 @@ import { Star } from "lucide-react";
 
 import { saveOnboarding } from "@/app/onboarding/actions";
 import { AppShell } from "@/components/racemate/app-shell";
+import { FavoriteChoiceGroups } from "@/components/racemate/favorite-choice-groups";
 import { PageHeading } from "@/components/racemate/page-heading";
 import {
   StitchMetric,
@@ -88,25 +89,17 @@ export default async function OnboardingPage() {
                 </label>
               </div>
 
-              <ChoiceGroup
-                emptyText="Команды появятся после синхронизации."
-                items={(teams?.data ?? []).map((team) => ({
-                  id: team.id,
-                  label: team.name,
-                }))}
-                name="teamIds"
-                selectedIds={selectedTeamIds}
-                title="Любимые команды"
-              />
-              <ChoiceGroup
-                emptyText="Пилоты появятся после синхронизации."
-                items={(drivers?.data ?? []).map((driver) => ({
+              <FavoriteChoiceGroups
+                drivers={(drivers?.data ?? []).map((driver) => ({
                   id: driver.id,
                   label: driver.full_name,
                 }))}
-                name="driverIds"
-                selectedIds={selectedDriverIds}
-                title="Любимые пилоты"
+                selectedDriverIds={selectedDriverIds}
+                selectedTeamId={selectedTeamIds[0]}
+                teams={(teams?.data ?? []).map((team) => ({
+                  id: team.id,
+                  label: team.name,
+                }))}
               />
 
               <Button className="w-full sm:w-fit" type="submit">
@@ -130,47 +123,5 @@ export default async function OnboardingPage() {
         </aside>
       </section>
     </AppShell>
-  );
-}
-
-function ChoiceGroup({
-  emptyText,
-  items,
-  name,
-  selectedIds = [],
-  title,
-}: {
-  emptyText: string;
-  items: { id: string; label: string }[];
-  name: string;
-  selectedIds?: string[];
-  title: string;
-}) {
-  const selected = new Set(selectedIds);
-
-  return (
-    <fieldset className="grid gap-3">
-      <legend className="text-sm font-medium">{title}</legend>
-      {items.length ? (
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
-            <label
-              className="flex min-h-11 items-center gap-2 rounded-md border border-border/70 bg-background/35 px-3 text-sm transition-colors hover:bg-accent"
-              key={item.id}
-            >
-              <input
-                defaultChecked={selected.has(item.id)}
-                name={name}
-                type="checkbox"
-                value={item.id}
-              />
-              {item.label}
-            </label>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-muted-foreground">{emptyText}</p>
-      )}
-    </fieldset>
   );
 }

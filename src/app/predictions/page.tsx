@@ -39,7 +39,7 @@ export default async function PredictionsPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy aria-hidden="true" data-icon="inline-start" />
-              Мой прогноз на Канаду
+              Мой прогноз
             </CardTitle>
             <CardDescription>
               {predictionState.race
@@ -55,33 +55,45 @@ export default async function PredictionsPage({
                   defaultValue={current?.winnerDriverId}
                   drivers={predictionState.drivers}
                   label="Победитель"
+                  locked={predictionState.race.raceLocked}
                   name="winnerDriverId"
                 />
                 <PredictionSelect
                   defaultValue={current?.poleDriverId}
                   drivers={predictionState.drivers}
                   label="Поул"
+                  locked={predictionState.race.poleLocked}
                   name="poleDriverId"
                 />
                 <PredictionSelect
                   defaultValue={current?.fastestLapDriverId}
                   drivers={predictionState.drivers}
                   label="Лучший круг"
+                  locked={predictionState.race.raceLocked}
                   name="fastestLapDriverId"
                 />
                 <PredictionSelect
                   defaultValue={current?.dnfDriverId}
                   drivers={predictionState.drivers}
                   label="Первый сход"
+                  locked={predictionState.race.raceLocked}
                   name="dnfDriverId"
                 />
                 {saved ? (
                   <p className="text-sm text-muted-foreground">
-                    Прогноз сохранен. Можно вернуться и поправить его до блокировки.
+                    Прогноз сохранен. Открытые поля можно менять до начала соответствующей сессии.
                   </p>
                 ) : null}
-                <Button className="mt-2" disabled={!user} type="submit">
-                  {user ? "Сохранить прогноз" : "Войти, чтобы сохранить"}
+                <Button
+                  className="mt-2"
+                  disabled={!user || Boolean(predictionState.race?.raceLocked)}
+                  type="submit"
+                >
+                  {user
+                    ? predictionState.race?.raceLocked
+                      ? "Прогноз закрыт"
+                      : "Сохранить прогноз"
+                    : "Войти, чтобы сохранить"}
                 </Button>
               </form>
             ) : (
@@ -99,11 +111,19 @@ export default async function PredictionsPage({
               Правила блокировки
             </CardTitle>
             <CardDescription>
-              Прогнозы закрываются за 15 минут до первой зачетной сессии.
+              Поул закрывается со стартом квалификации, остальные пики — со стартом гонки.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <Badge variant="warning">До блокировки 2 дня</Badge>
+            <Badge
+              variant={predictionState.race?.raceLocked ? "danger" : predictionState.race?.poleLocked ? "warning" : "success"}
+            >
+              {predictionState.race?.raceLocked
+                ? "Прогноз закрыт"
+                : predictionState.race?.poleLocked
+                  ? "Поул уже закрыт"
+                  : "Пики открыты"}
+            </Badge>
             <DataRow
               label="Текущий счет"
               value={current?.score === null || current?.score === undefined ? "Еще не посчитан" : String(current.score)}
@@ -122,19 +142,22 @@ function PredictionSelect({
   defaultValue,
   drivers,
   label,
+  locked = false,
   name,
 }: {
   defaultValue?: string | null;
   drivers: { id: string; name: string; team: string }[];
   label: string;
+  locked?: boolean;
   name: string;
 }) {
   return (
     <label className="grid gap-2 text-sm font-medium" htmlFor={name}>
       {label}
       <select
-        className="min-h-11 rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+        className="min-h-11 rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
         defaultValue={defaultValue ?? ""}
+        disabled={locked}
         id={name}
         name={name}
       >
@@ -145,6 +168,7 @@ function PredictionSelect({
           </option>
         ))}
       </select>
+      {locked ? <span className="text-xs font-normal text-warning">Выбор уже заблокирован</span> : null}
     </label>
   );
 }

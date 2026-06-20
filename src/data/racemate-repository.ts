@@ -2,6 +2,7 @@ import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
+import { getPredictionLocksForRace } from "@/lib/prediction-locks";
 import {
   adminJobs,
   adminSignals,
@@ -27,6 +28,8 @@ import type {
   DailyDigest,
   DriverChampionshipMatrix,
   GrandPrixReport,
+  GlobalFantasyLeaderboard,
+  GlobalFantasyLeaderboardRow,
   FavoriteNewsFilters,
   LeagueDetail,
   LeagueHistoryEntry,
@@ -125,6 +128,13 @@ type TagRelation =
         | { name: string; slug: string | null; type?: string | null }[]
         | null;
     }[];
+
+type NewsFilterTagRow = {
+  tags:
+    | { name: string; slug: string | null; type?: string | null }
+    | { name: string; slug: string | null; type?: string | null }[]
+    | null;
+};
 
 type ArticleRow = {
   id: string;
@@ -320,6 +330,17 @@ type PredictionDbRow = {
   fastest_lap_driver_id: string | null;
   dnf_driver_id: string | null;
   score: number | null;
+};
+
+type GlobalPredictionRow = {
+  race_id: string;
+  score: number | null;
+  user_id: string;
+};
+
+type GlobalProfileRow = {
+  display_name: string | null;
+  id: string;
 };
 
 type LeagueDbRow = {
@@ -574,19 +595,23 @@ export async function getNewsDriverTags(): Promise<{ name: string; slug: string 
   }
 
   const { data, error } = await supabase
-    .from("tags")
-    .select("name, slug")
-    .eq("type", "driver")
-    .order("name", { ascending: true })
-    .limit(40);
+    .from("news_article_tags")
+    .select("tags!inner(name, slug, type), news_articles!inner(status, duplicate_of)")
+    .eq("tags.type", "driver")
+    .eq("news_articles.status", "processed")
+    .is("news_articles.duplicate_of", null)
+    .limit(300);
 
   if (error || !data?.length) {
     return [];
   }
 
-  return data
-    .filter((tag) => tag.name && tag.slug)
-    .map((tag) => ({ name: tag.name, slug: tag.slug }));
+  return uniqueNewsTagFilters(
+    ((data ?? []) as unknown as NewsFilterTagRow[])
+      .flatMap((row) => getRelationList(row.tags))
+      .filter(isNewsFilterTag)
+      .map((tag) => ({ name: tag.name, slug: tag.slug })),
+  ).sort((left, right) => left.name.localeCompare(right.name, "ru"));
 }
 
 export async function getNewsTeamTags(): Promise<{ name: string; slug: string }[]> {
@@ -597,19 +622,23 @@ export async function getNewsTeamTags(): Promise<{ name: string; slug: string }[
   }
 
   const { data, error } = await supabase
-    .from("tags")
-    .select("name, slug")
-    .eq("type", "team")
-    .order("name", { ascending: true })
-    .limit(40);
+    .from("news_article_tags")
+    .select("tags!inner(name, slug, type), news_articles!inner(status, duplicate_of)")
+    .eq("tags.type", "team")
+    .eq("news_articles.status", "processed")
+    .is("news_articles.duplicate_of", null)
+    .limit(300);
 
   if (error || !data?.length) {
     return [];
   }
 
-  return data
-    .filter((tag) => tag.name && tag.slug)
-    .map((tag) => ({ name: tag.name, slug: tag.slug }));
+  return uniqueNewsTagFilters(
+    ((data ?? []) as unknown as NewsFilterTagRow[])
+      .flatMap((row) => getRelationList(row.tags))
+      .filter(isNewsFilterTag)
+      .map((tag) => ({ name: tag.name, slug: tag.slug })),
+  ).sort((left, right) => left.name.localeCompare(right.name, "ru"));
 }
 
 export async function getFavoriteNewsFilters(
@@ -1438,11 +1467,18 @@ export async function getPredictionState(
       .order("full_name"),
   ]);
 
+  const locks = currentRace
+    ? await getPredictionLocksForRace(currentRace.id)
+    : null;
   const race = currentRace
     ? {
         id: currentRace.id,
         name: currentRace.race_name,
         startsAt: formatDateTime(currentRace.race_start_at),
+        qualifyingStartsAtIso: locks?.qualifyingStartsAtIso ?? null,
+        raceStartsAtIso: locks?.raceStartsAtIso ?? currentRace.race_start_at,
+        poleLocked: locks?.poleLocked ?? false,
+        raceLocked: locks?.raceLocked ?? false,
       }
     : null;
 
@@ -1480,6 +1516,80 @@ export async function getPredictionState(
     })),
     current,
   };
+}
+
+export async function getGlobalFantasyLeaderboard(): Promise<GlobalFantasyLeaderboard> {
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    return { rows: [], updatedAt: new Date().toISOString() };
+  }
+
+  const { data: predictionData } = await supabase
+    .from("predictions")
+    .select("user_id, race_id, score")
+    .is("league_id", null);
+  const predictions = (predictionData ?? []) as unknown as GlobalPredictionRow[];
+  const userIds = [...new Set(predictions.map((prediction) => prediction.user_id))];
+
+  if (!userIds.length) {
+    return { rows: [], updatedAt: new Date().toISOString() };
+  }
+
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("id, display_name")
+    .in("id", userIds);
+  const names = new Map(
+    ((profileData ?? []) as unknown as GlobalProfileRow[]).map((profile) => [
+      profile.id,
+      profile.display_name?.trim() || "Участник",
+    ]),
+  );
+  const totals = new Map<
+    string,
+    { bestScore: number | null; predictionCount: number; scoredPredictionCount: number; totalScore: number }
+  >();
+
+  predictions.forEach((prediction) => {
+    const current = totals.get(prediction.user_id) ?? {
+      bestScore: null,
+      predictionCount: 0,
+      scoredPredictionCount: 0,
+      totalScore: 0,
+    };
+    const score = typeof prediction.score === "number" ? prediction.score : null;
+
+    current.predictionCount += 1;
+    if (score !== null) {
+      current.totalScore += score;
+      current.scoredPredictionCount += 1;
+      current.bestScore = current.bestScore === null ? score : Math.max(current.bestScore, score);
+    }
+    totals.set(prediction.user_id, current);
+  });
+
+  const rows = [...totals.entries()]
+    .map(([userId, value]) => ({
+      averageScore: value.scoredPredictionCount
+        ? Math.round((value.totalScore / value.scoredPredictionCount) * 10) / 10
+        : 0,
+      bestScore: value.bestScore,
+      displayName: names.get(userId) ?? "Участник",
+      predictionCount: value.predictionCount,
+      scoredPredictionCount: value.scoredPredictionCount,
+      totalScore: value.totalScore,
+    }))
+    .sort(
+      (left, right) =>
+        right.totalScore - left.totalScore ||
+        right.averageScore - left.averageScore ||
+        right.predictionCount - left.predictionCount ||
+        left.displayName.localeCompare(right.displayName, "ru"),
+    )
+    .map((row, index): GlobalFantasyLeaderboardRow => ({ ...row, rank: index + 1 }));
+
+  return { rows, updatedAt: new Date().toISOString() };
 }
 
 export async function getAdminSignals(): Promise<AdminSignal[]> {
@@ -2423,7 +2533,7 @@ function mapArticleRow(row: ArticleRow): NewsItem {
     details,
     keyPoints: row.ai_key_points_ru ?? [],
     highlights: row.ai_highlights_ru ?? [],
-    imageUrl: row.source_image_url?.trim() || row.image_url?.trim() || undefined,
+    imageUrl: row.source_image_url?.trim() || undefined,
     sourceImageUrl: row.source_image_url?.trim() || undefined,
     tags,
     raceTag,
@@ -3752,15 +3862,24 @@ function uniqueNewsTagFilters(filters: { name: string; slug: string }[]) {
   const result: { name: string; slug: string }[] = [];
 
   filters.forEach((filter) => {
-    if (!filter.name || !filter.slug || seen.has(filter.slug)) {
+    const canonicalName = normalizeTagKey(filter.name);
+
+    if (!filter.name || !filter.slug || seen.has(filter.slug) || seen.has(canonicalName)) {
       return;
     }
 
     seen.add(filter.slug);
+    seen.add(canonicalName);
     result.push(filter);
   });
 
   return result;
+}
+
+function isNewsFilterTag(
+  tag: { name: string; slug: string | null; type?: string | null },
+): tag is { name: string; slug: string; type?: string | null } {
+  return Boolean(tag.name && tag.slug);
 }
 
 function normalizeArticleDetails(details: string | null, summary: string) {
@@ -3818,6 +3937,14 @@ function getTeamVisualFields(
 
 function getRelationObject<T>(relation: T | T[] | null): T | null {
   return (Array.isArray(relation) ? relation[0] : relation) ?? null;
+}
+
+function getRelationList<T>(relation: T | T[] | null | undefined): T[] {
+  if (!relation) {
+    return [];
+  }
+
+  return Array.isArray(relation) ? relation : [relation];
 }
 
 function mapWeatherRow(weather: WeatherDbRow & { forecast_at?: string | null }, status: string): SessionWeather {

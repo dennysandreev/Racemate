@@ -410,6 +410,10 @@ export type RaceOption = {
   id: string;
   name: string;
   startsAt: string;
+  qualifyingStartsAtIso?: string | null;
+  raceStartsAtIso?: string | null;
+  poleLocked: boolean;
+  raceLocked: boolean;
 };
 
 export type PredictionState = {
@@ -422,6 +426,21 @@ export type PredictionState = {
     dnfDriverId: string | null;
     score: number | null;
   } | null;
+};
+
+export type GlobalFantasyLeaderboardRow = {
+  rank: number;
+  displayName: string;
+  totalScore: number;
+  predictionCount: number;
+  scoredPredictionCount: number;
+  averageScore: number;
+  bestScore: number | null;
+};
+
+export type GlobalFantasyLeaderboard = {
+  rows: GlobalFantasyLeaderboardRow[];
+  updatedAt: string;
 };
 
 export type HomeOverview = {

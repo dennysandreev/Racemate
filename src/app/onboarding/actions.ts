@@ -15,8 +15,12 @@ export async function saveOnboarding(formData: FormData) {
 
   const displayName = String(formData.get("displayName") ?? "").trim();
   const timezone = String(formData.get("timezone") ?? "Europe/Moscow").trim();
-  const teamIds = formData.getAll("teamIds").map(String).filter(Boolean);
-  const driverIds = formData.getAll("driverIds").map(String).filter(Boolean);
+  const teamIds = [...new Set(formData.getAll("teamIds").map(String).filter(Boolean))];
+  const driverIds = [...new Set(formData.getAll("driverIds").map(String).filter(Boolean))];
+
+  if (teamIds.length > 1 || driverIds.length > 2) {
+    redirect("/onboarding?error=favorites");
+  }
 
   await supabase
     .from("profiles")
@@ -31,12 +35,12 @@ export async function saveOnboarding(formData: FormData) {
   await supabase.from("user_favorite_teams").delete().eq("user_id", user.id);
   await supabase.from("user_favorite_drivers").delete().eq("user_id", user.id);
 
-  if (teamIds.length) {
+  if (teamIds[0]) {
     await supabase.from("user_favorite_teams").insert(
-      teamIds.map((teamId) => ({
+      [{
         user_id: user.id,
-        team_id: teamId,
-      })),
+        team_id: teamIds[0],
+      }],
     );
   }
 

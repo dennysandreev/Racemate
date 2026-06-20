@@ -3,7 +3,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
 import { createClient } from "@supabase/supabase-js";
-import sharp from "sharp";
 
 loadEnvFiles([".env", ".env.local"]);
 
@@ -19,7 +18,6 @@ const commands = new Map([
   ["reports.refresh_due", refreshDueGrandPrixReports],
   ["ai.process_news", processNewsWithAi],
   ["ai.rehighlight_news", rehighlightNewsWithAi],
-  ["ai.generate_news_images", generateNewsImages],
   ["news.backfill_source_images", backfillNewsSourceImages],
   ["ai.retag_news", retagNewsWithAi],
   ["ai.generate_daily_digest", generateDailyDigest],
@@ -1813,7 +1811,6 @@ async function processNewsWithAi() {
               normalizeString(parsed?.summary_ru) ?? aiPayload.summary,
               normalizeString(parsed?.details_ru) ?? aiPayload.details,
             ),
-            imagePrompt: normalizeString(parsed?.image_prompt_en) ?? aiPayload.imagePrompt,
           };
           const aiRace = races.find((race) => race.round === numberOrNull(parsed?.race_round));
           relatedRace = aiRace ?? relatedRace;
@@ -1836,7 +1833,6 @@ async function processNewsWithAi() {
         ai_summary_long_ru: aiPayload.details,
         ai_key_points_ru: aiPayload.keyPoints,
         ai_highlights_ru: aiPayload.highlights,
-        image_prompt: aiPayload.imagePrompt,
         source_image_url: article.source_image_url ?? articleContext.imageUrl ?? null,
         related_race_id: relatedRace?.id ?? null,
         ai_model: usage ? model : "fallback",
@@ -1983,132 +1979,6 @@ async function rehighlightNewsWithAi() {
   return { itemsProcessed, metadata: { limit, skipped } };
 }
 
-async function generateNewsImages() {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  const bucketName = process.env.NEWS_IMAGE_BUCKET ?? "news-images";
-  const limit = Math.max(1, Math.min(Number(getCliOption("limit") ?? process.env.NEWS_IMAGE_BACKFILL_LIMIT ?? 5), 20));
-  const force = process.argv.includes("--force");
-  const refreshPrompts = process.argv.includes("--refresh-prompts");
-
-  if (!apiKey) {
-    throw new Error("OPENROUTER_API_KEY is missing for news image generation.");
-  }
-
-  const model = await resolveOpenRouterImageModel(apiKey);
-  const promptModel =
-    process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
-  await ensureNewsImageBucket(bucketName);
-
-  let query = supabase
-    .from("news_articles")
-    .select(
-      "id, canonical_url, original_title, original_description, ai_title_ru, ai_summary_ru, ai_summary_long_ru, image_prompt, image_url, source_image_url"
-    )
-    .eq("status", "processed")
-    .is("duplicate_of", null)
-    .order("published_at", { ascending: false, nullsFirst: false })
-    .limit(limit);
-
-  if (!force) {
-    query = query.is("image_url", null);
-  }
-
-  const { data: articles, error } = await query;
-
-  if (error) {
-    throw error;
-  }
-
-  let itemsProcessed = 0;
-
-  for (const article of articles ?? []) {
-    let prompt = normalizeString(article.image_prompt) ?? makeFallbackImagePrompt(article);
-
-    if (refreshPrompts) {
-      prompt = await refreshNewsImagePrompt({
-        apiKey,
-        model: promptModel,
-        article,
-        fallbackPrompt: prompt,
-      });
-    }
-
-    try {
-      const generatedImage = await generateOpenRouterImage({
-        apiKey,
-        model,
-        prompt,
-      });
-      const webp = await sharp(generatedImage)
-        .resize(1024, 576, { fit: "cover", position: "attention" })
-        .webp({ quality: 82 })
-        .toBuffer();
-      const path = `articles/${article.id}.webp`;
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(path, webp, {
-          contentType: "image/webp",
-          upsert: true,
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data: publicUrl } = supabase.storage.from(bucketName).getPublicUrl(path);
-      const imageUrl = publicUrl.publicUrl;
-
-      await supabase
-        .from("news_articles")
-        .update({
-          image_url: imageUrl,
-          image_prompt: prompt,
-          image_model: model,
-          image_status: "ready",
-          image_generated_at: new Date().toISOString(),
-          image_metadata: {
-            bucket: bucketName,
-            path,
-            width: 1024,
-            height: 576,
-            mimeType: "image/webp",
-          },
-        })
-        .eq("id", article.id);
-
-      await supabase.from("ai_usage_logs").insert({
-        purpose: "news.image",
-        provider: "openrouter",
-        model,
-        input_tokens: null,
-        output_tokens: null,
-        estimated_cost_usd: null,
-        related_article_id: article.id,
-      });
-
-      itemsProcessed += 1;
-    } catch (imageError) {
-      await supabase
-        .from("news_articles")
-        .update({
-          image_status: article.image_url ? "ready" : article.source_image_url ? "source_fallback" : "failed",
-          image_model: model,
-          image_metadata: {
-            error: getSafeErrorMessage(imageError),
-            failedAt: new Date().toISOString(),
-          },
-        })
-        .eq("id", article.id);
-      logWorkerWarning("openrouter.news_image.failed", {
-        articleId: article.id,
-        reason: getSafeErrorMessage(imageError),
-      });
-    }
-  }
-
-  return { itemsProcessed, metadata: { model, limit, force, refreshPrompts, bucket: bucketName } };
-}
-
 async function backfillNewsSourceImages() {
   const limit = Math.max(
     1,
@@ -2170,203 +2040,6 @@ async function backfillNewsSourceImages() {
   }
 
   return { itemsProcessed, metadata: { force, itemsWithImage, limit } };
-}
-
-async function resolveOpenRouterImageModel(apiKey) {
-  const configured = normalizeString(process.env.OPENROUTER_IMAGE_MODEL);
-
-  if (configured) {
-    return configured;
-  }
-
-  const response = await fetch("https://openrouter.ai/api/v1/models?output_modalities=image", {
-    headers: {
-      authorization: `Bearer ${apiKey}`,
-      accept: "application/json",
-    },
-  });
-  const payload = await readJsonResponse(response);
-
-  if (!response.ok) {
-    throw new Error(`OpenRouter models lookup failed: ${response.status} ${JSON.stringify(payload).slice(0, 220)}`);
-  }
-
-  const models = Array.isArray(payload.data) ? payload.data : [];
-  const exact = models.find((model) => normalizeString(model.name)?.toLowerCase() === "black forest labs: flux.2 klein 4b");
-  const fuzzy =
-    exact ??
-    models.find((model) => {
-      const haystack = `${model.id ?? ""} ${model.name ?? ""} ${model.canonical_slug ?? ""}`.toLowerCase();
-      return haystack.includes("black") && haystack.includes("forest") && haystack.includes("flux.2") && haystack.includes("klein");
-    });
-  const modelId = normalizeString(fuzzy?.id ?? fuzzy?.canonical_slug);
-
-  if (!modelId) {
-    throw new Error(
-      "OpenRouter image model `Black Forest Labs: FLUX.2 Klein 4B` was not found. Set OPENROUTER_IMAGE_MODEL to the exact model slug.",
-    );
-  }
-
-  return modelId;
-}
-
-async function ensureNewsImageBucket(bucketName) {
-  const { error } = await supabase.storage.getBucket(bucketName);
-
-  if (!error) {
-    return;
-  }
-
-  const { error: createError } = await supabase.storage.createBucket(bucketName, {
-    public: true,
-    fileSizeLimit: 1048576,
-    allowedMimeTypes: ["image/webp"],
-  });
-
-  if (createError && !/already exists/i.test(createError.message ?? "")) {
-    throw createError;
-  }
-}
-
-async function refreshNewsImagePrompt({ apiKey, model, article, fallbackPrompt }) {
-  try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${apiKey}`,
-        "content-type": "application/json",
-        "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-        "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: "system",
-            content: buildNewsImagePromptSystemPrompt(),
-          },
-          {
-            role: "user",
-            content: [
-              `Original title: ${article.original_title}`,
-              `RaceMate title: ${article.ai_title_ru ?? "not available"}`,
-              `Short summary: ${article.ai_summary_ru ?? article.original_description ?? "not available"}`,
-              `Long article context: ${clampText(article.ai_summary_long_ru ?? article.original_description ?? "", 2500) ?? "not available"}`,
-              `Source URL: ${article.canonical_url ?? "not available"}`,
-            ].join("\n\n"),
-          },
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 700,
-      }),
-    });
-    const payload = await readJsonResponse(response);
-
-    if (!response.ok) {
-      logWorkerWarning("openrouter.news_image_prompt.fallback", {
-        articleId: article.id,
-        status: response.status,
-        reason: getOpenRouterFailureReason(payload),
-      });
-      return fallbackPrompt;
-    }
-
-    const parsed = safeJson(payload.choices?.[0]?.message?.content);
-    return normalizeString(parsed?.image_prompt_en) ?? fallbackPrompt;
-  } catch (error) {
-    logWorkerWarning("openrouter.news_image_prompt.fallback", {
-      articleId: article.id,
-      reason: getSafeErrorMessage(error),
-    });
-    return fallbackPrompt;
-  }
-}
-
-async function generateOpenRouterImage({ apiKey, model, prompt }) {
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${apiKey}`,
-      "content-type": "application/json",
-      "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-      "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        {
-          role: "user",
-          content: `${prompt}\n\nGenerate one landscape 16:9 editorial image for a Formula 1 news article. Do not add editorial text, captions, infographics, charts, UI overlays, or watermarks. Do not render readable words, letters, numbers, sponsor names, logo wordmarks, signage, or fake typography anywhere in the image. Realistic F1 team identity may appear through car liveries, team colors, garage design, uniforms, and recognizable driver likenesses, but any branding must stay non-legible and purely visual.`,
-        },
-      ],
-      modalities: ["image"],
-      image_config: {
-        aspect_ratio: "16:9",
-        image_size: "1K",
-      },
-      stream: false,
-    }),
-  });
-  const payload = await readJsonResponse(response);
-
-  if (!response.ok) {
-    throw new Error(`OpenRouter image generation failed: ${response.status} ${JSON.stringify(payload).slice(0, 220)}`);
-  }
-
-  const imageRef = extractOpenRouterImageRef(payload);
-
-  if (!imageRef) {
-    throw new Error("OpenRouter did not return an image.");
-  }
-
-  return imageRef.startsWith("data:")
-    ? decodeDataUrlImage(imageRef)
-    : downloadGeneratedImage(imageRef);
-}
-
-function extractOpenRouterImageRef(payload) {
-  const message = payload?.choices?.[0]?.message;
-  const images = message?.images;
-  const first = Array.isArray(images) ? images[0] : null;
-  const imageUrl =
-    first?.image_url?.url ??
-    first?.imageUrl?.url ??
-    first?.url ??
-    message?.image_url?.url ??
-    message?.imageUrl?.url;
-
-  if (normalizeString(imageUrl)) {
-    return normalizeString(imageUrl);
-  }
-
-  if (typeof message?.content === "string") {
-    return message.content.match(/data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+/i)?.[0] ?? null;
-  }
-
-  return null;
-}
-
-function decodeDataUrlImage(dataUrl) {
-  const match = dataUrl.match(/^data:image\/[a-z0-9.+-]+;base64,(.+)$/i);
-
-  if (!match) {
-    throw new Error("Generated image data URL is invalid.");
-  }
-
-  return Buffer.from(match[1], "base64");
-}
-
-async function downloadGeneratedImage(url) {
-  const response = await fetch(url, {
-    headers: { accept: "image/*" },
-    signal: AbortSignal.timeout(Number(process.env.NEWS_IMAGE_FETCH_TIMEOUT_MS ?? 20000)),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Generated image download failed: HTTP ${response.status}`);
-  }
-
-  return Buffer.from(await response.arrayBuffer());
 }
 
 async function retagNewsWithAi() {
@@ -2438,14 +2111,15 @@ async function generateDailyDigest() {
   const model =
     process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const dateKey = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const dateKey = now.toISOString().slice(0, 10);
+  const windowStart = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
   const { data: cached } = await supabase
     .from("digests")
     .select("id")
     .eq("digest_type", "daily_news")
     .eq("date_key", dateKey)
-    .eq("ai_model", model)
     .eq("status", "published")
     .maybeSingle();
 
@@ -2458,6 +2132,8 @@ async function generateDailyDigest() {
     .select("id, ai_title_ru, original_title, ai_summary_ru, ai_summary_long_ru")
     .eq("status", "processed")
     .is("duplicate_of", null)
+    .gte("published_at", windowStart)
+    .lt("published_at", now.toISOString())
     .order("published_at", { ascending: false, nullsFirst: false })
     .limit(12);
 
@@ -2545,7 +2221,10 @@ async function generateDailyDigest() {
     });
   }
 
-  return { itemsProcessed: articles?.length ?? 0, metadata: { model, dateKey } };
+  return {
+    itemsProcessed: articles?.length ?? 0,
+    metadata: { dateKey, model, windowStart },
+  };
 }
 
 async function syncCalendar() {
@@ -4737,29 +4416,8 @@ function makeFallbackNewsPayload(article) {
         : `${description} Подробная выжимка станет точнее после повторной AI-обработки, когда источник отдаст больше контекста.`,
     keyPoints: [article.original_title, "Источник не передал дополнительных деталей.", "Факты не расширялись без подтверждения."],
     highlights: [article.original_title].filter(Boolean),
-    imagePrompt: makeFallbackImagePrompt(article),
     teamSlugs: [],
   };
-}
-
-function makeFallbackImagePrompt(article) {
-  const story = normalizeString(article.ai_title_ru) ?? normalizeString(article.original_title) ?? "Formula 1 news story";
-  const context =
-    normalizeString(article.ai_summary_ru) ??
-    normalizeString(article.original_description) ??
-    "a developing Formula 1 paddock story";
-
-  return [
-    "Create a unique 16:9 editorial Formula 1 news illustration for RaceMate.",
-    `Specific story: ${story}.`,
-    `Verified context to reflect visually: ${context}.`,
-    "Choose one concrete non-generic scene from the story: pit lane garage, parc ferme, press pen, engineer desk, tire preparation area, rain-soaked paddock, starting grid detail, or dusk circuit atmosphere.",
-    "Use cinematic realistic lighting, dark premium motorsport color grading, one clear focal subject, shallow depth of field, and subtle red RaceMate-style accents.",
-    "Official Formula 1 race-weekend identity, team colors, car liveries, race suits, and recognizable driver presence are allowed when they fit the story. Keep sponsor and team branding non-legible: use visual livery cues rather than readable wordmarks or logos.",
-    "Do not add readable words, letters, numbers, sponsor names, logo wordmarks, signage, editorial text, headlines, captions, infographics, charts, graphs, UI panels, screenshots, generated tables, or watermarks.",
-    "No repeated newsroom/control-room composition unless the article is specifically about media, data, or broadcasts.",
-    "Output should feel like a bespoke article image, not a generic Formula 1 wallpaper.",
-  ].join(" ");
 }
 
 function buildNewsAiSystemPrompt() {
@@ -4767,23 +4425,13 @@ function buildNewsAiSystemPrompt() {
     "Ты редактор RaceMate для русскоязычных фанатов Формулы-1.",
     "Твоя задача — прочитать переданные материалы, перевести смысл на русский и написать подробный редакторский пересказ своими словами.",
     "Не копируй фразы источника дословно, не выдавай текст за оригинальную публикацию и не придумывай факты.",
-    "Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, highlight_phrases_ru, image_prompt_en, race_round, race_confidence, team_slugs.",
+    "Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, highlight_phrases_ru, race_round, race_confidence, team_slugs.",
     "summary_ru — короткий лид на 2-3 предложения.",
     "details_ru — полноценный материал RaceMate: 5-8 абзацев, разделенных пустой строкой, с контекстом, участниками, причиной важности и возможными последствиями только из переданных фактов.",
     "key_points_ru — массив из 4-5 коротких пунктов.",
     "highlight_phrases_ru — массив из 3-6 точных коротких фактических фраз на русском, которые дословно встречаются в summary_ru или details_ru. Каждая фраза должна быть 4-140 символов, без оценок и без новых формулировок: RaceMate подчеркнет их в тексте статьи.",
     "race_round — номер этапа из списка или null.",
     "team_slugs — массив slug команд из списка, если новость прямо связана с командой, ее пилотом, руководителем, болидом, стратегией или результатом команды. Не придумывай slug вне списка.",
-    "image_prompt_en — английский prompt для FLUX.2 Klein 4B, 90-130 слов, для 16:9 изображения новости.",
-    "Для image_prompt_en сначала определи главный визуальный повод статьи: конкретный пилот, команда, трасса, штраф, обновление болида, стратегия, контракт, авария, погода, статистика или закулисный конфликт.",
-    "Prompt должен быть уникальным для этой статьи и привязанным к ее фактам: укажи конкретную сцену, объект в фокусе, окружение, свет, ракурс камеры, настроение и 2-4 визуальные детали из новости.",
-    "Не используй один и тот же шаблон для разных новостей. Не делай по умолчанию newsroom, control room, screens, dashboards или generic race weekend atmosphere.",
-    "Разрешенные типы сцен: pit lane garage, parc ferme detail, paddock walkway, press pen, engineers around a car part, tire blankets and compounds, rainy circuit detail, starting grid close detail, night paddock, podium aftermath, stewards corridor, team motorhome exterior.",
-    "Если статья про конкретного пилота, можно просить узнаваемое присутствие пилота: портрет в гоночном контексте, helmet-off paddock moment, media scrum, cockpit-side shot или крупный план эмоции, если это уместно по фактам.",
-    "Если статья про команду, можно просить официально выглядящую ливрею, командные цвета, болид, гараж, форму механиков и Formula 1 race-weekend identity как часть реалистичной сцены. Не проси читаемые логотипы, названия спонсоров, номера или надписи: брендинг должен считываться через цвет, форму и контекст.",
-    "Жесткий запрет для image_prompt_en: readable words, letters, numbers, sponsor names, logo wordmarks, signage, editorial text overlays, headlines, captions, standalone artificial typography, charts, graphs, telemetry overlays, infographics, UI panels, screenshots, generated tables, watermarks, crash gore.",
-    "Добавь в prompt фразу: no readable text, no letters, no numbers, no sponsor wordmarks, no captions, no infographics, no charts, no UI overlays, no watermarks.",
-    "Стиль image_prompt_en: premium cinematic motorsport editorial image, realistic lighting, dark RaceMate palette, one clear focal subject, not a poster, not a wallpaper, not a social media graphic.",
   ].join(" ");
 }
 
@@ -4816,20 +4464,6 @@ function selectArticleHighlights(value, summary, details) {
       return true;
     })
     .slice(0, 6);
-}
-
-function buildNewsImagePromptSystemPrompt() {
-  return [
-    "You write image prompts for FLUX.2 Klein 4B for RaceMate Formula 1 news articles.",
-    "Return only JSON with one field: image_prompt_en.",
-    "The prompt must be 90-130 English words and produce a unique 16:9 editorial news image for the specific article.",
-    "Anchor the prompt in the article facts: subject, team or driver, setting, mood, camera angle, light, and 2-4 concrete visual details.",
-    "Avoid repeating the same newsroom/control-room/dashboard scene unless the article is specifically about media, telemetry, data, or broadcasts.",
-    "Formula 1 race-weekend identity, team colors, car liveries, race suits, and recognizable drivers are allowed when they fit the story. Represent sponsors and team identity through color, livery, and setting only; do not create readable wordmarks or logos.",
-    "Do not create infographics or any readable text. Avoid words, letters, numbers, sponsor names, logo wordmarks, signage, captions, headlines, artificial typography, charts, graphs, telemetry overlays, UI panels, screenshots, generated tables, and watermarks.",
-    "Include this exact constraint phrase inside the prompt: no readable text, no letters, no numbers, no sponsor wordmarks, no captions, no infographics, no charts, no UI overlays, no watermarks.",
-    "Use premium cinematic motorsport editorial photography style, realistic lighting, dark RaceMate palette, one clear focal subject, not a poster, not a generic wallpaper.",
-  ].join(" ");
 }
 
 function makeDigestFallback(articles) {

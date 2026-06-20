@@ -63,13 +63,12 @@ Worker:
 ```bash
 corepack pnpm worker:rss
 corepack pnpm worker:ai
-corepack pnpm worker:news-images
 corepack pnpm worker:calendar
 corepack pnpm worker:results
 corepack pnpm worker:score
 ```
 
-Для worker нужен `SUPABASE_SERVICE_ROLE_KEY`. OpenRouter требует `OPENROUTER_API_KEY`, `AI_SUMMARY_MAX_TOKENS`; для картинок можно указать `OPENROUTER_IMAGE_MODEL`.
+Для worker нужен `SUPABASE_SERVICE_ROLE_KEY`. OpenRouter требует `OPENROUTER_API_KEY` и `AI_SUMMARY_MAX_TOKENS` для текстовой обработки новостей.
 
 Настройка Supabase Auth для массовой passwordless-авторизации:
 

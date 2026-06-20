@@ -2,9 +2,9 @@ import { Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { generateDailyDigest } from "@/app/news/digest-actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { NewsImage } from "@/components/racemate/news-image";
+import { NewsQuickFilters } from "@/components/racemate/news-quick-filters";
 import {
   StitchMetric,
   StitchPanel,
@@ -106,6 +106,7 @@ export default async function NewsPage({
                 <Link href="/auth">Войти</Link>
               </Button>
             )}
+            <NewsQuickFilters activeTag={tag} drivers={driverTags} teams={teamTags} />
           </div>
 
           {tag || race || activeFavoriteFilter ? (
@@ -213,80 +214,20 @@ export default async function NewsPage({
           <StitchPanel>
             <StitchPanelHeader
               icon={Sparkles}
-              meta="Нажми, чтобы собрать короткий дайджест из последних новостей."
-              title="AI-сводка"
+              title="AI-сводка за день"
             />
-            <div className="grid gap-4 p-4">
+            <div className="p-4">
               {digest ? (
-                <div className="rounded-md border border-border/70 bg-muted p-4">
-                  <p className="font-medium">{digest.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Обновлено {digest.generatedAt}
-                  </p>
-                  <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">
-                    {digest.body}
-                  </p>
-                </div>
+                <p className="whitespace-pre-line text-sm leading-6 text-muted-foreground">
+                  {digest.body}
+                </p>
               ) : (
                 <p className="text-sm leading-6 text-muted-foreground">
-                  Дайджеста за сегодня еще нет. RaceMate соберет его из свежих
-                  новостей и сохранит для следующих открытий.
+                  Сводка за прошедшие сутки появится после 12:00 UTC.
                 </p>
               )}
-              <form action={generateDailyDigest}>
-                <Button className="w-full" type="submit" variant="secondary">
-                  <Sparkles aria-hidden="true" data-icon="inline-start" />
-                  Собрать сводку
-                </Button>
-              </form>
             </div>
           </StitchPanel>
-
-          {driverTags.length ? (
-            <StitchPanel>
-              <StitchPanelHeader
-                meta="Быстро открой новости про конкретного пилота."
-                title="Пилоты"
-              />
-              <div className="flex flex-wrap gap-2 p-4">
-                {driverTags.map((driverTag) => (
-                  <Button
-                    asChild
-                    key={driverTag.slug}
-                    size="sm"
-                    variant={tag === driverTag.slug ? "default" : "secondary"}
-                  >
-                    <Link href={`/news?tag=${driverTag.slug}`}>
-                      {driverTag.name}
-                    </Link>
-                  </Button>
-                ))}
-              </div>
-            </StitchPanel>
-          ) : null}
-
-          {teamTags.length ? (
-            <StitchPanel>
-              <StitchPanelHeader
-                meta="Фильтр по командам и их пилотам."
-                title="Команды"
-              />
-              <div className="flex flex-wrap gap-2 p-4">
-                {teamTags.map((teamTag) => (
-                  <Button
-                    asChild
-                    key={teamTag.slug}
-                    size="sm"
-                    variant={tag === teamTag.slug ? "default" : "secondary"}
-                  >
-                    <Link href={`/news?tag=${teamTag.slug}`}>
-                      {teamTag.name}
-                    </Link>
-                  </Button>
-                ))}
-              </div>
-            </StitchPanel>
-          ) : null}
         </aside>
       </section>
     </AppShell>
@@ -338,6 +279,9 @@ function NewsMeta({
       {raceTag ? (
         <Badge variant="warning">{raceTag}</Badge>
       ) : null}
+      <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+        {item.time}
+      </span>
     </div>
   );
 }

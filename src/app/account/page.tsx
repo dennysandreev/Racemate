@@ -1,12 +1,9 @@
 import Link from "next/link";
 import {
-  CheckCircle2,
   Clock3,
   Mail,
-  Trophy,
   UserRound,
   Users,
-  Vote,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 
@@ -21,12 +18,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getTeamAsset } from "@/data/f1-assets";
-import {
-  getPredictionState,
-} from "@/data/racemate-repository";
 import { ensureProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { PredictionState } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -70,21 +63,6 @@ type FavoriteDriver = {
   teamColor?: string;
 };
 
-const quickLinks = [
-  {
-    href: "/fantasy",
-    icon: Trophy,
-    label: "Фентази лига",
-    text: "Проверить прогноз и лиги друзей.",
-  },
-  {
-    href: "/polls",
-    icon: Vote,
-    label: "Опросы",
-    text: "Ответить на свежие вопросы по сезону.",
-  },
-];
-
 export default async function AccountPage() {
   const profile = await ensureProfile();
   const displayName =
@@ -127,10 +105,9 @@ export default async function AccountPage() {
             </div>
             <div className="grid gap-3 rounded-lg border border-border bg-background/45 p-4 backdrop-blur">
               <p className="stitch-label text-muted-foreground">Пульс профиля</p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <MiniStat label="Пилоты" value={overview.favoriteDrivers.length} />
-                <MiniStat label="Команды" value={overview.favoriteTeams.length} />
-                <MiniStat label="Лиги" value={overview.leagueCount} />
+                <MiniStat label="Команда" value={overview.favoriteTeams.length} />
               </div>
               <Button asChild className="mt-1 w-full justify-center">
                 <Link href="/onboarding" prefetch={false}>
@@ -147,7 +124,6 @@ export default async function AccountPage() {
               <FavoriteDriversPanel drivers={overview.favoriteDrivers} />
               <FavoriteTeamsPanel teams={overview.favoriteTeams} />
             </div>
-            <QuickActions />
           </div>
 
           <aside className="grid content-start gap-4">
@@ -161,8 +137,19 @@ export default async function AccountPage() {
               tone={favoriteCount ? "red" : "neutral"}
               value={`${favoriteCount} выбрано`}
             />
-            <PredictionPanel predictionState={overview.predictionState} />
-            <LeaguePanel leagueCount={overview.leagueCount} />
+            <StitchPanel>
+              <div className="grid gap-3 p-4">
+                <p className="font-display text-lg font-bold">Настройки болельщика</p>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  Выбери одну команду и до двух пилотов, чтобы собрать личную ленту RaceMate.
+                </p>
+                <Button asChild className="w-full justify-center" variant="secondary">
+                  <Link href="/onboarding" prefetch={false}>
+                    Изменить профиль
+                  </Link>
+                </Button>
+              </div>
+            </StitchPanel>
           </aside>
         </section>
       </section>
@@ -172,12 +159,7 @@ export default async function AccountPage() {
 
 async function getAccountOverview(userId: string | null) {
   const supabase = await createSupabaseServerClient();
-  const [
-    favoriteTeamsResult,
-    favoriteDriversResult,
-    leagueCountResult,
-    predictionState,
-  ] = await Promise.all([
+  const [favoriteTeamsResult, favoriteDriversResult] = await Promise.all([
     userId
       ? supabase
           ?.from("user_favorite_teams")
@@ -192,13 +174,6 @@ async function getAccountOverview(userId: string | null) {
           .eq("user_id", userId)
           .order("created_at", { ascending: true })
       : null,
-    userId
-      ? supabase
-          ?.from("prediction_league_members")
-          .select("league_id", { count: "exact", head: true })
-          .eq("user_id", userId)
-      : null,
-    getPredictionState(userId),
   ]);
 
   return {
@@ -208,8 +183,6 @@ async function getAccountOverview(userId: string | null) {
     favoriteDrivers: ((favoriteDriversResult?.data ?? []) as unknown as FavoriteDriverRow[])
       .map(mapFavoriteDriver)
       .filter(Boolean) as FavoriteDriver[],
-    leagueCount: leagueCountResult?.count ?? 0,
-    predictionState,
   };
 }
 
@@ -282,120 +255,6 @@ function FavoriteTeamsPanel({ teams }: { teams: FavoriteTeam[] }) {
         )}
       </div>
     </StitchPanel>
-  );
-}
-
-function PredictionPanel({
-  predictionState,
-}: {
-  predictionState: PredictionState;
-}) {
-  const driversById = new Map(
-    predictionState.drivers.map((driver) => [driver.id, driver.name]),
-  );
-  const picks = [
-    ["Победитель", predictionState.current?.winnerDriverId],
-    ["Поул", predictionState.current?.poleDriverId],
-    ["Лучший круг", predictionState.current?.fastestLapDriverId],
-    ["Первый сход", predictionState.current?.dnfDriverId],
-  ].map(([label, driverId]) => ({
-    label,
-    value: driverId ? driversById.get(driverId) ?? "Пилот выбран" : "Не выбран",
-  }));
-  const completed = picks.filter((pick) => pick.value !== "Не выбран").length;
-
-  return (
-    <StitchPanel>
-      <StitchPanelHeader
-        action={<Badge variant="outline">{completed} / {picks.length}</Badge>}
-        icon={Trophy}
-        title="Прогноз на этап"
-      />
-      <div className="grid gap-3 p-4">
-        {predictionState.race ? (
-          <p className="font-medium">{predictionState.race.name}</p>
-        ) : null}
-        <div className="grid gap-2">
-          {picks.map((pick) => (
-            <div
-              className="flex items-center justify-between gap-3 text-sm"
-              key={pick.label}
-            >
-              <span className="text-muted-foreground">{pick.label}</span>
-              <span className="min-w-0 truncate text-right font-medium">{pick.value}</span>
-            </div>
-          ))}
-        </div>
-        <Button asChild className="w-full justify-center" variant="secondary">
-          <Link href="/fantasy" prefetch={false}>
-            Открыть фентази
-          </Link>
-        </Button>
-      </div>
-    </StitchPanel>
-  );
-}
-
-function LeaguePanel({ leagueCount }: { leagueCount: number }) {
-  return (
-    <StitchPanel>
-      <div className="grid gap-3 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="stitch-label text-muted-foreground">Лиги</p>
-            <p className="mt-2 font-display text-2xl font-bold">
-              {leagueCount ? `${leagueCount} активных` : "Пока без лиг"}
-            </p>
-          </div>
-          <CheckCircle2 aria-hidden="true" className="size-5 text-success" />
-        </div>
-        <p className="text-sm leading-6 text-muted-foreground">
-          Создай лигу или вступи по коду, чтобы сравнивать прогнозы с друзьями.
-        </p>
-      </div>
-    </StitchPanel>
-  );
-}
-
-function QuickActions() {
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      {quickLinks.map((item) => (
-        <QuickActionCard
-          href={item.href}
-          icon={item.icon}
-          key={item.href}
-          label={item.label}
-          text={item.text}
-        />
-      ))}
-    </div>
-  );
-}
-
-function QuickActionCard({
-  href,
-  icon: Icon,
-  label,
-  text,
-}: {
-  href: string;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
-  label: string;
-  text: string;
-}) {
-  return (
-    <Link
-      className="stitch-panel group grid gap-3 p-4 transition-colors hover:border-primary/70 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      href={href}
-      prefetch={false}
-    >
-      <span className="grid size-10 place-items-center rounded-md bg-primary/12 text-primary transition-transform group-hover:scale-105">
-        <Icon aria-hidden="true" className="size-5" />
-      </span>
-      <span className="font-display text-base font-bold">{label}</span>
-      <span className="text-sm leading-6 text-muted-foreground">{text}</span>
-    </Link>
   );
 }
 

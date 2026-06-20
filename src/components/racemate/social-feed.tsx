@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, Heart } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,16 +13,14 @@ import type {
   SocialFeedResult,
   SocialPlatform,
   SocialPost,
-  SocialSort,
 } from "@/types/racemate";
 
 type SocialFeedProps = {
   initialResult: SocialFeedResult;
   platform: SocialPlatform;
-  sort: SocialSort;
 };
 
-export function SocialFeed({ initialResult, platform, sort }: SocialFeedProps) {
+export function SocialFeed({ initialResult, platform }: SocialFeedProps) {
   const [items, setItems] = useState(initialResult.items);
   const [cursor, setCursor] = useState(initialResult.nextCursor);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +39,6 @@ export function SocialFeed({ initialResult, platform, sort }: SocialFeedProps) {
       const params = new URLSearchParams({
         cursor,
         platform,
-        sort,
       });
       const response = await fetch(`/api/social-posts?${params.toString()}`);
 
@@ -59,7 +55,7 @@ export function SocialFeed({ initialResult, platform, sort }: SocialFeedProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [cursor, isLoading, platform, sort]);
+  }, [cursor, isLoading, platform]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -80,7 +76,7 @@ export function SocialFeed({ initialResult, platform, sort }: SocialFeedProps) {
     observer.observe(sentinel);
 
     return () => observer.disconnect();
-  }, [cursor, isLoading, loadMore, platform, sort]);
+  }, [cursor, isLoading, loadMore]);
 
   if (!items.length) {
     return (
@@ -127,9 +123,6 @@ function SocialPostCard({ item }: { item: SocialPost }) {
       <CardContent className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_12rem] sm:p-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={item.platform === "x" ? "outline" : "secondary"}>
-              {item.platform === "x" ? "X" : "Reddit"}
-            </Badge>
             <span className="text-sm font-medium">{item.author}</span>
             <span className="text-xs text-muted-foreground">{item.publishedAt}</span>
             {item.reactionCount !== undefined ? (
