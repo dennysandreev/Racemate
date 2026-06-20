@@ -117,6 +117,7 @@ export default async function AdminPage({
                 <option value="reports.refresh_due">Обновить отчеты</option>
                 <option value="reports.generate_summary">AI отчетов</option>
                 <option value="ai.process_news">AI новости</option>
+                <option value="ai.reprocess_fallback_news">Повторить AI новости</option>
                 <option value="ai.retag_news">Теги этапов</option>
                 <option value="jolpica.sync_calendar">Календарь</option>
                 <option value="jolpica.sync_results">Результаты</option>

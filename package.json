@@ -13,6 +13,7 @@
     "worker:social:reddit": "node worker/index.mjs social.fetch_reddit",
     "worker:social:x": "node worker/index.mjs social.fetch_x",
     "worker:ai": "node worker/index.mjs ai.process_news",
+    "worker:ai:retry-fallback": "node worker/index.mjs ai.reprocess_fallback_news",
     "worker:rehighlight": "node worker/index.mjs ai.rehighlight_news",
     "worker:source-images": "node worker/index.mjs news.backfill_source_images",
     "worker:retag": "node worker/index.mjs ai.retag_news",

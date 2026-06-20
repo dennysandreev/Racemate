@@ -17,6 +17,7 @@ const commands = new Map([
   ["reports.generate_summary", generateGrandPrixReportSummary],
   ["reports.refresh_due", refreshDueGrandPrixReports],
   ["ai.process_news", processNewsWithAi],
+  ["ai.reprocess_fallback_news", reprocessFallbackNewsWithAi],
   ["ai.rehighlight_news", rehighlightNewsWithAi],
   ["news.backfill_source_images", backfillNewsSourceImages],
   ["ai.retag_news", retagNewsWithAi],
@@ -1729,18 +1730,46 @@ function slugify(value) {
 }
 
 async function processNewsWithAi() {
+  return processNewsArticleBatch({ mode: "pending" });
+}
+
+async function reprocessFallbackNewsWithAi() {
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error("OPENROUTER_API_KEY is missing for fallback news reprocessing.");
+  }
+
+  return processNewsArticleBatch({ mode: "fallback" });
+}
+
+async function processNewsArticleBatch({ mode }) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model =
     process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
   const maxTokens = Number(process.env.AI_SUMMARY_MAX_TOKENS ?? 1800);
+  const limit = Math.max(
+    1,
+    Math.min(Number(getCliOption("limit") ?? process.env.AI_MAX_ARTICLES_PER_RUN ?? 20), 100),
+  );
+  const articleId = normalizeString(getCliOption("id"));
 
-  const { data: articles, error } = await supabase
+  let query = supabase
     .from("news_articles")
     .select("id, canonical_url, original_url, original_title, original_description, source_image_url, raw_payload")
-    .eq("status", "pending")
     .is("duplicate_of", null)
     .order("published_at", { ascending: false, nullsFirst: false })
-    .limit(Number(process.env.AI_MAX_ARTICLES_PER_RUN ?? 20));
+    .limit(limit);
+
+  if (articleId) {
+    query = query.eq("id", articleId);
+  }
+
+  if (mode === "fallback") {
+    query = query.eq("status", "processed").eq("ai_model", "fallback");
+  } else {
+    query = query.eq("status", "pending");
+  }
+
+  const { data: articles, error } = await query;
 
   if (error) {
     throw error;
@@ -1890,7 +1919,7 @@ async function processNewsWithAi() {
     itemsProcessed += 1;
   }
 
-  return { itemsProcessed, metadata: { model, openrouter: Boolean(apiKey) } };
+  return { itemsProcessed, metadata: { model, openrouter: Boolean(apiKey), mode, limit } };
 }
 
 async function rehighlightNewsWithAi() {

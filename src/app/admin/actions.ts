@@ -13,6 +13,7 @@ const allowedJobs = new Set([
   "reports.refresh_due",
   "reports.generate_summary",
   "ai.process_news",
+  "ai.reprocess_fallback_news",
   "ai.retag_news",
   "jolpica.sync_calendar",
   "jolpica.sync_results",
