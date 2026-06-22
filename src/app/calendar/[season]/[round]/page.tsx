@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clock, Flag, MapPin, Sparkles, Trophy } from "lucide-react";
+import { Clock, Flag, MapPin, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
 import { PageHeading } from "@/components/racemate/page-heading";
-import { TeamLogo } from "@/components/racemate/team-logo";
 import { TrackMap } from "@/components/racemate/track-map";
 import { GrandPrixReportDialog } from "@/components/racemate/grand-prix-report-dialog";
+import { GrandPrixPodiumPreview } from "@/components/racemate/grand-prix-podium-preview";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -189,15 +188,7 @@ export default async function RaceCalendarPage({
                               )}
                             </td>
                             <td className="px-2 py-3 text-muted-foreground sm:px-3">
-                              <span className="flex min-w-0 items-center gap-2">
-                                <TeamLogo
-                                  code={result.teamCode}
-                                  color={result.teamColor}
-                                  logo={result.teamLogo}
-                                  name={result.team}
-                                />
-                                <span className="min-w-0 truncate">{result.team}</span>
-                              </span>
+                              <span className="block truncate">{result.team}</span>
                             </td>
                             <td className="break-words px-2 py-3 font-mono text-muted-foreground sm:px-3">
                               {result.time}
@@ -271,42 +262,7 @@ function RaceReportPreview({
   href: string;
   report: GrandPrixReport;
 }) {
-  const podium = Array.isArray(report.highlights.podium)
-    ? report.highlights.podium.map((item) => String(item)).filter(Boolean).slice(0, 3)
-    : [];
-  const winner = String(report.highlights.winner ?? report.results[0]?.driver ?? "Уточняется");
-  const summary = report.aiSummary?.split(/\n{2,}/)[0]?.trim();
-
   return (
-    <div className="mt-2 overflow-hidden rounded-xl border border-primary/35 bg-primary/10">
-      <div className="border-b border-primary/20 p-4">
-        <div className="flex items-center gap-2">
-          <Sparkles aria-hidden="true" className="size-5 text-primary" />
-          <p className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-primary">
-            Отчет Гран-при
-          </p>
-        </div>
-        {summary ? (
-          <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">{summary}</p>
-        ) : null}
-      </div>
-      <div className="grid gap-3 p-4 text-sm">
-        <div className="flex items-start justify-between gap-4">
-          <span className="text-muted-foreground">Победитель</span>
-          <span className="max-w-[62%] text-right font-semibold">{winner}</span>
-        </div>
-        {podium.length ? (
-          <div className="flex items-start justify-between gap-4">
-            <span className="text-muted-foreground">Подиум</span>
-            <span className="max-w-[62%] text-right font-semibold">{podium.join(", ")}</span>
-          </div>
-        ) : null}
-        <Button asChild className="mt-1 w-full">
-          <Link href={href} scroll={false}>
-            Открыть полный отчет
-          </Link>
-        </Button>
-      </div>
-    </div>
+    <GrandPrixPodiumPreview className="mt-2" href={href} report={report} />
   );
 }

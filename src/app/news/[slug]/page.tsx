@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 
 import { reactToArticle } from "@/app/news/actions";
 import { AppShell } from "@/components/racemate/app-shell";
+import { ArticleShareActions } from "@/components/racemate/article-share-actions";
 import { NewsImage } from "@/components/racemate/news-image";
+import { NewsTagBadge } from "@/components/racemate/news-tag-badge";
 import { PageHeading } from "@/components/racemate/page-heading";
 import {
   StitchPanel,
@@ -50,9 +52,7 @@ export default async function NewsArticlePage({
             <Badge variant="outline">{article.source}</Badge>
             <span className="text-xs text-muted-foreground">{article.time}</span>
             {article.tags.map((tag) => (
-              <Link href={`/news?tag=${tag.slug}`} key={tag.slug}>
-                <Badge variant="secondary">{tag.name}</Badge>
-              </Link>
+              <NewsTagBadge href={`/news?tag=${tag.slug}`} key={tag.slug} tag={tag} />
             ))}
             {article.raceTag && !article.tags.some((tag) => tag.type === "race") ? (
               <Link href={article.raceFilter ? `/news?race=${article.raceFilter}` : "/news"}>
@@ -125,6 +125,7 @@ export default async function NewsArticlePage({
                 </Button>
               ))}
             </form>
+            <ArticleShareActions title={article.title} />
           </StitchPanel>
 
           <StitchPanel>

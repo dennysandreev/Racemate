@@ -1312,16 +1312,30 @@ function getMostCommonStrategy(strategies) {
 }
 
 function getSafetyCarSummary(keyEvents) {
-  const text = (keyEvents ?? [])
-    .map((event) => `${event.title ?? ""} ${event.detail ?? ""}`)
-    .join(" ")
-    .toLowerCase();
-  const safetyCar = (text.match(/safety car/g) ?? []).length;
-  const vsc = (text.match(/virtual safety car|vsc/g) ?? []).length;
-  const redFlag = (text.match(/red flag|красн/g) ?? []).length;
+  let safetyCar = 0;
+  let vsc = 0;
+  let redFlag = 0;
+
+  for (const event of keyEvents ?? []) {
+    const text = `${event.title ?? ""} ${event.detail ?? ""}`.toLowerCase();
+
+    if (/red flag|красн/.test(text)) {
+      redFlag += 1;
+      continue;
+    }
+
+    if (/virtual safety car|\bvsc\b/.test(text)) {
+      vsc += 1;
+      continue;
+    }
+
+    if (/safety car|\bsc\b/.test(text)) {
+      safetyCar += 1;
+    }
+  }
 
   if (!safetyCar && !vsc && !redFlag) {
-    return "SC/VSC/красных флагов не найдено";
+    return null;
   }
 
   return [

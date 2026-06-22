@@ -70,31 +70,26 @@ export default async function WeekendPage() {
           weekendStatus={nextSession.status}
         />
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
-          <div className="grid min-w-0 gap-5">
-            <section className="stitch-panel overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
-                <div>
-                  <p className="stitch-label text-muted-foreground">Уикенд</p>
-                  <h2 className="mt-2 font-display text-2xl font-bold">Расписание уикенда</h2>
-                </div>
-                <Badge variant="secondary">{sessionResults.length} сессий</Badge>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
+          <section className="stitch-panel min-w-0 overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
+              <div>
+                <p className="stitch-label text-muted-foreground">Уикенд</p>
+                <h2 className="mt-2 font-display text-2xl font-bold">Расписание уикенда</h2>
               </div>
-              <div className="p-4 sm:p-5">
-                <WeekendSessionBoard
-                  activeSessionName={nextSession.session}
-                  sessions={sessionResults}
-                />
-              </div>
-            </section>
+              <Badge variant="secondary">{sessionResults.length} сессий</Badge>
+            </div>
+            <div className="p-4 sm:p-5">
+              <WeekendSessionBoard
+                activeSessionName={nextSession.session}
+                sessions={sessionResults}
+              />
+            </div>
+          </section>
 
-            <StageNewsCard href={raceNewsHref} items={raceNews} />
-          </div>
-
-          <aside className="grid gap-5">
-            <WinnerOddsCard odds={winnerOdds} teamLookupRows={standings} />
-            <FantasyPredictionCard predictionState={predictionState} userSignedIn={Boolean(user)} />
-          </aside>
+          <WinnerOddsCard className="h-full" odds={winnerOdds} teamLookupRows={standings} />
+          <StageNewsCard href={raceNewsHref} items={raceNews} />
+          <FantasyPredictionCard className="h-full" predictionState={predictionState} userSignedIn={Boolean(user)} />
         </div>
       </section>
     </AppShell>
@@ -223,14 +218,16 @@ function StageNewsCard({
 }
 
 function WinnerOddsCard({
+  className,
   odds,
   teamLookupRows,
 }: {
+  className?: string;
   odds: RaceWinnerOdds | null;
   teamLookupRows: StandingRow[];
 }) {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp aria-hidden="true" data-icon="inline-start" />
@@ -289,9 +286,11 @@ function WinnerOddsCard({
 }
 
 function FantasyPredictionCard({
+  className,
   predictionState,
   userSignedIn,
 }: {
+  className?: string;
   predictionState: PredictionState;
   userSignedIn: boolean;
 }) {
@@ -310,7 +309,7 @@ function FantasyPredictionCard({
   }));
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Target aria-hidden="true" data-icon="inline-start" />

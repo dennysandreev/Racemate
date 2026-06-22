@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/racemate/app-shell";
 import { NewsImage } from "@/components/racemate/news-image";
 import { NewsQuickFilters } from "@/components/racemate/news-quick-filters";
+import { NewsTagBadge } from "@/components/racemate/news-tag-badge";
 import {
   StitchMetric,
   StitchPanel,
@@ -44,7 +45,7 @@ export default async function NewsPage({
   const activeFavoriteFilter = filter === "favorites";
   const newsResult = await getNewsItems({
     page: currentPage,
-    pageSize: 20,
+    pageSize: 21,
     tagSlug: tag,
     tagSlugs: activeFavoriteFilter ? favoriteTagSlugs : undefined,
     race,
@@ -271,12 +272,15 @@ function NewsMeta({
     time: string;
   };
 }) {
-  const raceTag = item.tags.find((tag) => tag.type === "race")?.name ?? item.raceTag;
+  const visibleTag = item.tags.find((tag) => tag.type === "team") ?? item.tags.find((tag) => tag.type === "race");
+  const raceTag = visibleTag?.name ?? item.raceTag;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Badge variant="outline">{item.source}</Badge>
-      {raceTag ? (
+      {visibleTag ? (
+        <NewsTagBadge tag={visibleTag} />
+      ) : raceTag ? (
         <Badge variant="warning">{raceTag}</Badge>
       ) : null}
       <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">

@@ -327,7 +327,9 @@ export function GrandPrixReportDialog({
                 label="Быстрый пит-стоп"
                 value={fastestPitStop ?? "Нет данных"}
               />
-              <ReportStat icon={Flag} label="SC / VSC / красный флаг" value={safetyCarSummary ?? "Нет данных"} />
+              {hasRaceControlEventSummary(safetyCarSummary) ? (
+                <ReportStat icon={Flag} label="SC / VSC / красный флаг" value={safetyCarSummary} />
+              ) : null}
               <ReportStat icon={Trophy} label="Частая стратегия" value={mostCommonStrategy ?? "Нет данных"} />
               <div className="rounded-xl border border-border bg-card p-5 text-center">
                 <Trophy aria-hidden="true" className="mx-auto size-9 text-primary" />
@@ -345,6 +347,10 @@ export function GrandPrixReportDialog({
       </div>
     </div>
   );
+}
+
+function hasRaceControlEventSummary(summary: string | null): summary is string {
+  return Boolean(summary && !/не найдено|нет данных/i.test(summary));
 }
 
 function PodiumCard({

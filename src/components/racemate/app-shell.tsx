@@ -121,7 +121,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             </p>
             <div className="mt-4 flex items-center gap-2">
               <span className={`size-2 rounded-full ${nextSession?.status === "Live" ? "bg-success shadow-[0_0_14px_rgb(57_255_20_/_0.45)]" : "bg-primary shadow-[0_0_14px_rgb(225_6_0_/_0.35)]"}`} />
-              <span className={`font-telemetry text-[0.65rem] font-bold uppercase tracking-[0.08em] ${nextSession?.status === "Live" ? "text-success" : "text-primary"}`}>
+              <span className={`font-telemetry text-[0.65rem] font-extrabold uppercase tracking-[0.08em] ${nextSession?.status === "Live" ? "text-success" : "text-primary"}`}>
                 {sidebarCountdown}
               </span>
             </div>

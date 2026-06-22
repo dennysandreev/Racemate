@@ -18,7 +18,6 @@ import {
 import { addFavoriteDriver } from "@/app/drivers/[slug]/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverCumulativePointsChart } from "@/components/racemate/driver-cumulative-points-chart";
-import { NewsImage } from "@/components/racemate/news-image";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import {
@@ -437,7 +436,6 @@ function DriverNewsPanel({ profile }: { profile: DriverProfile }) {
             </div>
             <h2 className="text-base font-semibold leading-6">{item.title}</h2>
             <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>
-            <NewsImage alt="" src={item.imageUrl} />
           </Link>
         )) : (
           <p className="rounded-md border border-border/70 p-4 text-sm text-muted-foreground">

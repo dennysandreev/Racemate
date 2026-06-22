@@ -12,8 +12,11 @@ import {
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { GrandPrixReportDialog } from "@/components/racemate/grand-prix-report-dialog";
+import { GrandPrixPodiumPreview } from "@/components/racemate/grand-prix-podium-preview";
+import { HomeSessionStrip } from "@/components/racemate/home-session-strip";
 import { NewsImage } from "@/components/racemate/news-image";
-import { SessionWeatherTile } from "@/components/racemate/session-weather-tile";
+import { NewsTagBadge } from "@/components/racemate/news-tag-badge";
+import type { SessionWithResults } from "@/components/racemate/session-results-dialog";
 import { TeamColorBar, TeamColorProgress } from "@/components/racemate/team-color";
 import { TrackMap } from "@/components/racemate/track-map";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getTeamAsset, getTeamAssetForMarketOutcome } from "@/data/f1-assets";
+import { getTeamAssetForMarketOutcome } from "@/data/f1-assets";
 import {
   getConstructorChampionOdds,
   getCurrentRaceDetail,
@@ -34,6 +37,7 @@ import {
   getLatestGrandPrixReport,
   getNewsItems,
   getNextSession,
+  getSessionResults,
   getSeasonChampionOdds,
   getWeekendSessions,
 } from "@/data/racemate-repository";
@@ -44,7 +48,6 @@ import type {
   NewsItem,
   RaceDetail,
   StandingRow,
-  WeekendSession,
 } from "@/types/racemate";
 import { normalizeAuthNext } from "@/lib/auth-redirect";
 import { formatSessionName } from "@/lib/session-display";
@@ -81,6 +84,12 @@ export default async function Home({
       getDriverSlugMap(),
     ]);
   const newsItems = newsResult.items;
+  const sessionResults = await Promise.all(
+    sessions.slice(0, 5).map(async (session) => ({
+      results: await getSessionResults(session.id),
+      session,
+    })),
+  );
   const topStandings = standings.slice(0, 6);
   const dialogReport = queryReport ?? latestReport;
   const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
@@ -91,7 +100,7 @@ export default async function Home({
         <CurrentRaceCard
           currentRace={currentRace}
           nextSession={nextSession}
-          sessions={sessions}
+          sessions={sessionResults}
         />
 
         <aside className="grid gap-5 xl:col-start-2 xl:row-span-2 xl:row-start-1">
@@ -126,7 +135,7 @@ function CurrentRaceCard({
 }: {
   currentRace: RaceDetail | null;
   nextSession: NextSession;
-  sessions: WeekendSession[];
+  sessions: SessionWithResults[];
 }) {
   return (
     <div className="stitch-panel relative min-h-[34rem] overflow-hidden p-0">
@@ -150,17 +159,7 @@ function CurrentRaceCard({
           </h1>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-          {sessions.slice(0, 5).map((session) => (
-            <SessionWeatherTile
-              compact
-              isActive={session.name === nextSession.session}
-              key={session.id ?? session.name}
-              session={session}
-              showStatusBadge={false}
-            />
-          ))}
-        </div>
+        <HomeSessionStrip activeSessionName={nextSession.session} sessions={sessions} />
 
         <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,15rem)]">
           <div className="h-[14rem] min-w-0 max-w-full overflow-hidden rounded-lg border border-border sm:h-[15.5rem] lg:h-[16.5rem]">
@@ -280,12 +279,12 @@ function NewsCard({ items }: { items: NewsItem[] }) {
 }
 
 function NewsMeta({ item }: { item: NewsItem }) {
+  const visibleTag = item.tags.find((tag) => tag.type === "team") ?? item.tags.find((tag) => tag.type === "race") ?? item.tags[0];
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Badge variant="outline">{item.source}</Badge>
-      {item.tags.slice(0, 1).map((tag) => (
-        <Badge key={tag.slug} variant="secondary">{tag.name}</Badge>
-      ))}
+      {visibleTag ? <NewsTagBadge tag={visibleTag} /> : null}
       <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
         {item.time}
       </span>
@@ -294,8 +293,6 @@ function NewsMeta({ item }: { item: NewsItem }) {
 }
 
 function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
-  const podium = report?.results.slice(0, 3) ?? [];
-
   return (
     <Card>
       <CardHeader>
@@ -306,59 +303,7 @@ function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
       </CardHeader>
       <CardContent>
         {report ? (
-          <div className="grid gap-5">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="font-display text-lg font-bold leading-tight">{report.raceName}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{report.raceDate}</p>
-              </div>
-              <Trophy aria-hidden="true" className="size-6 shrink-0 text-primary" />
-            </div>
-            {podium.length >= 3 ? (
-              <div className="grid gap-2">
-                {podium.map((result, index) => {
-                  const team = getTeamAsset(result.team);
-                  const medalClassName =
-                    index === 0
-                      ? "border-[#f4c95d]/50 bg-[#f4c95d]/10 text-[#f4c95d]"
-                      : index === 1
-                        ? "border-slate-200/35 bg-slate-200/10 text-slate-100"
-                        : "border-[#d48a5f]/45 bg-[#d48a5f]/10 text-[#d48a5f]";
-
-                  return (
-                    <div
-                      className="grid grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-3 rounded-md border border-border bg-muted/20 p-3"
-                      key={`${result.position}-${result.driver}`}
-                    >
-                      <span
-                        className={`grid h-10 place-items-center rounded-md border font-telemetry text-xs font-black ${medalClassName}`}
-                      >
-                        P{index + 1}
-                      </span>
-                      <span className="flex min-w-0 items-center gap-3">
-                        <TeamColorBar className="h-8 w-1.5" color={team?.color} />
-                        <span className="min-w-0">
-                          <span className="block truncate font-semibold">{result.driver}</span>
-                          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                            {result.team}
-                          </span>
-                        </span>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="rounded-md border border-border/70 p-4 text-sm leading-6 text-muted-foreground">
-                Подиум появится после синхронизации итоговой классификации.
-              </p>
-            )}
-            <Button asChild className="w-full">
-              <Link href={`/?raceReport=${report.raceSlug}`} prefetch={false} scroll={false}>
-                Открыть полный отчет
-              </Link>
-            </Button>
-          </div>
+          <GrandPrixPodiumPreview href={`/?raceReport=${report.raceSlug}`} report={report} />
         ) : (
           <p className="text-sm leading-6 text-muted-foreground">
             Отчет появится после завершения гонки и синхронизации результатов.
