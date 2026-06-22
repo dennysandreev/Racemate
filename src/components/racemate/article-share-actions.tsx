@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Send, Share2 } from "lucide-react";
+import { Check, Copy, Share2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -54,24 +54,28 @@ export function ArticleShareActions({ title }: ArticleShareActionsProps) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-t stitch-divider p-4">
-      <Button onClick={share} size="sm" type="button" variant="secondary">
-        <Share2 aria-hidden="true" className="size-4" />
-        Поделиться
-      </Button>
-      {[
-        { label: "Telegram", platform: "telegram" as const },
-        { label: "VK", platform: "vk" as const },
-        { label: "X", platform: "x" as const },
-      ].map((item) => (
-        <Button key={item.label} onClick={() => openSocialShare(item.platform)} size="sm" type="button" variant="outline">
-          {item.label}
+    <div className="grid gap-2 border-t stitch-divider p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button onClick={share} size="sm" type="button" variant="secondary">
+          <Share2 aria-hidden="true" className="size-4" />
+          Поделиться
         </Button>
-      ))}
-      <Button aria-label="Скопировать ссылку" onClick={copyLink} size="icon" type="button" variant="ghost">
-        {copied ? <Check aria-hidden="true" className="size-4 text-success" /> : <Copy aria-hidden="true" className="size-4" />}
-      </Button>
-      <Send aria-hidden="true" className="ml-auto size-4 text-muted-foreground" />
+        <Button onClick={copyLink} size="sm" type="button" variant="outline">
+          {copied ? <Check aria-hidden="true" className="size-4 text-success" /> : <Copy aria-hidden="true" className="size-4" />}
+          {copied ? "Ссылка скопирована" : "Скопировать ссылку"}
+        </Button>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          { label: "Telegram", platform: "telegram" as const },
+          { label: "VK", platform: "vk" as const },
+          { label: "X", platform: "x" as const },
+        ].map((item) => (
+          <Button key={item.label} onClick={() => openSocialShare(item.platform)} size="sm" type="button" variant="outline">
+            {item.label}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 }

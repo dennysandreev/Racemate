@@ -223,7 +223,7 @@ export function GrandPrixReportDialog({
                               )}
                               <span className="ml-2 inline-flex gap-1">
                                 {result.isWinner ? <Badge variant="success">Победа</Badge> : null}
-                                {result.isFastestLap ? <Badge variant="outline">БК</Badge> : null}
+                                {result.isFastestLap ? <Badge variant="outline">ЛК</Badge> : null}
                               </span>
                             </td>
                             <td className="px-4 py-3 font-telemetry text-muted-foreground">{result.team}</td>
