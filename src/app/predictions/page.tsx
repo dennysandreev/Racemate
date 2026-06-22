@@ -4,6 +4,7 @@ import { savePrediction } from "@/app/predictions/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
 import { PageHeading } from "@/components/racemate/page-heading";
+import { Top10PredictionPicker } from "@/components/racemate/top10-prediction-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +31,7 @@ export default async function PredictionsPage({
     <AppShell>
       <PageHeading
         badge="Прогнозы"
-        description="Первый игровой слой RaceMate: победитель, поул, топ-3, топ-10, лучший круг и DNF с простой системой очков."
+        description="Выбери топ-10 гонки и спецпрогнозы до блокировки сессий."
         title="Собери прогноз до блокировки уикенда"
       />
 
@@ -51,13 +52,19 @@ export default async function PredictionsPage({
             {predictionState.race && predictionState.drivers.length ? (
               <form action={savePrediction} className="grid gap-4">
                 <input name="raceId" type="hidden" value={predictionState.race.id} />
-                <PredictionSelect
-                  defaultValue={current?.winnerDriverId}
-                  drivers={predictionState.drivers}
-                  label="Победитель"
-                  locked={predictionState.race.raceLocked}
-                  name="winnerDriverId"
-                />
+                <div className="grid gap-3 rounded-md border border-border bg-muted/25 p-4">
+                  <div>
+                    <h3 className="font-display text-lg font-bold">Топ-10 гонки</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Выбери десять пилотов в порядке финиша.
+                    </p>
+                  </div>
+                  <Top10PredictionPicker
+                    defaultValue={current?.top10DriverIds ?? []}
+                    drivers={predictionState.drivers}
+                    locked={predictionState.race.raceLocked}
+                  />
+                </div>
                 <PredictionSelect
                   defaultValue={current?.poleDriverId}
                   drivers={predictionState.drivers}
@@ -73,11 +80,26 @@ export default async function PredictionsPage({
                   name="fastestLapDriverId"
                 />
                 <PredictionSelect
-                  defaultValue={current?.dnfDriverId}
+                  allowNoDnf
+                  defaultValue={current?.dnfPickKind === "none" ? "__none" : current?.dnfDriverId}
                   drivers={predictionState.drivers}
                   label="Первый сход"
                   locked={predictionState.race.raceLocked}
                   name="dnfDriverId"
+                />
+                <TeamPredictionSelect
+                  defaultValue={current?.topScoringTeamId}
+                  label="Лучшая команда этапа"
+                  locked={predictionState.race.raceLocked}
+                  name="topScoringTeamId"
+                  teams={predictionState.teams}
+                />
+                <TeamPredictionSelect
+                  defaultValue={current?.fastestPitStopTeamId}
+                  label="Быстрейший пит-стоп"
+                  locked={predictionState.race.raceLocked}
+                  name="fastestPitStopTeamId"
+                  teams={predictionState.teams}
                 />
                 {saved ? (
                   <p className="text-sm text-muted-foreground">
@@ -139,12 +161,14 @@ export default async function PredictionsPage({
 }
 
 function PredictionSelect({
+  allowNoDnf,
   defaultValue,
   drivers,
   label,
   locked = false,
   name,
 }: {
+  allowNoDnf?: boolean;
   defaultValue?: string | null;
   drivers: { id: string; name: string; team: string }[];
   label: string;
@@ -162,9 +186,45 @@ function PredictionSelect({
         name={name}
       >
         <option value="">Пока без выбора</option>
+        {allowNoDnf ? <option value="__none">Без DNF</option> : null}
         {drivers.map((driver) => (
           <option key={driver.id} value={driver.id}>
             {driver.name} · {driver.team}
+          </option>
+        ))}
+      </select>
+      {locked ? <span className="text-xs font-normal text-warning">Выбор уже заблокирован</span> : null}
+    </label>
+  );
+}
+
+function TeamPredictionSelect({
+  defaultValue,
+  label,
+  locked = false,
+  name,
+  teams,
+}: {
+  defaultValue?: string | null;
+  label: string;
+  locked?: boolean;
+  name: string;
+  teams: { id: string; name: string; code?: string | null }[];
+}) {
+  return (
+    <label className="grid gap-2 text-sm font-medium" htmlFor={name}>
+      {label}
+      <select
+        className="min-h-11 rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+        defaultValue={defaultValue ?? ""}
+        disabled={locked}
+        id={name}
+        name={name}
+      >
+        <option value="">Пока без выбора</option>
+        {teams.map((team) => (
+          <option key={team.id} value={team.id}>
+            {team.name}
           </option>
         ))}
       </select>

@@ -46,14 +46,18 @@ export type Database = {
       drivers: TableDefinition<{
         id: string;
         external_id: string | null;
+        slug: string | null;
         code: string | null;
         permanent_number: number | null;
         first_name: string;
         last_name: string;
         full_name: string;
         country: string | null;
+        country_code: string | null;
         current_team_id: string | null;
         avatar_style_key: string | null;
+        ai_avatar_url: string | null;
+        avatar_placeholder_style: string | null;
         is_active: boolean;
         created_at: string;
         updated_at: string;
@@ -343,11 +347,15 @@ export type Database = {
         winner_driver_id: string | null;
         fastest_lap_driver_id: string | null;
         dnf_driver_id: string | null;
+        dnf_pick_kind: string;
+        top_scoring_team_id: string | null;
+        fastest_pit_stop_team_id: string | null;
         top3_driver_ids: string[] | null;
         top10_driver_ids: string[] | null;
         submitted_at: string;
         locked_at: string | null;
         score: number | null;
+        score_breakdown: Json | null;
         scored_at: string | null;
       }>;
       polls: TableDefinition<{
@@ -356,6 +364,9 @@ export type Database = {
         question: string;
         status: string;
         closes_at: string | null;
+        poll_kind: string | null;
+        generated_by_ai: boolean;
+        generated_at: string | null;
         created_at: string;
         updated_at: string;
       }>;

@@ -16,11 +16,13 @@ import {
 } from "@/app/fantasy/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
+import { FantasyScoringDialog } from "@/components/racemate/fantasy-scoring-dialog";
 import { LeagueDialog } from "@/components/racemate/league-dialog";
 import {
   StitchPanel,
   StitchPanelHeader,
 } from "@/components/racemate/stitch-primitives";
+import { Top10PredictionPicker } from "@/components/racemate/top10-prediction-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +39,7 @@ import type {
   LeagueSummary,
   PollSummary,
   PredictionState,
+  TeamOption,
 } from "@/types/racemate";
 
 type FantasySearchParams = {
@@ -48,9 +51,19 @@ type FantasySearchParams = {
 };
 
 type PredictionField = {
+  allowNoDnf?: boolean;
   helper: string;
   label: string;
-  name: "winnerDriverId" | "poleDriverId" | "fastestLapDriverId" | "dnfDriverId";
+  name: "poleDriverId" | "fastestLapDriverId" | "dnfDriverId";
+  short: string;
+  locked?: boolean;
+  value?: string | null;
+};
+
+type TeamPredictionField = {
+  helper: string;
+  label: string;
+  name: "topScoringTeamId" | "fastestPitStopTeamId";
   short: string;
   locked?: boolean;
   value?: string | null;
@@ -70,8 +83,16 @@ export default async function FantasyPage({
   ]);
   const current = predictionState.current;
   const picks = buildPredictionFields(current, predictionState.race);
-  const completedPicks = picks.filter((pick) => Boolean(pick.value)).length;
-  const progress = Math.round((completedPicks / picks.length) * 100);
+  const teamPicks = buildTeamPredictionFields(current, predictionState.race);
+  const completedTop10 = current?.top10DriverIds?.length ?? 0;
+  const completedSpecials = picks.filter((pick) =>
+    pick.name === "dnfDriverId" && current?.dnfPickKind === "none"
+      ? true
+      : Boolean(pick.value),
+  ).length;
+  const completedTeamPicks = teamPicks.filter((pick) => Boolean(pick.value)).length;
+  const completedPicks = completedTop10 + completedSpecials + completedTeamPicks;
+  const totalPicks = 15;
   const notice = getStatusNotice(status);
 
   return (
@@ -81,7 +102,7 @@ export default async function FantasyPage({
           completedPicks={completedPicks}
           leagues={leagues}
           predictionState={predictionState}
-          progress={progress}
+          totalPicks={totalPicks}
         />
 
         {notice ? <StatusNotice notice={notice} /> : null}
@@ -92,6 +113,7 @@ export default async function FantasyPage({
               fields={picks}
               predictionState={predictionState}
               saved={Boolean(status.saved)}
+              teamFields={teamPicks}
               userSignedIn={Boolean(user)}
             />
             <LeagueActivity leagues={leagues} selectedLeagueId={status.league} />
@@ -112,12 +134,12 @@ function FantasyEventHeader({
   completedPicks,
   leagues,
   predictionState,
-  progress,
+  totalPicks,
 }: {
   completedPicks: number;
   leagues: LeagueSummary[];
   predictionState: PredictionState;
-  progress: number;
+  totalPicks: number;
 }) {
   const score = predictionState.current?.score;
 
@@ -131,23 +153,25 @@ function FantasyEventHeader({
           {predictionState.race?.name ?? "Следующий этап"}
         </h1>
         <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-          Собери прогноз до блокировки, вступи в лигу друзей и сравни очки после
-          финиша этапа.
+          Собери прогноз, соревнуйся в лиге с друзьями и сравнивай очки после финиша.
         </p>
       </div>
 
-      <div className="flex flex-wrap items-stretch gap-3">
-        <Button asChild className="w-full sm:w-auto" variant="secondary">
-          <Link href="/fantasy/leaderboard">Общий рейтинг</Link>
-        </Button>
-        <FantasyCounter label="Выборы" value={`${completedPicks}/4`} />
-        <FantasyCounter label="Готово" value={`${progress}%`} />
-        <FantasyCounter label="Лиги" value={String(leagues.length)} />
-        <FantasyCounter
-          className="hidden sm:grid"
-          label="Очки"
-          value={score === null || score === undefined ? "—" : String(score)}
-        />
+      <div className="grid w-full max-w-xl gap-3 xl:w-[30rem]">
+        <div className="grid grid-cols-3 gap-3">
+          <FantasyCounter label="Выборы" value={`${completedPicks}/${totalPicks}`} />
+          <FantasyCounter label="Лиги" value={String(leagues.length)} />
+          <FantasyCounter
+            label="Очки"
+            value={score === null || score === undefined ? "—" : String(score)}
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button asChild className="w-full" variant="secondary">
+            <Link href="/fantasy/leaderboard">Лидерборд</Link>
+          </Button>
+          <FantasyScoringDialog className="w-full" />
+        </div>
       </div>
     </section>
   );
@@ -181,11 +205,13 @@ function PredictionModule({
   fields,
   predictionState,
   saved,
+  teamFields,
   userSignedIn,
 }: {
   fields: PredictionField[];
   predictionState: PredictionState;
   saved: boolean;
+  teamFields: TeamPredictionField[];
   userSignedIn: boolean;
 }) {
   const score = predictionState.current?.score;
@@ -217,14 +243,41 @@ function PredictionModule({
       {predictionState.race && predictionState.drivers.length ? (
         <form action={saveFantasyPrediction} className="relative z-10 grid gap-4">
           <input name="raceId" type="hidden" value={predictionState.race.id} />
-          <div className="grid gap-4 sm:grid-cols-2">
-            {fields.map((field) => (
-              <PredictionPickCard
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-lg border border-border bg-muted/25 p-4">
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-display text-lg font-bold">Топ-10 гонки</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Расставь десять пилотов в предполагаемом порядке финиша.
+                  </p>
+                </div>
+                <Badge variant={predictionState.race.raceLocked ? "warning" : "secondary"}>
+                  {predictionState.race.raceLocked ? "Закрыто" : `${predictionState.current?.top10DriverIds?.length ?? 0}/10`}
+                </Badge>
+              </div>
+              <Top10PredictionPicker
+                defaultValue={predictionState.current?.top10DriverIds ?? []}
                 drivers={predictionState.drivers}
-                field={field}
-                key={field.name}
+                locked={predictionState.race.raceLocked}
               />
-            ))}
+            </div>
+            <div className="grid content-start gap-4">
+              {fields.map((field) => (
+                <PredictionPickCard
+                  drivers={predictionState.drivers}
+                  field={field}
+                  key={field.name}
+                />
+              ))}
+              {teamFields.map((field) => (
+                <TeamPredictionPickCard
+                  field={field}
+                  key={field.name}
+                  teams={predictionState.teams}
+                />
+              ))}
+            </div>
           </div>
           {userSignedIn ? (
             <Button
@@ -259,6 +312,11 @@ function PredictionPickCard({
 }) {
   const selectedDriver = drivers.find((driver) => driver.id === field.value);
   const team = getTeamAsset(selectedDriver?.team);
+  const displayValue = field.allowNoDnf && field.value === "__none"
+    ? "Без DNF"
+    : selectedDriver
+      ? selectedDriver.name
+      : field.helper;
 
   return (
     <label
@@ -279,9 +337,7 @@ function PredictionPickCard({
               className="h-8 w-1 rounded-full bg-primary"
               style={{ backgroundColor: team?.color ?? undefined }}
             />
-            <span className="min-w-0 truncate">
-              {selectedDriver ? selectedDriver.name : field.helper}
-            </span>
+            <span className="min-w-0 truncate">{displayValue}</span>
           </span>
         </span>
         {field.locked ? (
@@ -304,9 +360,73 @@ function PredictionPickCard({
         name={field.name}
       >
         <option value="">Пока без выбора</option>
+        {field.allowNoDnf ? <option value="__none">Без DNF</option> : null}
         {drivers.map((driver) => (
           <option key={driver.id} value={driver.id}>
             {driver.name} · {driver.team}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function TeamPredictionPickCard({
+  field,
+  teams,
+}: {
+  field: TeamPredictionField;
+  teams: TeamOption[];
+}) {
+  const selectedTeam = teams.find((team) => team.id === field.value);
+  const team = getTeamAsset(selectedTeam?.name ?? selectedTeam?.code);
+  const displayValue = selectedTeam?.name ?? field.helper;
+
+  return (
+    <label
+      className={cn(
+        "group grid gap-3 rounded-lg border border-border bg-muted/35 p-4 transition-colors hover:border-primary/60 hover:bg-accent/70",
+        field.locked && "border-warning/50 bg-warning/5",
+      )}
+      htmlFor={field.name}
+    >
+      <span className="flex items-start justify-between gap-3">
+        <span className="min-w-0">
+          <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+            {field.short}
+          </span>
+          <span className="mt-2 flex min-w-0 items-center gap-2 font-telemetry text-sm font-bold uppercase text-foreground">
+            <span
+              aria-hidden="true"
+              className="h-8 w-1 rounded-full bg-primary"
+              style={{ backgroundColor: team?.color ?? undefined }}
+            />
+            <span className="min-w-0 truncate">{displayValue}</span>
+          </span>
+        </span>
+        {field.locked ? (
+          <Lock aria-hidden="true" className="size-4 shrink-0 text-warning" />
+        ) : (
+          <Edit3
+            aria-hidden="true"
+            className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+          />
+        )}
+      </span>
+      <span className="text-xs font-semibold text-muted-foreground">
+        {field.locked ? `${field.label} уже заблокирована` : field.label}
+      </span>
+      <select
+        className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+        defaultValue={field.value ?? ""}
+        disabled={field.locked}
+        id={field.name}
+        name={field.name}
+      >
+        <option value="">Пока без выбора</option>
+        {teams.map((teamOption) => (
+          <option key={teamOption.id} value={teamOption.id}>
+            {teamOption.name}
           </option>
         ))}
       </select>
@@ -504,14 +624,6 @@ function buildPredictionFields(
   return [
     {
       helper: "Выбери пилота",
-      label: "Победитель гонки",
-      name: "winnerDriverId",
-      short: "Race winner",
-      locked: race?.raceLocked,
-      value: current?.winnerDriverId,
-    },
-    {
-      helper: "Выбери пилота",
       label: "Поул",
       name: "poleDriverId",
       short: "Pole position",
@@ -527,12 +639,37 @@ function buildPredictionFields(
       value: current?.fastestLapDriverId,
     },
     {
+      allowNoDnf: true,
       helper: "Выбери пилота",
       label: "Первый сход",
       name: "dnfDriverId",
       short: "DNF",
       locked: race?.raceLocked,
-      value: current?.dnfDriverId,
+      value: current?.dnfPickKind === "none" ? "__none" : current?.dnfDriverId,
+    },
+  ];
+}
+
+function buildTeamPredictionFields(
+  current: PredictionState["current"],
+  race?: PredictionState["race"],
+): TeamPredictionField[] {
+  return [
+    {
+      helper: "Выбери команду",
+      label: "Команда, которая наберет больше всего очков за этап",
+      name: "topScoringTeamId",
+      short: "Top team",
+      locked: race?.raceLocked,
+      value: current?.topScoringTeamId,
+    },
+    {
+      helper: "Выбери команду",
+      label: "Команда с самым быстрым пит-стопом",
+      name: "fastestPitStopTeamId",
+      short: "Pit stop",
+      locked: race?.raceLocked,
+      value: current?.fastestPitStopTeamId,
     },
   ];
 }
@@ -559,6 +696,30 @@ function getStatusNotice(status: FantasySearchParams) {
       icon: CheckCircle2,
       text: "Ты в лиге. После гонки очки появятся в таблице.",
       tone: "success" as const,
+    };
+  }
+
+  if (status.message === "top10") {
+    return {
+      icon: ClipboardList,
+      text: "Заполни все 10 мест топ-10 без повторов.",
+      tone: "warning" as const,
+    };
+  }
+
+  if (status.message === "driver") {
+    return {
+      icon: ClipboardList,
+      text: "Один из выбранных пилотов уже недоступен. Обнови прогноз и сохрани снова.",
+      tone: "warning" as const,
+    };
+  }
+
+  if (status.message === "locked") {
+    return {
+      icon: Lock,
+      text: "Гонка уже началась, новый прогноз принять нельзя.",
+      tone: "warning" as const,
     };
   }
 

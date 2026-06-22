@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy } from "lucide-react";
+import { ChevronRight, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageHeading } from "@/components/racemate/page-heading";
@@ -41,9 +41,9 @@ export default async function LeaderboardPage({
 
       <section className="grid gap-5 py-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex rounded-md border border-border/70 bg-background/45 p-1">
+          <div className="inline-flex min-h-11 rounded-md border border-border/70 bg-background/45 p-1">
             <Link
-              className={`rounded px-3 py-2 text-sm transition-colors ${
+              className={`inline-flex items-center rounded-sm px-4 py-2 font-display text-sm font-bold leading-none transition-colors ${
                 activeTable === "drivers"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -53,7 +53,7 @@ export default async function LeaderboardPage({
               Пилоты
             </Link>
             <Link
-              className={`rounded px-3 py-2 text-sm transition-colors ${
+              className={`inline-flex items-center rounded-sm px-4 py-2 font-display text-sm font-bold leading-none transition-colors ${
                 activeTable === "constructors"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -102,12 +102,24 @@ export default async function LeaderboardPage({
                   </thead>
                   <tbody>
                     {drivers.rows.map((row) => (
-                      <tr className="border-t border-border/70" key={row.driver}>
+                      <tr className="group border-t border-border/70" key={row.driver}>
                         <td className="whitespace-nowrap px-3 py-3 font-mono text-muted-foreground">
                           {row.position}
                         </td>
                         <td className="whitespace-nowrap px-3 py-3 font-medium">
-                          {row.driver}
+                          {row.driverSlug ? (
+                            <Link
+                              aria-label={`Открыть профиль: ${row.driver}`}
+                              className="inline-flex items-center gap-1.5 underline decoration-border/80 underline-offset-4 transition-colors hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              href={`/drivers/${row.driverSlug}`}
+                              prefetch={false}
+                            >
+                              {row.driver}
+                              <ChevronRight aria-hidden="true" className="size-3.5 text-muted-foreground transition-colors group-hover:text-primary" />
+                            </Link>
+                          ) : (
+                            row.driver
+                          )}
                         </td>
                         <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
                           <span className="grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-3">

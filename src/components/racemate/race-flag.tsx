@@ -11,6 +11,7 @@ type RaceFlagProps = {
 
 const supportedFlags = new Set([
   "ae",
+  "ar",
   "au",
   "at",
   "az",
@@ -19,7 +20,9 @@ const supportedFlags = new Set([
   "br",
   "ca",
   "cn",
+  "de",
   "es",
+  "fr",
   "gb",
   "hu",
   "it",
@@ -27,9 +30,11 @@ const supportedFlags = new Set([
   "mc",
   "mx",
   "nl",
+  "nz",
   "qa",
   "sa",
   "sg",
+  "th",
   "us",
 ]);
 

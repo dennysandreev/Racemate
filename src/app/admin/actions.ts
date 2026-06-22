@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdmin } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  createSupabaseAdminClient,
+  createSupabaseServerClient,
+} from "@/lib/supabase/server";
 
 const allowedJobs = new Set([
   "rss.fetch_all",
@@ -241,6 +244,99 @@ export async function editGrandPrixReportSummary(formData: FormData) {
   redirect("/admin?reports=1");
 }
 
+export async function updateDriverAdminProfile(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createSupabaseAdminClient();
+  const driverId = String(formData.get("driverId") ?? "");
+  const slug = normalizeSlug(String(formData.get("slug") ?? ""));
+  const permanentNumber = normalizeNumber(formData.get("permanentNumber"));
+  const country = normalizeOptionalString(formData.get("country"));
+  const countryCode = normalizeCountryCode(formData.get("countryCode"));
+  const teamId = normalizeOptionalString(formData.get("teamId"));
+
+  if (!supabase || !driverId || !slug) {
+    redirect("/admin?drivers=1");
+  }
+
+  await supabase
+    .from("drivers")
+    .update({
+      slug,
+      permanent_number: permanentNumber,
+      country,
+      country_code: countryCode,
+      current_team_id: teamId,
+      avatar_placeholder_style: normalizeOptionalString(formData.get("avatarPlaceholderStyle")),
+    })
+    .eq("id", driverId);
+
+  revalidatePath("/admin");
+  revalidatePath(`/drivers/${slug}`);
+  redirect("/admin?drivers=1");
+}
+
+export async function uploadDriverAvatar(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createSupabaseAdminClient();
+  const driverId = String(formData.get("driverId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  const file = formData.get("avatar");
+
+  if (!supabase || !driverId || !slug || !(file instanceof File) || file.size === 0) {
+    redirect("/admin?drivers=1");
+  }
+
+  if (!["image/webp", "image/png", "image/jpeg"].includes(file.type) || file.size > 2_097_152) {
+    redirect("/admin?drivers=1");
+  }
+
+  const extension = getImageExtension(file.type);
+  const path = `${driverId}/${Date.now()}.${extension}`;
+  const { error } = await supabase.storage
+    .from("driver-avatars")
+    .upload(path, file, { contentType: file.type, upsert: true });
+
+  if (!error) {
+    const { data } = supabase.storage.from("driver-avatars").getPublicUrl(path);
+
+    await supabase
+      .from("drivers")
+      .update({ ai_avatar_url: data.publicUrl })
+      .eq("id", driverId);
+  }
+
+  revalidatePath("/admin");
+  revalidatePath(`/drivers/${slug}`);
+  redirect("/admin?drivers=1");
+}
+
+export async function deleteDriverAvatar(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createSupabaseAdminClient();
+  const driverId = String(formData.get("driverId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  const avatarUrl = String(formData.get("avatarUrl") ?? "");
+
+  if (!supabase || !driverId || !slug) {
+    redirect("/admin?drivers=1");
+  }
+
+  const storagePath = getDriverAvatarStoragePath(avatarUrl);
+
+  if (storagePath) {
+    await supabase.storage.from("driver-avatars").remove([storagePath]);
+  }
+
+  await supabase
+    .from("drivers")
+    .update({ ai_avatar_url: null })
+    .eq("id", driverId);
+
+  revalidatePath("/admin");
+  revalidatePath(`/drivers/${slug}`);
+  redirect("/admin?drivers=1");
+}
+
 function normalizeOptionalString(value: FormDataEntryValue | null) {
   const text = typeof value === "string" ? value.trim() : "";
   return text || null;
@@ -258,6 +354,54 @@ function normalizeUrl(value: string, optional = false) {
     return url.toString();
   } catch {
     return optional ? null : "";
+  }
+}
+
+function normalizeSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function normalizeNumber(value: FormDataEntryValue | null) {
+  const raw = typeof value === "string" ? Number(value) : Number.NaN;
+
+  return Number.isFinite(raw) && raw > 0 ? raw : null;
+}
+
+function normalizeCountryCode(value: FormDataEntryValue | null) {
+  const text = typeof value === "string" ? value.trim().toUpperCase() : "";
+
+  return text || null;
+}
+
+function getImageExtension(contentType: string) {
+  if (contentType === "image/png") {
+    return "png";
+  }
+
+  if (contentType === "image/jpeg") {
+    return "jpg";
+  }
+
+  return "webp";
+}
+
+function getDriverAvatarStoragePath(publicUrl: string) {
+  if (!publicUrl) {
+    return null;
+  }
+
+  try {
+    const url = new URL(publicUrl);
+    const marker = "/driver-avatars/";
+    const index = url.pathname.indexOf(marker);
+
+    return index >= 0 ? decodeURIComponent(url.pathname.slice(index + marker.length)) : null;
+  } catch {
+    return null;
   }
 }
 

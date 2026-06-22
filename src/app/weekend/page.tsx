@@ -67,6 +67,7 @@ export default async function WeekendPage() {
           currentRace={currentRace}
           nextRace={nextSession.race}
           nextSession={nextSession.session}
+          weekendStatus={nextSession.status}
         />
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
@@ -104,17 +105,19 @@ function WeekendHero({
   currentRace,
   nextRace,
   nextSession,
+  weekendStatus,
 }: {
   currentRace: RaceDetail | null;
   nextRace: string;
   nextSession: string;
+  weekendStatus: string;
 }) {
   return (
     <section className="stitch-panel relative min-h-[24rem] overflow-hidden p-0">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgb(225_6_0_/_0.28),transparent_24rem),linear-gradient(125deg,rgb(255_255_255_/_0.08),transparent_38%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.28))]" />
       <div className="relative grid gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
-        <div className="min-w-0">
-          <div className="mb-5 flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 lg:col-span-2">
+          <div className="flex flex-wrap items-center gap-2">
             {currentRace ? (
               <RaceFlag
                 className="text-xl"
@@ -125,6 +128,12 @@ function WeekendHero({
             ) : null}
             <Badge variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
           </div>
+          <Badge className="ml-auto shrink-0" variant={weekendStatus === "Live" ? "success" : "warning"}>
+            {weekendStatus}
+          </Badge>
+        </div>
+
+        <div className="min-w-0">
           <p className="font-telemetry mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
             <MapPin aria-hidden="true" data-icon="inline-start" />
             {currentRace?.circuit ?? "Трасса этапа"}
@@ -133,7 +142,7 @@ function WeekendHero({
             {nextRace}
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-            Следи за расписанием, открывай результаты сессий и сверяй прогнозы перед стартом гонки.
+            Следи за расписанием, просматривай результаты сессий и делай прогнозы на гонку.
           </p>
           <div className="mt-5 max-w-3xl overflow-hidden rounded-xl border border-border/75 bg-background/35 p-3 shadow-[0_18px_60px_rgb(0_0_0_/_0.28)] backdrop-blur">
             <TrackMap

@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    cpus: 1,
+  },
   output: "standalone",
 };
 

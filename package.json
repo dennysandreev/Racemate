@@ -18,9 +18,11 @@
     "worker:source-images": "node worker/index.mjs news.backfill_source_images",
     "worker:retag": "node worker/index.mjs ai.retag_news",
     "worker:digest": "node worker/index.mjs ai.generate_daily_digest",
+    "worker:polls": "node worker/index.mjs polls.generate_next_race",
     "worker:calendar": "node worker/index.mjs jolpica.sync_calendar",
     "worker:results": "node worker/index.mjs jolpica.sync_results",
     "worker:repair-results": "node worker/index.mjs jolpica.repair_race_results",
+    "worker:repair-qualifying": "node worker/index.mjs jolpica.repair_qualifying_results",
     "worker:standings": "node worker/index.mjs jolpica.sync_standings",
     "worker:weather": "node worker/index.mjs weather.sync_weekend",
     "worker:laps": "node worker/index.mjs openf1.sync_laps",
@@ -32,6 +34,7 @@
     "supabase:smtp": "node scripts/configure-supabase-smtp.mjs",
     "supabase:auth": "node scripts/configure-supabase-smtp.mjs",
     "lint": "eslint .",
+    "test:fantasy-scoring": "node scripts/check-fantasy-scoring.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

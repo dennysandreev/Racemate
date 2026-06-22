@@ -24,11 +24,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getTeamAssetForMarketOutcome } from "@/data/f1-assets";
+import { getTeamAsset, getTeamAssetForMarketOutcome } from "@/data/f1-assets";
 import {
   getConstructorChampionOdds,
   getCurrentRaceDetail,
   getDriverStandings,
+  getDriverSlugMap,
   getGrandPrixReportBySlug,
   getLatestGrandPrixReport,
   getNewsItems,
@@ -66,7 +67,7 @@ export default async function Home({
     redirect(`/auth/callback?${callbackParams.toString()}`);
   }
 
-  const [newsResult, nextSession, standings, currentRace, sessions, championOdds, constructorOdds, latestReport, queryReport] =
+  const [newsResult, nextSession, standings, currentRace, sessions, championOdds, constructorOdds, latestReport, queryReport, driverSlugByName] =
     await Promise.all([
       getNewsItems({ pageSize: 5 }),
       getNextSession(),
@@ -77,6 +78,7 @@ export default async function Home({
       getConstructorChampionOdds(),
       getLatestGrandPrixReport(),
       getGrandPrixReportBySlug(query.raceReport),
+      getDriverSlugMap(),
     ]);
   const newsItems = newsResult.items;
   const topStandings = standings.slice(0, 6);
@@ -112,7 +114,7 @@ export default async function Home({
           <NewsCard items={newsItems} />
         </div>
       </section>
-      <GrandPrixReportDialog open={isReportOpen} report={dialogReport} />
+      <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
     </AppShell>
   );
 }
@@ -130,20 +132,19 @@ function CurrentRaceCard({
     <div className="stitch-panel relative min-h-[34rem] overflow-hidden p-0">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgb(225_6_0_/_0.18),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.05),transparent_38%)]" />
       <div className="relative grid gap-4 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
-              {nextSession.status}
-            </Badge>
-            <Badge variant="outline">Сезон 2026</Badge>
-          </div>
-        </div>
-
         <div className="min-w-0">
-          <p className="font-telemetry mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
-            <Gauge aria-hidden="true" data-icon="inline-start" />
-            Следующий этап
-          </p>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="font-telemetry flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+              <Gauge aria-hidden="true" data-icon="inline-start" />
+              Следующий этап
+            </p>
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+              <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
+                {nextSession.status}
+              </Badge>
+              <Badge variant="outline">Сезон 2026</Badge>
+            </div>
+          </div>
           <h1 className="font-display max-w-4xl text-balance text-2xl font-extrabold leading-tight tracking-[-0.04em] sm:text-4xl lg:text-5xl">
             {formatSessionName(nextSession.session)} на трассе {nextSession.circuit}
           </h1>
@@ -161,11 +162,11 @@ function CurrentRaceCard({
           ))}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_15rem]">
-          <div className="min-h-[14rem] overflow-hidden rounded-lg border border-border race-track-surface">
-            <TrackMap compact circuit={nextSession.circuit} label={nextSession.race} layout={currentRace?.layout} />
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,15rem)]">
+          <div className="h-[14rem] min-w-0 max-w-full overflow-hidden rounded-lg border border-border sm:h-[15.5rem] lg:h-[16.5rem]">
+            <TrackMap compact fill circuit={nextSession.circuit} label={nextSession.race} layout={currentRace?.layout} />
           </div>
-          <div className="grid content-between gap-3 rounded-lg border border-border bg-card/75 p-4">
+          <div className="grid min-w-0 content-between gap-3 rounded-lg border border-border bg-card/75 p-4">
             <div>
               <p className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
                 {currentRace?.country ?? "Гран-при"}
@@ -178,8 +179,8 @@ function CurrentRaceCard({
               </p>
             </div>
             <Button asChild className="w-full" variant="secondary">
-              <Link href="/calendar" prefetch={false}>
-                Календарь сезона
+              <Link href="/weekend" prefetch={false}>
+                Перейти к этапу
                 <ArrowRight aria-hidden="true" data-icon="inline-end" />
               </Link>
             </Button>
@@ -212,9 +213,19 @@ function StandingsCard({ rows }: { rows: StandingRow[] }) {
               <span className="min-w-0">
                 <span className="flex min-w-0 items-center gap-2">
                   <TeamColorBar className="h-6 w-1" color={row.teamColor} />
-                  <span className="block truncate text-sm font-medium">
-                    {row.driver}
-                  </span>
+                  {row.driverSlug ? (
+                    <Link
+                      className="block truncate text-sm font-medium transition-colors hover:text-primary"
+                      href={`/drivers/${row.driverSlug}`}
+                      prefetch={false}
+                    >
+                      {row.driver}
+                    </Link>
+                  ) : (
+                    <span className="block truncate text-sm font-medium">
+                      {row.driver}
+                    </span>
+                  )}
                 </span>
                 <span className="block truncate text-xs text-muted-foreground">
                   {row.team}
@@ -283,10 +294,7 @@ function NewsMeta({ item }: { item: NewsItem }) {
 }
 
 function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
-  const podium = Array.isArray(report?.highlights.podium)
-    ? report.highlights.podium.map((item) => String(item)).join(", ")
-    : "";
-  const summary = report?.aiSummary?.split(/\n{2,}/)[0];
+  const podium = report?.results.slice(0, 3) ?? [];
 
   return (
     <Card>
@@ -298,30 +306,53 @@ function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
       </CardHeader>
       <CardContent>
         {report ? (
-          <div className="grid gap-4">
-            <div>
-              <p className="font-medium">{report.raceName}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {report.raceDate}
-              </p>
-            </div>
-            <div className="grid gap-2 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">Победитель</span>
-                <span className="text-right font-medium">
-                  {String(report.highlights.winner ?? report.results[0]?.driver ?? "Уточняется")}
-                </span>
+          <div className="grid gap-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-display text-lg font-bold leading-tight">{report.raceName}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{report.raceDate}</p>
               </div>
-              {podium ? (
-                <div className="flex items-start justify-between gap-3">
-                  <span className="text-muted-foreground">Подиум</span>
-                  <span className="max-w-[65%] text-right font-medium">{podium}</span>
-                </div>
-              ) : null}
+              <Trophy aria-hidden="true" className="size-6 shrink-0 text-primary" />
             </div>
-            {summary ? (
-              <p className="text-sm leading-6 text-muted-foreground">{summary}</p>
-            ) : null}
+            {podium.length >= 3 ? (
+              <div className="grid gap-2">
+                {podium.map((result, index) => {
+                  const team = getTeamAsset(result.team);
+                  const medalClassName =
+                    index === 0
+                      ? "border-[#f4c95d]/50 bg-[#f4c95d]/10 text-[#f4c95d]"
+                      : index === 1
+                        ? "border-slate-200/35 bg-slate-200/10 text-slate-100"
+                        : "border-[#d48a5f]/45 bg-[#d48a5f]/10 text-[#d48a5f]";
+
+                  return (
+                    <div
+                      className="grid grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-3 rounded-md border border-border bg-muted/20 p-3"
+                      key={`${result.position}-${result.driver}`}
+                    >
+                      <span
+                        className={`grid h-10 place-items-center rounded-md border font-telemetry text-xs font-black ${medalClassName}`}
+                      >
+                        P{index + 1}
+                      </span>
+                      <span className="flex min-w-0 items-center gap-3">
+                        <TeamColorBar className="h-8 w-1.5" color={team?.color} />
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold">{result.driver}</span>
+                          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                            {result.team}
+                          </span>
+                        </span>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="rounded-md border border-border/70 p-4 text-sm leading-6 text-muted-foreground">
+                Подиум появится после синхронизации итоговой классификации.
+              </p>
+            )}
             <Button asChild className="w-full">
               <Link href={`/?raceReport=${report.raceSlug}`} prefetch={false} scroll={false}>
                 Открыть полный отчет

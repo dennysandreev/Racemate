@@ -127,6 +127,7 @@ export function LeagueDialog({ league }: { league: LeagueDetail | null }) {
                             {member.currentScore ?? "—"}
                           </p>
                           <p className="mt-1 text-xs text-muted-foreground">за этап</p>
+                          <ScoreBreakdownLine breakdown={member.scoreBreakdown} />
                         </div>
                       </article>
                     ))
@@ -164,6 +165,9 @@ export function LeagueDialog({ league }: { league: LeagueDetail | null }) {
                               <p className="font-telemetry text-right font-bold text-primary">
                                 {prediction.score ?? "—"}
                               </p>
+                              <div className="sm:col-span-3">
+                                <ScoreBreakdownLine breakdown={prediction.scoreBreakdown} />
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -226,5 +230,22 @@ function LeagueMetric({ label, value }: { label: string; value: string }) {
       <p className="font-telemetry text-lg font-bold">{value}</p>
       <p className="mt-1 text-xs text-muted-foreground">{label}</p>
     </div>
+  );
+}
+
+function ScoreBreakdownLine({
+  breakdown,
+}: {
+  breakdown: LeagueDetail["members"][number]["scoreBreakdown"];
+}) {
+  if (!breakdown) {
+    return null;
+  }
+
+  return (
+    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+      Топ-10 {breakdown.top10Points} · Бонусы {breakdown.top10Bonus} · Спец{" "}
+      {breakdown.specialPoints}
+    </p>
   );
 }

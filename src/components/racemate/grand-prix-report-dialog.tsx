@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect } from "react";
 import {
   AlertTriangle,
@@ -25,11 +26,13 @@ import { cn } from "@/lib/utils";
 import type { GrandPrixReport } from "@/types/racemate";
 
 type GrandPrixReportDialogProps = {
+  driverSlugByName?: Record<string, string>;
   open: boolean;
   report: GrandPrixReport | null;
 };
 
 export function GrandPrixReportDialog({
+  driverSlugByName = {},
   open,
   report,
 }: GrandPrixReportDialogProps) {
@@ -196,6 +199,7 @@ export function GrandPrixReportDialog({
                     <tbody className="divide-y divide-border">
                       {report.results.slice(0, 10).map((result) => {
                         const teamVisual = getTeamAsset(result.team);
+                        const driverSlug = getDriverSlug(driverSlugByName, result.driver);
 
                         return (
                           <tr className="transition-colors hover:bg-accent/50" key={`${result.position}-${result.driver}`}>
@@ -206,7 +210,17 @@ export function GrandPrixReportDialog({
                               </span>
                             </td>
                             <td className="px-4 py-3">
-                              <span className="font-semibold">{result.driver}</span>
+                              {driverSlug ? (
+                                <Link
+                                  className="font-semibold transition-colors hover:text-primary"
+                                  href={`/drivers/${driverSlug}`}
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  {result.driver}
+                                </Link>
+                              ) : (
+                                <span className="font-semibold">{result.driver}</span>
+                              )}
                               <span className="ml-2 inline-flex gap-1">
                                 {result.isWinner ? <Badge variant="success">Победа</Badge> : null}
                                 {result.isFastestLap ? <Badge variant="outline">БК</Badge> : null}
@@ -279,7 +293,12 @@ export function GrandPrixReportDialog({
             </main>
 
             <aside className="grid content-start gap-4">
-              <PodiumCard podium={podium} results={report.results} winner={winner} />
+              <PodiumCard
+                driverSlugByName={driverSlugByName}
+                podium={podium}
+                results={report.results}
+                winner={winner}
+              />
               <ReportStat
                 icon={Timer}
                 label="Лучший круг"
@@ -329,10 +348,12 @@ export function GrandPrixReportDialog({
 }
 
 function PodiumCard({
+  driverSlugByName,
   podium,
   results,
   winner,
 }: {
+  driverSlugByName: Record<string, string>;
   podium: string[];
   results: GrandPrixReport["results"];
   winner: string;
@@ -350,6 +371,7 @@ function PodiumCard({
         {rows.map((name, index) => {
           const result = getResultForDriverName(results, name);
           const teamVisual = getTeamAsset(result?.team);
+          const driverSlug = getDriverSlug(driverSlugByName, name);
 
           return (
             <div className="flex items-center justify-between gap-3" key={`${index}-${name}`}>
@@ -361,7 +383,17 @@ function PodiumCard({
                 </span>
                 <TeamColorBar className="h-8 w-1.5" color={teamVisual?.color} />
                 <span className="grid min-w-0 gap-0.5">
-                  <span className="truncate font-semibold">{name}</span>
+                  {driverSlug ? (
+                    <Link
+                      className="truncate font-semibold transition-colors hover:text-primary"
+                      href={`/drivers/${driverSlug}`}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {name}
+                    </Link>
+                  ) : (
+                    <span className="truncate font-semibold">{name}</span>
+                  )}
                   {teamVisual?.name ? (
                     <span className="truncate text-xs text-muted-foreground">{teamVisual.name}</span>
                   ) : null}
@@ -387,6 +419,10 @@ function getResultForDriverName(results: GrandPrixReport["results"], driverName:
       normalizedDriver.includes(normalizedResultDriver)
     );
   });
+}
+
+function getDriverSlug(driverSlugByName: Record<string, string>, driverName: string) {
+  return driverSlugByName[normalizeDriverName(driverName)];
 }
 
 function normalizeDriverName(value: string) {

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import {
   getRaceDetail,
+  getDriverSlugMap,
   getRaceGrandPrixReport,
   getGrandPrixReportBySlug,
   getRaceNews,
@@ -51,11 +52,12 @@ export default async function RaceCalendarPage({
     notFound();
   }
 
-  const [sessions, raceNews, raceReport, queryReport] = await Promise.all([
+  const [sessions, raceNews, raceReport, queryReport, driverSlugByName] = await Promise.all([
     getRaceSessions(seasonYear, raceRound),
     getRaceNews(race.id, 5),
     getRaceGrandPrixReport(seasonYear, raceRound),
     getGrandPrixReportBySlug(query.raceReport),
+    getDriverSlugMap(),
   ]);
   const selectedSession = sessions.find((session) => session.id === query.session) ?? sessions[0];
   const results = await getSessionResults(selectedSession?.id);
@@ -174,7 +176,17 @@ export default async function RaceCalendarPage({
                               {result.position ?? "-"}
                             </td>
                             <td className="break-words px-2 py-3 font-medium leading-5 sm:px-3">
-                              {result.driver}
+                              {result.driverSlug ? (
+                                <Link
+                                  className="transition-colors hover:text-primary"
+                                  href={`/drivers/${result.driverSlug}`}
+                                  prefetch={false}
+                                >
+                                  {result.driver}
+                                </Link>
+                              ) : (
+                                result.driver
+                              )}
                             </td>
                             <td className="px-2 py-3 text-muted-foreground sm:px-3">
                               <span className="flex min-w-0 items-center gap-2">
@@ -247,7 +259,7 @@ export default async function RaceCalendarPage({
           </div>
         )}
       </section>
-      <GrandPrixReportDialog open={isReportOpen} report={dialogReport} />
+      <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
     </AppShell>
   );
 }

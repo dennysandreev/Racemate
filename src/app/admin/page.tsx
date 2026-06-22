@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { Bot, Database, Play } from "lucide-react";
 
 import {
   addManualXPost,
+  deleteDriverAvatar,
   editGrandPrixReportSummary,
   queueGrandPrixReportReload,
   queueGrandPrixReportSummary,
@@ -9,6 +11,8 @@ import {
   toggleSocialSource,
   toggleSource,
   triggerJob,
+  updateDriverAdminProfile,
+  uploadDriverAvatar,
 } from "@/app/admin/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
@@ -30,9 +34,11 @@ import {
 import {
   getAdminSources,
   getAdminSocialSources,
+  getAdminDrivers,
   getAdminGrandPrixReports,
   getAdminJobs,
   getAdminSignals,
+  getAdminTeamOptions,
   getAiUsageSummary,
 } from "@/data/racemate-repository";
 import { getSessionUser } from "@/lib/auth";
@@ -44,12 +50,14 @@ export default async function AdminPage({
 }) {
   const status = await searchParams;
   const user = await getSessionUser();
-  const [adminJobs, adminSignals, adminSources, adminSocialSources, adminReports, aiUsage] = await Promise.all([
+  const [adminJobs, adminSignals, adminSources, adminSocialSources, adminReports, adminDrivers, adminTeams, aiUsage] = await Promise.all([
     getAdminJobs(),
     getAdminSignals(),
     getAdminSources(),
     getAdminSocialSources(),
     getAdminGrandPrixReports(),
+    getAdminDrivers(),
+    getAdminTeamOptions(),
     getAiUsageSummary(),
   ]);
 
@@ -238,6 +246,138 @@ export default async function AdminPage({
             )) : (
               <div className="rounded-md border border-border/70 p-5 text-sm text-muted-foreground">
                 Отчетов пока нет. Запусти задачу «Отчет Гран-при», когда появятся результаты гонки.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Гонщики</CardTitle>
+            <CardDescription>
+              Slug, страна и AI-аватар используются на публичных профилях гонщиков.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {adminDrivers.length ? adminDrivers.map((driver) => (
+              <div
+                className="grid gap-4 rounded-md border border-border/70 p-4"
+                key={driver.id}
+              >
+                <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">{driver.code ?? "Код"}</Badge>
+                      <Badge variant="secondary">{driver.team}</Badge>
+                      {driver.aiAvatarUrl ? <Badge variant="success">AI-аватар</Badge> : null}
+                    </div>
+                    <p className="mt-3 font-display text-lg font-bold">{driver.fullName}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      /drivers/{driver.slug || "slug-ne-zadan"} · № {driver.number ?? "—"}
+                    </p>
+                  </div>
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href={`/drivers/${driver.slug}`} prefetch={false}>
+                      Открыть профиль
+                    </Link>
+                  </Button>
+                </div>
+
+                <form action={updateDriverAdminProfile} className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                  <input name="driverId" type="hidden" value={driver.id} />
+                  <label className="grid gap-1 text-xs text-muted-foreground">
+                    Slug
+                    <input
+                      className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                      defaultValue={driver.slug}
+                      name="slug"
+                      required
+                      type="text"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs text-muted-foreground">
+                    Номер
+                    <input
+                      className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                      defaultValue={driver.number ?? ""}
+                      name="permanentNumber"
+                      type="number"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs text-muted-foreground">
+                    Страна
+                    <input
+                      className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                      defaultValue={driver.country ?? ""}
+                      name="country"
+                      type="text"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs text-muted-foreground">
+                    Код страны
+                    <input
+                      className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                      defaultValue={driver.countryCode ?? ""}
+                      maxLength={2}
+                      name="countryCode"
+                      type="text"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs text-muted-foreground">
+                    Команда
+                    <select
+                      className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                      defaultValue={driver.teamId ?? ""}
+                      name="teamId"
+                    >
+                      <option value="">Команда уточняется</option>
+                      {adminTeams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <input name="avatarPlaceholderStyle" type="hidden" value="helmet" />
+                  <div className="md:col-span-2 xl:col-span-5">
+                    <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                      Сохранить данные
+                    </Button>
+                  </div>
+                </form>
+
+                <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+                  <form action={uploadDriverAvatar} className="grid gap-2">
+                    <input name="driverId" type="hidden" value={driver.id} />
+                    <input name="slug" type="hidden" value={driver.slug} />
+                    <label className="grid gap-1 text-xs text-muted-foreground">
+                      AI-аватар
+                      <input
+                        accept="image/webp,image/png,image/jpeg"
+                        className="min-h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground file:mr-3 file:rounded file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-sm file:text-secondary-foreground"
+                        name="avatar"
+                        type="file"
+                      />
+                    </label>
+                    <Button disabled={!user} size="sm" type="submit">
+                      Загрузить аватар
+                    </Button>
+                  </form>
+                  {driver.aiAvatarUrl ? (
+                    <form action={deleteDriverAvatar}>
+                      <input name="driverId" type="hidden" value={driver.id} />
+                      <input name="slug" type="hidden" value={driver.slug} />
+                      <input name="avatarUrl" type="hidden" value={driver.aiAvatarUrl} />
+                      <Button disabled={!user} size="sm" type="submit" variant="outline">
+                        Удалить аватар
+                      </Button>
+                    </form>
+                  ) : null}
+                </div>
+              </div>
+            )) : (
+              <div className="rounded-md border border-border/70 p-5 text-sm text-muted-foreground">
+                Гонщики появятся после синхронизации календаря и результатов.
               </div>
             )}
           </CardContent>

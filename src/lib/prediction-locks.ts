@@ -14,6 +14,10 @@ type PredictionValues = {
   winnerDriverId: string | null;
   fastestLapDriverId: string | null;
   dnfDriverId: string | null;
+  dnfPickKind: "driver" | "none";
+  topScoringTeamId: string | null;
+  fastestPitStopTeamId: string | null;
+  top10DriverIds: string[];
 };
 
 const unlockedPredictionLocks: PredictionLocks = {
@@ -66,6 +70,14 @@ export function preserveLockedPredictionValues({
       ? current?.fastestLapDriverId ?? null
       : submitted.fastestLapDriverId,
     dnfDriverId: locks.raceLocked ? current?.dnfDriverId ?? null : submitted.dnfDriverId,
+    dnfPickKind: locks.raceLocked ? current?.dnfPickKind ?? "driver" : submitted.dnfPickKind,
+    topScoringTeamId: locks.raceLocked
+      ? current?.topScoringTeamId ?? null
+      : submitted.topScoringTeamId,
+    fastestPitStopTeamId: locks.raceLocked
+      ? current?.fastestPitStopTeamId ?? null
+      : submitted.fastestPitStopTeamId,
+    top10DriverIds: locks.raceLocked ? current?.top10DriverIds ?? [] : submitted.top10DriverIds,
   };
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { CheckCircle2, Cloud, CloudRain, CloudSun, Sun, X } from "lucide-react";
 
@@ -185,7 +186,16 @@ export function WeekendSessionBoard({
                             {result.position ?? "-"}
                           </td>
                           <td className="px-4 py-3 font-medium">
-                            {result.driver}
+                            {result.driverSlug ? (
+                              <Link
+                                className="transition-colors hover:text-primary"
+                                href={`/drivers/${result.driverSlug}`}
+                              >
+                                {result.driver}
+                              </Link>
+                            ) : (
+                              result.driver
+                            )}
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">
                             <span className="flex items-center gap-2">

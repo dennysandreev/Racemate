@@ -8,14 +8,12 @@ import {
 import type { ComponentType, SVGProps } from "react";
 
 import { AppShell } from "@/components/racemate/app-shell";
-import { TeamColorBar, TeamColorDot } from "@/components/racemate/team-color";
+import { TeamColorBar } from "@/components/racemate/team-color";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import {
-  StitchMetric,
   StitchPanel,
   StitchPanelHeader,
 } from "@/components/racemate/stitch-primitives";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getTeamAsset } from "@/data/f1-assets";
 import { ensureProfile } from "@/lib/auth";
@@ -34,6 +32,7 @@ type TeamRelation = {
 type DriverRelation = {
   id?: string | null;
   full_name: string;
+  slug?: string | null;
   teams: TeamRelation | TeamRelation[] | null;
 };
 
@@ -58,6 +57,7 @@ type FavoriteTeam = {
 type FavoriteDriver = {
   id: string;
   name: string;
+  slug?: string;
   team: string;
   teamCode?: string;
   teamColor?: string;
@@ -72,25 +72,14 @@ export default async function AccountPage() {
   const email = profile?.email ?? "Почта не указана";
   const timezone = profile?.timezone ?? "Europe/Moscow";
   const overview = await getAccountOverview(profile?.id ?? null);
-  const favoriteCount = overview.favoriteDrivers.length + overview.favoriteTeams.length;
-  const profileReady = Boolean(profile?.onboarding_completed);
-
   return (
     <AppShell>
       <section className="grid gap-5 py-6">
         <section className="stitch-panel relative overflow-hidden p-5 sm:p-7">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgb(225_6_0_/_0.24),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.08),transparent_42%)]" />
-          <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-end">
+          <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
             <div className="min-w-0">
-              <div className="mb-4 flex flex-wrap items-center gap-2">
-                <Badge variant={profileReady ? "success" : "warning"}>
-                  {profileReady ? "Профиль готов" : "Нужно настроить"}
-                </Badge>
-                <Badge variant="outline">Личный кабинет</Badge>
-              </div>
-              <p className="font-telemetry mb-3 text-xs font-bold uppercase tracking-[0.12em] text-primary">
-                RaceMate Account
-              </p>
+              <p className="font-telemetry mb-3 text-xs font-bold uppercase tracking-[0.12em] text-primary">Личный кабинет</p>
               <h1 className="font-display max-w-4xl text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
                 {displayName}
               </h1>
@@ -103,54 +92,15 @@ export default async function AccountPage() {
                 />
               </div>
             </div>
-            <div className="grid gap-3 rounded-lg border border-border bg-background/45 p-4 backdrop-blur">
-              <p className="stitch-label text-muted-foreground">Пульс профиля</p>
-              <div className="grid grid-cols-2 gap-2">
-                <MiniStat label="Пилоты" value={overview.favoriteDrivers.length} />
-                <MiniStat label="Команда" value={overview.favoriteTeams.length} />
-              </div>
-              <Button asChild className="mt-1 w-full justify-center">
-                <Link href="/onboarding" prefetch={false}>
-                  Изменить профиль
-                </Link>
-              </Button>
-            </div>
+            <Button asChild className="w-full shrink-0 sm:w-auto">
+              <Link href="/onboarding" prefetch={false}>Изменить профиль</Link>
+            </Button>
           </div>
         </section>
 
-        <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
-          <div className="grid min-w-0 gap-5">
-            <div className="grid gap-5 lg:grid-cols-2">
-              <FavoriteDriversPanel drivers={overview.favoriteDrivers} />
-              <FavoriteTeamsPanel teams={overview.favoriteTeams} />
-            </div>
-          </div>
-
-          <aside className="grid content-start gap-4">
-            <StitchMetric
-              label="Профиль"
-              tone={profileReady ? "live" : "warning"}
-              value={profileReady ? "Готов" : "Нужно настроить"}
-            />
-            <StitchMetric
-              label="Избранное"
-              tone={favoriteCount ? "red" : "neutral"}
-              value={`${favoriteCount} выбрано`}
-            />
-            <StitchPanel>
-              <div className="grid gap-3 p-4">
-                <p className="font-display text-lg font-bold">Настройки болельщика</p>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  Выбери одну команду и до двух пилотов, чтобы собрать личную ленту RaceMate.
-                </p>
-                <Button asChild className="w-full justify-center" variant="secondary">
-                  <Link href="/onboarding" prefetch={false}>
-                    Изменить профиль
-                  </Link>
-                </Button>
-              </div>
-            </StitchPanel>
-          </aside>
+        <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.85fr)] xl:items-start">
+          <FavoriteDriversPanel drivers={overview.favoriteDrivers} />
+          <FavoriteTeamsPanel teams={overview.favoriteTeams} />
         </section>
       </section>
     </AppShell>
@@ -170,7 +120,7 @@ async function getAccountOverview(userId: string | null) {
     userId
       ? supabase
           ?.from("user_favorite_drivers")
-          .select("driver_id, drivers(id, full_name, teams:current_team_id(id, name, code, color_hex))")
+          .select("driver_id, drivers(id, full_name, slug, teams:current_team_id(id, name, code, color_hex))")
           .eq("user_id", userId)
           .order("created_at", { ascending: true })
       : null,
@@ -203,7 +153,17 @@ function FavoriteDriversPanel({ drivers }: { drivers: FavoriteDriver[] }) {
             >
               <TeamColorBar className="h-9 w-1" color={driver.teamColor} />
               <div className="min-w-0">
-                <p className="truncate font-medium">{driver.name}</p>
+                {driver.slug ? (
+                  <Link
+                    className="block truncate font-medium transition-colors hover:text-primary"
+                    href={`/drivers/${driver.slug}`}
+                    prefetch={false}
+                  >
+                    {driver.name}
+                  </Link>
+                ) : (
+                  <p className="truncate font-medium">{driver.name}</p>
+                )}
                 <p className="mt-1 truncate text-sm text-muted-foreground">{driver.team}</p>
               </div>
             </div>
@@ -244,7 +204,7 @@ function FavoriteTeamsPanel({ teams }: { teams: FavoriteTeam[] }) {
                 />
                 <span className="min-w-0 truncate font-medium">{team.name}</span>
               </div>
-              <TeamColorDot className="size-3" color={team.color} />
+              <TeamColorBar className="h-8 w-1" color={team.color} />
             </div>
           ))
         ) : (
@@ -289,15 +249,6 @@ function ProfileFact({
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-md border border-border/70 bg-background/35 p-3">
-      <p className="font-telemetry text-xl font-bold">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
 function mapFavoriteTeam(row: FavoriteTeamRow): FavoriteTeam | null {
   const team = firstRelation(row.teams);
 
@@ -329,6 +280,7 @@ function mapFavoriteDriver(row: FavoriteDriverRow): FavoriteDriver | null {
   return {
     id: row.driver_id,
     name: driver.full_name,
+    slug: driver.slug ?? undefined,
     team: asset?.name ?? team?.name ?? "Команда уточняется",
     teamCode: asset?.code ?? team?.code ?? undefined,
     teamColor: team?.color_hex ?? asset?.color,

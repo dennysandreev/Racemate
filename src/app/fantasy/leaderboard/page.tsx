@@ -62,7 +62,18 @@ export default async function GlobalFantasyLeaderboardPage() {
                       <td className="px-4 py-4 text-right font-telemetry font-bold">{row.totalScore}</td>
                       <td className="px-4 py-4 text-right">{row.predictionCount}</td>
                       <td className="px-4 py-4 text-right">{row.averageScore}</td>
-                      <td className="px-4 py-4 text-right">{row.bestScore ?? "—"}</td>
+                      <td className="px-4 py-4 text-right">
+                        <div className="grid gap-1">
+                          <span className="font-telemetry font-bold">{row.bestScore ?? "—"}</span>
+                          {row.bestBreakdown ? (
+                            <span className="text-xs text-muted-foreground">
+                              Топ-10 {row.bestBreakdown.top10Points} · Бонусы{" "}
+                              {row.bestBreakdown.top10Bonus} · Спец{" "}
+                              {row.bestBreakdown.specialPoints}
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

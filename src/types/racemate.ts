@@ -35,6 +35,7 @@ export type NextSession = {
 export type StandingRow = {
   position: number;
   driver: string;
+  driverSlug?: string;
   team: string;
   teamCode?: string;
   teamLogo?: string;
@@ -62,6 +63,7 @@ export type StandingsMeta = {
 export type DriverChampionshipRow = {
   position: number;
   driver: string;
+  driverSlug?: string;
   team: string;
   teamCode?: string;
   teamLogo?: string;
@@ -81,6 +83,140 @@ export type ChampionshipRound = {
 export type DriverChampionshipMatrix = {
   rounds: ChampionshipRound[];
   rows: DriverChampionshipRow[];
+};
+
+export type DriverProfileTeam = {
+  id?: string;
+  name: string;
+  code?: string;
+  logo?: string;
+  color?: string;
+};
+
+export type DriverSeasonStats = {
+  points: number | null;
+  championshipPosition: number | null;
+  wins: number | null;
+  podiums: number | null;
+  poles: number | null;
+  fastestLaps: number | null;
+  dnfs: number | null;
+  pointsFinishes: number | null;
+  averageStart: number | null;
+  averageFinish: number | null;
+  bestResult: number | null;
+  worstResult: number | null;
+  q3Appearances: number | null;
+};
+
+export type DriverRaceResultRow = {
+  round: number;
+  raceName: string;
+  raceDate: string | null;
+  circuit: string;
+  country: string;
+  countryCode?: string;
+  qualifyingPosition: number | null;
+  startPosition: number | null;
+  finishPosition: number | null;
+  positionDelta: number | null;
+  points: number | null;
+  status: string;
+  isWin: boolean;
+  isPodium: boolean;
+  isDnf: boolean;
+  scoredPoints: boolean;
+};
+
+export type DriverChartPoint = {
+  round: number;
+  raceName: string;
+  value: number | null;
+};
+
+export type DriverCumulativePointsSeries = {
+  driverId: string;
+  driver: string;
+  driverSlug?: string;
+  teamColor?: string;
+  points: DriverChartPoint[];
+};
+
+export type DriverFormStats = {
+  labels: string[];
+  points: number;
+  podiums: number;
+  dnfs: number;
+  bestResult: number | null;
+  averageQualifyingPosition: number | null;
+  averageFinishPosition: number | null;
+};
+
+export type DriverTeammateComparison = {
+  teammateNames: string[];
+  qualifying: { driver: number; teammate: number };
+  races: { driver: number; teammate: number };
+  points: { driver: number; teammate: number };
+  podiums: { driver: number; teammate: number };
+  wins: { driver: number; teammate: number };
+  averageStart: { driver: number | null; teammate: number | null };
+  averageFinish: { driver: number | null; teammate: number | null };
+  dnfs: { driver: number; teammate: number };
+};
+
+export type DriverPositionDeltaStats = {
+  totalDelta: number | null;
+  averageDelta: number | null;
+  bestGain: { value: number; raceName: string } | null;
+  biggestDrop: { value: number; raceName: string } | null;
+};
+
+export type DriverProfileNewsItem = {
+  title: string;
+  summary: string;
+  href: string;
+  source: string;
+  time: string;
+  imageUrl?: string;
+};
+
+export type DriverProfileSocialPost = {
+  platform: "x" | "reddit";
+  author: string;
+  title: string;
+  href: string;
+  publishedAt: string;
+};
+
+export type DriverProfile = {
+  id: string;
+  slug: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  code?: string;
+  number: number | null;
+  country: string | null;
+  countryCode?: string | null;
+  aiAvatarUrl?: string | null;
+  avatarPlaceholderStyle?: string | null;
+  team: DriverProfileTeam;
+  season: number;
+  stats: DriverSeasonStats;
+  results: DriverRaceResultRow[];
+  charts: {
+    racePoints: DriverChartPoint[];
+    cumulativePoints: DriverChartPoint[];
+    championshipPosition: DriverChartPoint[];
+    topTenCumulativePoints: DriverCumulativePointsSeries[];
+  };
+  form: DriverFormStats;
+  teammateComparison: DriverTeammateComparison;
+  positionDelta: DriverPositionDeltaStats;
+  news: DriverProfileNewsItem[];
+  socialPosts: DriverProfileSocialPost[];
+  isFavorite: boolean;
+  favoriteLimitReached: boolean;
 };
 
 export type ConstructorChampionshipMatrix = {
@@ -185,6 +321,7 @@ export type TrackLayout = {
 export type SessionResult = {
   position: number | null;
   driver: string;
+  driverSlug?: string;
   team: string;
   teamCode?: string;
   teamLogo?: string;
@@ -296,6 +433,31 @@ export type LeaguePredictionPick = {
   value: string;
 };
 
+export type FantasyScoreBreakdown = {
+  total: number;
+  top10Points: number;
+  top10Bonus: number;
+  specialPoints: number;
+  top10?: Array<{
+    predictedPosition: number;
+    driverId: string;
+    actualPosition: number | null;
+    points: number;
+  }>;
+  bonuses?: {
+    perfectTop10?: number;
+    allTop10?: number;
+    podiumAnyOrder?: number;
+  };
+  specials?: {
+    pole?: number;
+    fastestLap?: number;
+    firstDnf?: number;
+    topScoringTeam?: number;
+    fastestPitStopTeam?: number;
+  };
+};
+
 export type LeagueMemberPrediction = {
   userId: string;
   name: string;
@@ -307,6 +469,7 @@ export type LeagueMemberPrediction = {
   averageScore: number;
   bestScore: number | null;
   picks: LeaguePredictionPick[];
+  scoreBreakdown?: FantasyScoreBreakdown | null;
 };
 
 export type LeagueHistoryEntry = {
@@ -316,6 +479,7 @@ export type LeagueHistoryEntry = {
     userId: string;
     name: string;
     score: number | null;
+    scoreBreakdown?: FantasyScoreBreakdown | null;
     picks: LeaguePredictionPick[];
   }[];
 };
@@ -386,6 +550,27 @@ export type AdminGrandPrixReport = {
   aiSummary?: string;
 };
 
+export type AdminDriver = {
+  id: string;
+  slug: string;
+  fullName: string;
+  code?: string;
+  number: number | null;
+  country?: string;
+  countryCode?: string;
+  aiAvatarUrl?: string;
+  teamId?: string;
+  team: string;
+  teamCode?: string;
+  teamLogo?: string;
+  teamColor?: string;
+};
+
+export type AdminTeamOption = {
+  id: string;
+  name: string;
+};
+
 export type AiUsageSummary = {
   totalRuns: number;
   estimatedCostUsd: number;
@@ -398,12 +583,29 @@ export type PollSummary = {
   options: { id: string; label: string; votes?: number }[] | string[];
   votes: number;
   userVote?: string;
+  kind?: "sport" | "strategy" | "fan";
+  status?: "published" | "closed";
+  closesAt?: string | null;
+  race?: {
+    id: string;
+    season: number;
+    round: number;
+    name: string;
+    circuit: string;
+    country: string;
+  };
 };
 
 export type DriverOption = {
   id: string;
   name: string;
   team: string;
+};
+
+export type TeamOption = {
+  id: string;
+  name: string;
+  code?: string | null;
 };
 
 export type RaceOption = {
@@ -419,12 +621,18 @@ export type RaceOption = {
 export type PredictionState = {
   race: RaceOption | null;
   drivers: DriverOption[];
+  teams: TeamOption[];
   current: {
+    top10DriverIds: string[];
     poleDriverId: string | null;
     winnerDriverId: string | null;
     fastestLapDriverId: string | null;
     dnfDriverId: string | null;
+    dnfPickKind: "driver" | "none";
+    topScoringTeamId: string | null;
+    fastestPitStopTeamId: string | null;
     score: number | null;
+    scoreBreakdown?: FantasyScoreBreakdown | null;
   } | null;
 };
 
@@ -436,6 +644,7 @@ export type GlobalFantasyLeaderboardRow = {
   scoredPredictionCount: number;
   averageScore: number;
   bestScore: number | null;
+  bestBreakdown?: FantasyScoreBreakdown | null;
 };
 
 export type GlobalFantasyLeaderboard = {

@@ -21,11 +21,42 @@ export async function votePoll(formData: FormData) {
     redirect("/polls");
   }
 
-  await supabase.from("poll_votes").insert({
+  const [{ data: poll }, { data: option }] = await Promise.all([
+    supabase
+      .from("polls")
+      .select("id, status, closes_at, races(status)")
+      .eq("id", pollId)
+      .maybeSingle(),
+    supabase
+      .from("poll_options")
+      .select("id")
+      .eq("id", optionId)
+      .eq("poll_id", pollId)
+      .maybeSingle(),
+  ]);
+  const race = Array.isArray(poll?.races) ? poll.races[0] : poll?.races;
+  const closesAt = poll?.closes_at ? new Date(poll.closes_at).getTime() : null;
+  const pollClosed =
+    !poll ||
+    !option ||
+    poll.status !== "published" ||
+    race?.status === "completed" ||
+    race?.status === "finished" ||
+    (closesAt !== null && closesAt <= Date.now());
+
+  if (pollClosed) {
+    redirect("/polls?error=closed");
+  }
+
+  const { error } = await supabase.from("poll_votes").insert({
     poll_id: pollId,
     option_id: optionId,
     user_id: user.id,
   });
+
+  if (error) {
+    redirect(error.code === "23505" ? "/polls?error=already-voted" : "/polls?error=vote");
+  }
 
   revalidatePath("/polls");
   redirect("/polls?voted=1");

@@ -8,7 +8,6 @@ import {
   adminSignals,
   calendarEvents,
   nextSession,
-  polls,
   predictionPicks,
   standings,
   weekendSessions,
@@ -16,10 +15,12 @@ import {
 import { getTeamAsset, getTeamMatchNames } from "@/data/f1-assets";
 import type {
   AdminJob,
+  AdminDriver,
   AdminGrandPrixReport,
   AdminSignal,
   AdminSocialSource,
   AdminSource,
+  AdminTeamOption,
   AiUsageSummary,
   CalendarEvent,
   ConstructorChampionOdds,
@@ -27,6 +28,16 @@ import type {
   ConstructorStandingRow,
   DailyDigest,
   DriverChampionshipMatrix,
+  DriverChartPoint,
+  DriverCumulativePointsSeries,
+  DriverFormStats,
+  DriverPositionDeltaStats,
+  DriverProfile,
+  DriverProfileNewsItem,
+  DriverProfileSocialPost,
+  DriverRaceResultRow,
+  DriverSeasonStats,
+  DriverTeammateComparison,
   GrandPrixReport,
   GlobalFantasyLeaderboard,
   GlobalFantasyLeaderboardRow,
@@ -181,7 +192,7 @@ type StandingDbRow = {
   position: number | null;
   points: number | string;
   wins?: number | null;
-  drivers: { full_name: string } | { full_name: string }[] | null;
+  drivers: { full_name: string; slug?: string | null } | { full_name: string; slug?: string | null }[] | null;
   teams: TeamRelationObject | TeamRelationObject[] | null;
 };
 
@@ -203,6 +214,8 @@ type SessionDbRow = {
 };
 
 type SessionResultDbRow = {
+  driver_id?: string | null;
+  team_id?: string | null;
   position: number | null;
   time_text: string | null;
   status: string | null;
@@ -214,7 +227,76 @@ type SessionResultDbRow = {
     | { session_type: string }
     | { session_type: string }[]
     | null;
-  drivers: { full_name: string } | { full_name: string }[] | null;
+  drivers: { full_name: string; slug?: string | null } | { full_name: string; slug?: string | null }[] | null;
+  teams: TeamRelationObject | TeamRelationObject[] | null;
+};
+
+type DriverProfileDbRow = {
+  id: string;
+  slug: string | null;
+  code: string | null;
+  permanent_number: number | null;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  country: string | null;
+  country_code: string | null;
+  ai_avatar_url: string | null;
+  avatar_placeholder_style: string | null;
+  current_team_id: string | null;
+  teams: (TeamRelationObject & { id?: string | null }) | (TeamRelationObject & { id?: string | null })[] | null;
+};
+
+type DriverRaceDbRow = {
+  id: string;
+  season_year: number;
+  round: number;
+  race_name: string;
+  race_start_at: string | null;
+  circuits:
+    | { name: string | null; country: string | null; locality?: string | null }
+    | { name: string | null; country: string | null; locality?: string | null }[]
+    | null;
+};
+
+type DriverSessionDbRow = {
+  id: string;
+  race_id: string;
+  session_type: string;
+  name: string;
+  start_at: string | null;
+};
+
+type DriverSessionResultDbRow = {
+  session_id: string;
+  driver_id: string | null;
+  team_id: string | null;
+  position: number | null;
+  classified_position?: string | null;
+  grid: number | null;
+  points: number | string | null;
+  status: string | null;
+  time_text: string | null;
+  raw_payload?: unknown;
+  drivers: { full_name: string; slug?: string | null } | { full_name: string; slug?: string | null }[] | null;
+  teams: TeamRelationObject | TeamRelationObject[] | null;
+};
+
+type DriverStandingHistoryDbRow = {
+  round: number | null;
+  position: number | null;
+  points: number | string;
+  wins: number | null;
+  team_id: string | null;
+  teams: TeamRelationObject | TeamRelationObject[] | null;
+};
+
+type DriverCumulativeStandingDbRow = {
+  driver_id: string | null;
+  round: number | null;
+  position: number | null;
+  points: number | string | null;
+  drivers: { full_name: string; slug?: string | null } | { full_name: string; slug?: string | null }[] | null;
   teams: TeamRelationObject | TeamRelationObject[] | null;
 };
 
@@ -329,12 +411,18 @@ type PredictionDbRow = {
   winner_driver_id: string | null;
   fastest_lap_driver_id: string | null;
   dnf_driver_id: string | null;
+  dnf_pick_kind?: string | null;
+  top_scoring_team_id?: string | null;
+  fastest_pit_stop_team_id?: string | null;
+  top10_driver_ids?: string[] | null;
   score: number | null;
+  score_breakdown?: unknown;
 };
 
 type GlobalPredictionRow = {
   race_id: string;
   score: number | null;
+  score_breakdown?: unknown;
   user_id: string;
 };
 
@@ -375,7 +463,12 @@ type LeaguePredictionRow = {
   winner_driver_id: string | null;
   fastest_lap_driver_id: string | null;
   dnf_driver_id: string | null;
+  dnf_pick_kind?: string | null;
+  top_scoring_team_id?: string | null;
+  fastest_pit_stop_team_id?: string | null;
+  top10_driver_ids?: string[] | null;
   score: number | null;
+  score_breakdown?: unknown;
   scored_at: string | null;
   submitted_at: string;
   races:
@@ -406,7 +499,33 @@ type NewsFavoriteTeamRow = {
 
 type PollDbRow = {
   id: string;
+  race_id: string | null;
   question: string;
+  status: string;
+  closes_at: string | null;
+  poll_kind: string | null;
+  races:
+    | {
+        id: string;
+        season_year: number;
+        round: number;
+        race_name: string;
+        circuits:
+          | { name: string | null; country: string | null }
+          | { name: string | null; country: string | null }[]
+          | null;
+      }
+    | {
+        id: string;
+        season_year: number;
+        round: number;
+        race_name: string;
+        circuits:
+          | { name: string | null; country: string | null }
+          | { name: string | null; country: string | null }[]
+          | null;
+      }[]
+    | null;
   poll_options:
     | { id: string; label: string; poll_votes: { user_id: string }[] | null }[]
     | null;
@@ -449,6 +568,11 @@ type PolymarketEvent = {
 };
 
 const POLYMARKET_F1_TAG_ID = "435";
+const POLYMARKET_EVENT_LIMIT = "20";
+const POLYMARKET_CACHE_TTL_MS = 2 * 60 * 1000;
+
+let polymarketEventsCache: { events: PolymarketEvent[]; expiresAt: number } | null = null;
+let polymarketEventsInFlight: Promise<PolymarketEvent[]> | null = null;
 
 const NEWS_ARTICLE_SELECT =
   "id, canonical_url, original_title, original_description, published_at, ai_title_ru, ai_summary_ru, ai_summary_long_ru, ai_key_points_ru, ai_highlights_ru, image_url, source_image_url, related_race_id, news_sources(name), news_article_tags(tags(name, slug, type)), races:related_race_id(race_name, season_year, round)";
@@ -1002,7 +1126,7 @@ export async function getDriverStandings(): Promise<StandingRow[]> {
 
   let standingsQuery = supabase
     .from("driver_standings")
-    .select("position, points, drivers(full_name), teams(name, code, color_hex)")
+    .select("position, points, drivers(full_name, slug), teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
     .order("position", { ascending: true, nullsFirst: false })
     .limit(40);
@@ -1020,6 +1144,7 @@ export async function getDriverStandings(): Promise<StandingRow[]> {
     ...getTeamVisualFields(row.teams, "Команда уточняется"),
     position: row.position ?? index + 1,
     driver: getRelationName(row.drivers, "Пилот уточняется"),
+    driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
     points: Number(row.points),
   }));
 }
@@ -1051,6 +1176,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
       rows: rows.map((row) => ({
         position: row.position,
         driver: row.driver,
+        driverSlug: row.driverSlug,
         team: row.team,
         teamCode: row.teamCode,
         teamLogo: row.teamLogo,
@@ -1067,7 +1193,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
 
   const { data, error } = await supabase
     .from("driver_standings")
-    .select("driver_id, team_id, round, position, points, drivers(full_name), teams(name, code, color_hex)")
+    .select("driver_id, team_id, round, position, points, drivers(full_name, slug), teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
     .lte("round", standingsLatestRound)
     .order("round", { ascending: true })
@@ -1082,6 +1208,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     {
       driverId: string;
       driver: string;
+      driverSlug?: string;
       team: string;
       teamCode?: string;
       teamLogo?: string;
@@ -1101,6 +1228,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     const existing = rowsByDriver.get(row.driver_id) ?? {
       driverId: row.driver_id,
       driver: getRelationName(row.drivers, "Пилот уточняется"),
+      driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
       team: teamVisual.team,
       teamCode: teamVisual.teamCode,
       teamLogo: teamVisual.teamLogo,
@@ -1164,6 +1292,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
       return {
         position: row.latestPosition,
         driver: row.driver,
+        driverSlug: row.driverSlug,
         team: row.team,
         teamCode: row.teamCode,
         teamLogo: row.teamLogo,
@@ -1175,6 +1304,381 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     });
 
   return { rounds, rows };
+}
+
+export async function getDriverProfileBySlug(
+  slug: string,
+  userId?: string | null,
+): Promise<DriverProfile | null> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const normalizedSlug = slug.trim().toLowerCase();
+  const { data: driverData, error: driverError } = await supabase
+    .from("drivers")
+    .select(
+      "id, slug, code, permanent_number, first_name, last_name, full_name, country, country_code, ai_avatar_url, avatar_placeholder_style, current_team_id, teams:current_team_id(id, name, code, color_hex)",
+    )
+    .eq("slug", normalizedSlug)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (driverError || !driverData) {
+    return null;
+  }
+
+  const driver = driverData as unknown as DriverProfileDbRow;
+  const latest = await getLatestCompleteStandingRound("driver_standings", 20);
+  const season = latest?.season_year ?? new Date().getFullYear();
+  const teamVisual = getTeamVisualFields(driver.teams, "Команда уточняется");
+  const teamObject = getRelationObject(driver.teams);
+
+  const [
+    races,
+    standingsHistory,
+    topTenCumulativePoints,
+    favoriteState,
+    news,
+    socialPosts,
+  ] = await Promise.all([
+    getDriverProfileRaces(season),
+    getDriverStandingHistory(driver.id, season),
+    getDriverTopTenCumulativePoints(season, latest?.round ?? null, driver.id),
+    getDriverFavoriteState(driver.id, userId),
+    getDriverProfileNews(normalizedSlug),
+    getDriverSocialPosts(driver),
+  ]);
+
+  const raceIds = races.map((race) => race.id);
+  const sessions = raceIds.length ? await getDriverProfileSessions(raceIds) : [];
+  const sessionIds = sessions.map((session) => session.id);
+  const results = sessionIds.length ? await getDriverProfileSessionResults(sessionIds) : [];
+  const context = buildDriverProfileContext(
+    driver.id,
+    races,
+    sessions,
+    results,
+    standingsHistory,
+    topTenCumulativePoints,
+  );
+  const latestStanding = getLatestDriverStanding(standingsHistory);
+
+  return {
+    id: driver.id,
+    slug: driver.slug ?? normalizedSlug,
+    firstName: driver.first_name,
+    lastName: driver.last_name,
+    fullName: driver.full_name,
+    code: driver.code ?? undefined,
+    number: driver.permanent_number,
+    country: driver.country,
+    countryCode: driver.country_code ?? getCountryCode(driver.country ?? ""),
+    aiAvatarUrl: driver.ai_avatar_url,
+    avatarPlaceholderStyle: driver.avatar_placeholder_style,
+    team: {
+      id: teamObject?.id ?? driver.current_team_id ?? undefined,
+      name: teamVisual.team,
+      code: teamVisual.teamCode,
+      logo: teamVisual.teamLogo,
+      color: teamVisual.teamColor,
+    },
+    season,
+    stats: {
+      ...context.stats,
+      championshipPosition: latestStanding?.position ?? context.stats.championshipPosition,
+      points: latestStanding ? Number(latestStanding.points) : context.stats.points,
+      wins: latestStanding?.wins ?? context.stats.wins,
+    },
+    results: context.results,
+    charts: context.charts,
+    form: context.form,
+    teammateComparison: context.teammateComparison,
+    positionDelta: context.positionDelta,
+    news,
+    socialPosts,
+    isFavorite: favoriteState.isFavorite,
+    favoriteLimitReached: favoriteState.favoriteLimitReached,
+  };
+}
+
+export async function getDriverSlugMap(): Promise<Record<string, string>> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return {};
+  }
+
+  const { data, error } = await supabase
+    .from("drivers")
+    .select("full_name, slug")
+    .eq("is_active", true)
+    .not("slug", "is", null);
+
+  if (error || !data?.length) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    (data as { full_name: string | null; slug: string | null }[])
+      .filter((driver) => driver.full_name && driver.slug)
+      .map((driver) => [normalizeDriverLookupName(driver.full_name as string), driver.slug as string]),
+  );
+}
+
+async function getDriverProfileRaces(season: number) {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("races")
+    .select("id, season_year, round, race_name, race_start_at, circuits(name, country, locality)")
+    .eq("season_year", season)
+    .order("round", { ascending: true });
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return data as unknown as DriverRaceDbRow[];
+}
+
+async function getDriverProfileSessions(raceIds: string[]) {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase || !raceIds.length) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("sessions")
+    .select("id, race_id, session_type, name, start_at")
+    .in("race_id", raceIds)
+    .order("start_at", { ascending: true, nullsFirst: false });
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return data as DriverSessionDbRow[];
+}
+
+async function getDriverProfileSessionResults(sessionIds: string[]) {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase || !sessionIds.length) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("session_results")
+    .select("session_id, driver_id, team_id, position, classified_position, grid, points, status, time_text, raw_payload, drivers(full_name, slug), teams(name, code, color_hex)")
+    .in("session_id", sessionIds);
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return (data as unknown as DriverSessionResultDbRow[]).filter((result) => !isLapOnlyResult(result));
+}
+
+async function getDriverStandingHistory(driverId: string, season: number) {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("driver_standings")
+    .select("round, position, points, wins, team_id, teams(name, code, color_hex)")
+    .eq("driver_id", driverId)
+    .eq("season_year", season)
+    .order("round", { ascending: true, nullsFirst: false });
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return data as unknown as DriverStandingHistoryDbRow[];
+}
+
+async function getDriverTopTenCumulativePoints(
+  season: number,
+  latestRound: number | null,
+  selectedDriverId: string,
+): Promise<DriverCumulativePointsSeries[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase || !latestRound) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("driver_standings")
+    .select("driver_id, round, position, points, drivers(full_name, slug), teams(name, code, color_hex)")
+    .eq("season_year", season)
+    .lte("round", latestRound)
+    .order("round", { ascending: true, nullsFirst: false })
+    .order("position", { ascending: true, nullsFirst: false });
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  const rows = data as unknown as DriverCumulativeStandingDbRow[];
+  const roundPointTotals = await getChampionshipRoundPointTotals(season);
+  const latestRows = rows
+    .filter((row) => row.round === latestRound && row.driver_id && row.position !== null)
+    .sort((left, right) => (left.position ?? Number.MAX_SAFE_INTEGER) - (right.position ?? Number.MAX_SAFE_INTEGER));
+  const driverIds = new Set(latestRows.slice(0, 10).map((row) => row.driver_id as string));
+  driverIds.add(selectedDriverId);
+
+  const rounds = Array.from({ length: latestRound }, (_, index) => index + 1);
+  const hasRaceResults = roundPointTotals.scoredRounds.some((round) => round <= latestRound);
+  const rowsByDriver = new Map<string, DriverCumulativeStandingDbRow[]>();
+
+  rows.forEach((row) => {
+    if (!row.driver_id || !driverIds.has(row.driver_id)) {
+      return;
+    }
+
+    const list = rowsByDriver.get(row.driver_id) ?? [];
+    list.push(row);
+    rowsByDriver.set(row.driver_id, list);
+  });
+
+  return [...driverIds].flatMap((driverId) => {
+    const driverRows = rowsByDriver.get(driverId) ?? [];
+    const latestRow = [...driverRows].reverse().find((row) => getRelationObject(row.drivers));
+    const driver = latestRow ? getRelationName(latestRow.drivers, "Пилот") : "Пилот";
+
+    if (!latestRow) {
+      return [];
+    }
+
+    const standingPointsByRound = new Map(
+      driverRows
+        .filter((row) => row.round !== null)
+        .map((row) => [row.round as number, Number(row.points ?? 0)]),
+    );
+    const resultPointsByRound = roundPointTotals.driverPoints.get(driverId);
+    let cumulativePoints = 0;
+    let previousStandingPoints = 0;
+    const points: DriverChartPoint[] = [{ round: 0, raceName: "Старт", value: 0 }];
+
+    rounds.forEach((round) => {
+      if (hasRaceResults) {
+        cumulativePoints += resultPointsByRound?.get(round) ?? 0;
+        points.push({ round, raceName: `Раунд ${round}`, value: cumulativePoints });
+        return;
+      }
+
+      previousStandingPoints = standingPointsByRound.get(round) ?? previousStandingPoints;
+      points.push({ round, raceName: `Раунд ${round}`, value: previousStandingPoints });
+    });
+
+    return [{
+      driverId,
+      driver,
+      driverSlug: getRelationObject(latestRow.drivers)?.slug ?? undefined,
+      teamColor: getTeamVisualFields(latestRow.teams, "").teamColor,
+      points,
+    }];
+  });
+}
+
+async function getDriverFavoriteState(driverId: string, userId?: string | null) {
+  if (!userId) {
+    return { isFavorite: false, favoriteLimitReached: false };
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return { isFavorite: false, favoriteLimitReached: false };
+  }
+
+  const { data, error } = await supabase
+    .from("user_favorite_drivers")
+    .select("driver_id")
+    .eq("user_id", userId);
+
+  if (error) {
+    return { isFavorite: false, favoriteLimitReached: false };
+  }
+
+  const favoriteIds = (data ?? []).map((row) => row.driver_id);
+
+  return {
+    isFavorite: favoriteIds.includes(driverId),
+    favoriteLimitReached: favoriteIds.length >= 2 && !favoriteIds.includes(driverId),
+  };
+}
+
+export async function getDriverProfileNews(slug: string): Promise<DriverProfileNewsItem[]> {
+  const result = await getNewsItems({ pageSize: 10, tagSlug: `driver-${slug}` });
+
+  return result.items.map((item) => ({
+    title: item.title,
+    summary: item.summary,
+    href: `/news/${item.slug}`,
+    source: item.source,
+    time: item.time,
+    imageUrl: item.imageUrl ?? item.sourceImageUrl,
+  }));
+}
+
+export async function getDriverSocialPosts(driver: Pick<DriverProfileDbRow, "full_name" | "last_name" | "code">): Promise<DriverProfileSocialPost[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const searchTerms = [driver.full_name, driver.last_name, driver.code]
+    .filter(Boolean)
+    .map((term) => String(term).replaceAll(",", " ").trim())
+    .filter((term) => term.length >= 2)
+    .slice(0, 3);
+
+  if (!searchTerms.length) {
+    return [];
+  }
+
+  const orFilter = searchTerms
+    .flatMap((term) => [`title.ilike.%${term}%`, `body.ilike.%${term}%`])
+    .join(",");
+  const { data, error } = await supabase
+    .from("social_posts")
+    .select("platform, author, title, body, original_url, published_at")
+    .or(orFilter)
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .limit(10);
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return (data as {
+    platform: "x" | "reddit";
+    author: string | null;
+    title: string | null;
+    body: string | null;
+    original_url: string;
+    published_at: string | null;
+  }[]).map((post) => ({
+    platform: post.platform,
+    author: post.author ?? (post.platform === "x" ? "X" : "Reddit"),
+    title: post.title ?? post.body ?? "Пост без заголовка",
+    href: post.original_url,
+    publishedAt: formatRelativeTime(post.published_at),
+  }));
 }
 
 export async function getConstructorStandings(): Promise<ConstructorStandingRow[]> {
@@ -1455,16 +1959,21 @@ export async function getPredictionState(
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return { race: null, drivers: [], current: null };
+    return { race: null, drivers: [], teams: [], current: null };
   }
 
-  const [currentRace, driversResult] = await Promise.all([
+  const [currentRace, driversResult, teamsResult] = await Promise.all([
     getCurrentRace("id, race_name, race_start_at"),
     supabase
       .from("drivers")
       .select("id, full_name, teams:current_team_id(name)")
       .eq("is_active", true)
       .order("full_name"),
+    supabase
+      .from("teams")
+      .select("id, name, code")
+      .eq("is_active", true)
+      .order("name"),
   ]);
 
   const locks = currentRace
@@ -1488,7 +1997,7 @@ export async function getPredictionState(
     const { data } = await supabase
       .from("predictions")
       .select(
-        "pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, score",
+        "pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, dnf_pick_kind, top_scoring_team_id, fastest_pit_stop_team_id, top10_driver_ids, score, score_breakdown",
       )
       .eq("user_id", userId)
       .eq("race_id", race.id)
@@ -1498,11 +2007,16 @@ export async function getPredictionState(
     if (data) {
       const prediction = data as PredictionDbRow;
       current = {
+        top10DriverIds: normalizeDriverIdList(prediction.top10_driver_ids),
         poleDriverId: prediction.pole_driver_id,
         winnerDriverId: prediction.winner_driver_id,
         fastestLapDriverId: prediction.fastest_lap_driver_id,
         dnfDriverId: prediction.dnf_driver_id,
+        dnfPickKind: prediction.dnf_pick_kind === "none" ? "none" : "driver",
+        topScoringTeamId: prediction.top_scoring_team_id ?? null,
+        fastestPitStopTeamId: prediction.fastest_pit_stop_team_id ?? null,
         score: prediction.score,
+        scoreBreakdown: mapFantasyScoreBreakdown(prediction.score_breakdown),
       };
     }
   }
@@ -1513,6 +2027,11 @@ export async function getPredictionState(
       id: driver.id,
       name: driver.full_name,
       team: getRelationName(driver.teams, "Команда уточняется"),
+    })),
+    teams: (teamsResult.data ?? []).map((team) => ({
+      id: team.id,
+      name: team.name,
+      code: team.code,
     })),
     current,
   };
@@ -1527,7 +2046,7 @@ export async function getGlobalFantasyLeaderboard(): Promise<GlobalFantasyLeader
 
   const { data: predictionData } = await supabase
     .from("predictions")
-    .select("user_id, race_id, score")
+    .select("user_id, race_id, score, score_breakdown")
     .is("league_id", null);
   const predictions = (predictionData ?? []) as unknown as GlobalPredictionRow[];
   const userIds = [...new Set(predictions.map((prediction) => prediction.user_id))];
@@ -1548,12 +2067,19 @@ export async function getGlobalFantasyLeaderboard(): Promise<GlobalFantasyLeader
   );
   const totals = new Map<
     string,
-    { bestScore: number | null; predictionCount: number; scoredPredictionCount: number; totalScore: number }
+    {
+      bestBreakdown: GlobalFantasyLeaderboardRow["bestBreakdown"];
+      bestScore: number | null;
+      predictionCount: number;
+      scoredPredictionCount: number;
+      totalScore: number;
+    }
   >();
 
   predictions.forEach((prediction) => {
     const current = totals.get(prediction.user_id) ?? {
       bestScore: null,
+      bestBreakdown: null,
       predictionCount: 0,
       scoredPredictionCount: 0,
       totalScore: 0,
@@ -1565,6 +2091,9 @@ export async function getGlobalFantasyLeaderboard(): Promise<GlobalFantasyLeader
       current.totalScore += score;
       current.scoredPredictionCount += 1;
       current.bestScore = current.bestScore === null ? score : Math.max(current.bestScore, score);
+      if (current.bestScore === score) {
+        current.bestBreakdown = mapFantasyScoreBreakdown(prediction.score_breakdown);
+      }
     }
     totals.set(prediction.user_id, current);
   });
@@ -1575,6 +2104,7 @@ export async function getGlobalFantasyLeaderboard(): Promise<GlobalFantasyLeader
         ? Math.round((value.totalScore / value.scoredPredictionCount) * 10) / 10
         : 0,
       bestScore: value.bestScore,
+      bestBreakdown: value.bestBreakdown,
       displayName: names.get(userId) ?? "Участник",
       predictionCount: value.predictionCount,
       scoredPredictionCount: value.scoredPredictionCount,
@@ -1760,6 +2290,68 @@ export async function getAdminGrandPrixReports(): Promise<AdminGrandPrixReport[]
   }));
 }
 
+export async function getAdminDrivers(): Promise<AdminDriver[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("drivers")
+    .select("id, slug, code, permanent_number, full_name, country, country_code, ai_avatar_url, current_team_id, teams:current_team_id(id, name, code, color_hex)")
+    .eq("is_active", true)
+    .order("full_name", { ascending: true });
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return (data as unknown as DriverProfileDbRow[]).map((driver) => {
+    const team = getRelationObject(driver.teams);
+    const teamVisual = getTeamVisualFields(driver.teams, "Команда уточняется");
+
+    return {
+      id: driver.id,
+      slug: driver.slug ?? "",
+      fullName: driver.full_name,
+      code: driver.code ?? undefined,
+      number: driver.permanent_number,
+      country: driver.country ?? undefined,
+      countryCode: driver.country_code ?? undefined,
+      aiAvatarUrl: driver.ai_avatar_url ?? undefined,
+      teamId: team?.id ?? driver.current_team_id ?? undefined,
+      team: teamVisual.team,
+      teamCode: teamVisual.teamCode,
+      teamLogo: teamVisual.teamLogo,
+      teamColor: teamVisual.teamColor,
+    };
+  });
+}
+
+export async function getAdminTeamOptions(): Promise<AdminTeamOption[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("teams")
+    .select("id, name")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return data.map((team) => ({
+    id: team.id,
+    name: team.name,
+  }));
+}
+
 export async function getAiUsageSummary(): Promise<AiUsageSummary> {
   const supabase = await createSupabaseServerClient();
 
@@ -1893,7 +2485,7 @@ export async function getLeagueDetail(
     db
       .from("predictions")
       .select(
-        "user_id, race_id, pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, score, scored_at, submitted_at, races(round, race_name, race_start_at)",
+        "user_id, race_id, pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, dnf_pick_kind, top_scoring_team_id, fastest_pit_stop_team_id, top10_driver_ids, score, score_breakdown, scored_at, submitted_at, races(round, race_name, race_start_at)",
       )
       .in("user_id", memberIds)
       .is("league_id", null)
@@ -1908,7 +2500,10 @@ export async function getLeagueDetail(
     ]),
   );
   const predictions = (predictionsResult.data ?? []) as unknown as LeaguePredictionRow[];
-  const driverNames = await getPredictionDriverNames(predictions);
+  const [driverNames, teamNames] = await Promise.all([
+    getPredictionDriverNames(predictions),
+    getPredictionTeamNames(predictions),
+  ]);
   const currentRaceId = currentRace?.id ?? null;
 
   const byUser = new Map<string, LeaguePredictionRow[]>();
@@ -1945,7 +2540,8 @@ export async function getLeagueDetail(
           ? Math.round((totalScore / scoredPredictions.length) * 10) / 10
           : 0,
         bestScore,
-        picks: mapPredictionPicks(currentPrediction, driverNames),
+        picks: mapPredictionPicks(currentPrediction, driverNames, teamNames),
+        scoreBreakdown: mapFantasyScoreBreakdown(currentPrediction?.score_breakdown),
       };
     })
     .sort((a, b) => b.totalScore - a.totalScore || b.scoredCount - a.scoredCount || a.name.localeCompare(b.name));
@@ -1955,7 +2551,7 @@ export async function getLeagueDetail(
     name: league.name,
     inviteCode: league.invite_code,
     members: detailMembers,
-    history: buildLeagueHistory(predictions, profiles, driverNames),
+    history: buildLeagueHistory(predictions, profiles, driverNames, teamNames),
   };
 }
 
@@ -2038,6 +2634,7 @@ async function getPredictionDriverNames(predictions: LeaguePredictionRow[]) {
     ...new Set(
       predictions
         .flatMap((prediction) => [
+          ...(prediction.top10_driver_ids ?? []),
           prediction.winner_driver_id,
           prediction.pole_driver_id,
           prediction.fastest_lap_driver_id,
@@ -2059,24 +2656,65 @@ async function getPredictionDriverNames(predictions: LeaguePredictionRow[]) {
   return new Map((data ?? []).map((driver) => [driver.id, driver.full_name]));
 }
 
+async function getPredictionTeamNames(predictions: LeaguePredictionRow[]) {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return new Map<string, string>();
+  }
+
+  const teamIds = [
+    ...new Set(
+      predictions
+        .flatMap((prediction) => [
+          prediction.top_scoring_team_id,
+          prediction.fastest_pit_stop_team_id,
+        ])
+        .filter(Boolean),
+    ),
+  ] as string[];
+
+  if (!teamIds.length) {
+    return new Map<string, string>();
+  }
+
+  const { data } = await supabase.from("teams").select("id, name").in("id", teamIds);
+
+  return new Map((data ?? []).map((team) => [team.id, team.name]));
+}
+
 function mapPredictionPicks(
   prediction: LeaguePredictionRow | undefined,
   driverNames: Map<string, string>,
+  teamNames: Map<string, string>,
 ) {
   if (!prediction) {
     return [
-      { label: "Победитель", value: "Не выбран" },
+      { label: "Топ-10", value: "Не выбран" },
       { label: "Поул", value: "Не выбран" },
       { label: "Лучший круг", value: "Не выбран" },
       { label: "Первый сход", value: "Не выбран" },
+      { label: "Лучшая команда", value: "Не выбран" },
+      { label: "Пит-стоп", value: "Не выбран" },
     ];
   }
 
+  const top10 = normalizeDriverIdList(prediction.top10_driver_ids);
+
   return [
-    { label: "Победитель", value: getDriverPickName(prediction.winner_driver_id, driverNames) },
+    {
+      label: "Топ-10",
+      value: top10.length
+        ? top10
+            .map((driverId, index) => `${index + 1}. ${getDriverPickName(driverId, driverNames)}`)
+            .join(" · ")
+        : "Старый формат прогноза",
+    },
     { label: "Поул", value: getDriverPickName(prediction.pole_driver_id, driverNames) },
     { label: "Лучший круг", value: getDriverPickName(prediction.fastest_lap_driver_id, driverNames) },
-    { label: "Первый сход", value: getDriverPickName(prediction.dnf_driver_id, driverNames) },
+    { label: "Первый сход", value: getDnfPickName(prediction, driverNames) },
+    { label: "Лучшая команда", value: getTeamPickName(prediction.top_scoring_team_id, teamNames) },
+    { label: "Пит-стоп", value: getTeamPickName(prediction.fastest_pit_stop_team_id, teamNames) },
   ];
 }
 
@@ -2084,10 +2722,78 @@ function getDriverPickName(driverId: string | null, driverNames: Map<string, str
   return driverId ? driverNames.get(driverId) ?? "Пилот выбран" : "Не выбран";
 }
 
+function getTeamPickName(teamId: string | null | undefined, teamNames: Map<string, string>) {
+  return teamId ? teamNames.get(teamId) ?? "Команда выбрана" : "Не выбран";
+}
+
+function getDnfPickName(
+  prediction: Pick<LeaguePredictionRow, "dnf_driver_id" | "dnf_pick_kind">,
+  driverNames: Map<string, string>,
+) {
+  if (prediction.dnf_pick_kind === "none") {
+    return "Без DNF";
+  }
+
+  return getDriverPickName(prediction.dnf_driver_id, driverNames);
+}
+
+function normalizeDriverIdList(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.length > 0)
+    : [];
+}
+
+function mapFantasyScoreBreakdown(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const source = value as Record<string, unknown>;
+  const total = numberOrZero(source.total);
+  const top10Points = numberOrZero(source.top10Points);
+  const top10Bonus = numberOrZero(source.top10Bonus);
+  const specialPoints = numberOrZero(source.specialPoints);
+
+  return {
+    total,
+    top10Points,
+    top10Bonus,
+    specialPoints,
+    top10: Array.isArray(source.top10)
+      ? source.top10
+          .filter((item): item is Record<string, unknown> =>
+            Boolean(item && typeof item === "object" && !Array.isArray(item)),
+          )
+          .map((item) => ({
+            predictedPosition: numberOrZero(item.predictedPosition),
+            driverId: typeof item.driverId === "string" ? item.driverId : "",
+            actualPosition:
+              typeof item.actualPosition === "number" ? item.actualPosition : null,
+            points: numberOrZero(item.points),
+          }))
+      : undefined,
+    bonuses:
+      source.bonuses && typeof source.bonuses === "object" && !Array.isArray(source.bonuses)
+        ? (source.bonuses as Record<string, number>)
+        : undefined,
+    specials:
+      source.specials && typeof source.specials === "object" && !Array.isArray(source.specials)
+        ? (source.specials as Record<string, number>)
+        : undefined,
+  };
+}
+
+function numberOrZero(value: unknown) {
+  const number = Number(value ?? 0);
+
+  return Number.isFinite(number) ? number : 0;
+}
+
 function buildLeagueHistory(
   predictions: LeaguePredictionRow[],
   profiles: Map<string, string>,
   driverNames: Map<string, string>,
+  teamNames: Map<string, string>,
 ): LeagueHistoryEntry[] {
   const byRace = new Map<string, LeaguePredictionRow[]>();
 
@@ -2109,7 +2815,8 @@ function buildLeagueHistory(
             userId: prediction.user_id,
             name: profiles.get(prediction.user_id) ?? "Участник",
             score: prediction.score,
-            picks: mapPredictionPicks(prediction, driverNames),
+            scoreBreakdown: mapFantasyScoreBreakdown(prediction.score_breakdown),
+            picks: mapPredictionPicks(prediction, driverNames, teamNames),
           }))
           .sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0)),
       };
@@ -2118,28 +2825,35 @@ function buildLeagueHistory(
     .slice(0, 8);
 }
 
-export async function getPolls(): Promise<PollSummary[]> {
+export async function getPolls({
+  view = "active",
+}: {
+  view?: "active" | "archive";
+} = {}): Promise<PollSummary[]> {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return polls;
+    return [];
   }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase
+  const query = supabase
     .from("polls")
     .select(
-      "id, question, poll_options(id, label, poll_votes(user_id)), poll_votes(option_id, user_id)",
+      "id, race_id, question, status, closes_at, poll_kind, races(id, season_year, round, race_name, circuits(name, country)), poll_options(id, label, sort_order, poll_votes(user_id)), poll_votes(option_id, user_id)",
     )
-    .eq("status", "published")
     .order("created_at", { ascending: false })
     .limit(10);
 
+  const { data, error } = await (view === "archive"
+    ? query.eq("status", "closed")
+    : query.eq("status", "published"));
+
   if (error || !data?.length) {
-    return polls;
+    return [];
   }
 
   const admin = createSupabaseAdminClient();
@@ -2162,10 +2876,25 @@ export async function getPolls(): Promise<PollSummary[]> {
   return (data as unknown as PollDbRow[]).map((poll) => {
     const options = poll.poll_options ?? [];
     const userVote = poll.poll_votes?.find((vote) => vote.user_id === user?.id)?.option_id;
+    const race = getRelationObject(poll.races);
+    const circuit = getRelationObject(race?.circuits ?? null);
 
     return {
       id: poll.id,
       question: poll.question,
+      kind: isPollKind(poll.poll_kind) ? poll.poll_kind : undefined,
+      status: poll.status === "closed" ? "closed" : "published",
+      closesAt: poll.closes_at,
+      race: race
+        ? {
+            id: race.id,
+            season: Number(race.season_year),
+            round: Number(race.round),
+            name: race.race_name,
+            circuit: circuit?.name ?? "Трасса уточняется",
+            country: circuit?.country ?? "Страна уточняется",
+          }
+        : undefined,
       votes: options.reduce((sum, option) => sum + (voteCounts.get(option.id) ?? 0), 0),
       options: options.map((option) => ({
         id: option.id,
@@ -2175,6 +2904,10 @@ export async function getPolls(): Promise<PollSummary[]> {
       userVote,
     };
   });
+}
+
+function isPollKind(value: string | null): value is "sport" | "strategy" | "fan" {
+  return value === "sport" || value === "strategy" || value === "fan";
 }
 
 export async function getRaceDetail(
@@ -2357,7 +3090,7 @@ export async function getSessionResults(sessionId?: string | null): Promise<Sess
 
   const { data, error } = await supabase
     .from("session_results")
-    .select("position, time_text, status, grid, laps, points, raw_payload, sessions(session_type), drivers(full_name), teams(name, code, color_hex)")
+    .select("position, time_text, status, grid, laps, points, raw_payload, sessions(session_type), drivers(full_name, slug), teams(name, code, color_hex)")
     .eq("session_id", sessionId)
     .order("position", { ascending: true, nullsFirst: false });
 
@@ -2379,6 +3112,7 @@ export async function getSessionResults(sessionId?: string | null): Promise<Sess
       ...getTeamVisualFields(row.teams, "Команда уточняется"),
       position: row.position,
       driver: getRelationName(row.drivers, "Пилот уточняется"),
+      driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
       time: row.time_text ?? "Без времени",
       status: row.status ?? "Классифицирован",
       grid: row.grid,
@@ -2784,6 +3518,375 @@ async function getChampionshipRoundPointTotals(season: number) {
   };
 }
 
+function buildDriverProfileContext(
+  driverId: string,
+  races: DriverRaceDbRow[],
+  sessions: DriverSessionDbRow[],
+  results: DriverSessionResultDbRow[],
+  standingsHistory: DriverStandingHistoryDbRow[],
+  topTenCumulativePoints: DriverCumulativePointsSeries[],
+) {
+  const sessionsByRace = new Map<string, DriverSessionDbRow[]>();
+  const resultsBySession = new Map<string, DriverSessionResultDbRow[]>();
+
+  sessions.forEach((session) => {
+    const list = sessionsByRace.get(session.race_id) ?? [];
+    list.push(session);
+    sessionsByRace.set(session.race_id, list);
+  });
+
+  results.forEach((result) => {
+    const list = resultsBySession.get(result.session_id) ?? [];
+    list.push(result);
+    resultsBySession.set(result.session_id, list);
+  });
+
+  const resultRows: DriverRaceResultRow[] = [];
+  const racePoints: DriverChartPoint[] = [];
+  const cumulativePoints: DriverChartPoint[] = [];
+  const positionTrend: DriverChartPoint[] = [];
+  const standingByRound = new Map(
+    standingsHistory
+      .filter((row) => row.round)
+      .map((row) => [row.round as number, row]),
+  );
+  let cumulative = 0;
+
+  races.forEach((race) => {
+    const raceSessions = sessionsByRace.get(race.id) ?? [];
+    const raceSession = findSessionByType(raceSessions, "race");
+    const sprintSession = findSessionByType(raceSessions, "sprint");
+    const qualifyingSession = findSessionByType(raceSessions, "qualifying");
+    const raceResult = getDriverSessionResult(resultsBySession, raceSession?.id, driverId);
+    const sprintResult = getDriverSessionResult(resultsBySession, sprintSession?.id, driverId);
+    const qualifyingResult = getDriverSessionResult(resultsBySession, qualifyingSession?.id, driverId);
+    const racePointsValue = raceResult ? getDriverResultPoints(raceResult, "race") : 0;
+    const sprintPointsValue = sprintResult ? getDriverResultPoints(sprintResult, "sprint") : 0;
+    const totalRoundPoints = raceResult || sprintResult ? racePointsValue + sprintPointsValue : null;
+    const circuit = getRelationObject(race.circuits);
+    const finishPosition = raceResult?.position ?? null;
+    const startPosition = normalizeGridPosition(raceResult?.grid);
+    const positionDelta =
+      startPosition && finishPosition ? startPosition - finishPosition : null;
+    const isDnf = isDnfDriverResult(raceResult);
+
+    if (totalRoundPoints !== null) {
+      cumulative += totalRoundPoints;
+    }
+
+    resultRows.push({
+      round: race.round,
+      raceName: race.race_name,
+      raceDate: formatDateTime(race.race_start_at),
+      circuit: circuit?.name ?? "Трасса уточняется",
+      country: circuit?.country ?? "",
+      countryCode: getCountryCode(circuit?.country ?? ""),
+      qualifyingPosition: qualifyingResult?.position ?? null,
+      startPosition,
+      finishPosition,
+      positionDelta,
+      points: totalRoundPoints,
+      status: raceResult?.status ?? "—",
+      isWin: finishPosition === 1,
+      isPodium: Boolean(finishPosition && finishPosition <= 3),
+      isDnf,
+      scoredPoints: Boolean(totalRoundPoints && totalRoundPoints > 0),
+    });
+
+    racePoints.push({
+      round: race.round,
+      raceName: race.race_name,
+      value: totalRoundPoints,
+    });
+    cumulativePoints.push({
+      round: race.round,
+      raceName: race.race_name,
+      value: totalRoundPoints === null ? null : Number(cumulative.toFixed(2)),
+    });
+    positionTrend.push({
+      round: race.round,
+      raceName: race.race_name,
+      value: standingByRound.get(race.round)?.position ?? null,
+    });
+  });
+
+  const completedRows = resultRows.filter((row) => row.finishPosition);
+  const positions = completedRows
+    .map((row) => row.finishPosition)
+    .filter((value): value is number => typeof value === "number");
+  const starts = completedRows
+    .map((row) => row.startPosition)
+    .filter((value): value is number => typeof value === "number");
+  const deltas = completedRows
+    .filter((row) => row.positionDelta !== null)
+    .map((row) => ({ value: row.positionDelta as number, raceName: row.raceName }));
+  const stats: DriverSeasonStats = {
+    points: Number(cumulative.toFixed(2)),
+    championshipPosition: getLatestDriverStanding(standingsHistory)?.position ?? null,
+    wins: completedRows.filter((row) => row.isWin).length,
+    podiums: completedRows.filter((row) => row.isPodium).length,
+    poles: resultRows.filter((row) => row.qualifyingPosition === 1).length,
+    fastestLaps: countFastestLaps(driverId, races, sessionsByRace, resultsBySession),
+    dnfs: completedRows.filter((row) => row.isDnf).length,
+    pointsFinishes: completedRows.filter((row) => row.scoredPoints).length,
+    averageStart: averageNumber(starts),
+    averageFinish: averageNumber(positions),
+    bestResult: positions.length ? Math.min(...positions) : null,
+    worstResult: positions.length ? Math.max(...positions) : null,
+    q3Appearances: resultRows.filter((row) => row.qualifyingPosition && row.qualifyingPosition <= 10).length,
+  };
+
+  return {
+    stats,
+    results: resultRows,
+    charts: {
+      racePoints,
+      cumulativePoints,
+      championshipPosition: positionTrend,
+      topTenCumulativePoints,
+    },
+    form: buildDriverFormStats(resultRows),
+    teammateComparison: buildTeammateComparison(driverId, races, sessionsByRace, resultsBySession),
+    positionDelta: buildPositionDeltaStats(deltas),
+  };
+}
+
+function findSessionByType(sessions: DriverSessionDbRow[], sessionType: string) {
+  return sessions.find((session) => session.session_type === sessionType);
+}
+
+function getDriverSessionResult(
+  resultsBySession: Map<string, DriverSessionResultDbRow[]>,
+  sessionId: string | undefined,
+  driverId: string,
+) {
+  if (!sessionId) {
+    return null;
+  }
+
+  return resultsBySession.get(sessionId)?.find((result) => result.driver_id === driverId) ?? null;
+}
+
+function normalizeGridPosition(grid?: number | null) {
+  return grid && grid > 0 ? grid : null;
+}
+
+function getDriverResultPoints(result: DriverSessionResultDbRow, sessionType: "race" | "sprint") {
+  return getRoundResultPoints(result.points, sessionType, result.position) ?? 0;
+}
+
+function isDnfDriverResult(result?: DriverSessionResultDbRow | null) {
+  if (!result) {
+    return false;
+  }
+
+  const text = `${result.status ?? ""} ${result.classified_position ?? ""}`.toLowerCase();
+
+  return /retired|dnf|accident|collision|engine|gearbox|hydraulic|withdraw|not classified|disqualified|\br\b/.test(text);
+}
+
+function countFastestLaps(
+  driverId: string,
+  races: DriverRaceDbRow[],
+  sessionsByRace: Map<string, DriverSessionDbRow[]>,
+  resultsBySession: Map<string, DriverSessionResultDbRow[]>,
+) {
+  return races.reduce((count, race) => {
+    const raceSession = findSessionByType(sessionsByRace.get(race.id) ?? [], "race");
+    const result = getDriverSessionResult(resultsBySession, raceSession?.id, driverId);
+
+    return count + (hasFastestLap(result) ? 1 : 0);
+  }, 0);
+}
+
+function hasFastestLap(result?: DriverSessionResultDbRow | null) {
+  if (!result?.raw_payload || typeof result.raw_payload !== "object" || Array.isArray(result.raw_payload)) {
+    return false;
+  }
+
+  const payload = result.raw_payload as Record<string, unknown>;
+  const fastestLap = payload.FastestLap ?? payload.fastestLap;
+
+  if (!fastestLap || typeof fastestLap !== "object" || Array.isArray(fastestLap)) {
+    return false;
+  }
+
+  return String((fastestLap as Record<string, unknown>).rank ?? "") === "1";
+}
+
+function averageNumber(values: number[]) {
+  if (!values.length) {
+    return null;
+  }
+
+  return Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1));
+}
+
+function buildDriverFormStats(results: DriverRaceResultRow[]): DriverFormStats {
+  const lastFive = results
+    .filter((row) => row.finishPosition || row.isDnf)
+    .slice(-5);
+  const positions = lastFive
+    .map((row) => row.finishPosition)
+    .filter((value): value is number => typeof value === "number");
+  const qualifyingPositions = lastFive
+    .map((row) => row.qualifyingPosition)
+    .filter((value): value is number => typeof value === "number");
+
+  return {
+    labels: lastFive.map((row) => (row.isDnf ? "DNF" : row.finishPosition ? `P${row.finishPosition}` : "—")),
+    points: Number(lastFive.reduce((sum, row) => sum + (row.points ?? 0), 0).toFixed(2)),
+    podiums: lastFive.filter((row) => row.isPodium).length,
+    dnfs: lastFive.filter((row) => row.isDnf).length,
+    bestResult: positions.length ? Math.min(...positions) : null,
+    averageQualifyingPosition: averageNumber(qualifyingPositions),
+    averageFinishPosition: averageNumber(positions),
+  };
+}
+
+function buildPositionDeltaStats(
+  deltas: { value: number; raceName: string }[],
+): DriverPositionDeltaStats {
+  if (!deltas.length) {
+    return {
+      totalDelta: null,
+      averageDelta: null,
+      bestGain: null,
+      biggestDrop: null,
+    };
+  }
+
+  const total = deltas.reduce((sum, delta) => sum + delta.value, 0);
+  const bestGain = deltas.reduce((best, delta) => (delta.value > best.value ? delta : best), deltas[0]);
+  const biggestDrop = deltas.reduce((worst, delta) => (delta.value < worst.value ? delta : worst), deltas[0]);
+
+  return {
+    totalDelta: total,
+    averageDelta: Number((total / deltas.length).toFixed(1)),
+    bestGain: bestGain.value > 0 ? bestGain : null,
+    biggestDrop: biggestDrop.value < 0 ? biggestDrop : null,
+  };
+}
+
+function buildTeammateComparison(
+  driverId: string,
+  races: DriverRaceDbRow[],
+  sessionsByRace: Map<string, DriverSessionDbRow[]>,
+  resultsBySession: Map<string, DriverSessionResultDbRow[]>,
+): DriverTeammateComparison {
+  const teammateNames = new Set<string>();
+  const comparison: DriverTeammateComparison = {
+    teammateNames: [],
+    qualifying: { driver: 0, teammate: 0 },
+    races: { driver: 0, teammate: 0 },
+    points: { driver: 0, teammate: 0 },
+    podiums: { driver: 0, teammate: 0 },
+    wins: { driver: 0, teammate: 0 },
+    averageStart: { driver: null, teammate: null },
+    averageFinish: { driver: null, teammate: null },
+    dnfs: { driver: 0, teammate: 0 },
+  };
+  const driverStarts: number[] = [];
+  const teammateStarts: number[] = [];
+  const driverFinishes: number[] = [];
+  const teammateFinishes: number[] = [];
+
+  races.forEach((race) => {
+    const raceSessions = sessionsByRace.get(race.id) ?? [];
+    const qualifyingSession = findSessionByType(raceSessions, "qualifying");
+    const raceSession = findSessionByType(raceSessions, "race");
+    const sprintSession = findSessionByType(raceSessions, "sprint");
+    const driverRace = getDriverSessionResult(resultsBySession, raceSession?.id, driverId);
+    const driverQualifying = getDriverSessionResult(resultsBySession, qualifyingSession?.id, driverId);
+    const teammateRace = findTeammateResult(resultsBySession, raceSession?.id, driverRace?.team_id, driverId);
+    const teammateQualifying = findTeammateResult(resultsBySession, qualifyingSession?.id, driverQualifying?.team_id ?? driverRace?.team_id, driverId);
+    const teammateSprint = findTeammateResult(resultsBySession, sprintSession?.id, driverRace?.team_id, driverId);
+
+    if (driverQualifying?.position && teammateQualifying?.position) {
+      if (driverQualifying.position < teammateQualifying.position) {
+        comparison.qualifying.driver += 1;
+      } else if (teammateQualifying.position < driverQualifying.position) {
+        comparison.qualifying.teammate += 1;
+      }
+    }
+
+    if (driverRace?.position && teammateRace?.position) {
+      if (driverRace.position < teammateRace.position) {
+        comparison.races.driver += 1;
+      } else if (teammateRace.position < driverRace.position) {
+        comparison.races.teammate += 1;
+      }
+    }
+
+    if (driverRace) {
+      comparison.points.driver += getDriverResultPoints(driverRace, "race");
+      comparison.podiums.driver += driverRace.position && driverRace.position <= 3 ? 1 : 0;
+      comparison.wins.driver += driverRace.position === 1 ? 1 : 0;
+      comparison.dnfs.driver += isDnfDriverResult(driverRace) ? 1 : 0;
+      if (driverRace.grid) driverStarts.push(driverRace.grid);
+      if (driverRace.position) driverFinishes.push(driverRace.position);
+    }
+
+    if (teammateRace) {
+      const teammate = getRelationObject(teammateRace.drivers);
+      if (teammate?.full_name) teammateNames.add(teammate.full_name);
+      comparison.points.teammate += getDriverResultPoints(teammateRace, "race");
+      comparison.podiums.teammate += teammateRace.position && teammateRace.position <= 3 ? 1 : 0;
+      comparison.wins.teammate += teammateRace.position === 1 ? 1 : 0;
+      comparison.dnfs.teammate += isDnfDriverResult(teammateRace) ? 1 : 0;
+      if (teammateRace.grid) teammateStarts.push(teammateRace.grid);
+      if (teammateRace.position) teammateFinishes.push(teammateRace.position);
+    }
+
+    const driverSprint = getDriverSessionResult(resultsBySession, sprintSession?.id, driverId);
+    if (driverSprint) {
+      comparison.points.driver += getDriverResultPoints(driverSprint, "sprint");
+    }
+
+    if (teammateSprint) {
+      comparison.points.teammate += getDriverResultPoints(teammateSprint, "sprint");
+    }
+  });
+
+  comparison.teammateNames = [...teammateNames];
+  comparison.points.driver = Number(comparison.points.driver.toFixed(2));
+  comparison.points.teammate = Number(comparison.points.teammate.toFixed(2));
+  comparison.averageStart.driver = averageNumber(driverStarts);
+  comparison.averageStart.teammate = averageNumber(teammateStarts);
+  comparison.averageFinish.driver = averageNumber(driverFinishes);
+  comparison.averageFinish.teammate = averageNumber(teammateFinishes);
+
+  return comparison;
+}
+
+function findTeammateResult(
+  resultsBySession: Map<string, DriverSessionResultDbRow[]>,
+  sessionId: string | undefined,
+  teamId: string | null | undefined,
+  driverId: string,
+) {
+  if (!sessionId || !teamId) {
+    return null;
+  }
+
+  return (
+    resultsBySession
+      .get(sessionId)
+      ?.filter((result) => result.team_id === teamId && result.driver_id !== driverId)
+      .sort((a, b) => (a.position ?? 999) - (b.position ?? 999))[0] ?? null
+  );
+}
+
+function getLatestDriverStanding(standingsHistory: DriverStandingHistoryDbRow[]) {
+  return [...standingsHistory]
+    .filter((row) => row.round !== null)
+    .sort((a, b) => (b.round ?? 0) - (a.round ?? 0))[0] ?? null;
+}
+
+function normalizeDriverLookupName(name: string) {
+  return name.trim().toLowerCase();
+}
+
 function getPodiumFinish(position?: number) {
   if (position === 1) {
     return "winner" as const;
@@ -3040,36 +4143,46 @@ async function getActiveTeamNames() {
 }
 
 async function fetchPolymarketRaceEvents() {
-  const responses = await Promise.all([
-    fetchPolymarketEvents({
+  const now = Date.now();
+
+  if (polymarketEventsCache && polymarketEventsCache.expiresAt > now) {
+    return polymarketEventsCache.events;
+  }
+
+  if (!polymarketEventsInFlight) {
+    polymarketEventsInFlight = fetchPolymarketEvents({
       tag_id: POLYMARKET_F1_TAG_ID,
       related_tags: "true",
       active: "true",
       closed: "false",
-      limit: "100",
+      limit: POLYMARKET_EVENT_LIMIT,
       order: "volume_24hr",
       ascending: "false",
-    }),
-  ]);
-  const eventsById = new Map<string, PolymarketEvent>();
+    })
+      .then((events) => {
+        if (events.length) {
+          polymarketEventsCache = {
+            events,
+            expiresAt: Date.now() + POLYMARKET_CACHE_TTL_MS,
+          };
+        }
 
-  responses.flat().forEach((event) => {
-    const key = String(event.id ?? event.slug ?? event.title ?? "");
+        return events;
+      })
+      .finally(() => {
+        polymarketEventsInFlight = null;
+      });
+  }
 
-    if (key) {
-      eventsById.set(key, event);
-    }
-  });
-
-  return [...eventsById.values()];
+  return polymarketEventsInFlight;
 }
 
 async function fetchPolymarketEvents(params: Record<string, string>) {
   try {
     const searchParams = new URLSearchParams(params);
     const response = await fetch(`https://gamma-api.polymarket.com/events?${searchParams}`, {
-      cache: "no-store",
       headers: { accept: "application/json" },
+      next: { revalidate: 120 },
     });
 
     if (!response.ok) {
@@ -3716,8 +4829,14 @@ function getCountryCode(country: string) {
   const normalized = normalizeCountryName(value);
   const codes: Record<string, string> = {
     ae: "ae",
+    ar: "ar",
+    arg: "ar",
+    argentina: "ar",
+    argentine: "ar",
+    argentinian: "ar",
     au: "au",
     australia: "au",
+    australian: "au",
     at: "at",
     austria: "at",
     az: "az",
@@ -3728,11 +4847,19 @@ function getCountryCode(country: string) {
     belgium: "be",
     br: "br",
     brazil: "br",
+    brazilian: "br",
     ca: "ca",
     canada: "ca",
+    canadian: "ca",
     cn: "cn",
     china: "cn",
+    chinese: "cn",
+    de: "de",
+    deu: "de",
+    germany: "de",
+    german: "de",
     gb: "gb",
+    gbr: "gb",
     uk: "gb",
     "u k": "gb",
     england: "gb",
@@ -3740,18 +4867,23 @@ function getCountryCode(country: string) {
     "great britain": "gb",
     "united kingdom": "gb",
     "united kingdom of great britain and northern ireland": "gb",
+    british: "gb",
     hu: "hu",
     hungary: "hu",
     it: "it",
     italy: "it",
+    italian: "it",
     jp: "jp",
     japan: "jp",
+    japanese: "jp",
     mc: "mc",
     monaco: "mc",
+    monegasque: "mc",
     mx: "mx",
     mexico: "mx",
     nl: "nl",
     netherlands: "nl",
+    dutch: "nl",
     qa: "qa",
     qatar: "qa",
     sa: "sa",
@@ -3760,6 +4892,20 @@ function getCountryCode(country: string) {
     singapore: "sg",
     es: "es",
     spain: "es",
+    spanish: "es",
+    fr: "fr",
+    fra: "fr",
+    france: "fr",
+    french: "fr",
+    nz: "nz",
+    nzl: "nz",
+    "new zealand": "nz",
+    "new zealander": "nz",
+    "new zealanders": "nz",
+    th: "th",
+    tha: "th",
+    thailand: "th",
+    thai: "th",
     uae: "ae",
     "u a e": "ae",
     "united arab emirates": "ae",

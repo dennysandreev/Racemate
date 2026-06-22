@@ -66,10 +66,12 @@ export function StitchPanelHeader({
 }
 
 export function StitchMetric({
+  display = false,
   label,
   tone = "neutral",
   value,
 }: {
+  display?: boolean;
   label: string;
   tone?: "neutral" | "live" | "red" | "warning";
   value: ReactNode;
@@ -78,6 +80,7 @@ export function StitchMetric({
     <div
       className={cn(
         "rounded-md border border-border bg-background/35 p-3",
+        display && "grid min-h-28 content-center justify-items-center px-4 text-center sm:min-h-32",
         tone === "live" && "border-success/50 bg-success/10",
         tone === "red" && "border-primary/55 bg-primary/10",
         tone === "warning" && "border-warning/50 bg-warning/10",
@@ -87,6 +90,7 @@ export function StitchMetric({
       <p
         className={cn(
           "font-telemetry mt-2 text-lg font-bold",
+          display && "mt-3 text-3xl sm:text-4xl",
           tone === "live" && "text-success",
           tone === "red" && "text-primary",
           tone === "warning" && "text-warning",
