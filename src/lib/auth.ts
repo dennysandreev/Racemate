@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
 
-export async function getSessionUser() {
+export const getSessionUser = cache(async () => {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -17,20 +18,18 @@ export async function getSessionUser() {
   } = await supabase.auth.getUser();
 
   return user;
-}
+});
 
 export async function getSessionProfileSummary() {
-  const supabase = await createSupabaseServerClient();
+  const user = await getSessionUser();
 
-  if (!supabase) {
+  if (!user) {
     return null;
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createSupabaseServerClient();
 
-  if (!user) {
+  if (!supabase) {
     return null;
   }
 
@@ -129,17 +128,15 @@ export async function requireAdmin() {
 }
 
 export async function getIsAdmin() {
-  const supabase = await createSupabaseServerClient();
+  const user = await getSessionUser();
 
-  if (!supabase) {
+  if (!user) {
     return false;
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createSupabaseServerClient();
 
-  if (!user) {
+  if (!supabase) {
     return false;
   }
 

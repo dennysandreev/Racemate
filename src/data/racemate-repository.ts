@@ -2,6 +2,7 @@ import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
+import { cache } from "react";
 import { getPredictionLocksForRace } from "@/lib/prediction-locks";
 import {
   adminJobs,
@@ -980,9 +981,9 @@ export async function getGrandPrixReportBySlug(
   return mapGrandPrixReportRow(data as unknown as GrandPrixReportDbRow);
 }
 
-export async function getNextSession(): Promise<NextSession> {
+export const getNextSession = cache(async (): Promise<NextSession> => {
   const race = await getCurrentRace();
-  const sessions = race ? await getWeekendSessions(race.id) : await getWeekendSessions();
+  const sessions = await getWeekendSessions();
   const first =
     sessions.find((session) => session.status === "Live") ??
     sessions.find((session) => session.status === "Ожидается") ??
@@ -1003,7 +1004,7 @@ export async function getNextSession(): Promise<NextSession> {
     startsAtIso: first.startsAtIso,
     status: getWeekendRuntimeStatus(sessions),
   };
-}
+});
 
 export async function getCalendarEvents(): Promise<CalendarEvent[]> {
   const supabase = await createSupabaseServerClient();
@@ -1033,7 +1034,7 @@ export async function getCalendarEvents(): Promise<CalendarEvent[]> {
   );
 }
 
-export async function getWeekendSessions(raceId?: string): Promise<WeekendSession[]> {
+export const getWeekendSessions = cache(async (raceId?: string): Promise<WeekendSession[]> => {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -1079,7 +1080,7 @@ export async function getWeekendSessions(raceId?: string): Promise<WeekendSessio
     ...session,
     weather: session.id ? weatherBySession.get(session.id) : undefined,
   }));
-}
+});
 
 export async function getWeekendWeather(): Promise<WeekendWeather> {
   const supabase = await createSupabaseServerClient();
@@ -4634,7 +4635,7 @@ function normalizeText(value: string) {
     .trim();
 }
 
-async function getCurrentRace(select?: string): Promise<RaceRow | null> {
+const getCurrentRace = cache(async (select?: string): Promise<RaceRow | null> => {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -4690,7 +4691,7 @@ async function getCurrentRace(select?: string): Promise<RaceRow | null> {
     .maybeSingle();
 
   return (latest as unknown as RaceRow | null) ?? null;
-}
+});
 
 async function getRaceWinners(raceIds: string[]) {
   const winners = new Map<string, string>();

@@ -70,26 +70,29 @@ export default async function Home({
     redirect(`/auth/callback?${callbackParams.toString()}`);
   }
 
-  const [newsResult, nextSession, standings, currentRace, sessions, championOdds, constructorOdds, latestReport, queryReport, driverSlugByName] =
+  const weekendSessionsPromise = getWeekendSessions();
+  const sessionResultsPromise = weekendSessionsPromise.then((sessions) =>
+    Promise.all(
+      sessions.slice(0, 5).map(async (session) => ({
+        results: await getSessionResults(session.id),
+        session,
+      })),
+    ),
+  );
+  const [newsResult, nextSession, standings, currentRace, championOdds, constructorOdds, latestReport, queryReport, driverSlugByName, sessionResults] =
     await Promise.all([
       getNewsItems({ pageSize: 5 }),
       getNextSession(),
       getDriverStandings(),
       getCurrentRaceDetail(),
-      getWeekendSessions(),
       getSeasonChampionOdds(),
       getConstructorChampionOdds(),
       getLatestGrandPrixReport(),
       getGrandPrixReportBySlug(query.raceReport),
       getDriverSlugMap(),
+      sessionResultsPromise,
     ]);
   const newsItems = newsResult.items;
-  const sessionResults = await Promise.all(
-    sessions.slice(0, 5).map(async (session) => ({
-      results: await getSessionResults(session.id),
-      session,
-    })),
-  );
   const topStandings = standings.slice(0, 6);
   const dialogReport = queryReport ?? latestReport;
   const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
