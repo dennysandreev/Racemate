@@ -20,7 +20,7 @@ import {
   getDriverStandings,
   getPredictionState,
   getRaceNews,
-  getSessionResults,
+  getSessionResultsBySessionIds,
   getRaceWinnerOdds,
   getWeekendSessions,
 } from "@/data/racemate-repository";
@@ -39,17 +39,19 @@ export default async function WeekendPage() {
     getSessionUser(),
     getDriverStandings(),
   ]);
-  const [raceNews, winnerOdds, predictionState, sessionResults] = await Promise.all([
+  const sessionResultsPromise = getSessionResultsBySessionIds(
+    weekendSessions.map((session) => session.id),
+  );
+  const [raceNews, winnerOdds, predictionState, resultsBySession] = await Promise.all([
     currentRace ? getRaceNews(currentRace.id, 4) : [],
     getRaceWinnerOdds(currentRace),
     getPredictionState(user?.id),
-    Promise.all(
-      weekendSessions.map(async (session) => ({
-        results: await getSessionResults(session.id),
-        session,
-      })),
-    ),
+    sessionResultsPromise,
   ]);
+  const sessionResults = weekendSessions.map((session) => ({
+    results: session.id ? resultsBySession.get(session.id) ?? [] : [],
+    session,
+  }));
   const raceNewsTagSlug = raceNews
     .flatMap((item) => item.tags)
     .find((tag) => tag.type === "race")?.slug;

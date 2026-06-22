@@ -3099,7 +3099,49 @@ export async function getSessionResults(sessionId?: string | null): Promise<Sess
     return [];
   }
 
-  return (data as unknown as SessionResultDbRow[])
+  return mapSessionResultRows(data as unknown as SessionResultDbRow[]);
+}
+
+export async function getSessionResultsBySessionIds(
+  sessionIds: Array<string | null | undefined>,
+): Promise<Map<string, SessionResult[]>> {
+  const ids = [...new Set(sessionIds.filter((sessionId): sessionId is string => Boolean(sessionId)))];
+
+  if (!ids.length) {
+    return new Map();
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase
+    .from("session_results")
+    .select("session_id, position, time_text, status, grid, laps, points, raw_payload, sessions(session_type), drivers(full_name, slug), teams(name, code, color_hex)")
+    .in("session_id", ids)
+    .order("position", { ascending: true, nullsFirst: false });
+
+  if (error || !data?.length) {
+    return new Map();
+  }
+
+  const rowsBySession = new Map<string, SessionResultDbRow[]>();
+
+  (data as unknown as Array<SessionResultDbRow & { session_id: string }>).forEach((row) => {
+    const rows = rowsBySession.get(row.session_id) ?? [];
+    rows.push(row);
+    rowsBySession.set(row.session_id, rows);
+  });
+
+  return new Map(
+    [...rowsBySession].map(([sessionId, rows]) => [sessionId, mapSessionResultRows(rows)]),
+  );
+}
+
+function mapSessionResultRows(rows: SessionResultDbRow[]): SessionResult[] {
+  return rows
     .filter((row) => {
       const session = getRelationObject(row.sessions);
 

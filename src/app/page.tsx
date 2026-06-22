@@ -37,7 +37,7 @@ import {
   getLatestGrandPrixReport,
   getNewsItems,
   getNextSession,
-  getSessionResults,
+  getSessionResultsBySessionIds,
   getSeasonChampionOdds,
   getWeekendSessions,
 } from "@/data/racemate-repository";
@@ -71,14 +71,17 @@ export default async function Home({
   }
 
   const weekendSessionsPromise = getWeekendSessions();
-  const sessionResultsPromise = weekendSessionsPromise.then((sessions) =>
-    Promise.all(
-      sessions.slice(0, 5).map(async (session) => ({
-        results: await getSessionResults(session.id),
-        session,
-      })),
-    ),
-  );
+  const sessionResultsPromise = weekendSessionsPromise.then(async (sessions) => {
+    const visibleSessions = sessions.slice(0, 5);
+    const resultsBySession = await getSessionResultsBySessionIds(
+      visibleSessions.map((session) => session.id),
+    );
+
+    return visibleSessions.map((session) => ({
+      results: session.id ? resultsBySession.get(session.id) ?? [] : [],
+      session,
+    }));
+  });
   const [newsResult, nextSession, standings, currentRace, championOdds, constructorOdds, latestReport, queryReport, driverSlugByName, sessionResults] =
     await Promise.all([
       getNewsItems({ pageSize: 5 }),
