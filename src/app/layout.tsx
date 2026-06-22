@@ -5,6 +5,7 @@ import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://racemate.ru"),
   title: "RaceMate",
   description:
     "Русскоязычный F1-хаб с новостями, AI-сводками, календарем, прогнозами и лигами.",
