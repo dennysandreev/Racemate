@@ -357,6 +357,10 @@ export type Database = {
         score: number | null;
         score_breakdown: Json | null;
         scored_at: string | null;
+        is_public: boolean;
+        share_slug: string | null;
+        shared_at: string | null;
+        share_image_version: number;
       }>;
       polls: TableDefinition<{
         id: string;

@@ -633,7 +633,60 @@ export type PredictionState = {
     fastestPitStopTeamId: string | null;
     score: number | null;
     scoreBreakdown?: FantasyScoreBreakdown | null;
+    isPublic?: boolean;
+    shareImageVersion?: number;
+    shareSlug?: string | null;
   } | null;
+};
+
+export type PredictionShareScope = "qualification" | "race";
+
+export type PredictionShareDriverPick = {
+  avatarUrl?: string | null;
+  code?: string | null;
+  id: string;
+  name: string;
+  number?: number | null;
+  position?: number;
+  team?: {
+    code?: string | null;
+    color?: string | null;
+    name: string;
+  } | null;
+};
+
+export type PredictionShareTeamPick = {
+  code?: string | null;
+  color?: string | null;
+  id: string;
+  name: string;
+};
+
+export type PublicPredictionShare = {
+  id: string;
+  displayName: string;
+  leagueName: string | null;
+  ogImageUrl: string;
+  publicUrl: string;
+  race: {
+    name: string;
+    round: number | null;
+    season: number;
+    startsAt: string | null;
+  };
+  scope: PredictionShareScope;
+  shareImageUrl: string;
+  shareImageVersion: number;
+  shareSlug: string;
+  picks: {
+    dnfKind: "driver" | "none";
+    dnf: PredictionShareDriverPick | null;
+    fastestLap: PredictionShareDriverPick | null;
+    fastestPitStopTeam: PredictionShareTeamPick | null;
+    pole: PredictionShareDriverPick | null;
+    topScoringTeam: PredictionShareTeamPick | null;
+    top10: PredictionShareDriverPick[];
+  };
 };
 
 export type GlobalFantasyLeaderboardRow = {

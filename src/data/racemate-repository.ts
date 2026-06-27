@@ -4,6 +4,7 @@ import {
 } from "@/lib/supabase/server";
 import { cache } from "react";
 import { getPredictionLocksForRace } from "@/lib/prediction-locks";
+import { getSiteUrl } from "@/lib/env";
 import {
   adminJobs,
   adminSignals,
@@ -53,6 +54,8 @@ import type {
   NewsTagFilter,
   PollSummary,
   PredictionState,
+  PredictionShareScope,
+  PublicPredictionShare,
   RaceDetail,
   RaceWinnerOdds,
   SeasonChampionOdds,
@@ -418,6 +421,9 @@ type PredictionDbRow = {
   top10_driver_ids?: string[] | null;
   score: number | null;
   score_breakdown?: unknown;
+  is_public?: boolean | null;
+  share_image_version?: number | null;
+  share_slug?: string | null;
 };
 
 type GlobalPredictionRow = {
@@ -1998,7 +2004,7 @@ export async function getPredictionState(
     const { data } = await supabase
       .from("predictions")
       .select(
-        "pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, dnf_pick_kind, top_scoring_team_id, fastest_pit_stop_team_id, top10_driver_ids, score, score_breakdown",
+        "pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, dnf_pick_kind, top_scoring_team_id, fastest_pit_stop_team_id, top10_driver_ids, score, score_breakdown, is_public, share_slug, share_image_version",
       )
       .eq("user_id", userId)
       .eq("race_id", race.id)
@@ -2018,6 +2024,9 @@ export async function getPredictionState(
         fastestPitStopTeamId: prediction.fastest_pit_stop_team_id ?? null,
         score: prediction.score,
         scoreBreakdown: mapFantasyScoreBreakdown(prediction.score_breakdown),
+        isPublic: prediction.is_public ?? true,
+        shareImageVersion: prediction.share_image_version ?? 1,
+        shareSlug: prediction.share_slug ?? null,
       };
     }
   }
@@ -2036,6 +2045,217 @@ export async function getPredictionState(
     })),
     current,
   };
+}
+
+type PredictionShareRow = {
+  id: string;
+  share_slug: string | null;
+  is_public: boolean | null;
+  share_image_version: number | null;
+  submitted_at: string;
+  pole_driver_id: string | null;
+  fastest_lap_driver_id: string | null;
+  dnf_driver_id: string | null;
+  dnf_pick_kind: string | null;
+  top_scoring_team_id: string | null;
+  fastest_pit_stop_team_id: string | null;
+  top10_driver_ids: string[] | null;
+  profiles: { display_name: string | null } | { display_name: string | null }[] | null;
+  prediction_leagues: { name: string | null } | { name: string | null }[] | null;
+  races:
+    | { race_name: string; race_start_at: string | null; round: number | null; season_year: number }
+    | { race_name: string; race_start_at: string | null; round: number | null; season_year: number }[]
+    | null;
+};
+
+type PredictionShareDriverRow = {
+  ai_avatar_url: string | null;
+  code: string | null;
+  current_team_id: string | null;
+  full_name: string;
+  id: string;
+  permanent_number: number | null;
+  teams:
+    | { code: string | null; color_hex: string | null; name: string }
+    | { code: string | null; color_hex: string | null; name: string }[]
+    | null;
+};
+
+type PredictionShareTeamRow = {
+  code: string | null;
+  color_hex: string | null;
+  id: string;
+  name: string;
+};
+
+export function normalizePredictionShareScope(scope?: string | null): PredictionShareScope {
+  return scope === "qualification" ? "qualification" : "race";
+}
+
+export function buildPredictionShareUrls(
+  shareSlug: string,
+  scope: PredictionShareScope = "race",
+  version = 1,
+) {
+  const baseUrl = getSiteUrl().replace(/\/+$/, "");
+  const scopeQuery = scope === "qualification" ? "?scope=qualification" : "";
+  const imageQuery = `?scope=${scope}&v=${version}`;
+
+  return {
+    ogImageUrl: `${baseUrl}/api/og/prediction/${shareSlug}${imageQuery}`,
+    publicUrl: `${baseUrl}/prediction/${shareSlug}${scopeQuery}`,
+    shareImageUrl: `${baseUrl}/api/share-image/prediction/${shareSlug}${imageQuery}`,
+  };
+}
+
+export async function getPublicPredictionShareBySlug(
+  shareSlug: string,
+  scope: PredictionShareScope = "race",
+): Promise<PublicPredictionShare | null> {
+  const admin = createSupabaseAdminClient();
+
+  if (!admin || !shareSlug) {
+    return null;
+  }
+
+  const { data, error } = await admin
+    .from("predictions")
+    .select(
+      "id, share_slug, is_public, share_image_version, submitted_at, pole_driver_id, fastest_lap_driver_id, dnf_driver_id, dnf_pick_kind, top_scoring_team_id, fastest_pit_stop_team_id, top10_driver_ids, profiles:user_id(display_name), prediction_leagues:league_id(name), races(race_name, race_start_at, round, season_year)",
+    )
+    .eq("share_slug", shareSlug)
+    .eq("is_public", true)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const prediction = data as unknown as PredictionShareRow;
+  const slug = prediction.share_slug;
+  const race = getRelationObject(prediction.races);
+
+  if (!slug || !prediction.is_public || !race) {
+    return null;
+  }
+
+  const driverIds = [
+    ...(prediction.top10_driver_ids ?? []),
+    prediction.pole_driver_id,
+    prediction.fastest_lap_driver_id,
+    prediction.dnf_pick_kind === "none" ? null : prediction.dnf_driver_id,
+  ].filter((id): id is string => Boolean(id));
+  const teamIds = [
+    prediction.top_scoring_team_id,
+    prediction.fastest_pit_stop_team_id,
+  ].filter((id): id is string => Boolean(id));
+
+  const [driversResult, teamsResult] = await Promise.all([
+    driverIds.length
+      ? admin
+        .from("drivers")
+        .select("id, full_name, code, permanent_number, ai_avatar_url, current_team_id, teams:current_team_id(name, code, color_hex)")
+        .in("id", [...new Set(driverIds)])
+      : Promise.resolve({ data: [] }),
+    teamIds.length
+      ? admin
+        .from("teams")
+        .select("id, name, code, color_hex")
+        .in("id", [...new Set(teamIds)])
+      : Promise.resolve({ data: [] }),
+  ]);
+  const driverMap = new Map(
+    ((driversResult.data ?? []) as unknown as PredictionShareDriverRow[]).map((driver) => [
+      driver.id,
+      mapPredictionShareDriver(driver),
+    ]),
+  );
+  const teamMap = new Map(
+    ((teamsResult.data ?? []) as unknown as PredictionShareTeamRow[]).map((team) => [
+      team.id,
+      mapPredictionShareTeam(team),
+    ]),
+  );
+  const version = prediction.share_image_version ?? 1;
+  const urls = buildPredictionShareUrls(slug, scope, version);
+  const profile = getRelationObject(prediction.profiles);
+  const league = getRelationObject(prediction.prediction_leagues);
+
+  return {
+    id: prediction.id,
+    displayName: profile?.display_name?.trim() || "Участник RaceMate",
+    leagueName: league?.name?.trim() || null,
+    picks: {
+      dnf: prediction.dnf_pick_kind === "none" ? null : getDriverPick(driverMap, prediction.dnf_driver_id),
+      dnfKind: prediction.dnf_pick_kind === "none" ? "none" : "driver",
+      fastestLap: getDriverPick(driverMap, prediction.fastest_lap_driver_id),
+      fastestPitStopTeam: getTeamPick(teamMap, prediction.fastest_pit_stop_team_id),
+      pole: getDriverPick(driverMap, prediction.pole_driver_id),
+      top10: (prediction.top10_driver_ids ?? [])
+        .map((driverId, index) => {
+          const driver = getDriverPick(driverMap, driverId);
+
+          return driver ? { ...driver, position: index + 1 } : null;
+        })
+        .filter((driver): driver is NonNullable<typeof driver> => Boolean(driver)),
+      topScoringTeam: getTeamPick(teamMap, prediction.top_scoring_team_id),
+    },
+    race: {
+      name: race.race_name,
+      round: race.round,
+      season: race.season_year,
+      startsAt: race.race_start_at,
+    },
+    scope,
+    shareImageVersion: version,
+    shareSlug: slug,
+    ...urls,
+  };
+}
+
+function mapPredictionShareDriver(driver: PredictionShareDriverRow) {
+  const team = getRelationObject(driver.teams);
+  const teamAsset = getTeamAsset(team?.name ?? team?.code ?? undefined);
+
+  return {
+    avatarUrl: driver.ai_avatar_url,
+    code: driver.code,
+    id: driver.id,
+    name: driver.full_name,
+    number: driver.permanent_number,
+    team: team
+      ? {
+          code: team.code ?? teamAsset?.code,
+          color: team.color_hex ?? teamAsset?.color,
+          name: team.name,
+        }
+      : null,
+  };
+}
+
+function mapPredictionShareTeam(team: PredictionShareTeamRow) {
+  const asset = getTeamAsset(team.name) ?? getTeamAsset(team.code);
+
+  return {
+    code: team.code ?? asset?.code,
+    color: team.color_hex ?? asset?.color,
+    id: team.id,
+    name: team.name,
+  };
+}
+
+function getDriverPick(
+  drivers: Map<string, ReturnType<typeof mapPredictionShareDriver>>,
+  driverId?: string | null,
+) {
+  return driverId ? drivers.get(driverId) ?? null : null;
+}
+
+function getTeamPick(
+  teams: Map<string, ReturnType<typeof mapPredictionShareTeam>>,
+  teamId?: string | null,
+) {
+  return teamId ? teams.get(teamId) ?? null : null;
 }
 
 export async function getGlobalFantasyLeaderboard(): Promise<GlobalFantasyLeaderboard> {

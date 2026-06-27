@@ -14,6 +14,7 @@ import {
   joinFantasyLeague,
   saveFantasyPrediction,
 } from "@/app/fantasy/actions";
+import { PredictionShareModalLauncher } from "@/components/fantasy/PredictionShareModal";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
 import { FantasyScoringDialog } from "@/components/racemate/fantasy-scoring-dialog";
@@ -31,6 +32,8 @@ import {
   getGlobalFantasyLeaderboard,
   getLeagues,
   getPredictionState,
+  buildPredictionShareUrls,
+  normalizePredictionShareScope,
 } from "@/data/racemate-repository";
 import { getTeamAsset } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
@@ -48,7 +51,10 @@ type FantasySearchParams = {
   league?: string;
   message?: string;
   saved?: string;
+  share?: string;
+  shareScope?: string;
   tab?: string;
+  v?: string;
 };
 
 type PredictionField = {
@@ -96,6 +102,10 @@ export default async function FantasyPage({
   const completedPicks = completedTop10 + completedSpecials + completedTeamPicks;
   const totalPicks = 15;
   const notice = getStatusNotice(status);
+  const shareScope = normalizePredictionShareScope(status.shareScope);
+  const shareSlug = status.share && current?.shareSlug === status.share ? status.share : null;
+  const shareVersion = Number(status.v ?? current?.shareImageVersion ?? 1) || 1;
+  const shareUrls = shareSlug ? buildPredictionShareUrls(shareSlug, shareScope, shareVersion) : null;
 
   return (
     <AppShell>
@@ -134,6 +144,15 @@ export default async function FantasyPage({
 
         {activeTab === "leaderboard" ? <GlobalFantasyLeaderboardPanel leaderboard={leaderboard} /> : null}
         {activeTab === "leagues" ? <LeagueDialog league={selectedLeague} /> : null}
+        {shareSlug && shareUrls && predictionState.race ? (
+          <PredictionShareModalLauncher
+            publicUrl={shareUrls.publicUrl}
+            raceName={predictionState.race.name}
+            scope={shareScope}
+            shareImageUrl={shareUrls.shareImageUrl}
+            shareSlug={shareSlug}
+          />
+        ) : null}
       </section>
     </AppShell>
   );

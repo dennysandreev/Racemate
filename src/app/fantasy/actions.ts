@@ -33,7 +33,7 @@ export async function saveFantasyPrediction(formData: FormData) {
 
   const { data: existing } = await supabase
     .from("predictions")
-    .select("id, pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, dnf_pick_kind, top_scoring_team_id, fastest_pit_stop_team_id, top10_driver_ids")
+    .select("id, pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, dnf_pick_kind, top_scoring_team_id, fastest_pit_stop_team_id, top10_driver_ids, share_slug, share_image_version")
     .eq("user_id", user.id)
     .eq("race_id", raceId)
     .is("league_id", null)
@@ -108,19 +108,67 @@ export async function saveFantasyPrediction(formData: FormData) {
     top3_driver_ids: values.top10DriverIds.slice(0, 3),
     top10_driver_ids: values.top10DriverIds,
     submitted_at: new Date().toISOString(),
+    is_public: true,
+    share_image_version: existing
+      ? changed
+        ? Math.max(1, existing.share_image_version ?? 1) + 1
+        : Math.max(1, existing.share_image_version ?? 1)
+      : 1,
     ...(changed ? { score: null, scored_at: null, score_breakdown: null } : {}),
   };
+  let predictionId = existing?.id ?? null;
+  let shareSlug = existing?.share_slug ?? null;
+  let shareImageVersion = payload.share_image_version;
 
   if (existing) {
-    await supabase.from("predictions").update(payload).eq("id", existing.id);
+    const { data, error } = await supabase
+      .from("predictions")
+      .update(payload)
+      .eq("id", existing.id)
+      .select("id, share_slug, share_image_version")
+      .single();
+
+    if (error || !data) {
+      redirect("/fantasy?message=driver");
+    }
+
+    predictionId = data.id;
+    shareSlug = data.share_slug;
+    shareImageVersion = data.share_image_version ?? shareImageVersion;
   } else {
-    await supabase.from("predictions").insert(payload);
+    const { data, error } = await supabase
+      .from("predictions")
+      .insert(payload)
+      .select("id, share_slug, share_image_version")
+      .single();
+
+    if (error || !data) {
+      redirect("/fantasy?message=driver");
+    }
+
+    predictionId = data.id;
+    shareSlug = data.share_slug;
+    shareImageVersion = data.share_image_version ?? shareImageVersion;
+  }
+
+  if (!predictionId) {
+    redirect("/fantasy?message=driver");
+  }
+
+  if (!shareSlug) {
+    shareSlug = await createPredictionShareSlug(supabase, {
+      predictionId,
+      raceId,
+      userId: user.id,
+    });
   }
 
   revalidatePath("/");
   revalidatePath("/fantasy");
   revalidatePath("/predictions");
-  redirect("/fantasy?tab=picks&saved=1");
+  revalidatePath(`/prediction/${shareSlug}`);
+  const shareScope = scope === "qualification" ? "qualification" : "race";
+  redirect(`/fantasy?tab=picks&saved=1&share=${encodeURIComponent(shareSlug)}&shareScope=${shareScope}&v=${shareImageVersion}`);
 }
 
 export async function createFantasyLeague(formData: FormData) {
@@ -362,6 +410,69 @@ function hasPredictionChanged(
   );
 }
 
+async function createPredictionShareSlug(
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  {
+    predictionId,
+    raceId,
+    userId,
+  }: {
+    predictionId: string;
+    raceId: string;
+    userId: string;
+  },
+) {
+  const [{ data: race }, { data: profile }] = await Promise.all([
+    supabase
+      .from("races")
+      .select("race_name, season_year")
+      .eq("id", raceId)
+      .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", userId)
+      .maybeSingle(),
+  ]);
+  const racePart = slugifySharePart(race?.race_name ?? "grand-prix", "grand-prix");
+  const userPart = slugifySharePart(profile?.display_name ?? "fan", "fan");
+  const seasonPart = race?.season_year ?? new Date().getUTCFullYear();
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const candidate = `${racePart}-${seasonPart}-${userPart}-${makeShareSuffix()}`;
+    const { data, error } = await supabase
+      .from("predictions")
+      .update({
+        share_slug: candidate,
+        shared_at: new Date().toISOString(),
+      })
+      .eq("id", predictionId)
+      .select("share_slug")
+      .single();
+
+    if (!error && data?.share_slug) {
+      return data.share_slug;
+    }
+  }
+
+  redirect("/fantasy?message=driver");
+}
+
 function makeInviteCode() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+function makeShareSuffix() {
+  return Math.random().toString(36).slice(2, 8);
+}
+
+function slugifySharePart(value: string, fallback: string) {
+  const slug = value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || fallback;
 }
