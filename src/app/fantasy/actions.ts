@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireUser } from "@/lib/auth";
+import { ensureProfile, requireUser } from "@/lib/auth";
 import {
   getPredictionLocksForRace,
   preserveLockedPredictionValues,
@@ -25,6 +25,7 @@ export async function saveFantasyPrediction(formData: FormData) {
   const dnfPick = parseDnfPick(formData.get("dnfDriverId"));
   const topScoringTeamId = nullableFormValue(formData.get("topScoringTeamId"));
   const fastestPitStopTeamId = nullableFormValue(formData.get("fastestPitStopTeamId"));
+  const scope = parsePredictionScope(formData.get("predictionScope"));
 
   if (!raceId) {
     redirect("/fantasy");
@@ -46,16 +47,32 @@ export async function saveFantasyPrediction(formData: FormData) {
 
   const activeDriverIds = await getActiveDriverIds(supabase);
   const activeTeamIds = await getActiveTeamIds(supabase);
-  if (!locks.raceLocked && !isValidTop10(top10DriverIds, activeDriverIds)) {
+  const submitted = buildSubmittedValues({
+    existing,
+    scope,
+    poleDriverId,
+    fastestLapDriverId,
+    top10DriverIds,
+    dnfPick,
+    topScoringTeamId,
+    fastestPitStopTeamId,
+  });
+
+  if (
+    scope !== "qualification" &&
+    !locks.raceLocked &&
+    submitted.top10DriverIds.length > 0 &&
+    !isValidTop10(submitted.top10DriverIds, activeDriverIds)
+  ) {
     redirect("/fantasy?message=top10");
   }
 
   if (
-    (!locks.poleLocked && poleDriverId && !activeDriverIds.has(poleDriverId)) ||
-    (!locks.raceLocked && fastestLapDriverId && !activeDriverIds.has(fastestLapDriverId)) ||
-    (!locks.raceLocked && dnfPick.kind === "driver" && dnfPick.driverId && !activeDriverIds.has(dnfPick.driverId)) ||
-    (!locks.raceLocked && topScoringTeamId && !activeTeamIds.has(topScoringTeamId)) ||
-    (!locks.raceLocked && fastestPitStopTeamId && !activeTeamIds.has(fastestPitStopTeamId))
+    (scope !== "race" && !locks.poleLocked && submitted.poleDriverId && !activeDriverIds.has(submitted.poleDriverId)) ||
+    (scope !== "qualification" && !locks.raceLocked && submitted.fastestLapDriverId && !activeDriverIds.has(submitted.fastestLapDriverId)) ||
+    (scope !== "qualification" && !locks.raceLocked && submitted.dnfPickKind === "driver" && submitted.dnfDriverId && !activeDriverIds.has(submitted.dnfDriverId)) ||
+    (scope !== "qualification" && !locks.raceLocked && submitted.topScoringTeamId && !activeTeamIds.has(submitted.topScoringTeamId)) ||
+    (scope !== "qualification" && !locks.raceLocked && submitted.fastestPitStopTeamId && !activeTeamIds.has(submitted.fastestPitStopTeamId))
   ) {
     redirect("/fantasy?message=driver");
   }
@@ -74,16 +91,7 @@ export async function saveFantasyPrediction(formData: FormData) {
         }
       : null,
     locks,
-    submitted: {
-      poleDriverId,
-      winnerDriverId: top10DriverIds[0] ?? null,
-      fastestLapDriverId,
-      dnfDriverId: dnfPick.driverId,
-      dnfPickKind: dnfPick.kind,
-      topScoringTeamId,
-      fastestPitStopTeamId,
-      top10DriverIds,
-    },
+    submitted,
   });
   const changed = !existing || hasPredictionChanged(existing, values);
   const payload = {
@@ -112,15 +120,19 @@ export async function saveFantasyPrediction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/fantasy");
   revalidatePath("/predictions");
-  redirect("/fantasy?saved=1");
+  redirect("/fantasy?tab=picks&saved=1");
 }
 
 export async function createFantasyLeague(formData: FormData) {
-  const user = await requireUser();
+  const profile = await ensureProfile();
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     redirect("/fantasy");
+  }
+
+  if (!profile) {
+    redirect("/fantasy?message=create");
   }
 
   const name = String(formData.get("name") ?? "").trim();
@@ -134,7 +146,7 @@ export async function createFantasyLeague(formData: FormData) {
   const { data, error } = await supabase
     .from("prediction_leagues")
     .insert({
-      owner_user_id: user.id,
+      owner_user_id: profile.id,
       name,
       invite_code: inviteCode,
       is_public: isPublic,
@@ -145,7 +157,7 @@ export async function createFantasyLeague(formData: FormData) {
   if (!error && data) {
     const { error: memberError } = await supabase.from("prediction_league_members").insert({
       league_id: data.id,
-      user_id: user.id,
+      user_id: profile.id,
       role: "owner",
     });
 
@@ -158,15 +170,19 @@ export async function createFantasyLeague(formData: FormData) {
 
   revalidatePath("/fantasy");
   revalidatePath("/leagues");
-  redirect(`/fantasy?created=1&league=${data.id}`);
+  redirect(`/fantasy?tab=leagues&created=1&league=${data.id}`);
 }
 
 export async function joinFantasyLeague(formData: FormData) {
-  const user = await requireUser();
+  const profile = await ensureProfile();
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     redirect("/fantasy");
+  }
+
+  if (!profile) {
+    redirect("/fantasy?message=join");
   }
 
   const inviteCode = String(formData.get("inviteCode") ?? "")
@@ -189,7 +205,7 @@ export async function joinFantasyLeague(formData: FormData) {
 
   const { error } = await supabase.from("prediction_league_members").upsert({
     league_id: league.id,
-    user_id: user.id,
+    user_id: profile.id,
     role: "member",
   });
 
@@ -199,7 +215,7 @@ export async function joinFantasyLeague(formData: FormData) {
 
   revalidatePath("/fantasy");
   revalidatePath("/leagues");
-  redirect(`/fantasy?joined=1&league=${league.id}`);
+  redirect(`/fantasy?tab=leagues&joined=1&league=${league.id}`);
 }
 
 function nullableFormValue(value: FormDataEntryValue | null) {
@@ -223,6 +239,71 @@ function parseDnfPick(value: FormDataEntryValue | null): {
   }
 
   return { driverId: stringValue || null, kind: "driver" };
+}
+
+type PredictionScope = "qualification" | "race" | "all";
+
+function parsePredictionScope(value: FormDataEntryValue | null): PredictionScope {
+  const scope = String(value ?? "");
+
+  return scope === "qualification" || scope === "race" ? scope : "all";
+}
+
+function buildSubmittedValues({
+  existing,
+  scope,
+  poleDriverId,
+  fastestLapDriverId,
+  top10DriverIds,
+  dnfPick,
+  topScoringTeamId,
+  fastestPitStopTeamId,
+}: {
+  existing: {
+    pole_driver_id: string | null;
+    winner_driver_id: string | null;
+    fastest_lap_driver_id: string | null;
+    dnf_driver_id: string | null;
+    dnf_pick_kind?: string | null;
+    top_scoring_team_id?: string | null;
+    fastest_pit_stop_team_id?: string | null;
+    top10_driver_ids?: string[] | null;
+  } | null;
+  scope: PredictionScope;
+  poleDriverId: string | null;
+  fastestLapDriverId: string | null;
+  top10DriverIds: string[];
+  dnfPick: { driverId: string | null; kind: "driver" | "none" };
+  topScoringTeamId: string | null;
+  fastestPitStopTeamId: string | null;
+}) {
+  const current = {
+    poleDriverId: existing?.pole_driver_id ?? null,
+    winnerDriverId: existing?.winner_driver_id ?? null,
+    fastestLapDriverId: existing?.fastest_lap_driver_id ?? null,
+    dnfDriverId: existing?.dnf_driver_id ?? null,
+    dnfPickKind: existing?.dnf_pick_kind === "none" ? "none" as const : "driver" as const,
+    topScoringTeamId: existing?.top_scoring_team_id ?? null,
+    fastestPitStopTeamId: existing?.fastest_pit_stop_team_id ?? null,
+    top10DriverIds: normalizeTop10(existing?.top10_driver_ids ?? []),
+  };
+
+  if (scope === "qualification") {
+    return { ...current, poleDriverId };
+  }
+
+  const raceValues = {
+    ...current,
+    winnerDriverId: top10DriverIds[0] ?? null,
+    fastestLapDriverId,
+    dnfDriverId: dnfPick.driverId,
+    dnfPickKind: dnfPick.kind,
+    topScoringTeamId,
+    fastestPitStopTeamId,
+    top10DriverIds,
+  };
+
+  return scope === "race" ? raceValues : { ...raceValues, poleDriverId };
 }
 
 async function getActiveDriverIds(supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>) {

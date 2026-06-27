@@ -38,7 +38,7 @@ export function GrandPrixPodiumPreview({
               index === 0
                 ? "border-[#f4c95d]/50 bg-[#f4c95d]/10 text-[#f4c95d]"
                 : index === 1
-                  ? "border-slate-200/35 bg-slate-200/10 text-slate-100"
+                  ? "podium-preview-second border-slate-200/35 bg-slate-200/10 text-slate-100"
                   : "border-[#d48a5f]/45 bg-[#d48a5f]/10 text-[#d48a5f]";
 
             return (

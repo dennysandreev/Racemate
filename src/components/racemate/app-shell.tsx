@@ -3,7 +3,6 @@ import {
   ArrowRight,
   CalendarDays,
   Flag,
-  LogOut,
   Menu,
   Newspaper,
   Radio,
@@ -13,11 +12,12 @@ import {
   Vote,
 } from "lucide-react";
 
-import { signOut } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
+import { SidebarSessionStatus } from "@/components/racemate/sidebar-session-status";
+import { ThemeToggle } from "@/components/racemate/theme-toggle";
 import { getNextSession } from "@/data/racemate-repository";
 import { getIsAdmin, getSessionProfileSummary } from "@/lib/auth";
-import { formatSessionCountdown, formatSessionName } from "@/lib/session-display";
+import { formatSessionName } from "@/lib/session-display";
 
 const navigation = [
   { href: "/news", label: "Новости", icon: Newspaper },
@@ -38,9 +38,6 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   ]);
   const visibleNavigation = navigation.filter((item) => item.href !== "/admin" || isAdmin);
   const sidebarSessionName = nextSession ? formatSessionName(nextSession.session) : "Расписание уточняется";
-  const sidebarCountdown = nextSession
-    ? formatSessionCountdown(nextSession.startsAtIso, nextSession.status)
-    : "Расписание уточняется";
 
   return (
     <div className="min-h-dvh">
@@ -72,7 +69,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             <span className="sr-only">Открыть меню</span>
             <Menu aria-hidden="true" className="size-5" />
           </summary>
-          <div className="glass-card absolute right-0 top-12 z-40 grid w-[min(18rem,calc(100vw-2rem))] gap-2 rounded-lg p-2 shadow-2xl">
+          <div className="absolute right-0 top-12 z-40 grid w-[min(18rem,calc(100vw-2rem))] gap-2 rounded-lg border border-border bg-background p-2 shadow-2xl">
             {visibleNavigation.map((item) => (
               <Link
                 className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -83,7 +80,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                 {item.label}
               </Link>
             ))}
-            <div className="mt-1 border-t border-border pt-2">
+            <div className="mt-1 grid gap-2 border-t border-border pt-2">
+              <ThemeToggle />
               <AuthPanel profile={profile} />
             </div>
           </div>
@@ -119,12 +117,11 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {nextSession?.race ?? "Календарь сезона"}
             </p>
-            <div className="mt-4 flex items-center gap-2">
-              <span className={`size-2 rounded-full ${nextSession?.status === "Live" ? "bg-success shadow-[0_0_14px_rgb(57_255_20_/_0.45)]" : "bg-primary shadow-[0_0_14px_rgb(225_6_0_/_0.35)]"}`} />
-              <span className={`font-telemetry text-sm font-extrabold uppercase tracking-[0.08em] ${nextSession?.status === "Live" ? "text-success" : "text-primary"}`}>
-                {sidebarCountdown}
-              </span>
-            </div>
+            <SidebarSessionStatus
+              sessionName={nextSession?.session}
+              startsAtIso={nextSession?.startsAtIso}
+              status={nextSession?.status}
+            />
           </div>
         </div>
         <nav className="grid flex-1 content-start gap-1 overflow-y-auto" aria-label="Боковая навигация">
@@ -146,7 +143,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="border-t border-border px-6 pt-5">
+        <div className="grid gap-3 border-t border-border px-6 pt-5">
+          <ThemeToggle />
           <AuthPanel profile={profile} />
         </div>
       </aside>
@@ -175,30 +173,22 @@ function AuthPanel({
   }
 
   return (
-    <div className="grid gap-3">
-      <Link
-        className="flex min-w-0 items-center gap-3 rounded-md border border-border bg-card/75 p-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        href="/account"
-        prefetch={false}
-      >
-        <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary/12 text-primary">
-          <UserRound aria-hidden="true" className="size-5" />
+    <Link
+      className="flex min-w-0 items-center gap-3 rounded-md border border-border bg-card/75 p-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      href="/account"
+      prefetch={false}
+    >
+      <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary/12 text-primary">
+        <UserRound aria-hidden="true" className="size-5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-semibold text-foreground">
+          {profile.displayName}
         </span>
-        <span className="min-w-0">
-          <span className="block truncate text-sm font-semibold text-foreground">
-            {profile.displayName}
-          </span>
-          <span className="block truncate text-xs text-muted-foreground">
-            Личный кабинет
-          </span>
+        <span className="block truncate text-xs text-muted-foreground">
+          Личный кабинет
         </span>
-      </Link>
-      <form action={signOut}>
-        <Button className="w-full justify-center" size="sm" type="submit" variant="secondary">
-          Выйти
-          <LogOut aria-hidden="true" data-icon="inline-end" />
-        </Button>
-      </form>
-    </div>
+      </span>
+    </Link>
   );
 }

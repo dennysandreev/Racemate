@@ -120,8 +120,8 @@ function CalendarRaceCard({ event }: { event: CalendarEvent }) {
             src={asset.src}
           />
         ) : (
-          <div className="grid h-full place-items-center text-xs text-muted-foreground">
-            Нет схемы
+          <div className="grid h-full place-items-center font-telemetry text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
+            Coming soon
           </div>
         )}
         <div className="absolute left-3 top-3 flex items-center gap-2 rounded-sm border border-border bg-background/80 px-2 py-1 backdrop-blur">

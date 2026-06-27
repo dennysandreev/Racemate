@@ -3,15 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireUser } from "@/lib/auth";
+import { ensureProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function createLeague(formData: FormData) {
-  const user = await requireUser();
+  const profile = await ensureProfile();
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     redirect("/leagues");
+  }
+
+  if (!profile) {
+    redirect("/leagues?message=create");
   }
 
   const name = String(formData.get("name") ?? "").trim();
@@ -25,7 +29,7 @@ export async function createLeague(formData: FormData) {
   const { data, error } = await supabase
     .from("prediction_leagues")
     .insert({
-      owner_user_id: user.id,
+      owner_user_id: profile.id,
       name,
       invite_code: inviteCode,
       is_public: isPublic,
@@ -36,7 +40,7 @@ export async function createLeague(formData: FormData) {
   if (!error && data) {
     const { error: memberError } = await supabase.from("prediction_league_members").insert({
       league_id: data.id,
-      user_id: user.id,
+      user_id: profile.id,
       role: "owner",
     });
 
@@ -52,11 +56,15 @@ export async function createLeague(formData: FormData) {
 }
 
 export async function joinLeague(formData: FormData) {
-  const user = await requireUser();
+  const profile = await ensureProfile();
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     redirect("/leagues");
+  }
+
+  if (!profile) {
+    redirect("/leagues?message=join");
   }
 
   const inviteCode = String(formData.get("inviteCode") ?? "")
@@ -79,7 +87,7 @@ export async function joinLeague(formData: FormData) {
 
   const { error } = await supabase.from("prediction_league_members").upsert({
     league_id: league.id,
-    user_id: user.id,
+    user_id: profile.id,
     role: "member",
   });
 

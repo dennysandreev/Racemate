@@ -45,7 +45,6 @@ export function Top10PredictionPicker({
             disabled={locked}
             name="top10DriverIds"
             onChange={(event) => updatePosition(index, event.target.value)}
-            required={!locked}
             value={driverId}
           >
             <option value="">Пилот</option>

@@ -221,7 +221,7 @@ function getPodiumClassName(finish?: "winner" | "second" | "third") {
   }
 
   if (finish === "second") {
-    return "font-semibold text-slate-200";
+    return "podium-second font-semibold text-slate-200";
   }
 
   if (finish === "third") {

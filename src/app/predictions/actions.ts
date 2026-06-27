@@ -46,7 +46,7 @@ export async function savePrediction(formData: FormData) {
 
   const activeDriverIds = await getActiveDriverIds(supabase);
   const activeTeamIds = await getActiveTeamIds(supabase);
-  if (!locks.raceLocked && !isValidTop10(top10DriverIds, activeDriverIds)) {
+  if (!locks.raceLocked && top10DriverIds.length > 0 && !isValidTop10(top10DriverIds, activeDriverIds)) {
     redirect("/predictions?message=top10");
   }
 

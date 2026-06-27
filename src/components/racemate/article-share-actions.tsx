@@ -60,9 +60,15 @@ export function ArticleShareActions({ title }: ArticleShareActionsProps) {
           <Share2 aria-hidden="true" className="size-4" />
           Поделиться
         </Button>
-        <Button onClick={copyLink} size="sm" type="button" variant="outline">
+        <Button
+          aria-label={copied ? "Ссылка скопирована" : "Скопировать ссылку"}
+          onClick={copyLink}
+          size="icon"
+          title={copied ? "Ссылка скопирована" : "Скопировать ссылку"}
+          type="button"
+          variant="outline"
+        >
           {copied ? <Check aria-hidden="true" className="size-4 text-success" /> : <Copy aria-hidden="true" className="size-4" />}
-          {copied ? "Ссылка скопирована" : "Скопировать ссылку"}
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   Clock3,
+  LogOut,
   Mail,
   UserRound,
   Users,
@@ -8,6 +9,7 @@ import {
 import type { ComponentType, SVGProps } from "react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { signOut } from "@/app/auth/actions";
 import { TeamColorBar } from "@/components/racemate/team-color";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import {
@@ -92,9 +94,17 @@ export default async function AccountPage() {
                 />
               </div>
             </div>
-            <Button asChild className="w-full shrink-0 sm:w-auto">
-              <Link href="/onboarding" prefetch={false}>Изменить профиль</Link>
-            </Button>
+            <div className="grid w-full shrink-0 gap-2 sm:w-auto sm:grid-cols-2">
+              <Button asChild>
+                <Link href="/onboarding" prefetch={false}>Изменить профиль</Link>
+              </Button>
+              <form action={signOut}>
+                <Button className="w-full" type="submit" variant="secondary">
+                  Выйти
+                  <LogOut aria-hidden="true" data-icon="inline-end" />
+                </Button>
+              </form>
+            </div>
           </div>
         </section>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { CircleHelp, Flag, Medal, Target, Trophy, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -61,8 +62,9 @@ export function FantasyScoringDialog({ className }: { className?: string }) {
         Как считаются очки
       </Button>
 
-      {isOpen ? (
-        <div
+      {isOpen && typeof document !== "undefined"
+        ? createPortal(
+          <div
           aria-labelledby="fantasy-scoring-title"
           aria-modal="true"
           className="fixed inset-0 z-50 grid place-items-center bg-black/72 p-3 backdrop-blur-md sm:p-6"
@@ -170,8 +172,10 @@ export function FantasyScoringDialog({ className }: { className?: string }) {
               </div>
             </div>
           </section>
-        </div>
-      ) : null}
+          </div>,
+          document.body,
+        )
+        : null}
     </>
   );
 }

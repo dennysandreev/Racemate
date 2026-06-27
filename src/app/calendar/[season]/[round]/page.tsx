@@ -26,7 +26,7 @@ import {
   getSessionResults,
 } from "@/data/racemate-repository";
 import { formatSessionName } from "@/lib/session-display";
-import type { GrandPrixReport } from "@/types/racemate";
+import type { GrandPrixReport, SessionResult, WeekendSession } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +61,7 @@ export default async function RaceCalendarPage({
   const selectedSession = sessions.find((session) => session.id === query.session) ?? sessions[0];
   const results = await getSessionResults(selectedSession?.id);
   const selectedSessionStatus = results.length ? "Завершена" : selectedSession?.status;
+  const sessionStats = selectedSession ? getSessionStats(selectedSession, results) : [];
   const dialogReport = queryReport ?? raceReport;
   const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
 
@@ -139,13 +140,11 @@ export default async function RaceCalendarPage({
                     {selectedSessionStatus}
                   </Badge>
                 </div>
-                {selectedSession.weather ? (
-                  <div className="grid gap-3 border-b border-border/70 bg-muted/50 px-4 py-3 text-sm sm:grid-cols-3">
-                    <DataRow label="Температура" value={selectedSession.weather.temperature} />
-                    <DataRow label="Ветер" value={selectedSession.weather.wind} />
-                    <DataRow label="Осадки" value={selectedSession.weather.precipitation} />
-                  </div>
-                ) : null}
+                <div className="grid gap-3 border-b border-border/70 bg-muted/50 px-4 py-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                  {sessionStats.map((stat) => (
+                    <DataRow key={stat.label} label={stat.label} value={stat.value} />
+                  ))}
+                </div>
 
                 {results.length ? (
                   <div className="overflow-hidden">
@@ -253,6 +252,36 @@ export default async function RaceCalendarPage({
       <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
     </AppShell>
   );
+}
+
+function getSessionStats(session: WeekendSession, results: SessionResult[]) {
+  const pointsTotal = results.reduce((sum, result) => sum + (result.points ?? 0), 0);
+  const bestResult = results[0];
+  const isRace =
+    session.type === "race" ||
+    session.type === "sprint" ||
+    session.name.toLowerCase().includes("гонка");
+
+  return [
+    {
+      label: "Участников",
+      value: results.length ? String(results.length) : "—",
+    },
+    {
+      label: isRace ? "Лидер" : "Лучшее время",
+      value: bestResult ? (isRace ? bestResult.driver : bestResult.time) : "—",
+    },
+    {
+      label: "Очки",
+      value: pointsTotal > 0 ? String(pointsTotal) : "—",
+    },
+    {
+      label: "Погода",
+      value: session.weather
+        ? `${session.weather.temperature}, ${session.weather.precipitation}`
+        : "Нет данных",
+    },
+  ];
 }
 
 function RaceReportPreview({

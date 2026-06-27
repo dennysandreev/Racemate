@@ -17,11 +17,11 @@ export function TrackMap({ circuit, compact, fill = false }: TrackMapProps) {
 
   return (
     <div className={cn("race-track-surface relative min-w-0 max-w-full overflow-hidden rounded-md p-3", fill && "h-full w-full")}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgb(225_6_0_/_0.16),transparent_15rem)]" />
+      <div className="race-track-overlay absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgb(225_6_0_/_0.16),transparent_15rem)]" />
       {asset ? (
         <div
           className={cn(
-            "relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded border border-white/10 bg-black/40 p-2",
+            "race-track-image-stage relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded border border-white/10 bg-black/40 p-2",
             fill ? "h-full min-h-0 w-full" : compact ? "h-32 sm:h-36" : "h-48",
           )}
         >
@@ -37,7 +37,7 @@ export function TrackMap({ circuit, compact, fill = false }: TrackMapProps) {
       ) : (
         <div
           className={cn(
-            "relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded border border-border/70 bg-background/50 text-center",
+            "race-track-image-stage relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded border border-border/70 bg-background/50 text-center",
             fill ? "h-full min-h-0 w-full" : compact ? "h-32 sm:h-36" : "h-48",
           )}
         >

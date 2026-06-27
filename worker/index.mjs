@@ -1840,7 +1840,7 @@ async function processNewsArticleBatch({ mode }) {
     const articleContext = await getArticleContext(article);
     const fallback = makeFallbackNewsPayload(article);
     let aiPayload = fallback;
-    let title = article.original_title;
+    let title = fallback.title;
     let usage = null;
     let relatedRace = matchRaceByText(article, races);
 
@@ -1884,21 +1884,36 @@ async function processNewsArticleBatch({ mode }) {
         } else {
           const content = payload.choices?.[0]?.message?.content;
           const parsed = safeJson(content);
-          title = normalizeString(parsed?.title_ru) ?? title;
-          aiPayload = {
-            summary: normalizeString(parsed?.summary_ru) ?? aiPayload.summary,
-            details: normalizeString(parsed?.details_ru) ?? aiPayload.details,
-            keyPoints: normalizeStringArray(parsed?.key_points_ru) ?? aiPayload.keyPoints,
-            highlights: selectArticleHighlights(
-              normalizeStringArray(parsed?.highlight_phrases_ru) ?? aiPayload.highlights,
-              normalizeString(parsed?.summary_ru) ?? aiPayload.summary,
-              normalizeString(parsed?.details_ru) ?? aiPayload.details,
-            ),
-          };
-          const aiRace = races.find((race) => race.round === numberOrNull(parsed?.race_round));
-          relatedRace = aiRace ?? relatedRace;
-          aiPayload.teamSlugs = normalizeStringArray(parsed?.team_slugs) ?? [];
-          usage = payload.usage ?? null;
+          const parsedTitle = normalizeString(parsed?.title_ru);
+          const parsedSummary = normalizeString(parsed?.summary_ru);
+          const parsedDetails = normalizeString(parsed?.details_ru);
+
+          if (!isUsableRussianNewsPayload({
+            details: parsedDetails,
+            summary: parsedSummary,
+            title: parsedTitle,
+          })) {
+            logWorkerWarning("openrouter.news_summary.non_russian", {
+              articleId: article.id,
+              model,
+            });
+          } else {
+            title = parsedTitle ?? title;
+            aiPayload = {
+              summary: parsedSummary ?? aiPayload.summary,
+              details: parsedDetails ?? aiPayload.details,
+              keyPoints: normalizeStringArray(parsed?.key_points_ru) ?? aiPayload.keyPoints,
+              highlights: selectArticleHighlights(
+                normalizeStringArray(parsed?.highlight_phrases_ru) ?? aiPayload.highlights,
+                parsedSummary ?? aiPayload.summary,
+                parsedDetails ?? aiPayload.details,
+              ),
+            };
+            const aiRace = races.find((race) => race.round === numberOrNull(parsed?.race_round));
+            relatedRace = aiRace ?? relatedRace;
+            aiPayload.teamSlugs = normalizeStringArray(parsed?.team_slugs) ?? [];
+            usage = payload.usage ?? null;
+          }
         }
       } catch (aiError) {
         logWorkerWarning("openrouter.news_summary.fallback", {
@@ -5274,18 +5289,17 @@ function clampText(value, maxLength) {
 }
 
 function makeFallbackNewsPayload(article) {
-  const description =
-    article.original_description ??
-    "RaceMate получил новость из RSS, но источник не передал достаточно деталей для уверенной выжимки.";
+  const description = normalizeString(article.original_description);
+  const sourceText = description
+    ? `В RSS-описании источника есть только краткий фрагмент: ${description}`
+    : "Источник пока не передал достаточно деталей для уверенного пересказа.";
 
   return {
-    summary: description,
-    details:
-      description.length > 180
-        ? description
-        : `${description} Подробная выжимка станет точнее после повторной AI-обработки, когда источник отдаст больше контекста.`,
-    keyPoints: [article.original_title, "Источник не передал дополнительных деталей.", "Факты не расширялись без подтверждения."],
-    highlights: [article.original_title].filter(Boolean),
+    title: "Новость Формулы-1: детали уточняются",
+    summary: "Источник сообщил новую информацию по Формуле-1, но деталей пока недостаточно для уверенного русского пересказа. Мы не добавляем неподтвержденные факты и обновим материал после повторной обработки.",
+    details: `${sourceText}\n\nПодробная русская версия появится после повторной обработки. До этого RaceMate показывает только осторожное описание без дополнительных выводов и домыслов.`,
+    keyPoints: ["Источник передал краткое описание.", "Подробная русская версия готовится.", "Факты не расширялись без подтверждения источника."],
+    highlights: ["Подробная русская версия готовится"],
     teamSlugs: [],
   };
 }
@@ -5294,7 +5308,10 @@ function buildNewsAiSystemPrompt() {
   return [
     "Ты редактор RaceMate для русскоязычных фанатов Формулы-1.",
     "Твоя задача — прочитать переданные материалы, перевести смысл на русский и написать подробный редакторский пересказ своими словами.",
+    "Все пользовательские текстовые поля JSON должны быть на русском языке, кроме названий команд, пилотов, серий, технических аббревиатур и team_slugs.",
+    "Не возвращай английский заголовок, английский лид или английский текст статьи как title_ru, summary_ru или details_ru.",
     "Не копируй фразы источника дословно, не выдавай текст за оригинальную публикацию и не придумывай факты.",
+    "Если данных мало, напиши короткий осторожный пересказ на русском по доступному RSS-описанию.",
     "Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, highlight_phrases_ru, race_round, race_confidence, team_slugs.",
     "summary_ru — короткий лид на 2-3 предложения.",
     "details_ru — полноценный материал RaceMate: 5-8 абзацев, разделенных пустой строкой, с контекстом, участниками, причиной важности и возможными последствиями только из переданных фактов.",
@@ -5303,6 +5320,27 @@ function buildNewsAiSystemPrompt() {
     "race_round — номер этапа из списка или null.",
     "team_slugs — массив slug команд из списка, если новость прямо связана с командой, ее пилотом, руководителем, болидом, стратегией или результатом команды. Не придумывай slug вне списка.",
   ].join(" ");
+}
+
+function isUsableRussianNewsPayload({ details, summary, title }) {
+  return (
+    isMostlyRussianText(title, { minCyrillic: 4, minRatio: 0.25 }) &&
+    isMostlyRussianText(summary, { minCyrillic: 32, minRatio: 0.45 }) &&
+    isMostlyRussianText(details, { minCyrillic: 64, minRatio: 0.45 })
+  );
+}
+
+function isMostlyRussianText(value, { minCyrillic, minRatio }) {
+  const text = normalizeString(value);
+
+  if (!text) {
+    return false;
+  }
+
+  const cyrillicCount = (text.match(/[А-Яа-яЁё]/g) ?? []).length;
+  const latinCount = (text.match(/[A-Za-z]/g) ?? []).length;
+
+  return cyrillicCount >= minCyrillic && cyrillicCount >= latinCount * minRatio;
 }
 
 function buildNewsHighlightSystemPrompt() {

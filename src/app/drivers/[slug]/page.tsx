@@ -73,7 +73,7 @@ export default async function DriverProfilePage({ params }: DriverPageProps) {
         <section className="grid min-w-0 gap-5">
           <SeasonStats profile={profile} />
 
-          <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+          <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
             <DriverCumulativePointsChart profile={profile} />
             <FormPanel profile={profile} />
           </div>
@@ -163,16 +163,18 @@ function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: b
 }
 
 function DriverAvatar({ profile }: { profile: DriverProfile }) {
-  if (profile.aiAvatarUrl) {
+  const avatarUrl = profile.aiAvatarUrl || getLocalDriverAvatar(profile.slug);
+
+  if (avatarUrl) {
     return (
       <div className="relative min-h-[22rem] overflow-hidden rounded-xl border border-border bg-background">
         <Image
-          alt={`AI-аватар ${profile.fullName}`}
-          className="object-cover"
+          alt={`Аватар ${profile.fullName}`}
+          className="object-contain object-bottom"
           fill
           priority
           sizes="(min-width: 1024px) 18rem, 100vw"
-          src={profile.aiAvatarUrl}
+          src={avatarUrl}
         />
       </div>
     );
@@ -203,6 +205,15 @@ function DriverAvatar({ profile }: { profile: DriverProfile }) {
       </div>
     </div>
   );
+}
+
+function getLocalDriverAvatar(slug: string) {
+  const avatars: Record<string, string> = {
+    "charles-leclerc": "/drivers/avatars/leclerc.png",
+    "lewis-hamilton": "/drivers/avatars/hamilton.png",
+  };
+
+  return avatars[slug] ?? null;
 }
 
 function FavoriteAction({ profile, signedIn }: { profile: DriverProfile; signedIn: boolean }) {
@@ -335,7 +346,7 @@ function RaceResultsTable({ results }: { results: DriverRaceResultRow[] }) {
 
 function FormPanel({ profile }: { profile: DriverProfile }) {
   return (
-    <StitchPanel>
+    <StitchPanel className="h-full">
       <StitchPanelHeader icon={Medal} title="Последние 5 этапов" />
       <div className="grid gap-4 p-4">
         <div className="flex flex-wrap gap-2">

@@ -17,6 +17,7 @@ import {
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
 import { FantasyScoringDialog } from "@/components/racemate/fantasy-scoring-dialog";
+import { GlobalFantasyLeaderboardPanel } from "@/components/racemate/global-fantasy-leaderboard";
 import { LeagueDialog } from "@/components/racemate/league-dialog";
 import {
   StitchPanel,
@@ -27,8 +28,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   getLeagueDetail,
+  getGlobalFantasyLeaderboard,
   getLeagues,
-  getPolls,
   getPredictionState,
 } from "@/data/racemate-repository";
 import { getTeamAsset } from "@/data/f1-assets";
@@ -37,7 +38,6 @@ import { cn } from "@/lib/utils";
 import type {
   DriverOption,
   LeagueSummary,
-  PollSummary,
   PredictionState,
   TeamOption,
 } from "@/types/racemate";
@@ -48,6 +48,7 @@ type FantasySearchParams = {
   league?: string;
   message?: string;
   saved?: string;
+  tab?: string;
 };
 
 type PredictionField = {
@@ -75,11 +76,12 @@ export default async function FantasyPage({
   searchParams: Promise<FantasySearchParams>;
 }) {
   const [status, user] = await Promise.all([searchParams, getSessionUser()]);
-  const [predictionState, leagues, polls, selectedLeague] = await Promise.all([
+  const activeTab = status.tab === "leagues" || status.tab === "leaderboard" ? status.tab : "picks";
+  const [predictionState, leagues, selectedLeague, leaderboard] = await Promise.all([
     getPredictionState(user?.id),
     getLeagues(user?.id),
-    getPolls(),
     getLeagueDetail(status.league, user?.id),
+    getGlobalFantasyLeaderboard(),
   ]);
   const current = predictionState.current;
   const picks = buildPredictionFields(current, predictionState.race);
@@ -99,49 +101,53 @@ export default async function FantasyPage({
     <AppShell>
       <section className="grid gap-6 py-6">
         <FantasyEventHeader
-          completedPicks={completedPicks}
           leagues={leagues}
           predictionState={predictionState}
-          totalPicks={totalPicks}
         />
+
+        <FantasyTabs activeTab={activeTab} />
 
         {notice ? <StatusNotice notice={notice} /> : null}
 
-        <div className="grid gap-6 xl:grid-cols-12 xl:items-start">
-          <div className="grid min-w-0 gap-6 xl:col-span-8">
+        {activeTab === "picks" ? (
+          <div className="grid min-w-0 gap-6">
             <PredictionModule
+              completedPicks={completedPicks}
               fields={picks}
               predictionState={predictionState}
               saved={Boolean(status.saved)}
               teamFields={teamPicks}
+              totalPicks={totalPicks}
               userSignedIn={Boolean(user)}
             />
-            <LeagueActivity leagues={leagues} selectedLeagueId={status.league} />
           </div>
+        ) : null}
 
-          <aside className="grid min-w-0 content-start gap-6 xl:col-span-4">
-            <CommunityPoll poll={polls[0]} />
+        {activeTab === "leagues" ? (
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+            <LeagueActivity leagues={leagues} selectedLeagueId={status.league} />
+            <aside className="min-w-0">
             <LeagueControlPanel userSignedIn={Boolean(user)} />
-          </aside>
-        </div>
-        <LeagueDialog league={selectedLeague} />
+            </aside>
+          </div>
+        ) : null}
+
+        {activeTab === "leaderboard" ? <GlobalFantasyLeaderboardPanel leaderboard={leaderboard} /> : null}
+        {activeTab === "leagues" ? <LeagueDialog league={selectedLeague} /> : null}
       </section>
     </AppShell>
   );
 }
 
 function FantasyEventHeader({
-  completedPicks,
   leagues,
   predictionState,
-  totalPicks,
 }: {
-  completedPicks: number;
   leagues: LeagueSummary[];
   predictionState: PredictionState;
-  totalPicks: number;
 }) {
   const score = predictionState.current?.score;
+  const hasPrediction = Boolean(predictionState.current);
 
   return (
     <section className="flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
@@ -159,21 +165,40 @@ function FantasyEventHeader({
 
       <div className="grid w-full max-w-xl gap-3 xl:w-[30rem]">
         <div className="grid grid-cols-3 gap-3">
-          <FantasyCounter label="Выборы" value={`${completedPicks}/${totalPicks}`} />
+          <FantasyCounter className={hasPrediction ? "border-success bg-success/10" : "border-warning bg-warning/10"} label="Прогноз" value={hasPrediction ? "Готов" : "Не сделан"} />
           <FantasyCounter label="Лиги" value={String(leagues.length)} />
           <FantasyCounter
             label="Очки"
             value={score === null || score === undefined ? "—" : String(score)}
           />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button asChild className="w-full" variant="secondary">
-            <Link href="/fantasy/leaderboard">Лидерборд</Link>
-          </Button>
-          <FantasyScoringDialog className="w-full" />
-        </div>
       </div>
     </section>
+  );
+}
+
+function FantasyTabs({ activeTab }: { activeTab: "picks" | "leagues" | "leaderboard" }) {
+  const tabs = [
+    { href: "/fantasy?tab=picks", label: "Прогноз", value: "picks" },
+    { href: "/fantasy?tab=leagues", label: "Лиги", value: "leagues" },
+    { href: "/fantasy?tab=leaderboard", label: "Лидерборд", value: "leaderboard" },
+  ] as const;
+
+  return (
+    <nav className="grid grid-cols-3 gap-2 rounded-lg border border-border bg-card/60 p-1" aria-label="Разделы фентази-лиги">
+      {tabs.map((tab) => (
+        <Link
+          className={cn(
+            "rounded-md px-3 py-2.5 text-center font-telemetry text-xs font-bold uppercase tracking-[0.08em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            activeTab === tab.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+          )}
+          href={tab.href}
+          key={tab.value}
+        >
+          {tab.label}
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -202,16 +227,20 @@ function FantasyCounter({
 }
 
 function PredictionModule({
+  completedPicks,
   fields,
   predictionState,
   saved,
   teamFields,
+  totalPicks,
   userSignedIn,
 }: {
+  completedPicks: number;
   fields: PredictionField[];
   predictionState: PredictionState;
   saved: boolean;
   teamFields: TeamPredictionField[];
+  totalPicks: number;
   userSignedIn: boolean;
 }) {
   const score = predictionState.current?.score;
@@ -231,75 +260,131 @@ function PredictionModule({
               : "Расписание появится после синхронизации"}
           </p>
         </div>
-        <Badge variant={saved ? "success" : userSignedIn ? "danger" : "warning"}>
-          {saved
-            ? "Сохранено"
-            : userSignedIn
-              ? `${score ?? 0} очков`
-              : "Нужен вход"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">{completedPicks}/{totalPicks} выборов</Badge>
+          <FantasyScoringDialog className="shrink-0" />
+          <Badge variant={saved ? "success" : userSignedIn ? "danger" : "warning"}>
+            {saved ? "Сохранено" : userSignedIn ? `${score ?? 0} очков` : "Нужен вход"}
+          </Badge>
+        </div>
       </div>
 
       {predictionState.race && predictionState.drivers.length ? (
-        <form action={saveFantasyPrediction} className="relative z-10 grid gap-4">
-          <input name="raceId" type="hidden" value={predictionState.race.id} />
-          <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-lg border border-border bg-muted/25 p-4">
-              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-display text-lg font-bold">Топ-10 гонки</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Расставь десять пилотов в предполагаемом порядке финиша.
-                  </p>
-                </div>
-                <Badge variant={predictionState.race.raceLocked ? "warning" : "secondary"}>
-                  {predictionState.race.raceLocked ? "Закрыто" : `${predictionState.current?.top10DriverIds?.length ?? 0}/10`}
-                </Badge>
+        <div className="relative z-10 grid gap-5">
+          <form action={saveFantasyPrediction} className="rounded-lg border border-border bg-background/25 p-4 sm:p-5">
+            <input name="raceId" type="hidden" value={predictionState.race.id} />
+            <input name="predictionScope" type="hidden" value="qualification" />
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-primary">Квалификация</p>
+                <h3 className="mt-2 font-display text-xl font-bold">Прогноз на стартовую решетку</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Заполняй и вноси правки до старта квалификации.</p>
               </div>
-              <Top10PredictionPicker
-                defaultValue={predictionState.current?.top10DriverIds ?? []}
-                drivers={predictionState.drivers}
-                locked={predictionState.race.raceLocked}
+              <Badge variant={predictionState.race.poleLocked ? "warning" : "secondary"}>
+                {predictionState.race.poleLocked ? "Закрыто" : "До квалификации"}
+              </Badge>
+            </div>
+            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-end">
+              <PredictionPickCard drivers={predictionState.drivers} field={fields[0]} />
+              <PredictionSaveButton
+                locked={Boolean(predictionState.race.poleLocked)}
+                lockedLabel="Поул закрыт"
+                saveLabel="Сохранить поул"
+                userSignedIn={userSignedIn}
               />
             </div>
-            <div className="grid content-start gap-4">
-              {fields.map((field) => (
-                <PredictionPickCard
-                  drivers={predictionState.drivers}
-                  field={field}
-                  key={field.name}
-                />
-              ))}
-              {teamFields.map((field) => (
-                <TeamPredictionPickCard
-                  field={field}
-                  key={field.name}
-                  teams={predictionState.teams}
-                />
-              ))}
+          </form>
+
+          <form action={saveFantasyPrediction} className="rounded-lg border border-border bg-muted/20 p-4 sm:p-5">
+            <input name="raceId" type="hidden" value={predictionState.race.id} />
+            <input name="predictionScope" type="hidden" value="race" />
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-primary">Гонка</p>
+                <h3 className="mt-2 font-display text-xl font-bold">Гоночный прогноз</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Заполняй и вноси правки до старта гонки.</p>
+              </div>
+              <Badge variant={predictionState.race.raceLocked ? "warning" : "secondary"}>
+                {predictionState.race.raceLocked ? "Закрыто" : "До старта гонки"}
+              </Badge>
             </div>
-          </div>
-          {userSignedIn ? (
-            <Button
-              className="mt-2 h-12 w-full"
-              disabled={Boolean(predictionState.race?.raceLocked)}
-              type="submit"
-            >
-              <Lock aria-hidden="true" data-icon="inline-start" />
-              {predictionState.race?.raceLocked ? "Прогноз закрыт" : "Сохранить прогноз"}
-            </Button>
-          ) : (
-            <Button asChild className="mt-2 h-12 w-full">
-              <Link href="/auth">Войти, чтобы сохранить</Link>
-            </Button>
-          )}
-        </form>
+            <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="grid content-start gap-4">
+                {fields.slice(1).map((field) => (
+                  <PredictionPickCard
+                    drivers={predictionState.drivers}
+                    field={field}
+                    key={field.name}
+                  />
+                ))}
+                {teamFields.map((field) => (
+                  <TeamPredictionPickCard
+                    field={field}
+                    key={field.name}
+                    teams={predictionState.teams}
+                  />
+                ))}
+              </div>
+              <div className="rounded-lg border border-border bg-background/35 p-4">
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">Топ-10 · гонка</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Расставь десять пилотов в предполагаемом порядке финиша.</p>
+                  </div>
+                  <Badge variant={predictionState.race.raceLocked ? "warning" : "secondary"}>
+                    {predictionState.race.raceLocked ? "Закрыто" : `${predictionState.current?.top10DriverIds?.length ?? 0}/10`}
+                  </Badge>
+                </div>
+                <Top10PredictionPicker
+                  defaultValue={predictionState.current?.top10DriverIds ?? []}
+                  drivers={predictionState.drivers}
+                  locked={predictionState.race.raceLocked}
+                />
+              </div>
+            </div>
+            <div className="mt-4">
+              <PredictionSaveButton
+                locked={Boolean(predictionState.race.raceLocked)}
+                lockedLabel="Прогноз на гонку закрыт"
+                saveLabel="Сохранить прогноз на гонку"
+                userSignedIn={userSignedIn}
+              />
+            </div>
+          </form>
+        </div>
       ) : (
         <p className="relative z-10 rounded-md border border-border/70 bg-background/35 p-4 text-sm leading-6 text-muted-foreground">
           Прогноз откроется, когда RaceMate подтянет гонку и список пилотов.
         </p>
       )}
     </section>
+  );
+}
+
+function PredictionSaveButton({
+  locked,
+  lockedLabel,
+  saveLabel,
+  userSignedIn,
+}: {
+  locked: boolean;
+  lockedLabel: string;
+  saveLabel: string;
+  userSignedIn: boolean;
+}) {
+  if (!userSignedIn) {
+    return (
+      <Button asChild className="h-12 w-full">
+        <Link href="/auth">Войти, чтобы сохранить</Link>
+      </Button>
+    );
+  }
+
+  return (
+    <Button className="h-12 w-full" disabled={locked} type="submit">
+      <Lock aria-hidden="true" data-icon="inline-start" />
+      {locked ? lockedLabel : saveLabel}
+    </Button>
   );
 }
 
@@ -434,60 +519,6 @@ function TeamPredictionPickCard({
   );
 }
 
-function CommunityPoll({ poll }: { poll?: PollSummary }) {
-  const options = Array.isArray(poll?.options) ? poll.options.slice(0, 3) : [];
-  const normalizedOptions = options.map((option) =>
-    typeof option === "string" ? { label: option, votes: 0 } : option,
-  );
-  const totalVotes = Math.max(
-    1,
-    normalizedOptions.reduce((sum, option) => sum + Number(option.votes ?? 0), 0),
-  );
-
-  return (
-    <StitchPanel className="border-l-4 border-l-primary p-5">
-      <h2 className="font-telemetry text-xs font-bold uppercase tracking-[0.1em]">
-        Активный опрос
-      </h2>
-      <p className="mt-4 font-display text-xl font-bold leading-tight">
-        {poll?.question ?? "Кто сильнее проведет следующий этап?"}
-      </p>
-      <div className="mt-5 grid gap-3">
-        {normalizedOptions.length ? (
-          normalizedOptions.map((option) => {
-            const percent = Math.round((Number(option.votes ?? 0) / totalVotes) * 100);
-
-            return (
-              <Link
-                className="relative h-12 overflow-hidden rounded-md bg-muted transition-colors hover:bg-accent"
-                href="/polls"
-                key={option.label}
-              >
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-y-0 left-0 bg-primary/20"
-                  style={{ width: `${percent}%` }}
-                />
-                <span className="absolute inset-0 flex items-center justify-between gap-3 px-4 text-sm">
-                  <span className="min-w-0 truncate">{option.label}</span>
-                  <span className="font-telemetry">{percent}%</span>
-                </span>
-              </Link>
-            );
-          })
-        ) : (
-          <Link
-            className="rounded-md border border-border/70 bg-background/35 p-4 text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground"
-            href="/polls"
-          >
-            Опросы появятся ближе к старту этапа.
-          </Link>
-        )}
-      </div>
-    </StitchPanel>
-  );
-}
-
 function LeagueControlPanel({ userSignedIn }: { userSignedIn: boolean }) {
   return (
     <StitchPanel>
@@ -562,7 +593,7 @@ function LeagueActivity({
                 "grid gap-3 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center",
                 selectedLeagueId === league.id && "bg-accent/60",
               )}
-              href={league.id ? `/fantasy?league=${league.id}` : "/fantasy"}
+              href={league.id ? `/fantasy?tab=leagues&league=${league.id}` : "/fantasy?tab=leagues"}
               key={league.id ?? league.name}
               prefetch={false}
             >
@@ -623,10 +654,10 @@ function buildPredictionFields(
 ): PredictionField[] {
   return [
     {
-      helper: "Выбери пилота",
-      label: "Поул",
+      helper: "Прогноз на квалификацию",
+      label: "Поул-позиция (квалификация)",
       name: "poleDriverId",
-      short: "Pole position",
+      short: "Поул · квалификация",
       locked: race?.poleLocked,
       value: current?.poleDriverId,
     },
