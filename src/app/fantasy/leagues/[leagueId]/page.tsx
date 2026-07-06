@@ -14,6 +14,7 @@ import {
   deleteFantasyLeague,
   updateFantasyLeague,
 } from "@/app/fantasy/actions";
+import { LeagueInviteCodeCopy } from "@/components/fantasy/league-invite-code-copy";
 import { AppShell } from "@/components/racemate/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,35 +111,53 @@ function LeagueHero({ league }: { league: LeagueDetail }) {
   const totalPredictions = league.members.reduce((sum, member) => sum + member.scoredCount, 0);
 
   return (
-    <header className="stitch-panel overflow-hidden p-5 sm:p-6">
-      <div className="grid gap-6 xl:min-h-[17rem] xl:grid-cols-[minmax(0,1fr)_minmax(28rem,34rem)]">
-        <div className="flex min-w-0 flex-col justify-between gap-8">
+    <header className="stitch-panel p-5 sm:p-6">
+      <div className="grid gap-6 xl:min-h-[18rem] xl:grid-cols-[minmax(0,1fr)_minmax(28rem,34rem)]">
+        <div className="flex min-w-0 flex-col justify-between gap-7">
           <div className="min-w-0">
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/fantasy?tab=leagues">
-                <ArrowLeft aria-hidden="true" className="size-4" />
-                К лигам
-              </Link>
-            </Button>
-
-            <div className="mt-5 flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{league.members.length} участников</Badge>
-              {league.inviteCode ? <Badge variant="outline">Код {league.inviteCode}</Badge> : null}
-              {league.isPublic ? <Badge variant="outline">Открытая</Badge> : <Badge variant="outline">По коду</Badge>}
-              {league.isOwner ? <Badge variant="success">Ты создатель</Badge> : null}
+            <div className="flex items-center justify-between gap-3">
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/fantasy?tab=leagues">
+                  <ArrowLeft aria-hidden="true" className="size-4" />
+                  К лигам
+                </Link>
+              </Button>
+              {league.isOwner ? <LeagueSettingsDisclosure league={league} /> : null}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-start gap-3">
+            <div className="mt-6 flex flex-wrap items-start gap-3">
               <h1 className="min-w-0 flex-1 font-display text-balance text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
                 {league.name}
               </h1>
             </div>
 
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Рейтинг, история этапов и разбор ставок всех участников.
-            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">{league.members.length} участников</Badge>
+              {league.isPublic ? <Badge variant="outline">Открытая лига</Badge> : <Badge variant="outline">Вход по коду</Badge>}
+              {league.isOwner ? <Badge variant="success">Ты создатель</Badge> : null}
+            </div>
 
-            {league.isOwner ? <LeagueSettingsDisclosure league={league} /> : null}
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Рейтинг сезона, история этапов и разбор прогнозов всех участников.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:max-w-xl">
+            <p className="font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Код приглашения
+            </p>
+            {league.inviteCode ? (
+              <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-background/45 p-2">
+                <code className="min-w-0 flex-1 truncate rounded-md bg-muted/35 px-3 py-2 font-telemetry text-sm font-bold text-foreground">
+                  {league.inviteCode}
+                </code>
+                <LeagueInviteCodeCopy code={league.inviteCode} />
+              </div>
+            ) : (
+              <p className="rounded-lg border border-border bg-background/45 px-3 py-2 text-sm text-muted-foreground">
+                Код появится после создания приглашения.
+              </p>
+            )}
           </div>
         </div>
 
@@ -155,16 +174,15 @@ function LeagueHero({ league }: { league: LeagueDetail }) {
 
 function LeagueSettingsDisclosure({ league }: { league: LeagueDetail }) {
   return (
-    <details className="group mt-4 max-w-4xl">
-      <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-md border border-border bg-background/55 px-3 text-sm font-medium transition-colors hover:border-primary/60 hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+    <details className="group relative">
+      <summary
+        aria-label="Настройки лиги"
+        className="grid size-10 cursor-pointer list-none place-items-center rounded-full border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-accent/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+        title="Настройки лиги"
+      >
         <Settings aria-hidden="true" className="size-4 text-primary" />
-        Настройки
-        <ChevronDown
-          aria-hidden="true"
-          className="size-4 text-muted-foreground transition-transform group-open:rotate-180"
-        />
       </summary>
-      <div className="mt-3">
+      <div className="absolute right-0 z-30 mt-3 w-[min(52rem,calc(100vw-2rem))]">
         <LeagueOwnerPanel league={league} />
       </div>
     </details>
