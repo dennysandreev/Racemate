@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   BarChart3,
+  ChevronDown,
   ClipboardList,
   Settings,
   Trash2,
@@ -35,6 +36,7 @@ type LeaguePageSearchParams = {
   round?: string;
   updated?: string;
   user?: string;
+  view?: string;
 };
 
 export default async function FantasyLeaguePage({
@@ -67,6 +69,7 @@ export default async function FantasyLeaguePage({
     selectedEntry?.predictions.find((prediction) => prediction.userId === query.user) ??
     selectedEntry?.predictions[0] ??
     null;
+  const activeView = query.view === "rating" ? "rating" : "predictions";
   const notice = getLeagueNotice(query);
 
   return (
@@ -76,28 +79,27 @@ export default async function FantasyLeaguePage({
 
         {notice ? <LeagueNotice notice={notice} /> : null}
 
-        {league.isOwner ? <LeagueOwnerPanel league={league} /> : null}
+        <LeagueTabs activeView={activeView} leagueId={league.id} />
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
-          <div className="grid min-w-0 gap-6">
+        {activeView === "rating" ? (
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] xl:items-start">
             <TopUsersChart members={league.members} />
-            <RaceRoundSelector
+            <LeagueSeasonStandings members={league.members} />
+          </div>
+        ) : (
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
+            <PredictionsByRoundAccordion
+              history={league.history}
               leagueId={league.id}
               selectedRound={selectedEntry?.round ?? null}
-              history={league.history}
-            />
-            <SelectedRaceBoard
-              entry={selectedEntry}
-              leagueId={league.id}
               selectedUserId={selectedPrediction?.userId ?? null}
             />
-          </div>
 
-          <aside className="grid gap-6 xl:sticky xl:top-6">
-            <LeagueSeasonStandings members={league.members} />
-            <PredictionReviewCard prediction={selectedPrediction} race={selectedEntry} />
-          </aside>
-        </div>
+            <aside className="grid gap-6 xl:sticky xl:top-6">
+              <PredictionReviewCard prediction={selectedPrediction} race={selectedEntry} />
+            </aside>
+          </div>
+        )}
       </section>
     </AppShell>
   );
@@ -109,29 +111,38 @@ function LeagueHero({ league }: { league: LeagueDetail }) {
 
   return (
     <header className="stitch-panel overflow-hidden p-5 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-5">
-        <div className="min-w-0">
-          <Button asChild size="sm" variant="secondary">
-            <Link href="/fantasy?tab=leagues">
-              <ArrowLeft aria-hidden="true" className="size-4" />
-              К лигам
-            </Link>
-          </Button>
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">{league.members.length} участников</Badge>
-            {league.inviteCode ? <Badge variant="outline">Код {league.inviteCode}</Badge> : null}
-            {league.isPublic ? <Badge variant="outline">Открытая</Badge> : <Badge variant="outline">По коду</Badge>}
-            {league.isOwner ? <Badge variant="success">Ты создатель</Badge> : null}
+      <div className="grid gap-6 xl:min-h-[17rem] xl:grid-cols-[minmax(0,1fr)_minmax(28rem,34rem)]">
+        <div className="flex min-w-0 flex-col justify-between gap-8">
+          <div className="min-w-0">
+            <Button asChild size="sm" variant="secondary">
+              <Link href="/fantasy?tab=leagues">
+                <ArrowLeft aria-hidden="true" className="size-4" />
+                К лигам
+              </Link>
+            </Button>
+
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">{league.members.length} участников</Badge>
+              {league.inviteCode ? <Badge variant="outline">Код {league.inviteCode}</Badge> : null}
+              {league.isPublic ? <Badge variant="outline">Открытая</Badge> : <Badge variant="outline">По коду</Badge>}
+              {league.isOwner ? <Badge variant="success">Ты создатель</Badge> : null}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-start gap-3">
+              <h1 className="min-w-0 flex-1 font-display text-balance text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
+                {league.name}
+              </h1>
+            </div>
+
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Рейтинг, история этапов и разбор ставок всех участников.
+            </p>
+
+            {league.isOwner ? <LeagueSettingsDisclosure league={league} /> : null}
           </div>
-          <h1 className="mt-3 font-display text-balance text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
-            {league.name}
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Рейтинг, история этапов и разбор ставок всех участников.
-          </p>
         </div>
 
-        <div className="grid w-full gap-3 sm:w-auto sm:min-w-[29rem] sm:grid-cols-4">
+        <div className="grid w-full content-end gap-3 self-end sm:grid-cols-4">
           <LeagueHeaderMetric label="Лидер" value={leader?.name ?? "—"} />
           <LeagueHeaderMetric label="Очки" value={String(leader?.totalScore ?? "—")} />
           <LeagueHeaderMetric label="Этапов" value={String(league.history.length)} />
@@ -139,6 +150,24 @@ function LeagueHero({ league }: { league: LeagueDetail }) {
         </div>
       </div>
     </header>
+  );
+}
+
+function LeagueSettingsDisclosure({ league }: { league: LeagueDetail }) {
+  return (
+    <details className="group mt-4 max-w-4xl">
+      <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-md border border-border bg-background/55 px-3 text-sm font-medium transition-colors hover:border-primary/60 hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+        <Settings aria-hidden="true" className="size-4 text-primary" />
+        Настройки
+        <ChevronDown
+          aria-hidden="true"
+          className="size-4 text-muted-foreground transition-transform group-open:rotate-180"
+        />
+      </summary>
+      <div className="mt-3">
+        <LeagueOwnerPanel league={league} />
+      </div>
+    </details>
   );
 }
 
@@ -157,10 +186,10 @@ function LeagueHeaderMetric({ label, value }: { label: string; value: string }) 
 
 function LeagueOwnerPanel({ league }: { league: LeagueDetail }) {
   return (
-    <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <section className="grid gap-4 rounded-xl border border-border bg-card p-4 shadow-2xl shadow-black/25 xl:grid-cols-[minmax(0,1fr)_22rem]">
       <form
         action={updateFantasyLeague}
-        className="stitch-panel grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end sm:p-5"
+        className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end"
       >
         <input name="leagueId" type="hidden" value={league.id} />
         <label className="grid gap-2 text-sm font-medium" htmlFor="league-name">
@@ -184,7 +213,7 @@ function LeagueOwnerPanel({ league }: { league: LeagueDetail }) {
         </Button>
       </form>
 
-      <form action={deleteFantasyLeague} className="stitch-panel grid gap-3 border-destructive/40 bg-destructive/5 p-4 sm:p-5">
+      <form action={deleteFantasyLeague} className="grid gap-3 rounded-lg border border-destructive/35 bg-destructive/10 p-4">
         <input name="leagueId" type="hidden" value={league.id} />
         <label className="grid gap-2 text-sm font-medium" htmlFor="confirmName">
           Удалить лигу
@@ -262,76 +291,67 @@ function TopUsersChart({ members }: { members: LeagueMemberPrediction[] }) {
   );
 }
 
-function RaceRoundSelector({
+function LeagueTabs({
+  activeView,
+  leagueId,
+}: {
+  activeView: "predictions" | "rating";
+  leagueId: string;
+}) {
+  const tabs = [
+    {
+      href: `/fantasy/leagues/${leagueId}`,
+      id: "predictions",
+      label: "Прогнозы по раундам",
+    },
+    {
+      href: `/fantasy/leagues/${leagueId}?view=rating`,
+      id: "rating",
+      label: "Рейтинг сезона",
+    },
+  ] as const;
+
+  return (
+    <nav
+      aria-label="Разделы лиги"
+      className="stitch-panel flex flex-wrap gap-2 p-2"
+    >
+      {tabs.map((tab) => (
+        <Link
+          aria-current={activeView === tab.id ? "page" : undefined}
+          className={cn(
+            "flex min-h-11 flex-1 items-center justify-center rounded-md px-4 text-center text-sm font-semibold transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-none",
+            activeView === tab.id
+              ? "bg-primary text-primary-foreground shadow-[0_0_18px_rgb(225_6_0_/_0.24)]"
+              : "text-muted-foreground",
+          )}
+          href={tab.href}
+          key={tab.id}
+        >
+          {tab.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+function PredictionsByRoundAccordion({
   history,
   leagueId,
   selectedRound,
+  selectedUserId,
 }: {
   history: LeagueHistoryEntry[];
   leagueId: string;
   selectedRound: number | null;
-}) {
-  return (
-    <section className="stitch-panel overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
-        <div>
-          <p className="stitch-label text-muted-foreground">Этапы</p>
-          <h2 className="mt-1 font-display text-2xl font-bold">История гонок</h2>
-        </div>
-        <Badge variant="secondary">{history.length} этапов</Badge>
-      </div>
-
-      {history.length ? (
-        <div className="grid gap-2 p-4 sm:grid-cols-2 sm:p-5 2xl:grid-cols-3">
-          {history.map((entry) => {
-            const leader = entry.predictions[0];
-            const selected = selectedRound === entry.round;
-
-            return (
-              <Link
-                className={cn(
-                  "rounded-lg border border-border bg-muted/25 p-3 transition-colors hover:border-primary/60 hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  selected && "border-primary/70 bg-primary/10",
-                )}
-                href={`/fantasy/leagues/${leagueId}?round=${entry.round}`}
-                key={`${entry.round}-${entry.raceName}`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-telemetry text-xs font-bold text-muted-foreground">R{entry.round}</span>
-                  <Badge variant={selected ? "success" : "outline"}>{entry.predictions.length} прогнозов</Badge>
-                </div>
-                <h3 className="mt-2 truncate font-display text-base font-bold">{entry.raceName}</h3>
-                <p className="mt-1 truncate text-xs text-muted-foreground">
-                  Лучший: {leader ? `${leader.name}, ${leader.score ?? 0} очк.` : "—"}
-                </p>
-              </Link>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="p-5 text-sm leading-6 text-muted-foreground">
-          История появится после первого этапа с начисленными очками.
-        </p>
-      )}
-    </section>
-  );
-}
-
-function SelectedRaceBoard({
-  entry,
-  leagueId,
-  selectedUserId,
-}: {
-  entry: LeagueHistoryEntry | null;
-  leagueId: string;
   selectedUserId: string | null;
 }) {
-  if (!entry) {
+  if (!history.length) {
     return (
       <section className="stitch-panel p-5">
-        <h2 className="font-display text-2xl font-bold">Результаты этапа</h2>
+        <h2 className="font-display text-2xl font-bold">Прогнозы по раундам</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Здесь появится список участников и очки за выбранный этап.
+          История появится после первого этапа с начисленными очками.
         </p>
       </section>
     );
@@ -340,34 +360,79 @@ function SelectedRaceBoard({
   return (
     <section className="stitch-panel overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
-        <div className="min-w-0">
-          <p className="stitch-label text-primary">Раунд {entry.round}</p>
-          <h2 className="mt-1 truncate font-display text-2xl font-bold">{entry.raceName}</h2>
+        <div>
+          <p className="stitch-label text-muted-foreground">Этапы</p>
+          <h2 className="mt-1 font-display text-2xl font-bold">Прогнозы по раундам</h2>
         </div>
-        <Badge variant="secondary">{entry.predictions.length} участников</Badge>
+        <Badge variant="secondary">{history.length} этапов</Badge>
       </div>
 
       <div className="divide-y stitch-divider">
-        {entry.predictions.map((prediction, index) => {
-          const selected = selectedUserId === prediction.userId;
+        {history.map((entry, index) => {
+          const leader = entry.predictions[0];
+          const open = selectedRound === entry.round || (!selectedRound && index === 0);
 
           return (
-            <Link
-              className={cn(
-                "grid gap-3 p-3 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[3rem_minmax(0,1fr)_7rem_7rem] sm:items-center sm:p-4",
-                selected && "bg-primary/10",
-              )}
-              href={`/fantasy/leagues/${leagueId}?round=${entry.round}&user=${prediction.userId}`}
-              key={`${entry.round}-${prediction.userId}`}
+            <details
+              className="group"
+              key={`${entry.round}-${entry.raceName}`}
+              open={open}
             >
-              <span className="font-telemetry text-sm font-bold text-muted-foreground">#{index + 1}</span>
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{prediction.name}</p>
-                <ScoreBreakdownLine breakdown={prediction.scoreBreakdown} />
+              <summary className="grid cursor-pointer list-none gap-3 p-4 transition-colors hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center [&::-webkit-details-marker]:hidden">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-telemetry text-xs font-bold text-primary">R{entry.round}</span>
+                    <Badge variant="outline">{entry.predictions.length} прогнозов</Badge>
+                    {leader ? <Badge variant="secondary">Лидер этапа: {leader.name}</Badge> : null}
+                  </div>
+                  <h3 className="mt-2 truncate font-display text-xl font-bold">{entry.raceName}</h3>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                    {leader ? `${leader.score ?? 0} очк. у лучшего результата` : "Прогнозов пока нет"}
+                  </p>
+                </div>
+                <ChevronDown
+                  aria-hidden="true"
+                  className="size-5 text-muted-foreground transition-transform group-open:rotate-180"
+                />
+              </summary>
+
+              <div className="grid gap-2 border-t stitch-divider p-3 sm:p-4">
+                {entry.predictions.length ? (
+                  entry.predictions.map((prediction, predictionIndex) => {
+                    const selected =
+                      selectedRound === entry.round && selectedUserId === prediction.userId;
+
+                    return (
+                      <Link
+                        className={cn(
+                          "grid gap-3 rounded-lg border border-border bg-muted/20 p-3 transition-colors hover:border-primary/60 hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[3rem_minmax(0,1fr)_7rem_7rem] sm:items-center",
+                          selected && "border-primary/70 bg-primary/10",
+                        )}
+                        href={`/fantasy/leagues/${leagueId}?round=${entry.round}&user=${prediction.userId}`}
+                        key={`${entry.round}-${prediction.userId}`}
+                      >
+                        <span className="font-telemetry text-sm font-bold text-muted-foreground">
+                          #{predictionIndex + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold">{prediction.name}</p>
+                          <ScoreBreakdownLine breakdown={prediction.scoreBreakdown} />
+                        </div>
+                        <PillMetric label="Этап" value={String(prediction.score ?? "—")} />
+                        <PillMetric
+                          label="Top-10"
+                          value={String(prediction.scoreBreakdown?.top10Points ?? "—")}
+                        />
+                      </Link>
+                    );
+                  })
+                ) : (
+                  <p className="rounded-lg border border-border bg-muted/20 p-3 text-sm text-muted-foreground">
+                    На этом этапе ещё нет сохранённых прогнозов.
+                  </p>
+                )}
               </div>
-              <PillMetric label="Этап" value={String(prediction.score ?? "—")} />
-              <PillMetric label="Top-10" value={String(prediction.scoreBreakdown?.top10Points ?? "—")} />
-            </Link>
+            </details>
           );
         })}
       </div>
