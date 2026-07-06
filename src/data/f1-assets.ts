@@ -35,7 +35,11 @@ const circuitAssets = [
     src: "/f1/circuits/monaco.webp",
   },
   {
-    aliases: ["spain", "barcelona", "catalunya"],
+    aliases: ["barcelona-catalunya", "barcelona", "catalunya", "circuit de barcelona-catalunya"],
+    src: "/f1/circuits/barcelona-catalunya.webp",
+  },
+  {
+    aliases: ["spain", "madrid", "madring", "ifema madrid"],
     src: "/f1/circuits/spain.webp",
   },
   {

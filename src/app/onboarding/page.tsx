@@ -10,6 +10,7 @@ import {
   StitchPanelHeader,
 } from "@/components/racemate/stitch-primitives";
 import { Button } from "@/components/ui/button";
+import { getCurrentSeasonPredictionOptions } from "@/data/racemate-repository";
 import { ensureProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -21,17 +22,8 @@ export default async function OnboardingPage() {
   const supabase = await createSupabaseServerClient();
   const userId = profile?.id;
 
-  const [teams, drivers, favoriteTeams, favoriteDrivers] = await Promise.all([
-    supabase
-      ?.from("teams")
-      .select("id, name")
-      .eq("is_active", true)
-      .order("name"),
-    supabase
-      ?.from("drivers")
-      .select("id, full_name")
-      .eq("is_active", true)
-      .order("full_name"),
+  const [options, favoriteTeams, favoriteDrivers] = await Promise.all([
+    getCurrentSeasonPredictionOptions(supabase ?? undefined),
     userId
       ? supabase
           ?.from("user_favorite_teams")
@@ -90,13 +82,13 @@ export default async function OnboardingPage() {
               </div>
 
               <FavoriteChoiceGroups
-                drivers={(drivers?.data ?? []).map((driver) => ({
+                drivers={options.drivers.map((driver) => ({
                   id: driver.id,
-                  label: driver.full_name,
+                  label: driver.name,
                 }))}
                 selectedDriverIds={selectedDriverIds}
                 selectedTeamId={selectedTeamIds[0]}
-                teams={(teams?.data ?? []).map((team) => ({
+                teams={options.teams.map((team) => ({
                   id: team.id,
                   label: team.name,
                 }))}

@@ -16,12 +16,15 @@ export function TrackMap({ circuit, compact, fill = false }: TrackMapProps) {
   const asset = getCircuitAsset(circuit);
 
   return (
-    <div className={cn("race-track-surface relative min-w-0 max-w-full overflow-hidden rounded-md p-3", fill && "h-full w-full")}>
-      <div className="race-track-overlay absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgb(225_6_0_/_0.16),transparent_15rem)]" />
+    <div className={cn("race-track-surface relative min-w-0 max-w-full overflow-hidden rounded-md", fill ? "h-full w-full" : "p-3")}>
+      {!fill ? (
+        <div className="race-track-overlay absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgb(225_6_0_/_0.16),transparent_15rem)]" />
+      ) : null}
       {asset ? (
         <div
           className={cn(
-            "race-track-image-stage relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded border border-white/10 bg-black/40 p-2",
+            "race-track-image-stage relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded",
+            fill ? "border-0 bg-transparent p-0" : "border border-white/10 bg-black/40 p-2",
             fill ? "h-full min-h-0 w-full" : compact ? "h-32 sm:h-36" : "h-48",
           )}
         >
@@ -37,7 +40,8 @@ export function TrackMap({ circuit, compact, fill = false }: TrackMapProps) {
       ) : (
         <div
           className={cn(
-            "race-track-image-stage relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded border border-border/70 bg-background/50 text-center",
+            "race-track-image-stage relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded text-center",
+            fill ? "border-0 bg-transparent" : "border border-border/70 bg-background/50",
             fill ? "h-full min-h-0 w-full" : compact ? "h-32 sm:h-36" : "h-48",
           )}
         >

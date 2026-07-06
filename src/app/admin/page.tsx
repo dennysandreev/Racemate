@@ -127,6 +127,8 @@ export default async function AdminPage({
                 <option value="ai.process_news">AI новости</option>
                 <option value="ai.reprocess_fallback_news">Повторить AI новости</option>
                 <option value="ai.retag_news">Теги этапов</option>
+                <option value="circuit_stats.sync_all">Статистика трасс</option>
+                <option value="circuit_stats.sync">Статистика текущей трассы</option>
                 <option value="jolpica.sync_calendar">Календарь</option>
                 <option value="jolpica.sync_results">Результаты</option>
                 <option value="jolpica.sync_standings">Таблицы</option>
@@ -134,6 +136,8 @@ export default async function AdminPage({
                 <option value="openf1.sync_laps">Лучшие круги</option>
                 <option value="weather.sync_weekend">Погода</option>
                 <option value="predictions.score">Очки прогнозов</option>
+                <option value="race_replay.prepare_current">Повтор текущего этапа</option>
+                <option value="race_replay.prepare_completed">Повторы прошедших этапов</option>
               </select>
               <Button disabled={!user} size="sm" type="submit" variant="secondary">
                 <Play aria-hidden="true" data-icon="inline-start" />

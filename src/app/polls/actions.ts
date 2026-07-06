@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/lib/auth";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function votePoll(formData: FormData) {
@@ -12,6 +13,12 @@ export async function votePoll(formData: FormData) {
 
   if (!supabase) {
     redirect("/polls");
+  }
+
+  const limit = consumeRateLimit("polls:vote", `user:${user.id}`, 20, 60 * 1_000);
+
+  if (!limit.ok) {
+    redirect("/polls?error=vote");
   }
 
   const pollId = String(formData.get("pollId") ?? "");

@@ -8,6 +8,7 @@ import {
   getPredictionLocksForRace,
   preserveLockedPredictionValues,
 } from "@/lib/prediction-locks";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function savePrediction(formData: FormData) {
@@ -16,6 +17,12 @@ export async function savePrediction(formData: FormData) {
 
   if (!supabase) {
     redirect("/predictions");
+  }
+
+  const limit = consumeRateLimit("predictions:save", `user:${user.id}`, 30, 60 * 1_000);
+
+  if (!limit.ok) {
+    redirect("/predictions?message=driver");
   }
 
   const raceId = String(formData.get("raceId") ?? "");

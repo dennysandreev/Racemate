@@ -36,6 +36,7 @@
     "worker:reports:all": "node worker/index.mjs reports.generate_all_completed",
     "worker:reports:refresh": "node worker/index.mjs reports.refresh_due",
     "worker:reports:summary": "node worker/index.mjs reports.generate_summary",
+    "worker:circuit-stats": "node worker/index.mjs circuit_stats.sync_all",
     "supabase:smtp": "node scripts/configure-supabase-smtp.mjs",
     "supabase:auth": "node scripts/configure-supabase-smtp.mjs",
     "lint": "eslint .",

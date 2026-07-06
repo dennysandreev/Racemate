@@ -1,0 +1,115 @@
+{
+  "downloadedAt": "2026-07-01T16:52:33.001Z",
+  "sources": [
+    {
+      "file": "/f1/circuits/australia.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/australia",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmelbournedetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/china.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/china",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackshanghaidetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/japan.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/japan",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracksuzukadetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/miami.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/miami",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmiamidetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/canada.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/canada",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmontrealdetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/monaco.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/monaco",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmontecarlodetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/barcelona-catalunya.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/barcelona-catalunya",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackcatalunyadetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/austria.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/austria",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackspielbergdetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/great-britain.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/great-britain",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracksilverstonedetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/belgium.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/belgium",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackspafrancorchampsdetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/hungary.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/hungary",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackhungaroringdetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/netherlands.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/netherlands",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackzandvoortdetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/italy.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/italy",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmonzadetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/baku.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/azerbaijan",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackbakudetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/singapore.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/singapore",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracksingaporedetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/usa.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/united-states",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackaustindetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/mexico.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/mexico",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmexicocitydetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/brazil.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/brazil",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackinterlagosdetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/las-vegas.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/las-vegas",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracklasvegasdetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/spain.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/spain",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmadringdetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/qatar.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/qatar",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracklusaildetailed.webp"
+    },
+    {
+      "file": "/f1/circuits/abu-dhabi.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/united-arab-emirates",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackyasmarinacircuitdetailed.webp"
+    }
+  ]
+}

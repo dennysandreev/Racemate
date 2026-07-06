@@ -1,4 +1,5 @@
 import { Mail } from "lucide-react";
+import Script from "next/script";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageHeading } from "@/components/racemate/page-heading";
@@ -16,9 +17,18 @@ export default async function AuthPage({
   searchParams: Promise<{ message?: string; next?: string }>;
 }) {
   const { message, next } = await searchParams;
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   return (
     <AppShell>
+      {turnstileSiteKey ? (
+        <Script
+          async
+          defer
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          strategy="afterInteractive"
+        />
+      ) : null}
       <PageHeading title="Вход в RaceMate" />
 
       <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(22rem,0.58fr)]">
@@ -30,7 +40,7 @@ export default async function AuthPage({
           />
           <div className="p-5">
             <form action={signInWithEmail} className="grid gap-3">
-              <input name="next" type="hidden" value={next ?? "/onboarding"} />
+              <input name="next" type="hidden" value={next ?? "/account"} />
               <label className="grid gap-2 text-sm font-medium" htmlFor="email">
                 Email
                 <input
@@ -46,6 +56,13 @@ export default async function AuthPage({
                 <p className="text-sm text-muted-foreground">
                   Не получилось отправить ссылку. Проверь почту и попробуй еще раз.
                 </p>
+              ) : null}
+              {turnstileSiteKey ? (
+                <div
+                  className="cf-turnstile min-h-[65px]"
+                  data-sitekey={turnstileSiteKey}
+                  data-theme="dark"
+                />
               ) : null}
               <Button type="submit">Отправить ссылку</Button>
             </form>

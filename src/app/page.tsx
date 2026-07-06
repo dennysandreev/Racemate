@@ -97,7 +97,7 @@ export default async function Home({
     ]);
   const newsItems = newsResult.items;
   const topStandings = standings.slice(0, 6);
-  const dialogReport = queryReport ?? latestReport;
+  const dialogReport = queryReport;
   const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
 
   return (
@@ -299,6 +299,8 @@ function NewsMeta({ item }: { item: NewsItem }) {
 }
 
 function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
+  const isReady = isGrandPrixReportReady(report);
+
   return (
     <Card>
       <CardHeader>
@@ -308,8 +310,24 @@ function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {report ? (
+        {report && isReady ? (
           <GrandPrixPodiumPreview href={`/?raceReport=${report.raceSlug}`} report={report} />
+        ) : report ? (
+          <div className="rounded-lg border border-border bg-muted/45 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-medium">{report.raceName}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {report.circuitName} · {report.raceDate}
+                </p>
+              </div>
+              <Badge variant="warning">Формируется</Badge>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              Отчет уже в процессе формирования. Как только соберем классификацию, темп и ключевые события,
+              здесь появится полный разбор Гран-при.
+            </p>
+          </div>
         ) : (
           <p className="text-sm leading-6 text-muted-foreground">
             Отчет появится после завершения гонки и синхронизации результатов.
@@ -318,6 +336,10 @@ function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
       </CardContent>
     </Card>
   );
+}
+
+function isGrandPrixReportReady(report: GrandPrixReport | null) {
+  return Boolean(report && (report.status === "ready" || report.status === "partial"));
 }
 
 function MarketOddsCard({

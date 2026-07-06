@@ -1,4 +1,4 @@
-const DEFAULT_AUTH_NEXT = "/onboarding";
+const DEFAULT_AUTH_NEXT = "/account";
 
 export function normalizeAuthNext(value: FormDataEntryValue | string | null | undefined) {
   const next = String(value ?? "").trim();

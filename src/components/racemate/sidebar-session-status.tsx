@@ -33,7 +33,7 @@ export function SidebarSessionStatus({
   }, []);
 
   return (
-    <div className="mt-4 flex items-center gap-2">
+    <div className="mt-4 flex min-w-0 items-center gap-2">
       <span
         className={cn(
           "size-2 rounded-full",
@@ -44,7 +44,7 @@ export function SidebarSessionStatus({
       />
       <span
         className={cn(
-          "font-telemetry text-base font-extrabold uppercase tracking-[0.08em]",
+          "font-telemetry min-w-0 whitespace-nowrap text-[0.86rem] font-extrabold uppercase leading-none tracking-[0.02em] tabular-nums",
           state.live ? "text-success" : "text-primary",
         )}
         suppressHydrationWarning

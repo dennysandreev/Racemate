@@ -7,6 +7,7 @@ const actual = {
   fastestPitStopTeamId: "t2",
   firstDnfDriverIds: ["d18", "d19"],
   poleDriverId: "d2",
+  raceCompleted: true,
   topScoringTeamId: "t1",
   top10DriverIds: ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10"],
 };
@@ -79,5 +80,29 @@ const sameLapDnf = scoreFantasyPrediction(
   actual,
 );
 assert.equal(sameLapDnf.specials.firstDnf, 12);
+
+const qualifyingOnly = scoreFantasyPrediction(
+  {
+    dnf_driver_id: null,
+    dnf_pick_kind: "none",
+    fastest_lap_driver_id: "d4",
+    pole_driver_id: "d2",
+    top_scoring_team_id: "t1",
+    top10_driver_ids: actual.top10DriverIds,
+  },
+  {
+    fastestLapDriverId: null,
+    fastestPitStopTeamId: null,
+    firstDnfDriverIds: [],
+    poleDriverId: "d2",
+    raceCompleted: false,
+    topScoringTeamId: null,
+    top10DriverIds: [],
+  },
+);
+assert.equal(qualifyingOnly.top10Points, 0);
+assert.equal(qualifyingOnly.specials.pole, 10);
+assert.equal(qualifyingOnly.specials.firstDnf, 0);
+assert.equal(qualifyingOnly.total, 10);
 
 console.log("Fantasy scoring smoke passed");

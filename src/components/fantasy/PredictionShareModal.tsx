@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Download, ImageIcon, Share2, Trophy, X } from "lucide-react";
+import { Download, ImageIcon, Share2, Trophy, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -61,8 +61,9 @@ export function PredictionShareModal({
   shareSlug,
 }: PredictionShareModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const [copied, setCopied] = useState(false);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const imageFailed = failedImageUrl === shareImageUrl;
 
   useEffect(() => {
     if (!open) {
@@ -90,18 +91,16 @@ export function PredictionShareModal({
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(publicUrl);
-      setCopied(true);
       setStatus("Ссылка скопирована");
-      window.setTimeout(() => {
-        setCopied(false);
-        setStatus(null);
-      }, 1800);
+      window.setTimeout(() => setStatus(null), 1800);
     } catch {
       window.prompt("Скопируй ссылку", publicUrl);
     }
   }
 
   async function sharePrediction() {
+    const shareText = buildPredictionShareText(raceName, publicUrl);
+
     if (!navigator.share) {
       await copyLink();
       return;
@@ -117,7 +116,7 @@ export function PredictionShareModal({
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
-          text: `Мой прогноз на ${raceName} в RaceMate`,
+          text: shareText,
           title: "Прогноз RaceMate",
           url: publicUrl,
         });
@@ -129,7 +128,7 @@ export function PredictionShareModal({
 
     try {
       await navigator.share({
-        text: `Мой прогноз на ${raceName} в RaceMate`,
+        text: shareText,
         title: "Прогноз RaceMate",
         url: publicUrl,
       });
@@ -210,17 +209,42 @@ export function PredictionShareModal({
         <div className="min-h-0 overflow-y-auto p-5 sm:p-6">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
             <div className="overflow-hidden rounded-lg border border-border bg-background/45">
-              <Image
-                alt={`Превью прогноза RaceMate на ${raceName}`}
-                className={cn(
-                  "block w-full object-cover",
-                  scope === "qualification" ? "aspect-[1200/630]" : "aspect-[1080/1350]",
-                )}
-                height={scope === "qualification" ? 630 : 1350}
-                src={shareImageUrl}
-                unoptimized
-                width={scope === "qualification" ? 1200 : 1080}
-              />
+              {imageFailed ? (
+                <div className={cn(
+                  "grid place-items-center p-6 text-center",
+                  "aspect-[1080/1350]",
+                )}>
+                  <div className="grid max-w-sm justify-items-center gap-3">
+                    <span className="grid size-14 place-items-center rounded-md bg-primary/10 text-primary">
+                      <ImageIcon aria-hidden="true" className="size-7" />
+                    </span>
+                    <div>
+                      <p className="font-display text-xl font-bold">Карточка готовится</p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        Ссылка уже работает. Открой PNG отдельно или скачай его после обновления превью.
+                      </p>
+                    </div>
+                    <Button asChild size="sm" variant="secondary">
+                      <a href={shareImageUrl} rel="noreferrer" target="_blank">
+                        Открыть PNG
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Image
+                  alt={`Превью прогноза RaceMate на ${raceName}`}
+                  className={cn(
+                    "block w-full object-cover",
+                    "aspect-[1080/1350]",
+                  )}
+                  height={1350}
+                  onError={() => setFailedImageUrl(shareImageUrl)}
+                  src={shareImageUrl}
+                  unoptimized
+                  width={1080}
+                />
+              )}
             </div>
 
             <aside className="grid content-start gap-3">
@@ -230,7 +254,7 @@ export function PredictionShareModal({
                   <p className="font-display text-lg font-bold">Карточка готова</p>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Поделись ссылкой или скачай PNG для соцсетей.
+                  Отправь карточку вместе со ссылкой на прогноз или сохрани PNG для поста.
                 </p>
                 {status ? (
                   <p className="mt-3 rounded-sm border border-success/35 bg-success/10 px-3 py-2 text-sm text-success">
@@ -247,10 +271,6 @@ export function PredictionShareModal({
                 <Download aria-hidden="true" data-icon="inline-start" />
                 Скачать PNG
               </Button>
-              <Button className="h-12 w-full justify-center" onClick={copyLink} type="button" variant="outline">
-                {copied ? <Check aria-hidden="true" data-icon="inline-start" /> : <Copy aria-hidden="true" data-icon="inline-start" />}
-                Скопировать ссылку
-              </Button>
             </aside>
           </div>
         </div>
@@ -258,4 +278,8 @@ export function PredictionShareModal({
     </div>,
     document.body,
   );
+}
+
+function buildPredictionShareText(raceName: string, publicUrl: string) {
+  return `Мой прогноз на ${raceName} в RaceMate. Сделай свой прогноз: ${publicUrl}`;
 }

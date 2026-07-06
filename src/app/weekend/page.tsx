@@ -1,7 +1,9 @@
-import { CalendarDays, ExternalLink, MapPin, Target, TrendingUp } from "lucide-react";
+import { ExternalLink, MapPin, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { CircuitStatsSection } from "@/components/racemate/circuit-stats-section";
+import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { TeamColorProgress } from "@/components/racemate/team-color";
 import { TrackMap } from "@/components/racemate/track-map";
@@ -15,6 +17,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  getCircuitStatsForRace,
+  getCurrentRaceReplaySummary,
   getNextSession,
   getCurrentRaceDetail,
   getDriverStandings,
@@ -26,7 +30,6 @@ import {
 } from "@/data/racemate-repository";
 import { getTeamAssetForMarketOutcome } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
-import { formatSessionName } from "@/lib/session-display";
 import type { PredictionState, RaceDetail, RaceWinnerOdds, StandingRow } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
@@ -42,11 +45,13 @@ export default async function WeekendPage() {
   const sessionResultsPromise = getSessionResultsBySessionIds(
     weekendSessions.map((session) => session.id),
   );
-  const [raceNews, winnerOdds, predictionState, resultsBySession] = await Promise.all([
+  const [raceNews, winnerOdds, predictionState, resultsBySession, circuitStats, raceReplay] = await Promise.all([
     currentRace ? getRaceNews(currentRace.id, 4) : [],
     getRaceWinnerOdds(currentRace),
     getPredictionState(user?.id),
     sessionResultsPromise,
+    currentRace ? getCircuitStatsForRace(currentRace.season, currentRace.round) : null,
+    getCurrentRaceReplaySummary(),
   ]);
   const sessionResults = weekendSessions.map((session) => ({
     results: session.id ? resultsBySession.get(session.id) ?? [] : [],
@@ -66,9 +71,10 @@ export default async function WeekendPage() {
     <AppShell>
       <section className="grid gap-5 py-5">
         <WeekendHero
+          circuitStats={circuitStats}
           currentRace={currentRace}
           nextRace={nextSession.race}
-          nextSession={nextSession.session}
+          raceReplay={raceReplay}
           weekendStatus={nextSession.status}
         />
 
@@ -99,20 +105,22 @@ export default async function WeekendPage() {
 }
 
 function WeekendHero({
+  circuitStats,
   currentRace,
   nextRace,
-  nextSession,
+  raceReplay,
   weekendStatus,
 }: {
+  circuitStats: Awaited<ReturnType<typeof getCircuitStatsForRace>>;
   currentRace: RaceDetail | null;
   nextRace: string;
-  nextSession: string;
+  raceReplay: Awaited<ReturnType<typeof getCurrentRaceReplaySummary>>;
   weekendStatus: string;
 }) {
   return (
-    <section className="stitch-panel relative min-h-[24rem] overflow-hidden p-0">
+    <section className="stitch-panel relative overflow-hidden p-0">
       <div className="weekend-hero-glow pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgb(225_6_0_/_0.28),transparent_24rem),linear-gradient(125deg,rgb(255_255_255_/_0.08),transparent_38%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.28))]" />
-      <div className="relative grid gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+      <div className="relative grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-stretch">
         <div className="flex flex-wrap items-center justify-between gap-3 lg:col-span-2">
           <div className="flex flex-wrap items-center gap-2">
             {currentRace ? (
@@ -130,39 +138,55 @@ function WeekendHero({
           </Badge>
         </div>
 
-        <div className="min-w-0">
-          <p className="font-telemetry mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
-            <MapPin aria-hidden="true" data-icon="inline-start" />
-            {currentRace?.circuit ?? "Трасса этапа"}
-          </p>
-          <h1 className="font-display max-w-4xl text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
-            {nextRace}
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-            Следи за расписанием, просматривай результаты сессий и делай прогнозы на гонку.
-          </p>
-          <div className="mt-5 max-w-3xl overflow-hidden rounded-xl border border-border/75 bg-background/35 p-3 shadow-[0_18px_60px_rgb(0_0_0_/_0.28)] backdrop-blur">
+        <div className="grid min-w-0 content-start gap-5">
+          <div>
+            <p className="font-telemetry mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+              <MapPin aria-hidden="true" data-icon="inline-start" />
+              {currentRace?.circuit ?? "Трасса этапа"}
+            </p>
+            <h1 className="font-display max-w-4xl text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
+              {nextRace}
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+              Следи за расписанием, просматривай результаты сессий и делай прогнозы на гонку.
+            </p>
+          </div>
+          <div className="h-[18rem] max-w-4xl overflow-hidden rounded-xl border border-border/75 bg-background/35 p-3 shadow-[0_18px_60px_rgb(0_0_0_/_0.28)] backdrop-blur sm:h-[21rem] xl:h-[24rem]">
             <TrackMap
-              compact
               circuit={currentRace?.circuit ?? nextRace}
+              fill
               label={nextRace}
               layout={currentRace?.layout}
             />
           </div>
         </div>
 
-        <div className="grid gap-3 rounded-lg border border-border bg-background/45 p-4 backdrop-blur">
-          <div className="flex items-center justify-between gap-3">
-            <span className="stitch-label text-muted-foreground">Ближайшая сессия</span>
-            <CalendarDays aria-hidden="true" className="size-5 text-primary" />
+        <div className="grid content-end gap-3 self-stretch">
+          <CircuitStatsSection
+            className="pb-0"
+            circuitName={currentRace?.circuit ?? nextRace}
+            showCircuitName={false}
+            stats={circuitStats}
+          />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button asChild className="justify-center px-3" size="sm">
+              <Link href="https://vk.com/versportaa" rel="noreferrer" target="_blank">
+                Смотреть онлайн
+                <ExternalLink aria-hidden="true" data-icon="inline-end" />
+              </Link>
+            </Button>
+            {raceReplay ? (
+              <Button asChild className="justify-center px-3" size="sm" variant="secondary">
+                <NavigationLoadingLink
+                  href={raceReplay.href}
+                  loadingLabel="Готовим повтор Гран-при 2025"
+                  prefetch={false}
+                >
+                  Гран-при 2025
+                </NavigationLoadingLink>
+              </Button>
+            ) : null}
           </div>
-          <p className="font-display text-2xl font-bold leading-tight">{formatSessionName(nextSession)}</p>
-          <Button asChild className="mt-2 w-full justify-center">
-            <Link href="https://vk.com/versportaa" rel="noreferrer" target="_blank">
-              Смотреть онлайн
-              <ExternalLink aria-hidden="true" data-icon="inline-end" />
-            </Link>
-          </Button>
         </div>
       </div>
     </section>

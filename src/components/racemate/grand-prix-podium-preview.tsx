@@ -1,22 +1,25 @@
 import Link from "next/link";
-import { Trophy } from "lucide-react";
+import { Play, Trophy } from "lucide-react";
 
+import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
 import { TeamColorBar } from "@/components/racemate/team-color";
 import { Button } from "@/components/ui/button";
 import { getTeamAsset } from "@/data/f1-assets";
 import { cn } from "@/lib/utils";
-import type { GrandPrixReport } from "@/types/racemate";
+import type { GrandPrixReport, RaceReplaySummary } from "@/types/racemate";
 
 type GrandPrixPodiumPreviewProps = {
   className?: string;
   href: string;
   report: GrandPrixReport;
+  replay?: RaceReplaySummary | null;
 };
 
 export function GrandPrixPodiumPreview({
   className,
   href,
   report,
+  replay,
 }: GrandPrixPodiumPreviewProps) {
   const podium = report.results.slice(0, 3);
 
@@ -70,11 +73,25 @@ export function GrandPrixPodiumPreview({
         </p>
       )}
 
-      <Button asChild className="w-full">
-        <Link href={href} prefetch={false} scroll={false}>
-          Открыть полный отчет
-        </Link>
-      </Button>
+      <div className={cn("grid gap-2", replay ? "sm:grid-cols-2" : "")}>
+        <Button asChild className="w-full">
+          <Link href={href} prefetch={false} scroll={false}>
+            Открыть полный отчет
+          </Link>
+        </Button>
+        {replay ? (
+          <Button asChild className="w-full" variant="secondary">
+            <NavigationLoadingLink
+              href={replay.href}
+              loadingLabel={`Готовим повтор Гран-при ${replay.sourceSeason}`}
+              prefetch={false}
+            >
+              <Play aria-hidden="true" data-icon="inline-start" />
+              Гран-при {replay.sourceSeason}
+            </NavigationLoadingLink>
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }

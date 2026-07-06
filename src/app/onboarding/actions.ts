@@ -5,6 +5,14 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+const allowedTimezones = new Set([
+  "Europe/Moscow",
+  "Europe/Kaliningrad",
+  "Asia/Yekaterinburg",
+  "Asia/Novosibirsk",
+  "Asia/Vladivostok",
+]);
+
 export async function saveOnboarding(formData: FormData) {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
@@ -18,7 +26,7 @@ export async function saveOnboarding(formData: FormData) {
   const teamIds = [...new Set(formData.getAll("teamIds").map(String).filter(Boolean))];
   const driverIds = [...new Set(formData.getAll("driverIds").map(String).filter(Boolean))];
 
-  if (teamIds.length > 1 || driverIds.length > 2) {
+  if (displayName.length > 40 || !allowedTimezones.has(timezone) || teamIds.length > 1 || driverIds.length > 2) {
     redirect("/onboarding?error=favorites");
   }
 

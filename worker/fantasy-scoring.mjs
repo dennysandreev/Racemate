@@ -1,11 +1,12 @@
 export function scoreFantasyPrediction(prediction, actual) {
   const predictedTop10 = normalizePredictionDriverIds(prediction.top10_driver_ids);
+  const raceCompleted = Boolean(actual.raceCompleted ?? actual.top10DriverIds.length > 0);
   const actualPositionByDriver = new Map(
     actual.top10DriverIds.map((driverId, index) => [driverId, index + 1]),
   );
   const top10Rows = predictedTop10.map((driverId, index) => {
     const predictedPosition = index + 1;
-    const actualPosition = actualPositionByDriver.get(driverId) ?? null;
+    const actualPosition = raceCompleted ? actualPositionByDriver.get(driverId) ?? null : null;
     const diff = actualPosition === null ? null : Math.abs(actualPosition - predictedPosition);
     const points = diff === null ? 0 : diff === 0 ? 5 : diff === 1 ? 3 : 1;
 
@@ -16,18 +17,18 @@ export function scoreFantasyPrediction(prediction, actual) {
       predictedPosition,
     };
   });
-  const top10Points = top10Rows.reduce((sum, row) => sum + row.points, 0);
-  const top10Bonus = scoreTop10Bonus(predictedTop10, actual.top10DriverIds);
+  const top10Points = raceCompleted ? top10Rows.reduce((sum, row) => sum + row.points, 0) : 0;
+  const top10Bonus = raceCompleted ? scoreTop10Bonus(predictedTop10, actual.top10DriverIds) : 0;
   const polePoints = prediction.pole_driver_id && prediction.pole_driver_id === actual.poleDriverId ? 10 : 0;
   const fastestLapPoints =
-    prediction.fastest_lap_driver_id && prediction.fastest_lap_driver_id === actual.fastestLapDriverId
+    raceCompleted && prediction.fastest_lap_driver_id && prediction.fastest_lap_driver_id === actual.fastestLapDriverId
       ? 8
       : 0;
-  const firstDnfPoints = scoreFirstDnf(prediction, actual.firstDnfDriverIds);
+  const firstDnfPoints = raceCompleted ? scoreFirstDnf(prediction, actual.firstDnfDriverIds) : 0;
   const topScoringTeamPoints =
-    prediction.top_scoring_team_id && prediction.top_scoring_team_id === actual.topScoringTeamId ? 10 : 0;
+    raceCompleted && prediction.top_scoring_team_id && prediction.top_scoring_team_id === actual.topScoringTeamId ? 10 : 0;
   const fastestPitStopTeamPoints =
-    prediction.fastest_pit_stop_team_id && prediction.fastest_pit_stop_team_id === actual.fastestPitStopTeamId
+    raceCompleted && prediction.fastest_pit_stop_team_id && prediction.fastest_pit_stop_team_id === actual.fastestPitStopTeamId
       ? 10
       : 0;
   const specialPoints =

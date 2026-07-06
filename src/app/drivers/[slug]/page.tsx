@@ -207,13 +207,33 @@ function DriverAvatar({ profile }: { profile: DriverProfile }) {
   );
 }
 
-function getLocalDriverAvatar(slug: string) {
-  const avatars: Record<string, string> = {
-    "charles-leclerc": "/drivers/avatars/leclerc.png",
-    "lewis-hamilton": "/drivers/avatars/hamilton.png",
-  };
+const localDriverAvatarSlugs = new Set([
+  "alexander-albon",
+  "andrea-kimi-antonelli",
+  "arvid-lindblad",
+  "carlos-sainz",
+  "charles-leclerc",
+  "esteban-ocon",
+  "fernando-alonso",
+  "franco-colapinto",
+  "gabriel-bortoleto",
+  "george-russell",
+  "isack-hadjar",
+  "lando-norris",
+  "lance-stroll",
+  "lewis-hamilton",
+  "liam-lawson",
+  "max-verstappen",
+  "nico-hulkenberg",
+  "oliver-bearman",
+  "oscar-piastri",
+  "pierre-gasly",
+  "sergio-perez",
+  "valtteri-bottas",
+]);
 
-  return avatars[slug] ?? null;
+function getLocalDriverAvatar(slug: string) {
+  return localDriverAvatarSlugs.has(slug) ? `/drivers/avatars/${slug}.png` : null;
 }
 
 function FavoriteAction({ profile, signedIn }: { profile: DriverProfile; signedIn: boolean }) {

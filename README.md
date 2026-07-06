@@ -68,7 +68,7 @@ corepack pnpm worker:results
 corepack pnpm worker:score
 ```
 
-Для worker нужен `SUPABASE_SERVICE_ROLE_KEY`. OpenRouter требует `OPENROUTER_API_KEY` и `AI_SUMMARY_MAX_TOKENS` для текстовой обработки новостей.
+Для worker нужен `SUPABASE_SERVICE_ROLE_KEY`. OpenRouter требует `OPENROUTER_API_KEY` и `AI_SUMMARY_MAX_TOKENS` для текстовой обработки новостей. OpenF1 используем в бесплатном режиме: исторические данные загружаются без ключа, а во время live-окна API может временно закрывать endpoints до окончания сессии.
 
 Настройка Supabase Auth для массовой passwordless-авторизации:
 

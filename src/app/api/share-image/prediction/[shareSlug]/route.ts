@@ -6,6 +6,7 @@ import {
   getPublicPredictionShareBySlug,
   normalizePredictionShareScope,
 } from "@/data/racemate-repository";
+import { consumeIpRateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,15 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ shareSlug: string }> },
 ) {
+  const limit = await consumeIpRateLimit("api:prediction-share-image", request, 30, 60 * 1_000);
+
+  if (!limit.ok) {
+    return new Response("Too many requests", {
+      status: 429,
+      headers: { "Retry-After": getRetryAfterSeconds(limit.resetAt) },
+    });
+  }
+
   const { shareSlug } = await params;
   const { searchParams } = new URL(request.url);
   const scope = normalizePredictionShareScope(searchParams.get("scope"));

@@ -1,5 +1,7 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -8,7 +10,11 @@ import {
   getPredictionLocksForRace,
   preserveLockedPredictionValues,
 } from "@/lib/prediction-locks";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { consumeRateLimit } from "@/lib/rate-limit";
+import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
+
+const INVITE_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const SHARE_SUFFIX_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 export async function saveFantasyPrediction(formData: FormData) {
   const user = await requireUser();
@@ -16,6 +22,12 @@ export async function saveFantasyPrediction(formData: FormData) {
 
   if (!supabase) {
     redirect("/fantasy");
+  }
+
+  const limit = consumeRateLimit("fantasy:prediction:save", `user:${user.id}`, 30, 60 * 1_000);
+
+  if (!limit.ok) {
+    redirect("/fantasy?message=driver");
   }
 
   const raceId = String(formData.get("raceId") ?? "");
@@ -33,7 +45,7 @@ export async function saveFantasyPrediction(formData: FormData) {
 
   const { data: existing } = await supabase
     .from("predictions")
-    .select("id, pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, dnf_pick_kind, top_scoring_team_id, fastest_pit_stop_team_id, top10_driver_ids, share_slug, share_image_version")
+    .select("id, pole_driver_id, winner_driver_id, fastest_lap_driver_id, dnf_driver_id, dnf_pick_kind, top_scoring_team_id, fastest_pit_stop_team_id, top10_driver_ids, score, scored_at, score_breakdown, share_slug, share_image_version")
     .eq("user_id", user.id)
     .eq("race_id", raceId)
     .is("league_id", null)
@@ -62,7 +74,7 @@ export async function saveFantasyPrediction(formData: FormData) {
     scope !== "qualification" &&
     !locks.raceLocked &&
     submitted.top10DriverIds.length > 0 &&
-    !isValidTop10(submitted.top10DriverIds, activeDriverIds)
+    !isValidTop10Pick(submitted.top10DriverIds, activeDriverIds)
   ) {
     redirect("/fantasy?message=top10");
   }
@@ -94,6 +106,12 @@ export async function saveFantasyPrediction(formData: FormData) {
     submitted,
   });
   const changed = !existing || hasPredictionChanged(existing, values);
+  const keepQualificationScore =
+    changed &&
+    Boolean(existing) &&
+    locks.poleLocked &&
+    !locks.raceLocked &&
+    typeof existing?.score === "number";
   const payload = {
     user_id: user.id,
     race_id: raceId,
@@ -114,7 +132,7 @@ export async function saveFantasyPrediction(formData: FormData) {
         ? Math.max(1, existing.share_image_version ?? 1) + 1
         : Math.max(1, existing.share_image_version ?? 1)
       : 1,
-    ...(changed ? { score: null, scored_at: null, score_breakdown: null } : {}),
+    ...(changed && !keepQualificationScore ? { score: null, scored_at: null, score_breakdown: null } : {}),
   };
   let predictionId = existing?.id ?? null;
   let shareSlug = existing?.share_slug ?? null;
@@ -174,6 +192,7 @@ export async function saveFantasyPrediction(formData: FormData) {
 export async function createFantasyLeague(formData: FormData) {
   const profile = await ensureProfile();
   const supabase = await createSupabaseServerClient();
+  const admin = createSupabaseAdminClient();
 
   if (!supabase) {
     redirect("/fantasy");
@@ -183,15 +202,22 @@ export async function createFantasyLeague(formData: FormData) {
     redirect("/fantasy?message=create");
   }
 
+  const limit = consumeRateLimit("fantasy:leagues:create", `user:${profile.id}`, 5, 10 * 60 * 1_000);
+
+  if (!limit.ok) {
+    redirect("/fantasy?message=create");
+  }
+
   const name = String(formData.get("name") ?? "").trim();
   const isPublic = formData.get("isPublic") === "on";
 
-  if (!name) {
+  if (!name || name.length > 64) {
     redirect("/fantasy?message=name");
   }
 
   const inviteCode = makeInviteCode();
-  const { data, error } = await supabase
+  const db = admin ?? supabase;
+  const { data, error } = await db
     .from("prediction_leagues")
     .insert({
       owner_user_id: profile.id,
@@ -203,11 +229,14 @@ export async function createFantasyLeague(formData: FormData) {
     .single();
 
   if (!error && data) {
-    const { error: memberError } = await supabase.from("prediction_league_members").insert({
-      league_id: data.id,
-      user_id: profile.id,
-      role: "owner",
-    });
+    const { error: memberError } = await db.from("prediction_league_members").upsert(
+      {
+        league_id: data.id,
+        user_id: profile.id,
+        role: "owner",
+      },
+      { onConflict: "league_id,user_id" },
+    );
 
     if (memberError) {
       redirect("/fantasy?message=create");
@@ -218,12 +247,14 @@ export async function createFantasyLeague(formData: FormData) {
 
   revalidatePath("/fantasy");
   revalidatePath("/leagues");
-  redirect(`/fantasy?tab=leagues&created=1&league=${data.id}`);
+  revalidatePath(`/fantasy/leagues/${data.id}`);
+  redirect(`/fantasy/leagues/${data.id}?created=1`);
 }
 
 export async function joinFantasyLeague(formData: FormData) {
   const profile = await ensureProfile();
   const supabase = await createSupabaseServerClient();
+  const admin = createSupabaseAdminClient();
 
   if (!supabase) {
     redirect("/fantasy");
@@ -233,15 +264,22 @@ export async function joinFantasyLeague(formData: FormData) {
     redirect("/fantasy?message=join");
   }
 
+  const limit = consumeRateLimit("fantasy:leagues:join", `user:${profile.id}`, 10, 10 * 60 * 1_000);
+
+  if (!limit.ok) {
+    redirect("/fantasy?message=join");
+  }
+
   const inviteCode = String(formData.get("inviteCode") ?? "")
     .trim()
     .toUpperCase();
 
-  if (!inviteCode) {
+  if (!inviteCode || inviteCode.length > 16) {
     redirect("/fantasy?message=code");
   }
 
-  const { data: league } = await supabase
+  const db = admin ?? supabase;
+  const { data: league } = await db
     .from("prediction_leagues")
     .select("id")
     .eq("invite_code", inviteCode)
@@ -251,7 +289,7 @@ export async function joinFantasyLeague(formData: FormData) {
     redirect("/fantasy?message=not-found");
   }
 
-  const { error } = await supabase.from("prediction_league_members").upsert({
+  const { error } = await db.from("prediction_league_members").upsert({
     league_id: league.id,
     user_id: profile.id,
     role: "member",
@@ -263,7 +301,108 @@ export async function joinFantasyLeague(formData: FormData) {
 
   revalidatePath("/fantasy");
   revalidatePath("/leagues");
-  redirect(`/fantasy?tab=leagues&joined=1&league=${league.id}`);
+  revalidatePath(`/fantasy/leagues/${league.id}`);
+  redirect(`/fantasy/leagues/${league.id}?joined=1`);
+}
+
+export async function updateFantasyLeague(formData: FormData) {
+  const profile = await ensureProfile();
+  const supabase = await createSupabaseServerClient();
+  const admin = createSupabaseAdminClient();
+  const leagueId = String(formData.get("leagueId") ?? "").trim();
+
+  if (!supabase || !leagueId) {
+    redirect("/fantasy?tab=leagues");
+  }
+
+  if (!profile) {
+    redirect(`/fantasy/leagues/${leagueId}?message=auth`);
+  }
+
+  const limit = consumeRateLimit("fantasy:leagues:update", `user:${profile.id}`, 10, 10 * 60 * 1_000);
+
+  if (!limit.ok) {
+    redirect(`/fantasy/leagues/${leagueId}?message=update`);
+  }
+
+  const name = String(formData.get("name") ?? "").trim();
+  const isPublic = formData.get("isPublic") === "on";
+
+  if (!name || name.length > 64) {
+    redirect(`/fantasy/leagues/${leagueId}?message=name`);
+  }
+
+  const db = admin ?? supabase;
+  const { data: league } = await db
+    .from("prediction_leagues")
+    .select("owner_user_id")
+    .eq("id", leagueId)
+    .maybeSingle();
+
+  if (!league || league.owner_user_id !== profile.id) {
+    redirect(`/fantasy/leagues/${leagueId}?message=owner`);
+  }
+
+  const { error } = await db
+    .from("prediction_leagues")
+    .update({ is_public: isPublic, name })
+    .eq("id", leagueId);
+
+  if (error) {
+    redirect(`/fantasy/leagues/${leagueId}?message=update`);
+  }
+
+  revalidatePath("/fantasy");
+  revalidatePath("/leagues");
+  revalidatePath(`/fantasy/leagues/${leagueId}`);
+  redirect(`/fantasy/leagues/${leagueId}?updated=1`);
+}
+
+export async function deleteFantasyLeague(formData: FormData) {
+  const profile = await ensureProfile();
+  const supabase = await createSupabaseServerClient();
+  const admin = createSupabaseAdminClient();
+  const leagueId = String(formData.get("leagueId") ?? "").trim();
+  const confirmName = String(formData.get("confirmName") ?? "").trim();
+
+  if (!supabase || !leagueId) {
+    redirect("/fantasy?tab=leagues");
+  }
+
+  if (!profile) {
+    redirect(`/fantasy/leagues/${leagueId}?message=auth`);
+  }
+
+  const limit = consumeRateLimit("fantasy:leagues:delete", `user:${profile.id}`, 3, 10 * 60 * 1_000);
+
+  if (!limit.ok) {
+    redirect(`/fantasy/leagues/${leagueId}?message=delete`);
+  }
+
+  const db = admin ?? supabase;
+  const { data: league } = await db
+    .from("prediction_leagues")
+    .select("owner_user_id, name")
+    .eq("id", leagueId)
+    .maybeSingle();
+
+  if (!league || league.owner_user_id !== profile.id) {
+    redirect(`/fantasy/leagues/${leagueId}?message=owner`);
+  }
+
+  if (confirmName !== league.name) {
+    redirect(`/fantasy/leagues/${leagueId}?message=confirm`);
+  }
+
+  const { error } = await db.from("prediction_leagues").delete().eq("id", leagueId);
+
+  if (error) {
+    redirect(`/fantasy/leagues/${leagueId}?message=delete`);
+  }
+
+  revalidatePath("/fantasy");
+  revalidatePath("/leagues");
+  redirect("/fantasy?tab=leagues&deleted=1");
 }
 
 function nullableFormValue(value: FormDataEntryValue | null) {
@@ -366,14 +505,14 @@ async function getActiveTeamIds(supabase: NonNullable<Awaited<ReturnType<typeof 
   return new Set((data ?? []).map((team) => team.id));
 }
 
-function isValidTop10(top10DriverIds: string[], activeDriverIds: Set<string>) {
-  if (top10DriverIds.length !== 10) {
+function isValidTop10Pick(top10DriverIds: string[], activeDriverIds: Set<string>) {
+  if (top10DriverIds.length < 1 || top10DriverIds.length > 10) {
     return false;
   }
 
   const uniqueIds = new Set(top10DriverIds);
 
-  return uniqueIds.size === 10 && top10DriverIds.every((driverId) => activeDriverIds.has(driverId));
+  return uniqueIds.size === top10DriverIds.length && top10DriverIds.every((driverId) => activeDriverIds.has(driverId));
 }
 
 function hasPredictionChanged(
@@ -459,11 +598,15 @@ async function createPredictionShareSlug(
 }
 
 function makeInviteCode() {
-  return Math.random().toString(36).slice(2, 8).toUpperCase();
+  return makeRandomCode(INVITE_CODE_ALPHABET, 8);
 }
 
 function makeShareSuffix() {
-  return Math.random().toString(36).slice(2, 8);
+  return makeRandomCode(SHARE_SUFFIX_ALPHABET, 8);
+}
+
+function makeRandomCode(alphabet: string, length: number) {
+  return Array.from(randomBytes(length), (byte) => alphabet[byte % alphabet.length]).join("");
 }
 
 function slugifySharePart(value: string, fallback: string) {

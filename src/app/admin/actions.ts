@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdmin } from "@/lib/auth";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
@@ -18,6 +19,8 @@ const allowedJobs = new Set([
   "ai.process_news",
   "ai.reprocess_fallback_news",
   "ai.retag_news",
+  "circuit_stats.sync_all",
+  "circuit_stats.sync",
   "jolpica.sync_calendar",
   "jolpica.sync_results",
   "jolpica.sync_standings",
@@ -25,14 +28,22 @@ const allowedJobs = new Set([
   "openf1.sync_laps",
   "weather.sync_weekend",
   "predictions.score",
+  "race_replay.prepare_current",
+  "race_replay.prepare_completed",
 ]);
 
 export async function triggerJob(formData: FormData) {
-  await requireAdmin();
+  const user = await requireAdmin();
   const supabase = await createSupabaseServerClient();
   const jobName = String(formData.get("jobName") ?? "");
 
   if (!supabase || !allowedJobs.has(jobName)) {
+    redirect("/admin");
+  }
+
+  const limit = consumeRateLimit("admin:trigger-job", `user:${user.id}`, 10, 60 * 1_000);
+
+  if (!limit.ok) {
     redirect("/admin");
   }
 
@@ -90,11 +101,11 @@ export async function addManualXPost(formData: FormData) {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
   const url = normalizeUrl(String(formData.get("url") ?? ""));
-  const author = normalizeOptionalString(formData.get("author"));
-  const title = normalizeOptionalString(formData.get("title"));
+  const author = normalizeOptionalString(formData.get("author"), 80);
+  const title = normalizeOptionalString(formData.get("title"), 280);
   const imageUrl = normalizeUrl(String(formData.get("imageUrl") ?? ""), true);
 
-  if (!supabase || !url) {
+  if (!supabase || !url || !isAllowedManualXUrl(url)) {
     redirect("/admin?social=1");
   }
 
@@ -223,7 +234,7 @@ export async function editGrandPrixReportSummary(formData: FormData) {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
   const reportId = String(formData.get("reportId") ?? "");
-  const summary = normalizeOptionalString(formData.get("summary"));
+  const summary = normalizeOptionalString(formData.get("summary"), 4_000);
 
   if (!supabase || !reportId) {
     redirect("/admin?reports=1");
@@ -250,9 +261,9 @@ export async function updateDriverAdminProfile(formData: FormData) {
   const driverId = String(formData.get("driverId") ?? "");
   const slug = normalizeSlug(String(formData.get("slug") ?? ""));
   const permanentNumber = normalizeNumber(formData.get("permanentNumber"));
-  const country = normalizeOptionalString(formData.get("country"));
+  const country = normalizeOptionalString(formData.get("country"), 80);
   const countryCode = normalizeCountryCode(formData.get("countryCode"));
-  const teamId = normalizeOptionalString(formData.get("teamId"));
+  const teamId = normalizeOptionalString(formData.get("teamId"), 80);
 
   if (!supabase || !driverId || !slug) {
     redirect("/admin?drivers=1");
@@ -266,7 +277,7 @@ export async function updateDriverAdminProfile(formData: FormData) {
       country,
       country_code: countryCode,
       current_team_id: teamId,
-      avatar_placeholder_style: normalizeOptionalString(formData.get("avatarPlaceholderStyle")),
+      avatar_placeholder_style: normalizeOptionalString(formData.get("avatarPlaceholderStyle"), 32),
     })
     .eq("id", driverId);
 
@@ -337,23 +348,37 @@ export async function deleteDriverAvatar(formData: FormData) {
   redirect("/admin?drivers=1");
 }
 
-function normalizeOptionalString(value: FormDataEntryValue | null) {
+function normalizeOptionalString(value: FormDataEntryValue | null, maxLength = 1_000) {
   const text = typeof value === "string" ? value.trim() : "";
-  return text || null;
+  return text && text.length <= maxLength ? text : null;
 }
 
 function normalizeUrl(value: string, optional = false) {
   const text = value.trim();
 
-  if (!text) {
+  if (!text || text.length > 2_048) {
     return optional ? null : "";
   }
 
   try {
     const url = new URL(text);
+    if (url.protocol !== "https:") {
+      return optional ? null : "";
+    }
     return url.toString();
   } catch {
     return optional ? null : "";
+  }
+}
+
+function isAllowedManualXUrl(value: string) {
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase();
+
+    return hostname === "x.com" || hostname.endsWith(".x.com") || hostname === "twitter.com" || hostname.endsWith(".twitter.com");
+  } catch {
+    return false;
   }
 }
 

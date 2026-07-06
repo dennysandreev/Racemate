@@ -10,13 +10,7 @@ import {
 } from "@/components/racemate/stitch-primitives";
 import { Button } from "@/components/ui/button";
 
-export default async function CheckEmailPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ email?: string; next?: string }>;
-}) {
-  const { email } = await searchParams;
-
+export default async function CheckEmailPage() {
   return (
     <AppShell>
       <PageHeading title="Письмо отправлено" />
@@ -24,7 +18,7 @@ export default async function CheckEmailPage({
         <StitchPanel>
           <StitchPanelHeader
             icon={MailCheck}
-            meta={email ? `Ссылка для входа ушла на ${email}.` : "Ссылка для входа уже в почте."}
+            meta="Ссылка для входа уже в почте."
             title="Почти готово"
           />
           <div className="grid gap-4 p-5">

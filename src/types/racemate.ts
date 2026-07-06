@@ -272,6 +272,148 @@ export type RaceDetail = {
   layout?: TrackLayout | null;
 };
 
+export type CircuitStatsView = {
+  circuit: {
+    id: string;
+    slug?: string | null;
+    name: string;
+    country: string;
+    locality: string;
+    lapLengthKm: number | null;
+    raceLaps: number | null;
+    raceDistanceKm: number | null;
+    turnsCount: number | null;
+    direction: string | null;
+    firstGrandPrixYear: number | null;
+    lapRecordTime: string | null;
+    lapRecordDriver: string | null;
+    lapRecordYear: number | null;
+    drsZonesCount: number | null;
+    trackType: string | null;
+    description: string | null;
+  };
+  ratings: CircuitRating[];
+  character: {
+    sinceSeason: number;
+    racesCount: number;
+    ratings: CircuitRating[];
+    facts: {
+      poleWinRate: number | null;
+      winnerAvgStartPosition: number | null;
+      avgDnfCount: number | null;
+    };
+  };
+  summary: {
+    racesCount: number;
+    calculatedFromSeason: number | null;
+    calculatedToSeason: number | null;
+    updatedAt: string | null;
+  };
+  qualifying: {
+    poleWinRate: number | null;
+    frontRowWinRate: number | null;
+    winnerAvgStartPosition: number | null;
+    level: string | null;
+    bestNonPoleWin?: CircuitPositionRecord | null;
+  };
+  overtaking: {
+    avgPositionDelta: number | null;
+    avgAbsPositionDelta: number | null;
+    level: string | null;
+    bestGain?: CircuitPositionRecord | null;
+    worstLoss?: CircuitPositionRecord | null;
+  };
+  chaos: {
+    safetyCarFrequency: number | null;
+    vscFrequency: number | null;
+    redFlagFrequency: number | null;
+    avgDnfCount: number | null;
+    chaosScore: number | null;
+    level: string | null;
+  };
+  strategy: {
+    avgPitStops: number | null;
+    avgFirstPitLap: number | null;
+    mostCommonStrategy: string | null;
+    strategyVariabilityLevel: string | null;
+    distribution: Record<string, number>;
+  };
+  records: {
+    biggestWinGap?: string | null;
+    maxDnfCount?: number | null;
+    mostSuccessfulDriver?: string | null;
+    mostSuccessfulTeam?: string | null;
+  };
+  aiPreview: string | null;
+  history: CircuitGrandPrixHistoryRow[];
+  topDrivers: CircuitDriverStat[];
+  topTeams: CircuitTeamStat[];
+  sourceErrors: string[];
+};
+
+export type CircuitRating = {
+  label: string;
+  value: number | null;
+  helper: string;
+};
+
+export type CircuitPositionRecord = {
+  season?: number | null;
+  round?: number | null;
+  raceName?: string | null;
+  driver?: string | null;
+  team?: string | null;
+  start?: number | null;
+  finish?: number | null;
+  delta?: number | null;
+};
+
+export type CircuitGrandPrixHistoryRow = {
+  season: number;
+  round: number;
+  raceName: string;
+  raceDate: string;
+  href: string;
+  winner: string;
+  winnerTeam: string;
+  pole: string;
+  poleTeam: string;
+  winnerStartPosition: number | null;
+  winnerFromPole: boolean | null;
+  podium: string[];
+  dnfCount: number | null;
+  safetyCarCount: number | null;
+  vscCount: number | null;
+  redFlagCount: number | null;
+};
+
+export type CircuitDriverStat = {
+  driver: string;
+  driverSlug?: string | null;
+  team: string;
+  teamColor?: string | null;
+  starts: number;
+  wins: number;
+  podiums: number;
+  pointsFinishes: number;
+  dnfs: number;
+  avgStartPosition: number | null;
+  avgFinishPosition: number | null;
+  bestFinish: number | null;
+};
+
+export type CircuitTeamStat = {
+  team: string;
+  teamColor?: string | null;
+  starts: number;
+  wins: number;
+  podiums: number;
+  pointsFinishes: number;
+  avgPoints: number | null;
+  bestFinish: number | null;
+  doublePointsFinishes: number;
+};
+
 export type MarketOdds = {
   marketTitle: string;
   marketUrl: string;
@@ -318,6 +460,173 @@ export type TrackLayout = {
   sourceSessionKey: number | null;
 };
 
+export type TrackPoint = {
+  progress: number;
+  worldX: number;
+  worldY: number;
+  worldZ: number;
+  svgX: number;
+  svgY: number;
+  elevationM: number;
+  distanceM?: number;
+};
+
+export type ElevationPoint = {
+  progress: number;
+  z: number;
+  normalizedZ: number;
+  gradient?: number;
+};
+
+export type PitLanePoint = {
+  svgX: number;
+  svgY: number;
+  worldX: number;
+  worldY: number;
+  worldZ: number;
+};
+
+export type TrackMapDefinition = {
+  id: string;
+  circuitKey: string;
+  circuitName: string;
+  countryName?: string | null;
+  seasonSource: number;
+  meetingKey: number | null;
+  sessionKey: number;
+  svg: {
+    viewBox: {
+      width: number;
+      height: number;
+    };
+    visualPathD: string;
+    technicalPathD: string;
+  };
+  worldBounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+    minZ: number;
+    maxZ: number;
+  };
+  transform: {
+    scale: number;
+    offsetX: number;
+    offsetY: number;
+    invertY: boolean;
+  };
+  centerline: TrackPoint[];
+  elevation: ElevationPoint[];
+  pitLane?: {
+    visualPathD: string;
+    points: PitLanePoint[];
+    labelX?: number | null;
+    labelY?: number | null;
+  } | null;
+  startFinish: {
+    progress: number;
+    svgX: number;
+    svgY: number;
+  };
+  debug?: {
+    rawPointCount: number;
+    filteredPointCount: number;
+    generatedAt: string;
+    sourceDriverNumbers: number[];
+  };
+};
+
+export type ReplayDriverState = {
+  driverNumber: number;
+  abbreviation: string;
+  fullName: string;
+  teamName: string;
+  teamColor: string;
+  position: number | null;
+  gapToLeader: string | null;
+  intervalToAhead: string | null;
+  lapNumber: number | null;
+  compound: string | null;
+  tyreAge: number | null;
+  pitStops: number;
+  lastLapTime: string | null;
+  lastLapDuration?: number | null;
+  sector1Time?: string | null;
+  sector2Time?: string | null;
+  sector3Time?: string | null;
+  bestLapTime: string | null;
+  status: string;
+};
+
+export type ReplayPositionEvent = {
+  offsetMs: number;
+  timestamp: string;
+  driverNumber: number;
+  svgX: number;
+  svgY: number;
+  progress: number;
+  z: number;
+  normalizedZ: number;
+  headingRad: number;
+  position?: number | null;
+  gapToLeader?: string | null;
+  intervalToAhead?: string | null;
+  lapNumber?: number | null;
+  compound?: string | null;
+  tyreAge?: number | null;
+  speedKph?: number | null;
+  gear?: number | null;
+  drs?: number | null;
+  isPitLane?: boolean;
+  pitLaneDuration?: number | null;
+  pitStopDuration?: number | null;
+  lastLapTime?: string | null;
+  lastLapDuration?: number | null;
+  sector1Time?: string | null;
+  sector2Time?: string | null;
+  sector3Time?: string | null;
+};
+
+export type ReplayRaceEvent = {
+  offsetMs: number;
+  timestamp: string;
+  type: string;
+  lapNumber?: number | null;
+  message: string;
+  severity: "INFO" | "IMPORTANT" | "CRITICAL";
+  driverNumber?: number | null;
+};
+
+export type RaceReplaySnapshot = {
+  replaySessionId: string;
+  sourceSessionKey: number;
+  raceName: string;
+  circuitName: string;
+  sourceSeason: number;
+  durationMs: number;
+  totalLaps: number | null;
+  track: TrackMapDefinition;
+  drivers: ReplayDriverState[];
+  positions: ReplayPositionEvent[];
+  raceEvents: ReplayRaceEvent[];
+  weather: {
+    airTemperatureC?: number | null;
+    trackTemperatureC?: number | null;
+    rainfall?: number | null;
+    windSpeedKmh?: number | null;
+  } | null;
+};
+
+export type RaceReplaySummary = {
+  id: string;
+  href: string;
+  title: string;
+  sourceSeason: number;
+  sourceSessionKey: number;
+  status: string;
+};
+
 export type SessionResult = {
   position: number | null;
   driver: string;
@@ -333,7 +642,14 @@ export type SessionResult = {
   points: number | null;
 };
 
-export type GrandPrixReportStatus = "ready" | "partial";
+export type GrandPrixReportStatus =
+  | "pending"
+  | "collecting"
+  | "processing"
+  | "summary_pending"
+  | "ready"
+  | "partial"
+  | "failed";
 
 export type GrandPrixReportResult = {
   position: number | null;
@@ -411,6 +727,9 @@ export type WeekendWeather = {
 
 export type LeagueSummary = {
   id?: string;
+  isMember?: boolean;
+  isOwner?: boolean;
+  isPublic?: boolean;
   name: string;
   members: number;
   leader: string;
@@ -458,6 +777,30 @@ export type FantasyScoreBreakdown = {
   };
 };
 
+export type PredictionResultPick = {
+  label: string;
+  points: number;
+  value: string;
+};
+
+export type PreviousPredictionTop10Pick = {
+  actualPosition: number | null;
+  driverId: string;
+  driverName: string;
+  points: number;
+  predictedPosition: number;
+};
+
+export type PreviousPredictionResult = {
+  raceName: string;
+  round: number;
+  score: number;
+  scoredAt: string | null;
+  scoreBreakdown?: FantasyScoreBreakdown | null;
+  specials: PredictionResultPick[];
+  top10: PreviousPredictionTop10Pick[];
+};
+
 export type LeagueMemberPrediction = {
   userId: string;
   name: string;
@@ -481,11 +824,15 @@ export type LeagueHistoryEntry = {
     score: number | null;
     scoreBreakdown?: FantasyScoreBreakdown | null;
     picks: LeaguePredictionPick[];
+    specials: PredictionResultPick[];
+    top10: PreviousPredictionTop10Pick[];
   }[];
 };
 
 export type LeagueDetail = {
   id: string;
+  isOwner?: boolean;
+  isPublic?: boolean;
   name: string;
   inviteCode?: string;
   members: LeagueMemberPrediction[];
@@ -622,6 +969,11 @@ export type PredictionState = {
   race: RaceOption | null;
   drivers: DriverOption[];
   teams: TeamOption[];
+  qualifyingResults: {
+    results: SessionResult[];
+    session: WeekendSession;
+  } | null;
+  previousResult: PreviousPredictionResult | null;
   current: {
     top10DriverIds: string[];
     poleDriverId: string | null;
@@ -648,6 +1000,7 @@ export type PredictionShareDriverPick = {
   name: string;
   number?: number | null;
   position?: number;
+  slug?: string | null;
   team?: {
     code?: string | null;
     color?: string | null;
@@ -678,6 +1031,9 @@ export type PublicPredictionShare = {
   shareImageUrl: string;
   shareImageVersion: number;
   shareSlug: string;
+  heroDriver: PredictionShareDriverPick | null;
+  heroTeam: PredictionShareTeamPick | null;
+  heroColor: string;
   picks: {
     dnfKind: "driver" | "none";
     dnf: PredictionShareDriverPick | null;

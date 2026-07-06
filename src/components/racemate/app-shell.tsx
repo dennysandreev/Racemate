@@ -14,6 +14,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { SidebarSessionStatus } from "@/components/racemate/sidebar-session-status";
+import { SiteFooter } from "@/components/racemate/site-footer";
 import { ThemeToggle } from "@/components/racemate/theme-toggle";
 import { getNextSession } from "@/data/racemate-repository";
 import { getIsAdmin, getSessionProfileSummary } from "@/lib/auth";
@@ -152,6 +153,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <main className="mx-auto min-h-dvh w-full max-w-[1440px] px-4 pb-12 pt-20 sm:px-6 lg:px-8 xl:pl-[18rem] xl:pt-6">
         {children}
       </main>
+      <SiteFooter />
     </div>
   );
 }

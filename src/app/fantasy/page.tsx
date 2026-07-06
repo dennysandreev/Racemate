@@ -18,8 +18,11 @@ import { PredictionShareModalLauncher } from "@/components/fantasy/PredictionSha
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
 import { FantasyScoringDialog } from "@/components/racemate/fantasy-scoring-dialog";
+import {
+  PreviousPredictionResultButton,
+  QualifyingResultsButton,
+} from "@/components/racemate/fantasy-prediction-tools";
 import { GlobalFantasyLeaderboardPanel } from "@/components/racemate/global-fantasy-leaderboard";
-import { LeagueDialog } from "@/components/racemate/league-dialog";
 import {
   StitchPanel,
   StitchPanelHeader,
@@ -28,12 +31,12 @@ import { Top10PredictionPicker } from "@/components/racemate/top10-prediction-pi
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  getLeagueDetail,
   getGlobalFantasyLeaderboard,
   getLeagues,
   getPredictionState,
   buildPredictionShareUrls,
   normalizePredictionShareScope,
+  getPublicPredictionShareBySlug,
 } from "@/data/racemate-repository";
 import { getTeamAsset } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
@@ -47,6 +50,7 @@ import type {
 
 type FantasySearchParams = {
   created?: string;
+  deleted?: string;
   joined?: string;
   league?: string;
   message?: string;
@@ -83,12 +87,13 @@ export default async function FantasyPage({
 }) {
   const [status, user] = await Promise.all([searchParams, getSessionUser()]);
   const activeTab = status.tab === "leagues" || status.tab === "leaderboard" ? status.tab : "picks";
-  const [predictionState, leagues, selectedLeague, leaderboard] = await Promise.all([
+  const [predictionState, leagues, leaderboard] = await Promise.all([
     getPredictionState(user?.id),
     getLeagues(user?.id),
-    getLeagueDetail(status.league, user?.id),
     getGlobalFantasyLeaderboard(),
   ]);
+  const myLeagues = leagues.filter((league) => league.isMember || league.isOwner);
+  const openLeagues = leagues.filter((league) => !league.isMember && !league.isOwner);
   const current = predictionState.current;
   const picks = buildPredictionFields(current, predictionState.race);
   const teamPicks = buildTeamPredictionFields(current, predictionState.race);
@@ -103,15 +108,16 @@ export default async function FantasyPage({
   const totalPicks = 15;
   const notice = getStatusNotice(status);
   const shareScope = normalizePredictionShareScope(status.shareScope);
-  const shareSlug = status.share && current?.shareSlug === status.share ? status.share : null;
-  const shareVersion = Number(status.v ?? current?.shareImageVersion ?? 1) || 1;
-  const shareUrls = shareSlug ? buildPredictionShareUrls(shareSlug, shareScope, shareVersion) : null;
+  const shareSlug = status.share?.trim() || null;
+  const sharePreview = shareSlug ? await getPublicPredictionShareBySlug(shareSlug, shareScope) : null;
+  const shareVersion = Number(status.v ?? sharePreview?.shareImageVersion ?? current?.shareImageVersion ?? 1) || 1;
+  const shareUrls = sharePreview ? buildPredictionShareUrls(sharePreview.shareSlug, shareScope, shareVersion) : null;
 
   return (
     <AppShell>
       <section className="grid gap-6 py-6">
         <FantasyEventHeader
-          leagues={leagues}
+          leagues={myLeagues}
           predictionState={predictionState}
         />
 
@@ -135,7 +141,11 @@ export default async function FantasyPage({
 
         {activeTab === "leagues" ? (
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
-            <LeagueActivity leagues={leagues} selectedLeagueId={status.league} />
+            <LeagueActivity
+              myLeagues={myLeagues}
+              openLeagues={openLeagues}
+              selectedLeagueId={status.league}
+            />
             <aside className="min-w-0">
             <LeagueControlPanel userSignedIn={Boolean(user)} />
             </aside>
@@ -143,14 +153,13 @@ export default async function FantasyPage({
         ) : null}
 
         {activeTab === "leaderboard" ? <GlobalFantasyLeaderboardPanel leaderboard={leaderboard} /> : null}
-        {activeTab === "leagues" ? <LeagueDialog league={selectedLeague} /> : null}
-        {shareSlug && shareUrls && predictionState.race ? (
+        {sharePreview && shareUrls ? (
           <PredictionShareModalLauncher
             publicUrl={shareUrls.publicUrl}
-            raceName={predictionState.race.name}
+            raceName={sharePreview.race.name}
             scope={shareScope}
             shareImageUrl={shareUrls.shareImageUrl}
-            shareSlug={shareSlug}
+            shareSlug={sharePreview.shareSlug}
           />
         ) : null}
       </section>
@@ -281,6 +290,7 @@ function PredictionModule({
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary">{completedPicks}/{totalPicks} выборов</Badge>
+          <PreviousPredictionResultButton previousResult={predictionState.previousResult} />
           <FantasyScoringDialog className="shrink-0" />
           <Badge variant={saved ? "success" : userSignedIn ? "danger" : "warning"}>
             {saved ? "Сохранено" : userSignedIn ? `${score ?? 0} очков` : "Нужен вход"}
@@ -353,6 +363,9 @@ function PredictionModule({
                   <Badge variant={predictionState.race.raceLocked ? "warning" : "secondary"}>
                     {predictionState.race.raceLocked ? "Закрыто" : `${predictionState.current?.top10DriverIds?.length ?? 0}/10`}
                   </Badge>
+                </div>
+                <div className="mb-4 flex flex-wrap justify-end gap-2">
+                  <QualifyingResultsButton qualifyingResults={predictionState.qualifyingResults} />
                 </div>
                 <Top10PredictionPicker
                   defaultValue={predictionState.current?.top10DriverIds ?? []}
@@ -589,35 +602,70 @@ function LeagueControlPanel({ userSignedIn }: { userSignedIn: boolean }) {
 }
 
 function LeagueActivity({
-  leagues,
+  myLeagues,
+  openLeagues,
   selectedLeagueId,
 }: {
-  leagues: LeagueSummary[];
+  myLeagues: LeagueSummary[];
+  openLeagues: LeagueSummary[];
   selectedLeagueId?: string;
 }) {
   return (
-    <section className="stitch-panel overflow-hidden">
+    <section className="grid gap-5">
+      <LeagueList
+        emptyText="Ты пока не состоишь в лигах. Создай свою или войди по коду друзей."
+        leagues={myLeagues}
+        selectedLeagueId={selectedLeagueId}
+        title="Мои лиги"
+      />
+      <LeagueList
+        emptyText="Открытых лиг пока нет. Публичные лиги появятся здесь после создания."
+        leagues={openLeagues}
+        selectedLeagueId={selectedLeagueId}
+        title="Открытые лиги"
+      />
+    </section>
+  );
+}
+
+function LeagueList({
+  emptyText,
+  leagues,
+  selectedLeagueId,
+  title,
+}: {
+  emptyText: string;
+  leagues: LeagueSummary[];
+  selectedLeagueId?: string;
+  title: string;
+}) {
+  return (
+    <div className="stitch-panel overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
         <div>
           <p className="stitch-label text-muted-foreground">Паддок друзей</p>
-          <h2 className="mt-2 font-display text-2xl font-bold">Активные лиги</h2>
+          <h2 className="mt-2 font-display text-2xl font-bold">{title}</h2>
         </div>
         <Badge variant="secondary">{leagues.length} лиг</Badge>
       </div>
       <div className="divide-y stitch-divider">
         {leagues.length ? (
-          leagues.slice(0, 4).map((league) => (
+          leagues.map((league) => (
             <Link
               className={cn(
                 "grid gap-3 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center",
                 selectedLeagueId === league.id && "bg-accent/60",
               )}
-              href={league.id ? `/fantasy?tab=leagues&league=${league.id}` : "/fantasy?tab=leagues"}
+              href={league.id ? `/fantasy/leagues/${league.id}` : "/fantasy?tab=leagues"}
               key={league.id ?? league.name}
               prefetch={false}
             >
               <div className="min-w-0">
-                <h3 className="truncate font-display text-lg font-bold">{league.name}</h3>
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <h3 className="truncate font-display text-lg font-bold">{league.name}</h3>
+                  {league.isOwner ? <Badge variant="outline">Создатель</Badge> : null}
+                  {league.isMember && !league.isOwner ? <Badge variant="outline">Ты здесь</Badge> : null}
+                </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {league.members} участников, лидер — {league.leader}
                 </p>
@@ -630,11 +678,11 @@ function LeagueActivity({
           ))
         ) : (
           <p className="p-5 text-sm leading-6 text-muted-foreground">
-            Пока нет активных лиг. Создай первую и отправь друзьям код приглашения.
+            {emptyText}
           </p>
         )}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -745,6 +793,14 @@ function getStatusNotice(status: FantasySearchParams) {
     return {
       icon: CheckCircle2,
       text: "Ты в лиге. После гонки очки появятся в таблице.",
+      tone: "success" as const,
+    };
+  }
+
+  if (status.deleted) {
+    return {
+      icon: CheckCircle2,
+      text: "Лига удалена.",
       tone: "success" as const,
     };
   }

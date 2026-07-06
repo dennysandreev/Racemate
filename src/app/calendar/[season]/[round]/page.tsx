@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Clock, Flag, MapPin, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { CircuitStatsSection } from "@/components/racemate/circuit-stats-section";
 import { DataRow } from "@/components/racemate/data-row";
 import { PageHeading } from "@/components/racemate/page-heading";
 import { TrackMap } from "@/components/racemate/track-map";
@@ -17,11 +18,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  getCircuitStatsForRace,
   getRaceDetail,
   getDriverSlugMap,
   getRaceGrandPrixReport,
   getGrandPrixReportBySlug,
   getRaceNews,
+  getRaceReplaySummaryByRaceId,
   getRaceSessions,
   getSessionResults,
 } from "@/data/racemate-repository";
@@ -51,12 +54,14 @@ export default async function RaceCalendarPage({
     notFound();
   }
 
-  const [sessions, raceNews, raceReport, queryReport, driverSlugByName] = await Promise.all([
+  const [sessions, raceNews, raceReport, queryReport, driverSlugByName, circuitStats, raceReplay] = await Promise.all([
     getRaceSessions(seasonYear, raceRound),
     getRaceNews(race.id, 5),
     getRaceGrandPrixReport(seasonYear, raceRound),
     getGrandPrixReportBySlug(query.raceReport),
     getDriverSlugMap(),
+    getCircuitStatsForRace(seasonYear, raceRound),
+    getRaceReplaySummaryByRaceId(race.id),
   ]);
   const selectedSession = sessions.find((session) => session.id === query.session) ?? sessions[0];
   const results = await getSessionResults(selectedSession?.id);
@@ -90,9 +95,15 @@ export default async function RaceCalendarPage({
               <DataRow label="Старт гонки" value={race.startsAt} />
               <DataRow label="Статус" value={race.status} />
               <DataRow label="Трасса" value={race.circuit} />
+              <CircuitStatsSection
+                circuitName={race.circuit}
+                mode="button"
+                stats={circuitStats}
+              />
               {raceReport ? (
                 <RaceReportPreview
                   href={`/calendar/${seasonYear}/${raceRound}?raceReport=${raceReport.raceSlug}`}
+                  replay={raceReplay}
                   report={raceReport}
                 />
               ) : null}
@@ -286,12 +297,14 @@ function getSessionStats(session: WeekendSession, results: SessionResult[]) {
 
 function RaceReportPreview({
   href,
+  replay,
   report,
 }: {
   href: string;
+  replay: Awaited<ReturnType<typeof getRaceReplaySummaryByRaceId>>;
   report: GrandPrixReport;
 }) {
   return (
-    <GrandPrixPodiumPreview className="mt-2" href={href} report={report} />
+    <GrandPrixPodiumPreview className="mt-2" href={href} replay={replay} report={report} />
   );
 }

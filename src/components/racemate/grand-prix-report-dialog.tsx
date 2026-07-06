@@ -179,11 +179,11 @@ export function GrandPrixReportDialog({
                     Итоги гонки
                   </h3>
                   <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                    Топ {Math.min(10, report.results.length)}
+                    Классификация
                   </span>
                 </div>
                 <div className="overflow-x-auto rounded-xl border border-border bg-card">
-                  <table className="w-full min-w-[56rem] text-left text-sm">
+                  <table className="w-full min-w-[50rem] text-left text-sm">
                     <thead className="bg-muted/35 text-xs text-muted-foreground">
                       <tr className="border-b border-border">
                         <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">Поз.</th>
@@ -193,11 +193,10 @@ export function GrandPrixReportDialog({
                         <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">+/-</th>
                         <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">Шины</th>
                         <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">Лучший круг</th>
-                        <th className="px-4 py-3 text-right font-telemetry font-bold uppercase tracking-[0.08em]">Очки</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {report.results.slice(0, 10).map((result) => {
+                      {report.results.map((result) => {
                         const teamVisual = getTeamAsset(result.team);
                         const driverSlug = getDriverSlug(driverSlugByName, result.driver);
 
@@ -237,9 +236,6 @@ export function GrandPrixReportDialog({
                             <td className="px-4 py-3 font-telemetry text-muted-foreground">
                               {result.bestLap ?? "-"}
                             </td>
-                            <td className="px-4 py-3 text-right font-telemetry text-primary">
-                              {result.points ?? 0}
-                            </td>
                           </tr>
                         );
                       })}
@@ -256,7 +252,7 @@ export function GrandPrixReportDialog({
                   </h3>
                 </div>
                 <ol className="relative grid gap-4 before:absolute before:bottom-4 before:left-4 before:top-4 before:w-px before:bg-border">
-                  {report.keyEvents.length ? report.keyEvents.slice(0, 8).map((event, index) => (
+                  {report.keyEvents.length ? report.keyEvents.map((event, index) => (
                     <li className="relative grid gap-1 pl-11" key={`${index}-${event.type}-${event.lap}-${event.title}`}>
                       <span className="absolute left-0 top-0 grid size-8 place-items-center rounded-full border border-border bg-card">
                         <span className={cn("size-2 rounded-full", index === 0 ? "bg-success" : "bg-primary")} />

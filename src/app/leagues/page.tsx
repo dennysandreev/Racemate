@@ -1,4 +1,5 @@
 import { Users } from "lucide-react";
+import Link from "next/link";
 
 import { createLeague, joinLeague } from "@/app/leagues/actions";
 import { AppShell } from "@/components/racemate/app-shell";
@@ -95,9 +96,19 @@ export default async function LeaguesPage({
 
         <div className="grid gap-3">
           {leagues.map((league) => (
-            <Card key={league.name}>
+            <Card
+              className="transition-colors hover:border-primary/60 hover:bg-accent/35"
+              key={league.name}
+            >
               <CardHeader>
-                <CardTitle>{league.name}</CardTitle>
+                <CardTitle>
+                  <Link
+                    className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    href={league.id ? `/fantasy/leagues/${league.id}` : "/fantasy?tab=leagues"}
+                  >
+                    {league.name}
+                  </Link>
+                </CardTitle>
                 <CardDescription>
                   {league.members} участников, лидер — {league.leader}
                 </CardDescription>

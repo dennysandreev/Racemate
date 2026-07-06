@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/lib/auth";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const allowedReactions = new Set(["🔥", "🏁", "👀"]);
@@ -13,6 +14,12 @@ export async function reactToArticle(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
+    redirect("/news");
+  }
+
+  const limit = consumeRateLimit("news:reaction", `user:${user.id}`, 60, 60 * 1_000);
+
+  if (!limit.ok) {
     redirect("/news");
   }
 

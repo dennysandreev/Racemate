@@ -50,6 +50,20 @@
   --obsidian-elevated: #121212;
   --obsidian-surface: #1e1e1e;
   --racemate-css-revision: 20260618;
+  --race-replay-grid: rgb(255 255 255 / 0.035);
+  --race-replay-map-bg: #07110d;
+  --race-replay-marker-stroke: #0b0b0b;
+  --race-replay-marker-text: #070707;
+  --race-replay-pit-marker: rgb(255 255 255 / 0.92);
+  --race-replay-sector-1: rgb(0 147 204 / 0.32);
+  --race-replay-sector-2: rgb(255 214 10 / 0.28);
+  --race-replay-sector-3: rgb(225 6 0 / 0.3);
+  --race-replay-track-aura: rgb(225 6 0 / 0.24);
+  --race-replay-track-core: rgb(13 14 15);
+  --race-replay-track-edge: rgb(248 250 252 / 0.54);
+  --race-replay-track-label: rgb(255 255 255 / 0.72);
+  --race-replay-track-outer: rgb(19 21 22 / 0.98);
+  --race-replay-track-start: rgb(255 255 255 / 0.9);
 }
 
 html[data-theme="light"] {
@@ -71,6 +85,20 @@ html[data-theme="light"] {
   --success: #168f16;
   --warning: #a85b00;
   --danger: #c11a12;
+  --race-replay-grid: rgb(40 28 24 / 0.07);
+  --race-replay-map-bg: #f6f2ef;
+  --race-replay-marker-stroke: #fffaf8;
+  --race-replay-marker-text: #111;
+  --race-replay-pit-marker: rgb(255 255 255 / 0.95);
+  --race-replay-sector-1: rgb(0 147 204 / 0.22);
+  --race-replay-sector-2: rgb(168 91 0 / 0.22);
+  --race-replay-sector-3: rgb(217 0 0 / 0.2);
+  --race-replay-track-aura: rgb(217 0 0 / 0.16);
+  --race-replay-track-core: #272321;
+  --race-replay-track-edge: rgb(255 255 255 / 0.82);
+  --race-replay-track-label: rgb(42 32 29 / 0.72);
+  --race-replay-track-outer: rgb(98 86 80 / 0.72);
+  --race-replay-track-start: rgb(42 32 29 / 0.86);
 }
 
 * {
@@ -217,7 +245,146 @@ h3,
   border-color: rgb(255 255 255 / 0.08);
 }
 
+.race-replay-ticker-track {
+  animation: race-replay-ticker 68s linear infinite;
+}
+
+.race-replay-map-stage {
+  background:
+    radial-gradient(circle at 58% 42%, rgb(57 255 20 / 0.045), transparent 22rem),
+    linear-gradient(180deg, var(--race-replay-map-bg), var(--race-replay-map-bg));
+}
+
+html[data-theme="light"] .race-replay-map-stage {
+  box-shadow: inset 0 0 0 1px rgb(53 37 33 / 0.12);
+}
+
+.race-replay-ticker:hover .race-replay-ticker-track {
+  animation-play-state: paused;
+}
+
+.racemate-loading-progress {
+  height: 0.28rem;
+  overflow: hidden;
+  position: relative;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.08)),
+    rgb(255 255 255 / 0.08);
+}
+
+.racemate-loading-progress::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, hsl(var(--primary) / 0.18), hsl(var(--primary) / 0.72));
+  transform-origin: left;
+  animation: racemate-loading-progress 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.racemate-loading-progress span {
+  position: absolute;
+  inset-block: 0;
+  left: -28%;
+  width: 32%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.9), transparent);
+  animation: racemate-loading-sheen 1.05s ease-in-out infinite;
+}
+
+.racemate-loading-step {
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 0.35rem;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  padding: 0.46rem 0.25rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.racemate-loading-step-1 {
+  animation: racemate-loading-step 1.8s ease-in-out infinite;
+}
+
+.racemate-loading-step-2 {
+  animation: racemate-loading-step 1.8s ease-in-out 0.3s infinite;
+}
+
+.racemate-loading-step-3 {
+  animation: racemate-loading-step 1.8s ease-in-out 0.6s infinite;
+}
+
+@keyframes race-replay-ticker {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes racemate-loading-progress {
+  0% {
+    transform: scaleX(0.14);
+  }
+
+  48% {
+    transform: scaleX(0.72);
+  }
+
+  100% {
+    transform: scaleX(0.96);
+  }
+}
+
+@keyframes racemate-loading-sheen {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes racemate-loading-step {
+  0%,
+  100% {
+    border-color: rgb(255 255 255 / 0.08);
+    color: hsl(var(--muted-foreground));
+  }
+
+  38% {
+    border-color: hsl(var(--primary) / 0.44);
+    color: hsl(var(--foreground));
+    box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.12);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .racemate-loading-progress::before,
+  .racemate-loading-progress span,
+  .racemate-loading-step {
+    animation: none !important;
+  }
+
+  .racemate-loading-progress::before {
+    opacity: 0.72;
+    transform: none !important;
+  }
+
+  .race-replay-ticker-track {
+    animation: none !important;
+    transform: none !important;
+  }
+
   *,
   *::before,
   *::after {
