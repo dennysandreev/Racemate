@@ -66,7 +66,13 @@ export function buildTrackGeometry(centerline: TrackPoint[], startFinishProgress
     pointAt,
     samples,
     sectorPaths: buildSectorPaths(samples),
-    startFinish: { headingRad: startPoint.headingRad, x: startPoint.x, y: startPoint.y },
+    // Координаты в атрибутах SVG округляем: разница в последнем бите float
+    // между сервером и браузером ломает гидрацию и вызывает полный ре-рендер.
+    startFinish: {
+      headingRad: roundTo(startPoint.headingRad, 4),
+      x: roundTo(startPoint.x, 1),
+      y: roundTo(startPoint.y, 1),
+    },
   };
 }
 
@@ -91,7 +97,7 @@ export function buildPitGeometry(points: { svgX: number; svgY: number }[]): PitG
   const normal = normalOf(Math.atan2(middleNext.svgY - middle.svgY, middleNext.svgX - middle.svgX));
 
   return {
-    label: { x: middle.svgX + normal.x * 16, y: middle.svgY + normal.y * 16 },
+    label: { x: roundTo(middle.svgX + normal.x * 16, 1), y: roundTo(middle.svgY + normal.y * 16, 1) },
     pathD: clean
       .map((point, index) => `${index === 0 ? "M" : "L"}${point.svgX.toFixed(1)} ${point.svgY.toFixed(1)}`)
       .join(" "),
@@ -403,8 +409,8 @@ function detectCorners(samples: TrackSample[], startFinishProgress: number) {
       return {
         apexProgress: ((apex.progress % 1) + 1) % 1,
         kerbPathD,
-        labelX: apex.x + normal.x * labelOffset,
-        labelY: apex.y + normal.y * labelOffset,
+        labelX: roundTo(apex.x + normal.x * labelOffset, 1),
+        labelY: roundTo(apex.y + normal.y * labelOffset, 1),
         number: 0,
       };
     })
@@ -452,4 +458,10 @@ function angleDelta(from: number, to: number) {
 
 function clampNumber(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function roundTo(value: number, digits: number) {
+  const factor = 10 ** digits;
+
+  return Math.round(value * factor) / factor;
 }

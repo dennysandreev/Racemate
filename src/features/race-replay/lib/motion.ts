@@ -18,41 +18,232 @@ export type MotionSample = {
  * Прогресс по кругу «разворачивается» в монотонную величину (круги + доля круга),
  * а между сэмплами телеметрии интерполируется монотонным кубическим сплайном
  * Фритча-Карлсона: скорость меняется плавно и машина никогда не едет назад.
+ *
+ * Источник телеметрии периодически замораживает координаты на десятки секунд,
+ * за которые машина успевает проехать целый круг — поэтому замороженные точки
+ * схлопываются, а на длинных дырах потерянные круги восстанавливаются по темпу
+ * пилота (фазовая развертка с приором по скорости).
  */
 export function buildDriverMotion(events: ReplayPositionEvent[]): DriverMotion {
   const sorted = [...events].sort((a, b) => a.offsetMs - b.offsetMs);
-  const trackEvents = sorted.filter((event) => !event.isPitLane && Number.isFinite(event.progress));
+  const trackEvents = collapseFrozenRuns(
+    sorted.filter((event) => !event.isPitLane && Number.isFinite(event.progress)),
+  );
+  const pitTimes = sorted.filter((event) => event.isPitLane).map((event) => event.offsetMs);
+  const paceLapMs = estimateLapMs(trackEvents);
   const times: number[] = [];
   const values: number[] = [];
   let unwrapped = 0;
-  let previousProgress: number | null = null;
+  let previous: ReplayPositionEvent | null = null;
 
   for (const event of trackEvents) {
-    if (previousProgress === null) {
+    if (previous === null) {
       unwrapped = event.progress;
     } else {
-      let delta = event.progress - previousProgress;
+      let delta = wrapDelta(previous.progress, event.progress);
+      const gapMs = event.offsetMs - previous.offsetMs;
+      const crossesPit = hasPitTimeBetween(pitTimes, previous.offsetMs, event.offsetMs);
 
-      if (delta < -0.5) {
-        delta += 1;
-      } else if (delta > 0.5) {
-        delta -= 1;
+      if (paceLapMs !== null && !crossesPit && gapMs > paceLapMs * 0.55 && gapMs <= MAX_MOTION_GAP_MS) {
+        const expectedLaps = gapMs / paceLapMs;
+        const anchorPrevious = anchorLapsOf(previous);
+        const anchorCurrent = anchorLapsOf(event);
+        // Круги из таймингов надежнее среднего темпа, когда есть у обеих точек.
+        const estimate = anchorPrevious !== null && anchorCurrent !== null
+          ? anchorCurrent - anchorPrevious - delta
+          : expectedLaps - delta;
+        const missedLaps = Math.max(0, Math.min(Math.round(estimate), Math.ceil(expectedLaps) + 1));
+        delta += missedLaps;
       }
 
       unwrapped += Math.max(0, delta);
+
+      const anchor = anchorLapsOf(event);
+
+      // Накопленное отставание от таймингов гасим ресинком, но только вперед,
+      // чтобы машина никогда не поехала назад (лаг обновления круга дает ±1).
+      if (anchor !== null && anchor - unwrapped > 1.5) {
+        unwrapped = anchor;
+      }
     }
 
-    previousProgress = event.progress;
+    previous = event;
     times.push(event.offsetMs);
     values.push(unwrapped);
   }
 
+  const cleaned = cleanStallArtifacts(times, values);
+
   return {
     events: sorted,
-    slopes: fritschCarlsonSlopes(times, values),
-    times,
-    values,
+    slopes: fritschCarlsonSlopes(cleaned.times, cleaned.values),
+    times: cleaned.times,
+    values: cleaned.values,
   };
+}
+
+function anchorLapsOf(event: ReplayPositionEvent) {
+  return typeof event.lapNumber === "number" && Number.isFinite(event.lapNumber) && event.lapNumber > 0
+    ? event.lapNumber - 1 + event.progress
+    : null;
+}
+
+function wrapDelta(from: number, to: number) {
+  let delta = to - from;
+
+  if (delta < -0.5) {
+    delta += 1;
+  } else if (delta > 0.5) {
+    delta -= 1;
+  }
+
+  return delta;
+}
+
+/*
+ * Замороженная телеметрия — подряд идущие сэмплы с одной и той же позицией.
+ * Короткие заморозки (< 90 с) выбрасываем целиком: машина в это время ехала,
+ * просто данных не было. Длинные оставляем — это настоящая остановка
+ * (стартовая решетка, красный флаг, сход).
+ */
+function collapseFrozenRuns(events: ReplayPositionEvent[]) {
+  const result: ReplayPositionEvent[] = [];
+  let runStartMs: number | null = null;
+
+  for (const event of events) {
+    const last = result[result.length - 1];
+    const isFrozen =
+      last !== undefined &&
+      Math.hypot(event.svgX - last.svgX, event.svgY - last.svgY) < 3 &&
+      Math.abs(wrapDelta(last.progress, event.progress)) < 0.001;
+
+    if (isFrozen) {
+      if (runStartMs === null) {
+        runStartMs = last.offsetMs;
+      }
+
+      if (event.offsetMs - runStartMs < 90_000) {
+        continue;
+      }
+
+      result.push(event);
+    } else {
+      runStartMs = null;
+      result.push(event);
+    }
+  }
+
+  return result;
+}
+
+function estimateLapMs(events: ReplayPositionEvent[]) {
+  const speeds: number[] = [];
+
+  for (let index = 1; index < events.length; index += 1) {
+    const gapMs = events[index].offsetMs - events[index - 1].offsetMs;
+
+    if (gapMs < 3_000 || gapMs > 15_000) {
+      continue;
+    }
+
+    const delta = wrapDelta(events[index - 1].progress, events[index].progress);
+
+    if (delta < 0.01 || delta > 0.45) {
+      continue;
+    }
+
+    speeds.push(delta / gapMs);
+  }
+
+  if (speeds.length < 20) {
+    return null;
+  }
+
+  speeds.sort((a, b) => a - b);
+
+  return 1 / speeds[Math.floor(speeds.length / 2)];
+}
+
+function hasPitTimeBetween(pitTimes: number[], fromMs: number, toMs: number) {
+  let low = 0;
+  let high = pitTimes.length - 1;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+
+    if (pitTimes[mid] < fromMs) {
+      low = mid + 1;
+    } else if (pitTimes[mid] > toMs) {
+      high = mid - 1;
+    } else {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/*
+ * На части трасс снаппинг в снапшоте дает «замер-догон»: прогресс не растет
+ * один-два сэмпла, а потом скачком наверстывает. Без чистки машина видимо
+ * тормозит в ноль и снова разгоняется. Выбрасываем такие точки: настоящие
+ * замедления (сейфти-кар, авария) — это длинные серии медленных сэмплов,
+ * у них скорость на выходе тоже низкая, и фильтр их не трогает.
+ */
+function cleanStallArtifacts(times: number[], values: number[]) {
+  let currentTimes = times;
+  let currentValues = values;
+
+  for (let pass = 0; pass < 3; pass += 1) {
+    if (currentTimes.length < 5) {
+      break;
+    }
+
+    const speeds: number[] = [];
+
+    for (let index = 1; index < currentTimes.length; index += 1) {
+      speeds.push(
+        (currentValues[index] - currentValues[index - 1]) /
+          Math.max(currentTimes[index] - currentTimes[index - 1], 1),
+      );
+    }
+
+    const positiveSpeeds = speeds.filter((value) => value > 0).sort((a, b) => a - b);
+    const median = positiveSpeeds[Math.floor(positiveSpeeds.length / 2)];
+
+    if (!median) {
+      break;
+    }
+
+    const keep = new Array<boolean>(currentTimes.length).fill(true);
+    let removed = 0;
+
+    for (let index = 1; index < currentTimes.length - 1; index += 1) {
+      if (currentTimes[index + 1] - currentTimes[index - 1] > 45_000) {
+        continue;
+      }
+
+      const speedIn = speeds[index - 1];
+      const speedOut = speeds[index];
+      const isStallThenCatchUp = speedIn < median * 0.35 && speedOut > median * 0.7;
+      const isSpikeThenStall = speedIn > median * 1.6 && speedOut < median * 0.35;
+
+      if (isStallThenCatchUp || isSpikeThenStall) {
+        keep[index] = false;
+        removed += 1;
+        index += 1;
+      }
+    }
+
+    if (!removed) {
+      break;
+    }
+
+    currentTimes = currentTimes.filter((_, index) => keep[index]);
+    currentValues = currentValues.filter((_, index) => keep[index]);
+  }
+
+  return { times: currentTimes, values: currentValues };
 }
 
 export function trackProgressAt(motion: DriverMotion, elapsedMs: number): MotionSample | null {

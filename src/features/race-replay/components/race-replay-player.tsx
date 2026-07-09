@@ -234,9 +234,17 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     () => buildDisplayPitLane(replay.track.centerline, pitLane?.points ?? [], replay.circuitName),
     [pitLane?.points, replay.circuitName, replay.track.centerline],
   );
+  const pitSpan = useMemo(
+    () => derivePitLaneSpan(replay.track.centerline, pitLane?.points ?? []),
+    [pitLane?.points, replay.track.centerline],
+  );
+  const startFinishProgress = useMemo(
+    () => deriveStartFinishProgress(pitSpan, replay.track.startFinish?.progress ?? 0),
+    [pitSpan, replay.track.startFinish?.progress],
+  );
   const geometry = useMemo(
-    () => buildTrackGeometry(replay.track.centerline, replay.track.startFinish?.progress ?? 0),
-    [replay.track.centerline, replay.track.startFinish?.progress],
+    () => buildTrackGeometry(replay.track.centerline, startFinishProgress),
+    [replay.track.centerline, startFinishProgress],
   );
   const pitGeometry = useMemo(() => buildPitGeometry(displayPitLane), [displayPitLane]);
   const motionByDriver = useMemo(() => {
@@ -267,7 +275,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
   );
   const selected = selectedDriver ? timingRows.find((row) => row.driverNumber === selectedDriver) ?? null : null;
   const visibleEvents = useMemo(
-    () => replay.raceEvents.filter((event) => event.offsetMs <= elapsedMs).slice(-8).reverse(),
+    () => replay.raceEvents.filter((event) => event.offsetMs <= elapsedMs).reverse(),
     [elapsedMs, replay.raceEvents],
   );
   const currentLap = useMemo(() => {
@@ -677,7 +685,7 @@ function TrackSurface({
   pitGeometry: PitGeometry | null;
   technicalPathD: string;
 }) {
-  const startAngle = (geometry.startFinish.headingRad * 180) / Math.PI;
+  const startAngle = ((geometry.startFinish.headingRad * 180) / Math.PI).toFixed(2);
 
   return (
     <g>
@@ -855,10 +863,10 @@ function CarMarker({
       }}
       role="button"
       tabIndex={0}
-      transform={`translate(${position.svgX} ${position.svgY})`}
+      transform={`translate(${position.svgX.toFixed(2)} ${position.svgY.toFixed(2)})`}
     >
       <circle fill="transparent" r="17" />
-      <g transform={`rotate(${angle})${isSelected ? " scale(1.22)" : ""}`}>
+      <g transform={`rotate(${angle.toFixed(2)})${isSelected ? " scale(1.22)" : ""}`}>
         {isSelected ? (
           <circle fill="none" opacity="0.85" r="13.5" stroke={teamColor} strokeDasharray="3 3" strokeWidth="1.2" />
         ) : null}
@@ -1144,7 +1152,7 @@ function TimingTowerCompact({
         <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-secondary/60">
           <div
             className="h-full rounded-full bg-primary transition-[width] duration-500"
-            style={{ width: `${lapProgress * 100}%` }}
+            style={{ width: `${(lapProgress * 100).toFixed(2)}%` }}
           />
         </div>
       </div>
@@ -1223,7 +1231,7 @@ function ReplayTimeline({
           className="absolute top-0 z-10 -translate-x-1/2 p-0.5"
           key={`${marker.offsetMs}-${marker.label}`}
           onClick={() => onJump(marker.offsetMs)}
-          style={{ left: `${clamp(marker.offsetMs / duration, 0, 1) * 100}%` }}
+          style={{ left: `${(clamp(marker.offsetMs / duration, 0, 1) * 100).toFixed(3)}%` }}
           title={`${formatClock(marker.offsetMs)} · ${marker.label}`}
           type="button"
         >
@@ -1501,9 +1509,9 @@ function RaceEventFeed({ events, onSeek }: { events: ReplayRaceEvent[]; onSeek: 
     <section className="stitch-panel p-4">
       <p className="stitch-label flex items-center gap-2 text-muted-foreground">
         <Flag aria-hidden="true" className="size-3.5 text-primary" />
-        Контроль гонки
+        Контроль гонки · {events.length}
       </p>
-      <div className="mt-3 grid gap-1.5">
+      <div className="mt-3 grid max-h-[24rem] content-start gap-1.5 overflow-y-auto pr-1">
         {events.length ? events.map((event) => (
           <button
             className="rounded-md border border-border/70 p-2.5 text-left transition-colors hover:bg-accent/60"
@@ -1531,7 +1539,9 @@ function RaceEventFeed({ events, onSeek }: { events: ReplayRaceEvent[]; onSeek: 
         )}
       </div>
       {events.length ? (
-        <p className="mt-2 text-[0.6rem] font-semibold text-muted-foreground">Клик по событию — перейти к моменту</p>
+        <p className="mt-2 text-[0.6rem] font-semibold text-muted-foreground">
+          Клик по событию — перейти к моменту · список листается
+        </p>
       ) : null}
     </section>
   );
@@ -1559,6 +1569,31 @@ function RaceStatusBanner({ status }: { status: RaceStatus }) {
       <p className="min-w-0 truncate text-xs font-semibold leading-4 text-foreground">{status.detail}</p>
     </div>
   );
+}
+
+/*
+ * Пит-лейн в жизни всегда обрамляет линию старт/финиш. Если «ноль»
+ * параметризации трассы из снапшота лежит далеко от реального пит-лейна
+ * (такое бывает, когда телеметрия сессии начинается не на линии), ставим
+ * стартовую отметку в середину пит-лейна.
+ */
+function deriveStartFinishProgress(
+  pitSpan: { startProgress: number; endProgress: number } | null,
+  fallback: number,
+) {
+  if (!pitSpan) {
+    return fallback;
+  }
+
+  const start = ((pitSpan.startProgress % 1) + 1) % 1;
+  const span = pitSpan.endProgress - pitSpan.startProgress;
+  const relative = ((fallback - start) % 1 + 1) % 1;
+
+  if (relative <= span + 0.06 || relative >= 1 - 0.06) {
+    return fallback;
+  }
+
+  return ((start + span / 2) % 1 + 1) % 1;
 }
 
 function groupReplayPositionsByDriver(events: ReplayPositionEvent[]) {
@@ -2105,14 +2140,17 @@ function buildDisplayPitLane(
   }
 
   const override = getPitLaneDisplayOverride(circuitName);
+  const derived = derivePitLaneSpan(centerline, snapshotPoints);
   const sideSign = override.sideSign ?? inferPitLaneSideSign(centerline, snapshotPoints);
-  const offset = override.offset;
+  const startProgress = derived?.startProgress ?? override.startProgress;
+  const endProgress = derived?.endProgress ?? override.endProgress;
+  const offset = derived?.offset ?? override.offset;
   const count = 78;
   const points: PitLanePoint[] = [];
 
   for (let index = 0; index < count; index += 1) {
     const ratio = count <= 1 ? 0 : index / (count - 1);
-    const progress = override.startProgress + (override.endProgress - override.startProgress) * ratio;
+    const progress = startProgress + (endProgress - startProgress) * ratio;
     const trackPoint = getTrackPointAtProgress(centerline, progress);
 
     if (!trackPoint) {
@@ -2157,6 +2195,58 @@ function buildStraightPitLanePoints(start: PitLanePoint, end: PitLanePoint, coun
       worldZ: start.worldZ ?? end.worldZ ?? null,
     };
   });
+}
+
+/*
+ * Въезд и выезд пит-лейна берем из реальной телеметрии снапшота: границы —
+ * это прогресс ближайших точек трассы к первой и последней точке пит-лейна,
+ * по которым машины реально ехали. Фолбэк — ручные пресеты по трассам.
+ */
+function derivePitLaneSpan(centerline: TrackPoint[], snapshotPoints: PitLanePoint[]) {
+  if (snapshotPoints.length < 20 || centerline.length < 8) {
+    return null;
+  }
+
+  const nearestTo = (point: PitLanePoint) => {
+    let best: { distance: number; progress: number } | null = null;
+
+    for (const candidate of centerline) {
+      const distance = Math.hypot(candidate.svgX - point.svgX, candidate.svgY - point.svgY);
+
+      if (!best || distance < best.distance) {
+        best = { distance, progress: candidate.progress };
+      }
+    }
+
+    return best;
+  };
+
+  const entry = nearestTo(snapshotPoints[0]);
+  const exit = nearestTo(snapshotPoints[snapshotPoints.length - 1]);
+
+  if (!entry || !exit || entry.distance > 60 || exit.distance > 60) {
+    return null;
+  }
+
+  let span = exit.progress - entry.progress;
+
+  if (span <= -0.5) {
+    span += 1;
+  }
+
+  if (span < 0.03 || span > 0.22) {
+    return null;
+  }
+
+  const midOffsets = [0.3, 0.5, 0.7]
+    .map((ratio) => nearestTo(snapshotPoints[Math.floor(snapshotPoints.length * ratio)])?.distance ?? 0)
+    .sort((a, b) => a - b);
+
+  return {
+    endProgress: entry.progress + span,
+    offset: clamp(midOffsets[1] ?? 0, 20, 40),
+    startProgress: entry.progress,
+  };
 }
 
 function getPitLaneDisplayOverride(circuitName: string) {
