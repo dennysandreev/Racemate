@@ -5750,35 +5750,24 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
     weatherPayload,
   });
 
-  const { data: replaySession, error: replayError } = await supabase
-    .from("race_replay_sessions")
-    .upsert(
-      {
-        circuit_id: circuit.id,
-        duration_ms: replayPayload.durationMs,
-        prepared_at: new Date().toISOString(),
-        race_id: currentRace.id,
-        snapshot: replayPayload,
-        source_errors: sourceErrors,
-        source_meeting_key: numberOrNull(sourceSession.meeting_key),
-        source_race_name: sourceSession.meeting_name ?? sourceSession.session_name ?? currentRace.race_name,
-        source_season: sourceSeason,
-        source_session_key: sourceSessionKey,
-        source_session_name: sourceSession.session_name ?? sourceSession.session_type ?? "Race",
-        source_started_at: sourceSession.date_start ? new Date(sourceSession.date_start).toISOString() : null,
-        status: replayPayload.positions.length ? "ready" : "failed",
-        title: `${currentRace.race_name}: повтор гонки ${sourceSeason}`,
-        total_laps: replayPayload.totalLaps,
-        track_map_id: trackMap.id,
-      },
-      { onConflict: "source_session_key" },
-    )
-    .select("id")
-    .single();
-
-  if (replayError) {
-    throw replayError;
-  }
+  const replaySession = await upsertReplaySessionWithRetry({
+    circuit_id: circuit.id,
+    duration_ms: replayPayload.durationMs,
+    prepared_at: new Date().toISOString(),
+    race_id: currentRace.id,
+    snapshot: replayPayload,
+    source_errors: sourceErrors,
+    source_meeting_key: numberOrNull(sourceSession.meeting_key),
+    source_race_name: sourceSession.meeting_name ?? sourceSession.session_name ?? currentRace.race_name,
+    source_season: sourceSeason,
+    source_session_key: sourceSessionKey,
+    source_session_name: sourceSession.session_name ?? sourceSession.session_type ?? "Race",
+    source_started_at: sourceSession.date_start ? new Date(sourceSession.date_start).toISOString() : null,
+    status: replayPayload.positions.length ? "ready" : "failed",
+    title: `${currentRace.race_name}: повтор гонки ${sourceSeason}`,
+    total_laps: replayPayload.totalLaps,
+    track_map_id: trackMap.id,
+  });
 
   const eventIndexing = await replaceReplayEvents(replaySession.id, replayPayload);
 
@@ -7400,6 +7389,37 @@ function buildReplayWeather(weatherPayload) {
     trackTemperatureC: numberOrNull(latest.track_temperature),
     windSpeedKmh: numberOrNull(latest.wind_speed),
   };
+}
+
+async function upsertReplaySessionWithRetry(row, attempts = 3) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const { data, error } = await supabase
+      .from("race_replay_sessions")
+      .upsert(row, { onConflict: "source_session_key" })
+      .select("id")
+      .single();
+
+    if (!error) {
+      return data;
+    }
+
+    lastError = error;
+
+    // 57014 = statement timeout: у больших снапшотов запись на грани лимита, повтор часто проходит.
+    if (error.code !== "57014" || attempt === attempts) {
+      break;
+    }
+
+    logWorkerWarning("race_replay.snapshot_upsert_retry", {
+      attempt,
+      sourceSessionKey: row.source_session_key,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+  }
+
+  throw lastError;
 }
 
 async function upsertFailedReplaySession(currentRace, circuit, sourceSession, sourceSeason, sourceErrors, reason) {

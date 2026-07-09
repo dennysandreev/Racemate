@@ -1,7 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Flag, Pause, Play, RadioTower, RotateCcw, Search, ShieldAlert, ZoomIn, ZoomOut } from "lucide-react";
+import {
+  Activity,
+  ArrowLeft,
+  CloudSun,
+  Crosshair,
+  Flag,
+  Pause,
+  Play,
+  RadioTower,
+  RotateCcw,
+  ShieldAlert,
+  Timer,
+  Wrench,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -66,6 +81,22 @@ type RaceStatus = {
   event: ReplayRaceEvent | null;
 };
 
+type TimelineMarker = {
+  offsetMs: number;
+  tone: "green" | "yellow" | "red" | "neutral";
+  label: string;
+};
+
+type PitHistoryItem = {
+  abbreviation: string;
+  driverNumber: number;
+  isActive: boolean;
+  pitLaneSeconds: number;
+  pitStopSeconds: number | null;
+  startMs: number;
+  teamColor: string;
+};
+
 type TimingHighlights = {
   bestLapMs: number | null;
   bestSectorMs: [number | null, number | null, number | null];
@@ -100,6 +131,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
   const [speed, setSpeed] = useState(2);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [followMode, setFollowMode] = useState(false);
   const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const lastTickRef = useRef<number | null>(null);
   const duration = Math.max(replay.durationMs, 1);
@@ -147,6 +179,39 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     });
   }, [duration]);
 
+  const seekTo = useCallback((targetMs: number) => {
+    setElapsedMs(clamp(targetMs, 0, duration));
+  }, [duration]);
+
+  const seekBy = useCallback((deltaMs: number) => {
+    setElapsedMs((current) => clamp(current + deltaMs, 0, duration));
+  }, [duration]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable)) {
+        return;
+      }
+
+      if (event.code === "Space") {
+        event.preventDefault();
+        handlePlayPause();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        seekBy(-15_000);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        seekBy(15_000);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handlePlayPause, seekBy]);
+
   const positionsByDriver = useMemo(
     () => groupReplayPositionsByDriver(replay.positions),
     [replay.positions],
@@ -168,7 +233,6 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     () => buildTimingRows(replay.drivers, currentPositions),
     [currentPositions, replay.drivers],
   );
-  const tickerRows = useSmoothedTickerRows(timingRows, elapsedMs);
   const timingHighlights = useMemo(
     () => getTimingHighlights(timingRows),
     [timingRows],
@@ -216,11 +280,34 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     () => buildPitLaneVisualPath(displayPitLane),
     [displayPitLane],
   );
-  const scaledWidth = viewBox.width / zoom;
-  const scaledHeight = viewBox.height / zoom;
-  const svgViewBox = `${pan.x} ${pan.y} ${scaledWidth} ${scaledHeight}`;
+  const timelineMarkers = useMemo(
+    () => buildTimelineMarkers(replay.raceEvents, duration),
+    [duration, replay.raceEvents],
+  );
+  const pitHistory = useMemo(
+    () => getPitHistory(pitWindows, replay.drivers, elapsedMs),
+    [elapsedMs, pitWindows, replay.drivers],
+  );
+  const followTarget = followMode && selectedDriver !== null
+    ? currentPositions.get(selectedDriver) ?? null
+    : null;
+  const effectiveZoom = followTarget ? Math.max(zoom, 2.2) : zoom;
+  const scaledWidth = viewBox.width / effectiveZoom;
+  const scaledHeight = viewBox.height / effectiveZoom;
+  const viewX = followTarget
+    ? clamp(followTarget.svgX - scaledWidth / 2, 0, Math.max(0, viewBox.width - scaledWidth))
+    : pan.x;
+  const viewY = followTarget
+    ? clamp(followTarget.svgY - scaledHeight / 2, 0, Math.max(0, viewBox.height - scaledHeight))
+    : pan.y;
+  const svgViewBox = `${viewX} ${viewY} ${scaledWidth} ${scaledHeight}`;
 
   const handlePointerDown = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
+    if (followMode) {
+      setFollowMode(false);
+      return;
+    }
+
     event.currentTarget.setPointerCapture(event.pointerId);
     dragRef.current = {
       panX: pan.x,
@@ -228,7 +315,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
       x: event.clientX,
       y: event.clientY,
     };
-  }, [pan.x, pan.y]);
+  }, [followMode, pan.x, pan.y]);
 
   const handlePointerMove = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
     const drag = dragRef.current;
@@ -250,66 +337,97 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
   }, []);
 
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-4">
       <section className="stitch-panel min-w-0 overflow-hidden p-0">
-        <div className="relative grid gap-3 border-b stitch-divider p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:p-4">
-          <p className="font-telemetry absolute right-4 top-4 flex items-center gap-2 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-primary sm:right-5 sm:top-5">
-            <RadioTower aria-hidden="true" className="size-3.5" />
-            Повтор гонки · {replay.sourceSeason}
-          </p>
-          <div className="min-w-0 pr-28 sm:pr-40">
-            <Button asChild className="mb-2" size="sm" variant="secondary">
-              <Link href="/weekend" prefetch={false}>
-                <ArrowLeft aria-hidden="true" data-icon="inline-start" />
-                Текущий этап
-              </Link>
-            </Button>
-            <h1 className="text-balance font-display text-2xl font-extrabold leading-tight tracking-[-0.04em] sm:text-3xl">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3 p-4 sm:px-5">
+          <div className="min-w-0 flex-1">
+            <p className="font-telemetry flex items-center gap-2 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-primary">
+              <RadioTower aria-hidden="true" className="size-3.5" />
+              Повтор гонки · {replay.sourceSeason}
+            </p>
+            <h1 className="mt-1.5 text-balance font-display text-2xl font-extrabold leading-tight tracking-[-0.04em] sm:text-3xl">
               {replay.raceName}
             </h1>
-            <p className="mt-1 text-sm font-semibold text-muted-foreground">{replay.circuitName}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <p className="text-sm font-semibold text-muted-foreground">{replay.circuitName}</p>
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/weekend" prefetch={false}>
+                  <ArrowLeft aria-hidden="true" data-icon="inline-start" />
+                  Текущий этап
+                </Link>
+              </Button>
+            </div>
           </div>
-          <div className="flex items-end justify-end gap-2 self-end">
-            <Button
-              aria-label="Уменьшить карту"
-              onClick={() => setZoom((value) => Math.max(1, value - 0.25))}
-              size="icon"
-              type="button"
-              variant="secondary"
-            >
-              <ZoomOut aria-hidden="true" />
-            </Button>
-            <Button
-              aria-label="Увеличить карту"
-              onClick={() => setZoom((value) => Math.min(2.5, value + 0.25))}
-              size="icon"
-              type="button"
-              variant="secondary"
-            >
-              <ZoomIn aria-hidden="true" />
-            </Button>
-            <Button
-              aria-label="Сбросить карту"
-              onClick={() => {
-                setPan({ x: 0, y: 0 });
-                setZoom(1);
-              }}
-              size="icon"
-              type="button"
-              variant="secondary"
-            >
-              <RotateCcw aria-hidden="true" />
-            </Button>
+          <div className="flex flex-wrap items-stretch gap-2">
+            <div className="rounded-md border border-border/70 bg-secondary/30 px-3.5 py-2 text-right">
+              <p className="stitch-label text-[0.56rem] text-muted-foreground">Круг</p>
+              <p className="font-telemetry text-xl font-extrabold leading-tight">
+                {currentLap ?? "—"}
+                {replay.totalLaps ? (
+                  <span className="text-sm font-bold text-muted-foreground"> / {replay.totalLaps}</span>
+                ) : null}
+              </p>
+            </div>
+            <WeatherChips weather={replay.weather} />
           </div>
         </div>
+        <RaceStatusBanner status={raceStatus} />
+      </section>
 
-        <div className="relative h-[26rem] overflow-hidden bg-[radial-gradient(circle_at_20%_12%,rgb(225_6_0_/_0.18),transparent_24rem)] p-3 sm:h-[29rem] xl:h-[32rem]">
-          <SelectedDriverOverlay driver={selected} />
-          <RaceStatusPanel status={raceStatus} />
-          <RaceLapWeatherOverlay currentLap={currentLap} totalLaps={replay.totalLaps} weather={replay.weather} />
-          <RetiredDriversPanel rows={retiredRows} setSelectedDriver={setSelectedDriver} />
-          <PitNotificationStack items={pitNotifications} />
-          <ReplayPaceOverlay lapAnalytics={lapAnalytics} tyrePace={tyrePace} />
+      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_21.5rem]">
+        <section className="stitch-panel min-w-0 overflow-hidden p-0">
+          <div className="relative h-[26rem] overflow-hidden bg-[radial-gradient(circle_at_20%_12%,rgb(225_6_0_/_0.14),transparent_24rem)] p-3 sm:h-[30rem] xl:h-[34rem]">
+            <SelectedDriverOverlay driver={selected} followMode={followMode} />
+            <RetiredDriversPanel rows={retiredRows} setSelectedDriver={setSelectedDriver} />
+            <PitNotificationStack items={pitNotifications} />
+            <TrackLegend />
+            <div className="absolute right-5 top-5 z-10 grid gap-1.5">
+              <Button
+                aria-label="Увеличить карту"
+                className="size-8"
+                onClick={() => setZoom((value) => Math.min(2.5, value + 0.25))}
+                size="icon"
+                type="button"
+                variant="secondary"
+              >
+                <ZoomIn aria-hidden="true" />
+              </Button>
+              <Button
+                aria-label="Уменьшить карту"
+                className="size-8"
+                onClick={() => setZoom((value) => Math.max(1, value - 0.25))}
+                size="icon"
+                type="button"
+                variant="secondary"
+              >
+                <ZoomOut aria-hidden="true" />
+              </Button>
+              <Button
+                aria-label="Сбросить карту"
+                className="size-8"
+                onClick={() => {
+                  setPan({ x: 0, y: 0 });
+                  setZoom(1);
+                  setFollowMode(false);
+                }}
+                size="icon"
+                type="button"
+                variant="secondary"
+              >
+                <RotateCcw aria-hidden="true" />
+              </Button>
+              <Button
+                aria-label={followMode ? "Отключить камеру за пилотом" : "Следить за выбранным пилотом"}
+                aria-pressed={followMode}
+                className={cn("size-8", followMode && "ring-2 ring-primary")}
+                onClick={() => setFollowMode((value) => !value)}
+                size="icon"
+                type="button"
+                variant={followMode ? "default" : "secondary"}
+              >
+                <Crosshair aria-hidden="true" />
+              </Button>
+            </div>
           <svg
             aria-label={`Повтор гонки на трассе ${replay.circuitName}`}
             className="race-replay-map-stage h-full w-full cursor-grab touch-none rounded-lg border border-border/70 active:cursor-grabbing"
@@ -476,50 +594,65 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
             })}
           </svg>
         </div>
-        <IntervalTicker rows={tickerRows} />
-
-        <div className="border-t stitch-divider p-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              onClick={handlePlayPause}
-              type="button"
-            >
-              {isPlaying ? <Pause aria-hidden="true" data-icon="inline-start" /> : <Play aria-hidden="true" data-icon="inline-start" />}
-              {isPlaying ? "Пауза" : "Запустить"}
-            </Button>
-            <div className="flex rounded-md border border-border bg-secondary/45 p-1">
-              {speeds.map((item) => (
-                <button
-                  className={cn(
-                    "font-telemetry rounded px-3 py-1.5 text-xs font-bold transition-colors",
-                    speed === item ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-                  )}
-                  key={item}
-                  onClick={() => setSpeed(item)}
-                  type="button"
-                >
-                  {item}x
-                </button>
-              ))}
+          <div className="border-t stitch-divider p-3 sm:p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                onClick={handlePlayPause}
+                type="button"
+              >
+                {isPlaying ? <Pause aria-hidden="true" data-icon="inline-start" /> : <Play aria-hidden="true" data-icon="inline-start" />}
+                {isPlaying ? "Пауза" : "Запустить"}
+              </Button>
+              <div className="flex rounded-md border border-border bg-secondary/45 p-1">
+                {speeds.map((item) => (
+                  <button
+                    className={cn(
+                      "font-telemetry rounded px-3 py-1.5 text-xs font-bold transition-colors",
+                      speed === item ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                    )}
+                    key={item}
+                    onClick={() => setSpeed(item)}
+                    type="button"
+                  >
+                    {item}x
+                  </button>
+                ))}
+              </div>
+              <p className="hidden text-[0.62rem] font-semibold text-muted-foreground lg:block">
+                Пробел — пауза · ← / → — 15 сек
+              </p>
+              <span className="font-telemetry ml-auto text-xs font-bold text-muted-foreground">
+                {formatClock(elapsedMs)} / {formatClock(duration)}
+              </span>
             </div>
-            <span className="font-telemetry ml-auto text-xs font-bold text-muted-foreground">
-              {formatClock(elapsedMs)} / {formatClock(duration)}
-            </span>
+            <ReplayTimeline
+              duration={duration}
+              elapsedMs={elapsedMs}
+              markers={timelineMarkers}
+              onJump={seekTo}
+              onScrub={(value) => {
+                setElapsedMs(value);
+                setIsPlaying(false);
+              }}
+            />
           </div>
-          <input
-            aria-label="Позиция повтора"
-            className="mt-4 h-2 w-full accent-primary"
-            max={duration}
-            min={0}
-            onChange={(event) => {
-              setElapsedMs(Number(event.target.value));
-              setIsPlaying(false);
-            }}
-            type="range"
-            value={Math.round(elapsedMs)}
-          />
-        </div>
-      </section>
+        </section>
+
+        <TimingTowerCompact
+          currentLap={currentLap}
+          highlights={timingHighlights}
+          rows={timingRows}
+          selectedDriver={selectedDriver}
+          setSelectedDriver={setSelectedDriver}
+          totalLaps={replay.totalLaps}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <RaceEventFeed events={visibleEvents} onSeek={seekTo} />
+        <PitStopsPanel items={pitHistory} />
+        <PacePanel lapAnalytics={lapAnalytics} tyrePace={tyrePace} weather={replay.weather} />
+      </div>
 
       <TimingTower
         highlights={timingHighlights}
@@ -527,69 +660,106 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
         selectedDriver={selectedDriver}
         setSelectedDriver={setSelectedDriver}
       />
-
-      <aside className="grid content-start gap-5">
-        <RaceEventFeed events={visibleEvents} />
-      </aside>
     </div>
   );
 }
 
-function SelectedDriverOverlay({ driver }: { driver: ReplayDriverState | null }) {
+function SelectedDriverOverlay({ driver, followMode }: { driver: TimingRow | null; followMode: boolean }) {
   return (
-    <div className="pointer-events-none absolute bottom-5 left-5 z-10 min-w-[14rem] rounded-md border border-border/70 bg-background/90 px-3.5 py-2.5 shadow-xl ring-1 ring-primary/25 backdrop-blur-md">
+    <div className="pointer-events-none absolute bottom-5 left-5 z-10 min-w-[14.5rem] max-w-[18rem] rounded-md border border-border/70 bg-background/92 px-3.5 py-2.5 shadow-xl ring-1 ring-primary/25 backdrop-blur-md">
       {driver ? (
-        <div className="flex items-center gap-3">
-          <span
-            className="h-10 w-1.5 rounded-full"
-            style={{ backgroundColor: driver.teamColor }}
-          />
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="font-display text-2xl font-extrabold leading-none">{driver.abbreviation}</p>
-              <span className="font-telemetry rounded border border-border/70 px-1.5 py-0.5 text-[0.58rem] font-extrabold">
-                P{driver.position ?? "—"}
-              </span>
+        <>
+          <div className="flex items-center gap-3">
+            <span
+              className="h-10 w-1.5 rounded-full"
+              style={{ backgroundColor: driver.teamColor }}
+            />
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="font-display text-2xl font-extrabold leading-none">{driver.abbreviation}</p>
+                <span className="font-telemetry rounded border border-border/70 px-1.5 py-0.5 text-[0.58rem] font-extrabold">
+                  P{driver.position ?? "—"}
+                </span>
+                {followMode ? (
+                  <span className="font-telemetry rounded border border-primary/45 bg-primary/12 px-1.5 py-0.5 text-[0.52rem] font-extrabold uppercase tracking-[0.08em] text-primary">
+                    Камера
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-1 truncate text-xs font-semibold text-muted-foreground">{driver.teamName}</p>
             </div>
-            <p className="mt-1 truncate text-xs font-semibold text-muted-foreground">{driver.teamName}</p>
+            <div className="ml-auto grid justify-items-end gap-1">
+              <TyreBadge compound={driver.compound} tyreAge={driver.tyreAge} />
+              <p className="font-telemetry text-[0.65rem] font-bold text-muted-foreground">
+                {driver.status === "PIT" ? "Пит" : driver.status === "OUT" ? "Сход" : formatTimingInterval(driver)}
+              </p>
+            </div>
           </div>
-          <div className="ml-auto grid justify-items-end gap-1">
-            <TyreBadge compound={driver.compound} tyreAge={driver.tyreAge} />
-            <p className="font-telemetry text-[0.65rem] font-bold text-muted-foreground">
-              {driver.status === "PIT" ? "Пит" : driver.status === "OUT" ? "Сход" : driver.intervalToAhead ?? "—"}
-            </p>
+          <div className="mt-2 grid grid-cols-3 gap-2 border-t border-border/60 pt-2">
+            <div>
+              <p className="stitch-label text-[0.48rem] text-muted-foreground">Посл. круг</p>
+              <p className="font-telemetry mt-0.5 text-[0.68rem] font-extrabold">{driver.lastLapTime ?? "—"}</p>
+            </div>
+            <div>
+              <p className="stitch-label text-[0.48rem] text-muted-foreground">Лучший</p>
+              <p className="font-telemetry mt-0.5 text-[0.68rem] font-extrabold">{driver.bestLapTime ?? "—"}</p>
+            </div>
+            <div>
+              <p className="stitch-label text-[0.48rem] text-muted-foreground">Питы</p>
+              <p className="font-telemetry mt-0.5 text-[0.68rem] font-extrabold">{driver.pitStops}</p>
+            </div>
           </div>
-        </div>
+        </>
       ) : (
-        <p className="text-xs font-semibold text-muted-foreground">Выбери машину на карте</p>
+        <p className="text-xs font-semibold text-muted-foreground">Выбери машину на карте или в тайминге</p>
       )}
     </div>
   );
 }
 
-function RaceLapWeatherOverlay({
-  currentLap,
-  totalLaps,
-  weather,
-}: {
-  currentLap: number | null;
-  totalLaps: number | null;
-  weather: RaceReplaySnapshot["weather"];
-}) {
+function WeatherChips({ weather }: { weather: RaceReplaySnapshot["weather"] }) {
+  if (!weather) {
+    return null;
+  }
+
+  const items = [
+    { label: "Воздух", value: formatMaybeNumber(weather.airTemperatureC, "°C") },
+    { label: "Трасса", value: formatMaybeNumber(weather.trackTemperatureC, "°C") },
+    { label: "Дождь", value: formatMaybeNumber(weather.rainfall, " мм") },
+    { label: "Ветер", value: formatMaybeNumber(weather.windSpeedKmh, " км/ч") },
+  ];
+
   return (
-    <div className="pointer-events-none absolute right-5 top-5 z-10 rounded-md border border-border/70 bg-background/88 px-3 py-2 text-right shadow-xl backdrop-blur-md">
-      <p className="stitch-label text-[0.56rem] text-muted-foreground">Круг</p>
-      <p className="font-telemetry text-sm font-extrabold">
-        {currentLap ?? "—"}{totalLaps ? ` / ${totalLaps}` : ""}
-      </p>
-      {weather ? (
-        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-border/60 pt-2 text-[0.62rem] font-semibold text-muted-foreground">
-          <span>Воздух {formatMaybeNumber(weather.airTemperatureC, "°C")}</span>
-          <span>Трасса {formatMaybeNumber(weather.trackTemperatureC, "°C")}</span>
-          <span>Дождь {formatMaybeNumber(weather.rainfall, " мм")}</span>
-          <span>Ветер {formatMaybeNumber(weather.windSpeedKmh, " км/ч")}</span>
+    <div className="hidden grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border/70 bg-secondary/30 px-3.5 py-2 sm:grid">
+      {items.map((item) => (
+        <div className="flex items-baseline justify-between gap-2" key={item.label}>
+          <span className="text-[0.6rem] font-semibold text-muted-foreground">{item.label}</span>
+          <span className="font-telemetry text-[0.68rem] font-extrabold">{item.value}</span>
         </div>
-      ) : null}
+      ))}
+    </div>
+  );
+}
+
+function TrackLegend() {
+  const items = [
+    { color: "var(--race-replay-sector-1)", label: "С1" },
+    { color: "var(--race-replay-sector-2)", label: "С2" },
+    { color: "var(--race-replay-sector-3)", label: "С3" },
+  ];
+
+  return (
+    <div className="pointer-events-none absolute bottom-5 right-5 z-10 hidden items-center gap-2.5 rounded-md border border-border/70 bg-background/85 px-2.5 py-1.5 shadow-xl backdrop-blur-md sm:flex">
+      {items.map((item) => (
+        <span className="flex items-center gap-1" key={item.label}>
+          <span className="h-1.5 w-4 rounded-full" style={{ backgroundColor: item.color }} />
+          <span className="font-telemetry text-[0.55rem] font-extrabold text-muted-foreground">{item.label}</span>
+        </span>
+      ))}
+      <span className="flex items-center gap-1">
+        <span className="h-1.5 w-4 rounded-full bg-[var(--race-replay-track-edge)]" />
+        <span className="font-telemetry text-[0.55rem] font-extrabold text-muted-foreground">Пит-лейн</span>
+      </span>
     </div>
   );
 }
@@ -606,7 +776,7 @@ function RetiredDriversPanel({
   }
 
   return (
-    <div className="absolute right-5 top-[8.9rem] z-10 w-[16rem] rounded-md border border-border/70 bg-background/88 p-2 shadow-xl backdrop-blur-md">
+    <div className="absolute left-5 top-5 z-10 w-[13rem] rounded-md border border-border/70 bg-background/88 p-2 shadow-xl backdrop-blur-md sm:w-[15rem]">
       <p className="stitch-label text-[0.55rem] text-muted-foreground">Сходы</p>
       <div className="mt-2 grid max-h-[9rem] grid-cols-2 gap-1 overflow-y-auto pr-1">
         {rows.map((row) => (
@@ -674,80 +844,73 @@ function PitNotificationStack({ items }: { items: PitNotification[] }) {
   );
 }
 
-function IntervalTicker({ rows }: { rows: TimingRow[] }) {
-  if (rows.length < 2) {
-    return null;
-  }
-
-  const tickerRows = rows;
-
-  return (
-    <div className="race-replay-ticker overflow-hidden border-t stitch-divider bg-secondary/20">
-      <div className="race-replay-ticker-track flex w-max items-center px-4 py-2">
-        {[0, 1].map((cycle) => (
-          <div className="flex items-center gap-2 pr-8" key={cycle}>
-            {tickerRows.map((row) => (
-              <span
-                className={cn(
-                  "inline-flex w-[7.5rem] items-center gap-1.5 overflow-hidden rounded border border-border/70 bg-background/70 px-2.5 py-1 shadow-sm",
-                  row.status === "OUT" && "border-primary/45 bg-primary/10",
-                )}
-                key={`${row.driverNumber}-${cycle}`}
-              >
-                <span className="shrink-0 font-telemetry text-[0.62rem] font-extrabold text-muted-foreground">
-                  P{row.position ?? "—"}
-                </span>
-                <span className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: row.teamColor }} />
-                <span className="shrink-0 font-telemetry text-[0.68rem] font-extrabold">{row.abbreviation}</span>
-                <span className={cn(
-                  "ml-auto min-w-0 truncate text-right font-telemetry text-[0.62rem] font-bold text-muted-foreground",
-                  row.status === "OUT" && "text-primary",
-                )}>
-                  {row.status === "OUT" ? "OUT" : formatTimingInterval(row)}
-                </span>
-              </span>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ReplayPaceOverlay({
+function PacePanel({
   lapAnalytics,
   tyrePace,
+  weather,
 }: {
   lapAnalytics: LapAnalytics;
   tyrePace: TyrePaceSummary[];
+  weather: RaceReplaySnapshot["weather"];
 }) {
   return (
-    <div className="pointer-events-none absolute bottom-[5.8rem] right-5 z-10 grid w-[11.5rem] gap-1.5 sm:bottom-5 sm:w-[17rem]">
-      <div className="rounded-md border border-border/70 bg-background/88 p-2 shadow-xl backdrop-blur-md">
-        <p className="stitch-label text-[0.52rem] text-muted-foreground">Темп шин · последний круг</p>
-        {tyrePace.length ? (
-          <div className="mt-1.5 grid gap-1">
-            {tyrePace.map((item) => (
-              <div className="flex items-center justify-between gap-2 text-[0.68rem]" key={item.compound}>
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <TyreDot compound={item.compound} />
-                  <span className="font-semibold text-muted-foreground">{item.count} пил.</span>
-                </span>
-                <span className="font-telemetry font-extrabold">{formatLapSeconds(item.averageLapSeconds)}</span>
-              </div>
-            ))}
+    <section className="stitch-panel p-4">
+      <p className="stitch-label flex items-center gap-2 text-muted-foreground">
+        <Activity aria-hidden="true" className="size-3.5 text-primary" />
+        Темп и условия
+      </p>
+      <div className="mt-3 grid gap-3">
+        <div className="rounded-md border border-border/70 p-2.5">
+          <p className="stitch-label text-[0.52rem] text-muted-foreground">Темп круга</p>
+          <LapAnalyticsLine label="Лучший в гонке" row={lapAnalytics.bestRaceLap} />
+          <LapAnalyticsLine label="Лучший последний" row={lapAnalytics.bestRecentLap} />
+        </div>
+        <div className="rounded-md border border-border/70 p-2.5">
+          <p className="stitch-label text-[0.52rem] text-muted-foreground">Темп шин · последний круг</p>
+          {tyrePace.length ? (
+            <div className="mt-1.5 grid gap-1">
+              {tyrePace.map((item) => (
+                <div className="flex items-center justify-between gap-2 text-[0.72rem]" key={item.compound}>
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <TyreDot compound={item.compound} />
+                    <span className="font-semibold text-muted-foreground">{item.count} пил.</span>
+                  </span>
+                  <span className="font-telemetry font-extrabold">{formatLapSeconds(item.averageLapSeconds)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-1.5 font-telemetry text-[0.68rem] font-bold text-muted-foreground">—</p>
+          )}
+        </div>
+        {weather ? (
+          <div className="rounded-md border border-border/70 p-2.5">
+            <p className="stitch-label flex items-center gap-1.5 text-[0.52rem] text-muted-foreground">
+              <CloudSun aria-hidden="true" className="size-3" />
+              Погода
+            </p>
+            <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 text-[0.72rem]">
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="font-semibold text-muted-foreground">Воздух</span>
+                <span className="font-telemetry font-extrabold">{formatMaybeNumber(weather.airTemperatureC, "°C")}</span>
+              </span>
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="font-semibold text-muted-foreground">Трасса</span>
+                <span className="font-telemetry font-extrabold">{formatMaybeNumber(weather.trackTemperatureC, "°C")}</span>
+              </span>
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="font-semibold text-muted-foreground">Дождь</span>
+                <span className="font-telemetry font-extrabold">{formatMaybeNumber(weather.rainfall, " мм")}</span>
+              </span>
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="font-semibold text-muted-foreground">Ветер</span>
+                <span className="font-telemetry font-extrabold">{formatMaybeNumber(weather.windSpeedKmh, " км/ч")}</span>
+              </span>
+            </div>
           </div>
-        ) : (
-          <p className="mt-1.5 font-telemetry text-[0.68rem] font-bold text-muted-foreground">—</p>
-        )}
+        ) : null}
       </div>
-
-      <div className="rounded-md border border-border/70 bg-background/88 p-2 shadow-xl backdrop-blur-md">
-        <p className="stitch-label text-[0.52rem] text-muted-foreground">Темп круга</p>
-        <LapAnalyticsLine label="Лучший" row={lapAnalytics.bestRaceLap} />
-        <LapAnalyticsLine label="Последний" row={lapAnalytics.bestRecentLap} />
-      </div>
-    </div>
+    </section>
   );
 }
 
@@ -788,29 +951,183 @@ function TyreDot({ compound }: { compound: string | null | undefined }) {
   );
 }
 
-function useSmoothedTickerRows(rows: TimingRow[], elapsedMs: number) {
-  const [snapshot, setSnapshot] = useState(rows);
-  const lastUpdateRef = useRef(-1);
+function TimingTowerCompact({
+  currentLap,
+  highlights,
+  rows,
+  selectedDriver,
+  setSelectedDriver,
+  totalLaps,
+}: {
+  currentLap: number | null;
+  highlights: TimingHighlights;
+  rows: TimingRow[];
+  selectedDriver: number | null;
+  setSelectedDriver: (driver: number) => void;
+  totalLaps: number | null;
+}) {
+  const lapProgress = totalLaps && currentLap ? clamp(currentLap / totalLaps, 0, 1) : 0;
 
-  useEffect(() => {
-    if (elapsedMs < lastUpdateRef.current) {
-      lastUpdateRef.current = elapsedMs;
-      setSnapshot(rows);
-      return;
-    }
+  return (
+    <section className="stitch-panel flex min-h-0 flex-col overflow-hidden p-0">
+      <div className="border-b stitch-divider p-3.5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="stitch-label flex items-center gap-2 text-muted-foreground">
+            <Timer aria-hidden="true" className="size-3.5 text-primary" />
+            Live-тайминг
+          </p>
+          <p className="font-telemetry text-xs font-extrabold">
+            Круг {currentLap ?? "—"}
+            {totalLaps ? <span className="text-muted-foreground"> / {totalLaps}</span> : null}
+          </p>
+        </div>
+        <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-secondary/60">
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-500"
+            style={{ width: `${lapProgress * 100}%` }}
+          />
+        </div>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto xl:max-h-none">
+        {rows.map((row, index) => {
+          const isSelected = selectedDriver === row.driverNumber;
+          const hasBestLap = isSameTimingValue(parseTimingMs(row.bestLapTime), highlights.bestLapMs);
 
-    const isFirstSnapshot = lastUpdateRef.current < 0;
-    const shouldUpdate = isFirstSnapshot || elapsedMs - lastUpdateRef.current >= 2_500;
+          return (
+            <button
+              className={cn(
+                "flex w-full items-center gap-2 border-b stitch-divider px-3 py-1.5 text-left transition-colors hover:bg-accent/60",
+                isSelected && "bg-primary/10",
+                row.status === "OUT" && "opacity-60",
+              )}
+              key={row.driverNumber}
+              onClick={() => setSelectedDriver(row.driverNumber)}
+              type="button"
+            >
+              <span className="font-telemetry w-6 shrink-0 text-right text-xs font-extrabold text-muted-foreground">
+                {row.position ?? index + 1}
+              </span>
+              <span className="h-5 w-1 shrink-0 rounded-full" style={{ backgroundColor: row.teamColor }} />
+              <span className="font-telemetry w-11 shrink-0 text-sm font-extrabold">{row.abbreviation}</span>
+              <TyreDot compound={row.compound} />
+              <span className="font-telemetry w-6 shrink-0 text-[0.62rem] font-bold text-muted-foreground">
+                {typeof row.tyreAge === "number" && Number.isFinite(row.tyreAge) ? row.tyreAge : ""}
+              </span>
+              <span className="min-w-0 flex-1" />
+              {hasBestLap ? (
+                <span aria-label="Лучший круг гонки" className="size-1.5 shrink-0 rounded-full bg-[#c084fc]" title="Лучший круг гонки" />
+              ) : null}
+              <span
+                className={cn(
+                  "font-telemetry shrink-0 text-xs font-bold",
+                  row.status === "OUT" ? "text-primary" : row.status === "PIT" ? "text-amber-400" : "text-muted-foreground",
+                )}
+              >
+                {formatTimingInterval(row)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="border-t stitch-divider px-3.5 py-2 text-[0.6rem] font-semibold text-muted-foreground">
+        Клик по строке — выбрать пилота на карте
+      </p>
+    </section>
+  );
+}
 
-    if (!shouldUpdate) {
-      return;
-    }
+function ReplayTimeline({
+  duration,
+  elapsedMs,
+  markers,
+  onJump,
+  onScrub,
+}: {
+  duration: number;
+  elapsedMs: number;
+  markers: TimelineMarker[];
+  onJump: (offsetMs: number) => void;
+  onScrub: (offsetMs: number) => void;
+}) {
+  const markerTone = {
+    green: "bg-[rgb(57,255,20)]",
+    neutral: "bg-foreground/70",
+    red: "bg-[#E10600]",
+    yellow: "bg-[#FFD60A]",
+  };
 
-    lastUpdateRef.current = elapsedMs;
-    setSnapshot(rows);
-  }, [elapsedMs, rows]);
+  return (
+    <div className="relative mt-5 pt-3.5">
+      {markers.map((marker) => (
+        <button
+          aria-label={`${marker.label} — ${formatClock(marker.offsetMs)}`}
+          className="absolute top-0 z-10 -translate-x-1/2 p-0.5"
+          key={`${marker.offsetMs}-${marker.label}`}
+          onClick={() => onJump(marker.offsetMs)}
+          style={{ left: `${clamp(marker.offsetMs / duration, 0, 1) * 100}%` }}
+          title={`${formatClock(marker.offsetMs)} · ${marker.label}`}
+          type="button"
+        >
+          <span className={cn("block h-2.5 w-1 rounded-sm transition-transform hover:scale-125", markerTone[marker.tone])} />
+        </button>
+      ))}
+      <input
+        aria-label="Позиция повтора"
+        className="h-2 w-full accent-primary"
+        max={duration}
+        min={0}
+        onChange={(event) => onScrub(Number(event.target.value))}
+        type="range"
+        value={Math.round(elapsedMs)}
+      />
+    </div>
+  );
+}
 
-  return snapshot.length ? snapshot : rows;
+function PitStopsPanel({ items }: { items: PitHistoryItem[] }) {
+  return (
+    <section className="stitch-panel p-4">
+      <p className="stitch-label flex items-center gap-2 text-muted-foreground">
+        <Wrench aria-hidden="true" className="size-3.5 text-primary" />
+        Пит-стопы · {items.length}
+      </p>
+      <div className="mt-3 grid gap-1.5">
+        {items.length ? items.slice(0, 8).map((item) => (
+          <div
+            className={cn(
+              "flex items-center gap-2 rounded-md border px-2.5 py-1.5",
+              item.isActive ? "border-amber-300/55 bg-amber-400/10" : "border-border/70",
+            )}
+            key={`${item.driverNumber}-${item.startMs}`}
+          >
+            <span className="h-4 w-1 shrink-0 rounded-full" style={{ backgroundColor: item.teamColor }} />
+            <span className="font-telemetry w-11 shrink-0 text-xs font-extrabold">{item.abbreviation}</span>
+            <span className="font-telemetry shrink-0 text-[0.62rem] font-bold text-muted-foreground">
+              {formatClock(item.startMs)}
+            </span>
+            <span className="min-w-0 flex-1" />
+            {item.isActive ? (
+              <span className="font-telemetry shrink-0 text-xs font-extrabold text-amber-300">
+                {item.pitLaneSeconds.toFixed(1)}с…
+              </span>
+            ) : (
+              <span className="font-telemetry shrink-0 text-xs font-bold">
+                {item.pitLaneSeconds.toFixed(1)}с
+                <span className="ml-1 text-[0.62rem] text-muted-foreground">
+                  ({item.pitStopSeconds !== null ? `${item.pitStopSeconds.toFixed(1)}с` : "—"})
+                </span>
+              </span>
+            )}
+          </div>
+        )) : (
+          <p className="text-sm leading-6 text-muted-foreground">Пит-стопов пока не было.</p>
+        )}
+      </div>
+      {items.length ? (
+        <p className="mt-2 text-[0.6rem] font-semibold text-muted-foreground">Время в пит-лейне (в скобках — сам пит-стоп)</p>
+      ) : null}
+    </section>
+  );
 }
 
 function TimingTower({
@@ -829,9 +1146,9 @@ function TimingTower({
       <div className="flex items-center justify-between gap-3 border-b stitch-divider p-4">
         <div>
           <p className="stitch-label text-muted-foreground">Тайминг</p>
-          <h3 className="mt-1 font-display text-xl font-bold">Позиции и темп</h3>
+          <h3 className="mt-1 font-display text-xl font-bold">Детальная таблица: сектора и темп</h3>
         </div>
-        <Search aria-hidden="true" className="size-5 text-primary" />
+        <Timer aria-hidden="true" className="size-5 text-primary" />
       </div>
       <div className="overflow-x-auto">
         <div className="min-w-[68rem]">
@@ -1020,44 +1337,67 @@ function TyreBadge({ compound, tyreAge }: { compound: string | null | undefined;
   );
 }
 
-function RaceEventFeed({ events }: { events: ReplayRaceEvent[] }) {
+function RaceEventFeed({ events, onSeek }: { events: ReplayRaceEvent[]; onSeek: (offsetMs: number) => void }) {
   return (
-    <section className="stitch-panel">
-      <p className="stitch-label text-muted-foreground">Контроль гонки</p>
-      <div className="mt-3 grid gap-2">
+    <section className="stitch-panel p-4">
+      <p className="stitch-label flex items-center gap-2 text-muted-foreground">
+        <Flag aria-hidden="true" className="size-3.5 text-primary" />
+        Контроль гонки
+      </p>
+      <div className="mt-3 grid gap-1.5">
         {events.length ? events.map((event) => (
-          <div className="rounded-md border border-border/70 p-3" key={`${event.offsetMs}-${event.message}`}>
-            <p className="font-telemetry text-xs font-bold text-primary">{formatClock(event.offsetMs)}</p>
+          <button
+            className="rounded-md border border-border/70 p-2.5 text-left transition-colors hover:bg-accent/60"
+            key={`${event.offsetMs}-${event.message}`}
+            onClick={() => onSeek(event.offsetMs)}
+            title="Перейти к этому моменту повтора"
+            type="button"
+          >
+            <p className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "size-1.5 shrink-0 rounded-full",
+                  event.severity === "CRITICAL" ? "bg-[#E10600]" : event.severity === "IMPORTANT" ? "bg-[#FFD60A]" : "bg-muted-foreground/60",
+                )}
+              />
+              <span className="font-telemetry text-xs font-bold text-primary">{formatClock(event.offsetMs)}</span>
+              {typeof event.lapNumber === "number" ? (
+                <span className="font-telemetry text-[0.62rem] font-bold text-muted-foreground">круг {event.lapNumber}</span>
+              ) : null}
+            </p>
             <p className="mt-1 text-sm leading-5">{event.message}</p>
-          </div>
+          </button>
         )) : (
           <p className="text-sm leading-6 text-muted-foreground">События появятся по ходу повтора.</p>
         )}
       </div>
+      {events.length ? (
+        <p className="mt-2 text-[0.6rem] font-semibold text-muted-foreground">Клик по событию — перейти к моменту</p>
+      ) : null}
     </section>
   );
 }
 
-function RaceStatusPanel({ status }: { status: RaceStatus }) {
+function RaceStatusBanner({ status }: { status: RaceStatus }) {
   const toneClass = {
-    green: "border-[rgba(57,255,20,0.42)] bg-[rgba(57,255,20,0.11)] text-[rgb(97,255,75)]",
-    neutral: "border-border/70 bg-background/82 text-foreground",
+    green: "border-[rgba(57,255,20,0.4)] bg-[rgba(57,255,20,0.1)] text-[rgb(97,255,75)]",
+    neutral: "border-border/70 bg-secondary/30 text-foreground",
     red: "border-[rgba(225,6,0,0.6)] bg-[rgba(225,6,0,0.16)] text-primary",
     yellow: "border-[rgba(255,214,10,0.55)] bg-[rgba(255,214,10,0.14)] text-[rgb(255,214,10)]",
   }[status.tone];
 
   return (
-    <div className={cn(
-      "pointer-events-none absolute left-5 top-5 z-10 max-w-[9rem] rounded-md border px-3 py-2 shadow-xl backdrop-blur-md sm:max-w-[min(21rem,calc(100%-2.5rem))]",
-      toneClass,
-    )}>
-      <div className="flex items-start gap-2">
-        {status.tone === "green" ? <Flag aria-hidden="true" className="mt-0.5 size-4 shrink-0" /> : <ShieldAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />}
-        <div className="min-w-0">
-          <p className="font-telemetry text-[0.56rem] font-extrabold uppercase tracking-[0.14em]">{status.label}</p>
-          <p className="mt-0.5 line-clamp-1 text-xs font-semibold leading-4 text-foreground">{status.detail}</p>
-        </div>
-      </div>
+    <div className={cn("flex items-center gap-2.5 border-t px-4 py-2 sm:px-5", toneClass)}>
+      {status.tone === "green" ? (
+        <Flag aria-hidden="true" className="size-4 shrink-0" />
+      ) : (
+        <ShieldAlert
+          aria-hidden="true"
+          className={cn("size-4 shrink-0", (status.tone === "yellow" || status.tone === "red") && "animate-pulse")}
+        />
+      )}
+      <p className="font-telemetry shrink-0 text-[0.62rem] font-extrabold uppercase tracking-[0.14em]">{status.label}</p>
+      <p className="min-w-0 truncate text-xs font-semibold leading-4 text-foreground">{status.detail}</p>
     </div>
   );
 }
@@ -1380,6 +1720,78 @@ function getPitNotifications(
         teamColor: driver?.teamColor ?? "hsl(var(--primary))",
       };
     });
+}
+
+function getPitHistory(
+  pitWindows: PitWindow[],
+  drivers: ReplayDriverState[],
+  elapsedMs: number,
+): PitHistoryItem[] {
+  return pitWindows
+    .filter((window) => elapsedMs >= window.startMs)
+    .sort((a, b) => b.startMs - a.startMs)
+    .map((window) => {
+      const driver = drivers.find((item) => item.driverNumber === window.driverNumber);
+      const isActive = elapsedMs < window.endMs;
+
+      return {
+        abbreviation: driver?.abbreviation ?? String(window.driverNumber),
+        driverNumber: window.driverNumber,
+        isActive,
+        pitLaneSeconds: isActive
+          ? Math.max(0, (elapsedMs - window.startMs) / 1000)
+          : window.pitLaneSeconds ?? Math.max(0, (window.endMs - window.startMs) / 1000),
+        pitStopSeconds: window.pitStopSeconds,
+        startMs: window.startMs,
+        teamColor: driver?.teamColor ?? "hsl(var(--primary))",
+      };
+    });
+}
+
+function buildTimelineMarkers(events: ReplayRaceEvent[], durationMs: number): TimelineMarker[] {
+  const markers: TimelineMarker[] = [];
+
+  for (const event of events) {
+    if (event.offsetMs < 0 || event.offsetMs > durationMs) {
+      continue;
+    }
+
+    const text = normalizeRaceControlText(event);
+
+    if (isPenaltyOrInvestigationEvent(text)) {
+      continue;
+    }
+
+    if (isRedFlagStartEvent(text)) {
+      markers.push({ label: "Красный флаг", offsetMs: event.offsetMs, tone: "red" });
+    } else if (isSafetyCarStartEvent(text)) {
+      markers.push({
+        label: text.includes("virtual safety car") || text.includes("vsc") ? "VSC" : "Пейс-кар",
+        offsetMs: event.offsetMs,
+        tone: "yellow",
+      });
+    } else if (isChequeredEvent(event)) {
+      markers.push({ label: "Финиш", offsetMs: event.offsetMs, tone: "neutral" });
+    } else if (isTrackClearEvent(text)) {
+      markers.push({ label: "Зеленый флаг", offsetMs: event.offsetMs, tone: "green" });
+    }
+  }
+
+  // Схлопываем маркеры ближе 0.8% длительности, чтобы таймлайн не превращался в частокол.
+  const minGapMs = durationMs * 0.008;
+  const collapsed: TimelineMarker[] = [];
+
+  for (const marker of markers.sort((a, b) => a.offsetMs - b.offsetMs)) {
+    const last = collapsed.at(-1);
+
+    if (last && marker.offsetMs - last.offsetMs < minGapMs && last.tone === marker.tone) {
+      continue;
+    }
+
+    collapsed.push(marker);
+  }
+
+  return collapsed;
 }
 
 function getPitLaneEndMs(
