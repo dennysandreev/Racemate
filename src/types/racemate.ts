@@ -269,6 +269,7 @@ export type RaceDetail = {
   locality: string;
   startsAt: string;
   status: string;
+  timezone?: string | null;
   layout?: TrackLayout | null;
 };
 
@@ -969,6 +970,11 @@ export type PredictionState = {
   race: RaceOption | null;
   drivers: DriverOption[];
   teams: TeamOption[];
+  seasonSummary: {
+    predictionCount: number;
+    scoredPredictionCount: number;
+    totalScore: number | null;
+  };
   qualifyingResults: {
     results: SessionResult[];
     session: WeekendSession;

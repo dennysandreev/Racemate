@@ -6,6 +6,7 @@ import { CircuitStatsSection } from "@/components/racemate/circuit-stats-section
 import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { TeamColorProgress } from "@/components/racemate/team-color";
+import { TrackLocalTimeBadge } from "@/components/racemate/track-local-time-badge";
 import { TrackMap } from "@/components/racemate/track-map";
 import { WeekendSessionBoard } from "@/components/racemate/weekend-session-board";
 import { Badge } from "@/components/ui/badge";
@@ -133,12 +134,15 @@ function WeekendHero({
             ) : null}
             <Badge variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
           </div>
-          <Badge className="ml-auto shrink-0" variant={weekendStatus === "Live" ? "success" : "warning"}>
-            {weekendStatus}
-          </Badge>
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            <TrackLocalTimeBadge timezone={currentRace?.timezone} />
+            <Badge className="shrink-0" variant={weekendStatus === "Live" ? "success" : "warning"}>
+              {weekendStatus}
+            </Badge>
+          </div>
         </div>
 
-        <div className="grid min-w-0 content-start gap-5">
+        <div className="grid min-w-0 content-start gap-5 lg:col-span-2">
           <div>
             <p className="font-telemetry mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
               <MapPin aria-hidden="true" data-icon="inline-start" />
@@ -151,41 +155,42 @@ function WeekendHero({
               Следи за расписанием, просматривай результаты сессий и делай прогнозы на гонку.
             </p>
           </div>
-          <div className="h-[18rem] max-w-4xl overflow-hidden rounded-xl border border-border/75 bg-background/35 p-3 shadow-[0_18px_60px_rgb(0_0_0_/_0.28)] backdrop-blur sm:h-[21rem] xl:h-[24rem]">
-            <TrackMap
-              circuit={currentRace?.circuit ?? nextRace}
-              fill
-              label={nextRace}
-              layout={currentRace?.layout}
-            />
-          </div>
-        </div>
-
-        <div className="grid content-end gap-3 self-stretch">
-          <CircuitStatsSection
-            className="pb-0"
-            circuitName={currentRace?.circuit ?? nextRace}
-            showCircuitName={false}
-            stats={circuitStats}
-          />
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Button asChild className="justify-center px-3" size="sm">
-              <Link href="https://vk.com/versportaa" rel="noreferrer" target="_blank">
-                Смотреть онлайн
-                <ExternalLink aria-hidden="true" data-icon="inline-end" />
-              </Link>
-            </Button>
-            {raceReplay ? (
-              <Button asChild className="justify-center px-3" size="sm" variant="secondary">
-                <NavigationLoadingLink
-                  href={raceReplay.href}
-                  loadingLabel="Готовим повтор Гран-при 2025"
-                  prefetch={false}
-                >
-                  Гран-при 2025
-                </NavigationLoadingLink>
-              </Button>
-            ) : null}
+          <div className="grid overflow-hidden rounded-xl border border-border/75 bg-background/32 shadow-[0_18px_60px_rgb(0_0_0_/_0.24)] backdrop-blur lg:grid-cols-[minmax(0,1fr)_23rem]">
+            <div className="h-[18rem] min-w-0 p-3 sm:h-[21rem] xl:h-[24rem]">
+              <TrackMap
+                circuit={currentRace?.circuit ?? nextRace}
+                fill
+                label={nextRace}
+                layout={currentRace?.layout}
+              />
+            </div>
+            <div className="grid content-end gap-3 border-t border-border/75 p-4 lg:border-l lg:border-t-0">
+              <CircuitStatsSection
+                circuitName={currentRace?.circuit ?? nextRace}
+                embedded
+                footerAction={(
+                  <Button asChild className="w-full justify-center" size="sm">
+                    <Link href="https://vk.com/versportaa" rel="noreferrer" target="_blank">
+                      Смотреть онлайн
+                      <ExternalLink aria-hidden="true" data-icon="inline-end" />
+                    </Link>
+                  </Button>
+                )}
+                showCircuitName={false}
+                stats={circuitStats}
+              />
+              {raceReplay ? (
+                <Button asChild className="w-full justify-center" size="sm" variant="secondary">
+                  <NavigationLoadingLink
+                    href={raceReplay.href}
+                    loadingLabel="Готовим повтор Гран-при 2025"
+                    prefetch={false}
+                  >
+                    Гран-при 2025
+                  </NavigationLoadingLink>
+                </Button>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
@@ -331,7 +336,7 @@ function FantasyPredictionCard({
     { label: "Первый сход", value: current?.dnfDriverId },
   ].map((pick) => ({
     label: pick.label,
-    value: pick.value ? driversById.get(pick.value) ?? "Пилот выбран" : "Пока без выбора",
+    value: pick.value ? driversById.get(pick.value) ?? "Пилот выбран" : "Пилот",
   }));
 
   return (

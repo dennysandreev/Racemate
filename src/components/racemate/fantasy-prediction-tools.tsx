@@ -54,17 +54,27 @@ export function QualifyingResultsButton({
 }
 
 export function PreviousPredictionResultButton({
+  className,
   previousResult,
+  triggerLabel = "Прошлый прогноз",
 }: {
+  className?: string;
   previousResult: PreviousPredictionResult | null;
+  triggerLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} size="sm" type="button" variant="secondary">
+      <Button
+        className={className}
+        onClick={() => setOpen(true)}
+        size="sm"
+        type="button"
+        variant="secondary"
+      >
         <CheckCircle2 aria-hidden="true" className="size-4" />
-        Прошлый прогноз
+        {triggerLabel}
       </Button>
       <PredictionInfoDialog
         onClose={() => setOpen(false)}

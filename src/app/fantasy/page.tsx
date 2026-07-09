@@ -14,6 +14,7 @@ import {
   joinFantasyLeague,
   saveFantasyPrediction,
 } from "@/app/fantasy/actions";
+import { FantasyLockCountdown } from "@/components/fantasy/fantasy-lock-countdown";
 import { PredictionShareModalLauncher } from "@/components/fantasy/PredictionShareModal";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DataRow } from "@/components/racemate/data-row";
@@ -52,6 +53,7 @@ type FantasySearchParams = {
   created?: string;
   deleted?: string;
   joined?: string;
+  left?: string;
   league?: string;
   message?: string;
   saved?: string;
@@ -98,14 +100,14 @@ export default async function FantasyPage({
   const picks = buildPredictionFields(current, predictionState.race);
   const teamPicks = buildTeamPredictionFields(current, predictionState.race);
   const completedTop10 = current?.top10DriverIds?.length ?? 0;
-  const completedSpecials = picks.filter((pick) =>
+  const completedRaceSpecials = picks.slice(1).filter((pick) =>
     pick.name === "dnfDriverId" && current?.dnfPickKind === "none"
       ? true
       : Boolean(pick.value),
   ).length;
   const completedTeamPicks = teamPicks.filter((pick) => Boolean(pick.value)).length;
-  const completedPicks = completedTop10 + completedSpecials + completedTeamPicks;
-  const totalPicks = 15;
+  const completedQualificationPicks = current?.poleDriverId ? 1 : 0;
+  const completedRacePicks = completedTop10 + completedRaceSpecials + completedTeamPicks;
   const notice = getStatusNotice(status);
   const shareScope = normalizePredictionShareScope(status.shareScope);
   const shareSlug = status.share?.trim() || null;
@@ -117,8 +119,8 @@ export default async function FantasyPage({
     <AppShell>
       <section className="grid gap-6 py-6">
         <FantasyEventHeader
-          leagues={myLeagues}
           predictionState={predictionState}
+          previousResult={predictionState.previousResult}
         />
 
         <FantasyTabs activeTab={activeTab} />
@@ -128,12 +130,11 @@ export default async function FantasyPage({
         {activeTab === "picks" ? (
           <div className="grid min-w-0 gap-6">
             <PredictionModule
-              completedPicks={completedPicks}
+              completedQualificationPicks={completedQualificationPicks}
+              completedRacePicks={completedRacePicks}
               fields={picks}
               predictionState={predictionState}
-              saved={Boolean(status.saved)}
               teamFields={teamPicks}
-              totalPicks={totalPicks}
               userSignedIn={Boolean(user)}
             />
           </div>
@@ -145,6 +146,7 @@ export default async function FantasyPage({
               myLeagues={myLeagues}
               openLeagues={openLeagues}
               selectedLeagueId={status.league}
+              userSignedIn={Boolean(user)}
             />
             <aside className="min-w-0">
             <LeagueControlPanel userSignedIn={Boolean(user)} />
@@ -168,14 +170,13 @@ export default async function FantasyPage({
 }
 
 function FantasyEventHeader({
-  leagues,
   predictionState,
+  previousResult,
 }: {
-  leagues: LeagueSummary[];
   predictionState: PredictionState;
+  previousResult: PredictionState["previousResult"];
 }) {
-  const score = predictionState.current?.score;
-  const hasPrediction = Boolean(predictionState.current);
+  const totalScore = predictionState.seasonSummary.totalScore;
 
   return (
     <section className="flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
@@ -193,15 +194,28 @@ function FantasyEventHeader({
 
       <div className="grid w-full max-w-xl gap-3 xl:w-[30rem]">
         <div className="grid grid-cols-3 gap-3">
-          <FantasyCounter className={hasPrediction ? "border-success bg-success/10" : "border-warning bg-warning/10"} label="Прогноз" value={hasPrediction ? "Готов" : "Не сделан"} />
-          <FantasyCounter label="Лиги" value={String(leagues.length)} />
+          <FantasyPreviousPredictionAction previousResult={previousResult} />
+          <FantasyCounter label="Прогнозов" value={String(predictionState.seasonSummary.predictionCount)} />
           <FantasyCounter
             label="Очки"
-            value={score === null || score === undefined ? "—" : String(score)}
+            value={totalScore === null || totalScore === undefined ? "—" : String(totalScore)}
           />
         </div>
       </div>
     </section>
+  );
+}
+
+function FantasyPreviousPredictionAction({
+  previousResult,
+}: {
+  previousResult: PredictionState["previousResult"];
+}) {
+  return (
+    <PreviousPredictionResultButton
+      className="stitch-panel h-auto min-h-[4.55rem] w-full min-w-0 whitespace-normal border-b-2 border-primary bg-card/70 px-3 py-3 text-center text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/80 hover:bg-accent hover:text-primary hover:shadow-lg hover:shadow-primary/10 sm:min-w-[7.5rem]"
+      previousResult={previousResult}
+    />
   );
 }
 
@@ -254,24 +268,39 @@ function FantasyCounter({
   );
 }
 
+function PickProgressBadge({
+  completed,
+  saved,
+  total,
+}: {
+  completed: number;
+  saved: boolean;
+  total: number;
+}) {
+  return (
+    <Badge variant={saved ? "success" : "secondary"}>
+      Выборов {completed}/{total}
+    </Badge>
+  );
+}
+
 function PredictionModule({
-  completedPicks,
+  completedQualificationPicks,
+  completedRacePicks,
   fields,
   predictionState,
-  saved,
   teamFields,
-  totalPicks,
   userSignedIn,
 }: {
-  completedPicks: number;
+  completedQualificationPicks: number;
+  completedRacePicks: number;
   fields: PredictionField[];
   predictionState: PredictionState;
-  saved: boolean;
   teamFields: TeamPredictionField[];
-  totalPicks: number;
   userSignedIn: boolean;
 }) {
-  const score = predictionState.current?.score;
+  const hasSavedQualification = completedQualificationPicks > 0;
+  const hasSavedRace = completedRacePicks > 0;
 
   return (
     <section className="stitch-panel relative overflow-hidden p-5 sm:p-8" id="fantasy-picks">
@@ -289,12 +318,7 @@ function PredictionModule({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">{completedPicks}/{totalPicks} выборов</Badge>
-          <PreviousPredictionResultButton previousResult={predictionState.previousResult} />
           <FantasyScoringDialog className="shrink-0" />
-          <Badge variant={saved ? "success" : userSignedIn ? "danger" : "warning"}>
-            {saved ? "Сохранено" : userSignedIn ? `${score ?? 0} очков` : "Нужен вход"}
-          </Badge>
         </div>
       </div>
 
@@ -309,9 +333,19 @@ function PredictionModule({
                 <h3 className="mt-2 font-display text-xl font-bold">Прогноз на стартовую решетку</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Заполняй и вноси правки до старта квалификации.</p>
               </div>
-              <Badge variant={predictionState.race.poleLocked ? "warning" : "secondary"}>
-                {predictionState.race.poleLocked ? "Закрыто" : "До квалификации"}
-              </Badge>
+              <div className="grid justify-items-end gap-2">
+                <FantasyLockCountdown
+                  locked={Boolean(predictionState.race.poleLocked)}
+                  lockedLabel="Закрыто"
+                  prefix="До квалификации"
+                  startsAtIso={predictionState.race.qualifyingStartsAtIso}
+                />
+                <PickProgressBadge
+                  completed={completedQualificationPicks}
+                  saved={hasSavedQualification}
+                  total={1}
+                />
+              </div>
             </div>
             <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-end">
               <PredictionPickCard drivers={predictionState.drivers} field={fields[0]} />
@@ -333,9 +367,19 @@ function PredictionModule({
                 <h3 className="mt-2 font-display text-xl font-bold">Гоночный прогноз</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Заполняй и вноси правки до старта гонки.</p>
               </div>
-              <Badge variant={predictionState.race.raceLocked ? "warning" : "secondary"}>
-                {predictionState.race.raceLocked ? "Закрыто" : "До старта гонки"}
-              </Badge>
+              <div className="grid justify-items-end gap-2">
+                <FantasyLockCountdown
+                  locked={Boolean(predictionState.race.raceLocked)}
+                  lockedLabel="Закрыто"
+                  prefix="До гонки"
+                  startsAtIso={predictionState.race.raceStartsAtIso}
+                />
+                <PickProgressBadge
+                  completed={completedRacePicks}
+                  saved={hasSavedRace}
+                  total={14}
+                />
+              </div>
             </div>
             <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
               <div className="grid content-start gap-4">
@@ -354,7 +398,7 @@ function PredictionModule({
                   />
                 ))}
               </div>
-              <div className="rounded-lg border border-border bg-background/35 p-4">
+              <div className="rounded-lg border border-border bg-muted/35 p-4 transition-colors">
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">Топ-10 · гонка</p>
@@ -476,7 +520,7 @@ function PredictionPickCard({
         id={field.name}
         name={field.name}
       >
-        <option value="">Пока без выбора</option>
+        <option value="">Пилот</option>
         {field.allowNoDnf ? <option value="__none">Без DNF</option> : null}
         {drivers.map((driver) => (
           <option key={driver.id} value={driver.id}>
@@ -540,7 +584,7 @@ function TeamPredictionPickCard({
         id={field.name}
         name={field.name}
       >
-        <option value="">Пока без выбора</option>
+        <option value="">Команда</option>
         {teams.map((teamOption) => (
           <option key={teamOption.id} value={teamOption.id}>
             {teamOption.name}
@@ -605,10 +649,12 @@ function LeagueActivity({
   myLeagues,
   openLeagues,
   selectedLeagueId,
+  userSignedIn,
 }: {
   myLeagues: LeagueSummary[];
   openLeagues: LeagueSummary[];
   selectedLeagueId?: string;
+  userSignedIn: boolean;
 }) {
   return (
     <section className="grid gap-5">
@@ -622,7 +668,9 @@ function LeagueActivity({
         emptyText="Открытых лиг пока нет. Публичные лиги появятся здесь после создания."
         leagues={openLeagues}
         selectedLeagueId={selectedLeagueId}
+        showJoinAction
         title="Открытые лиги"
+        userSignedIn={userSignedIn}
       />
     </section>
   );
@@ -632,12 +680,16 @@ function LeagueList({
   emptyText,
   leagues,
   selectedLeagueId,
+  showJoinAction = false,
   title,
+  userSignedIn = true,
 }: {
   emptyText: string;
   leagues: LeagueSummary[];
   selectedLeagueId?: string;
+  showJoinAction?: boolean;
   title: string;
+  userSignedIn?: boolean;
 }) {
   return (
     <div className="stitch-panel overflow-hidden">
@@ -650,16 +702,9 @@ function LeagueList({
       </div>
       <div className="divide-y stitch-divider">
         {leagues.length ? (
-          leagues.map((league) => (
-            <Link
-              className={cn(
-                "grid gap-3 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center",
-                selectedLeagueId === league.id && "bg-accent/60",
-              )}
-              href={league.id ? `/fantasy/leagues/${league.id}` : "/fantasy?tab=leagues"}
-              key={league.id ?? league.name}
-              prefetch={false}
-            >
+          leagues.map((league) => {
+            const content = (
+              <>
               <div className="min-w-0">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <h3 className="truncate font-display text-lg font-bold">{league.name}</h3>
@@ -672,10 +717,44 @@ function LeagueList({
               </div>
               <div className="flex items-center gap-4">
                 <DataRow label="Очки лидера" value={String(league.score)} />
-                <DataRow label="Код" value={league.inviteCode ?? "Закрытая"} />
+                {showJoinAction ? (
+                  <form action={joinFantasyLeague}>
+                    <input name="inviteCode" type="hidden" value={league.inviteCode ?? ""} />
+                    <Button disabled={!userSignedIn || !league.inviteCode} size="sm" type="submit" variant="secondary">
+                      {userSignedIn ? "Присоединиться" : "Войти"}
+                    </Button>
+                  </form>
+                ) : (
+                  <DataRow label="Код" value={league.inviteCode ?? "Закрытая"} />
+                )}
               </div>
-            </Link>
-          ))
+              </>
+            );
+
+            return showJoinAction ? (
+              <div
+                className={cn(
+                  "grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center",
+                  selectedLeagueId === league.id && "bg-accent/60",
+                )}
+                key={league.id ?? league.name}
+              >
+                {content}
+              </div>
+            ) : (
+              <Link
+                className={cn(
+                  "grid gap-3 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center",
+                  selectedLeagueId === league.id && "bg-accent/60",
+                )}
+                href={league.id ? `/fantasy/leagues/${league.id}` : "/fantasy?tab=leagues"}
+                key={league.id ?? league.name}
+                prefetch={false}
+              >
+                {content}
+              </Link>
+            );
+          })
         ) : (
           <p className="p-5 text-sm leading-6 text-muted-foreground">
             {emptyText}
@@ -805,10 +884,18 @@ function getStatusNotice(status: FantasySearchParams) {
     };
   }
 
+  if (status.left) {
+    return {
+      icon: CheckCircle2,
+      text: "Ты вышел из лиги. Личные прогнозы остались на месте.",
+      tone: "success" as const,
+    };
+  }
+
   if (status.message === "top10") {
     return {
       icon: ClipboardList,
-      text: "Заполни все 10 мест топ-10 без повторов.",
+      text: "Один пилот не может занимать несколько мест в топ-10.",
       tone: "warning" as const,
     };
   }

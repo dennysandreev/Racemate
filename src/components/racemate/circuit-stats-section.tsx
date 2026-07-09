@@ -35,12 +35,16 @@ import type {
 export function CircuitStatsSection({
   className,
   circuitName,
+  footerAction,
+  embedded = false,
   mode = "compact",
   showCircuitName = true,
   stats,
 }: {
   className?: string;
   circuitName?: string;
+  footerAction?: ReactNode;
+  embedded?: boolean;
   mode?: "compact" | "button";
   showCircuitName?: boolean;
   stats: CircuitStatsView | null;
@@ -92,8 +96,8 @@ export function CircuitStatsSection({
 
   if (!stats) {
     return (
-      <section className={cn("pb-8", className)} id="circuit-stats">
-        <div className="grid gap-4 rounded-xl border border-border bg-card/80 p-4 sm:p-5">
+      <section className={cn(embedded ? "" : "pb-8", className)} id="circuit-stats">
+        <div className={cn("grid gap-4", embedded ? "" : "rounded-xl border border-border bg-card/80 p-4 sm:p-5")}>
           <div>
             <p className="stitch-label text-primary">О трассе</p>
             <h2 className="mt-2 font-display text-2xl font-extrabold tracking-[-0.03em]">
@@ -106,14 +110,18 @@ export function CircuitStatsSection({
           <Button className="w-full justify-center" disabled type="button" variant="secondary">
             Подробнее
           </Button>
+          {footerAction}
         </div>
       </section>
     );
   }
 
   return (
-    <section className={cn("pb-8", className)} id="circuit-stats">
-      <div className="relative overflow-hidden rounded-xl border border-border bg-card/80 p-4 shadow-[0_18px_56px_rgb(0_0_0_/_0.28)] sm:p-5">
+    <section className={cn(embedded ? "" : "pb-8", className)} id="circuit-stats">
+      <div className={cn(
+        "relative overflow-hidden",
+        embedded ? "" : "rounded-xl border border-border bg-card/80 p-4 shadow-[0_18px_56px_rgb(0_0_0_/_0.28)] sm:p-5",
+      )}>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,hsl(var(--primary)/0.16),transparent_18rem)]" />
         <div className="relative grid gap-4">
           <CircuitCompactDossier showCircuitName={showCircuitName} stats={stats} />
@@ -125,6 +133,7 @@ export function CircuitStatsSection({
           >
             Подробнее
           </Button>
+          {footerAction}
         </div>
       </div>
 

@@ -185,7 +185,7 @@ function PredictionSelect({
         id={name}
         name={name}
       >
-        <option value="">Пока без выбора</option>
+        <option value="">Пилот</option>
         {allowNoDnf ? <option value="__none">Без DNF</option> : null}
         {drivers.map((driver) => (
           <option key={driver.id} value={driver.id}>
@@ -221,7 +221,7 @@ function TeamPredictionSelect({
         id={name}
         name={name}
       >
-        <option value="">Пока без выбора</option>
+        <option value="">Команда</option>
         {teams.map((team) => (
           <option key={team.id} value={team.id}>
             {team.name}

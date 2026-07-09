@@ -74,8 +74,8 @@ export function GrandPrixPodiumPreview({
       )}
 
       <div className={cn("grid gap-2", replay ? "sm:grid-cols-2" : "")}>
-        <Button asChild className="w-full">
-          <Link href={href} prefetch={false} scroll={false}>
+        <Button asChild className="w-full justify-center text-center">
+          <Link className="justify-center text-center" href={href} prefetch={false} scroll={false}>
             Открыть полный отчет
           </Link>
         </Button>

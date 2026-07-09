@@ -190,8 +190,8 @@ type RaceRow = {
   race_start_at: string | null;
   status: string;
   circuits:
-    | { id?: string | null; name: string; country?: string | null; locality?: string | null; external_id?: string | null }
-    | { id?: string | null; name: string; country?: string | null; locality?: string | null; external_id?: string | null }[]
+    | { id?: string | null; name: string; country?: string | null; locality?: string | null; external_id?: string | null; timezone?: string | null }
+    | { id?: string | null; name: string; country?: string | null; locality?: string | null; external_id?: string | null; timezone?: string | null }[]
     | null;
 };
 
@@ -2185,12 +2185,13 @@ export async function getPredictionState(
       previousResult: null,
       qualifyingResults: null,
       race: null,
+      seasonSummary: emptyPredictionSeasonSummary(),
       teams: [],
     };
   }
 
   const [currentRace, fantasyOptions] = await Promise.all([
-    getCurrentRace("id, race_name, race_start_at"),
+    getCurrentRace("id, season_year, race_name, race_start_at"),
     getCurrentSeasonPredictionOptions(supabase),
   ]);
 
@@ -2211,9 +2212,10 @@ export async function getPredictionState(
 
   let current: PredictionState["current"] = null;
   let previousResult: PredictionState["previousResult"] = null;
+  let seasonSummary = emptyPredictionSeasonSummary();
 
   if (race && userId) {
-    const [{ data }, previous] = await Promise.all([
+    const [{ data }, previous, summary] = await Promise.all([
       supabase
         .from("predictions")
         .select(
@@ -2224,8 +2226,10 @@ export async function getPredictionState(
         .is("league_id", null)
         .maybeSingle(),
       getPreviousPredictionResult(userId, currentRace),
+      getPredictionSeasonSummary(userId, currentRace?.season_year ?? null),
     ]);
     previousResult = previous;
+    seasonSummary = summary;
 
     if (data) {
       const prediction = data as PredictionDbRow;
@@ -2253,7 +2257,58 @@ export async function getPredictionState(
     teams: fantasyOptions.teams,
     qualifyingResults: currentRace ? await getQualifyingResultsForRace(currentRace.id) : null,
     previousResult,
+    seasonSummary,
     current,
+  };
+}
+
+function emptyPredictionSeasonSummary(): PredictionState["seasonSummary"] {
+  return {
+    predictionCount: 0,
+    scoredPredictionCount: 0,
+    totalScore: null,
+  };
+}
+
+async function getPredictionSeasonSummary(
+  userId: string,
+  seasonYear: number | null,
+): Promise<PredictionState["seasonSummary"]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase || !userId || !seasonYear) {
+    return emptyPredictionSeasonSummary();
+  }
+
+  const { data, error } = await supabase
+    .from("predictions")
+    .select("score, races!inner(season_year)")
+    .eq("user_id", userId)
+    .is("league_id", null)
+    .eq("races.season_year", seasonYear);
+
+  if (error) {
+    return emptyPredictionSeasonSummary();
+  }
+
+  if (!data?.length) {
+    return {
+      predictionCount: 0,
+      scoredPredictionCount: 0,
+      totalScore: 0,
+    };
+  }
+
+  const scores = (data as unknown as { score: number | string | null }[])
+    .map((prediction) => toNumberOrNull(prediction.score));
+  const scoredScores = scores.filter((score): score is number => score !== null);
+
+  return {
+    predictionCount: data.length,
+    scoredPredictionCount: scoredScores.length,
+    totalScore: scoredScores.length
+      ? scoredScores.reduce((sum, score) => sum + score, 0)
+      : 0,
   };
 }
 
@@ -3780,7 +3835,7 @@ export async function getRaceDetail(
 
   const { data, error } = await supabase
     .from("races")
-    .select("id, season_year, round, race_name, race_start_at, status, circuits(id, name, country, locality, external_id)")
+    .select("id, season_year, round, race_name, race_start_at, status, circuits(id, name, country, locality, external_id, timezone)")
     .eq("season_year", season)
     .eq("round", round)
     .maybeSingle();
@@ -3814,6 +3869,7 @@ export async function getRaceDetail(
       0,
       isRaceCompletedByStandings(race, latestStanding),
     ),
+    timezone: circuit?.timezone || getCircuitTimezone(circuit?.country ?? "", circuit?.name ?? ""),
     layout,
   };
 }
@@ -6257,6 +6313,45 @@ function getCountryCode(country: string) {
   }
 
   return /^[a-z]{2}$/i.test(value) ? value.toLowerCase() : undefined;
+}
+
+function getCircuitTimezone(country: string, circuitName = "") {
+  const normalizedCountry = normalizeCountryName(country);
+  const normalizedCircuit = normalizeCountryName(circuitName);
+  const circuitTimezones: Record<string, string> = {
+    "baku city circuit": "Asia/Baku",
+    "circuit gilles villeneuve": "America/Toronto",
+    "circuit of the americas": "America/Chicago",
+    interlagos: "America/Sao_Paulo",
+    "marina bay street circuit": "Asia/Singapore",
+    "yas marina circuit": "Asia/Dubai",
+  };
+  const countryTimezones: Record<string, string> = {
+    australia: "Australia/Melbourne",
+    austria: "Europe/Vienna",
+    azerbaijan: "Asia/Baku",
+    bahrain: "Asia/Bahrain",
+    belgium: "Europe/Brussels",
+    brazil: "America/Sao_Paulo",
+    canada: "America/Toronto",
+    china: "Asia/Shanghai",
+    hungary: "Europe/Budapest",
+    italy: "Europe/Rome",
+    japan: "Asia/Tokyo",
+    mexico: "America/Mexico_City",
+    monaco: "Europe/Monaco",
+    netherlands: "Europe/Amsterdam",
+    qatar: "Asia/Qatar",
+    "saudi arabia": "Asia/Riyadh",
+    singapore: "Asia/Singapore",
+    spain: "Europe/Madrid",
+    "united arab emirates": "Asia/Dubai",
+    "united kingdom": "Europe/London",
+    "united states": "America/Chicago",
+    usa: "America/Chicago",
+  };
+
+  return circuitTimezones[normalizedCircuit] ?? countryTimezones[normalizedCountry] ?? null;
 }
 
 function getIsoCountryFlag(value: string) {

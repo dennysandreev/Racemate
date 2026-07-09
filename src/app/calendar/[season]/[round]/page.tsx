@@ -272,6 +272,38 @@ function getSessionStats(session: WeekendSession, results: SessionResult[]) {
     session.type === "race" ||
     session.type === "sprint" ||
     session.name.toLowerCase().includes("гонка");
+  const isQualifying =
+    session.type === "qualifying" ||
+    session.name.toLowerCase().includes("квалифика");
+  const weatherValue = session.weather ? (
+    <span className="grid gap-1 text-right leading-5">
+      <span>{session.weather.temperature}</span>
+      <span className="text-xs text-muted-foreground">{session.weather.precipitation}</span>
+    </span>
+  ) : (
+    "Нет данных"
+  );
+
+  if (isQualifying) {
+    return [
+      {
+        label: "Участников",
+        value: results.length ? String(results.length) : "—",
+      },
+      {
+        label: "Победитель",
+        value: bestResult?.driver ?? "—",
+      },
+      {
+        label: "Время",
+        value: bestResult?.time ?? "—",
+      },
+      {
+        label: "Погода",
+        value: weatherValue,
+      },
+    ];
+  }
 
   return [
     {
@@ -288,9 +320,7 @@ function getSessionStats(session: WeekendSession, results: SessionResult[]) {
     },
     {
       label: "Погода",
-      value: session.weather
-        ? `${session.weather.temperature}, ${session.weather.precipitation}`
-        : "Нет данных",
+      value: weatherValue,
     },
   ];
 }

@@ -45,7 +45,7 @@ export function SiteFooter() {
             </div>
           </div>
 
-          <div className="grid gap-3 border-t stitch-divider pt-4 lg:border-t-0 lg:pt-0">
+          <div className="grid gap-3 border-t stitch-divider pt-4 lg:justify-items-end lg:border-t-0 lg:pt-0">
             <FooterStrip links={productLinks} title="Связь" />
             <FooterStrip links={rulesLinks} title="Правила" />
             <FooterStrip links={documentLinks} title="Документы" />
@@ -65,10 +65,10 @@ function FooterStrip({
 }) {
   return (
     <nav
-      className="grid gap-2 sm:grid-cols-[5.75rem_minmax(0,1fr)] sm:items-center"
+      className="grid w-full gap-2 sm:grid-cols-[5.75rem_minmax(0,1fr)] sm:items-center lg:max-w-[48rem]"
       aria-label={title}
     >
-      <h2 className="font-telemetry text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+      <h2 className="font-telemetry text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground lg:text-right">
         {title}
       </h2>
       <div className="flex flex-wrap gap-x-4 gap-y-1.5 lg:justify-end">

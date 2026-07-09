@@ -33,7 +33,7 @@ export function NewsQuickFilters({
   }
 
   return (
-    <div className="grid w-full gap-2 rounded-lg border border-border/75 bg-background/45 p-2 sm:grid-cols-2 lg:w-auto lg:min-w-[28rem]">
+    <div className="grid w-full gap-2 rounded-lg border border-border/75 bg-background/45 p-2">
       <label className="group flex min-h-11 min-w-0 items-center gap-2 rounded-md border border-border/70 bg-card/60 px-3 transition-colors focus-within:border-primary/60 focus-within:bg-accent/45">
         <Shield aria-hidden="true" className="size-4 shrink-0 text-muted-foreground transition-colors group-focus-within:text-primary" />
         <span className="shrink-0 text-xs font-semibold text-muted-foreground">Команда</span>

@@ -14,6 +14,7 @@ import {
   deleteFantasyLeague,
   updateFantasyLeague,
 } from "@/app/fantasy/actions";
+import { LeagueLeaveButton } from "@/components/fantasy/league-leave-button";
 import { LeagueInviteCodeCopy } from "@/components/fantasy/league-invite-code-copy";
 import { AppShell } from "@/components/racemate/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -111,33 +112,24 @@ function LeagueHero({ league }: { league: LeagueDetail }) {
   const totalPredictions = league.members.reduce((sum, member) => sum + member.scoredCount, 0);
 
   return (
-    <header className="stitch-panel p-5 sm:p-6">
-      <div className="grid gap-6 xl:min-h-[18rem] xl:grid-cols-[minmax(0,1fr)_minmax(28rem,34rem)]">
-        <div className="flex min-w-0 flex-col justify-between gap-7">
+    <header className="stitch-panel p-4 sm:p-5">
+      <div className="grid gap-5 xl:min-h-[14rem] xl:grid-cols-[minmax(0,1fr)_minmax(28rem,34rem)]">
+        <div className="flex min-w-0 flex-col justify-between gap-5">
           <div className="min-w-0">
-            <div className="flex items-center justify-between gap-3">
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/fantasy?tab=leagues">
-                  <ArrowLeft aria-hidden="true" className="size-4" />
-                  К лигам
-                </Link>
-              </Button>
-              {league.isOwner ? <LeagueSettingsDisclosure league={league} /> : null}
-            </div>
+            <Button asChild size="sm" variant="secondary">
+              <Link href="/fantasy?tab=leagues">
+                <ArrowLeft aria-hidden="true" className="size-4" />
+                К лигам
+              </Link>
+            </Button>
 
-            <div className="mt-6 flex flex-wrap items-start gap-3">
+            <div className="mt-4 flex flex-wrap items-start gap-3">
               <h1 className="min-w-0 flex-1 font-display text-balance text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
                 {league.name}
               </h1>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{league.members.length} участников</Badge>
-              {league.isPublic ? <Badge variant="outline">Открытая лига</Badge> : <Badge variant="outline">Вход по коду</Badge>}
-              {league.isOwner ? <Badge variant="success">Ты создатель</Badge> : null}
-            </div>
-
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
               Рейтинг сезона, история этапов и разбор прогнозов всех участников.
             </p>
           </div>
@@ -161,28 +153,58 @@ function LeagueHero({ league }: { league: LeagueDetail }) {
           </div>
         </div>
 
-        <div className="grid w-full content-end gap-3 self-end sm:grid-cols-4">
-          <LeagueHeaderMetric label="Лидер" value={leader?.name ?? "—"} />
-          <LeagueHeaderMetric label="Очки" value={String(leader?.totalScore ?? "—")} />
-          <LeagueHeaderMetric label="Этапов" value={String(league.history.length)} />
-          <LeagueHeaderMetric label="Прогнозов" value={String(totalPredictions)} />
+        <div className="grid w-full content-between gap-6 self-stretch">
+          {league.isOwner ? (
+            <LeagueSettingsDisclosure league={league} />
+          ) : (
+            <LeagueParticipantControls league={league} />
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-4">
+            <LeagueHeaderMetric label="Лидер" value={leader?.name ?? "—"} />
+            <LeagueHeaderMetric label="Очки" value={String(leader?.totalScore ?? "—")} />
+            <LeagueHeaderMetric label="Этапов" value={String(league.history.length)} />
+            <LeagueHeaderMetric label="Прогнозов" value={String(totalPredictions)} />
+          </div>
         </div>
       </div>
     </header>
   );
 }
 
+function LeagueParticipantControls({ league }: { league: LeagueDetail }) {
+  return (
+    <div className="grid justify-items-end gap-3">
+      <LeagueStatusBadges league={league} />
+      <LeagueLeaveButton leagueId={league.id} />
+    </div>
+  );
+}
+
+function LeagueStatusBadges({ league }: { league: LeagueDetail }) {
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      <Badge variant="secondary">{league.members.length} участников</Badge>
+      {league.isPublic ? <Badge variant="outline">Открытая лига</Badge> : <Badge variant="outline">Вход по коду</Badge>}
+      {league.isOwner ? <Badge variant="success">Ты создатель</Badge> : null}
+    </div>
+  );
+}
+
 function LeagueSettingsDisclosure({ league }: { league: LeagueDetail }) {
   return (
-    <details className="group relative">
-      <summary
-        aria-label="Настройки лиги"
-        className="grid size-10 cursor-pointer list-none place-items-center rounded-full border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-accent/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
-        title="Настройки лиги"
-      >
-        <Settings aria-hidden="true" className="size-4 text-primary" />
+    <details className="group grid gap-3">
+      <summary className="flex cursor-pointer list-none items-start justify-end gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+        <LeagueStatusBadges league={league} />
+        <span
+          aria-label="Настройки лиги"
+          className="grid size-12 shrink-0 place-items-center rounded-full border border-border/60 bg-background/45 text-muted-foreground transition-colors group-hover:border-primary/60 group-hover:bg-accent/45 group-hover:text-foreground"
+          title="Настройки лиги"
+        >
+          <Settings aria-hidden="true" className="size-5 text-primary" />
+        </span>
       </summary>
-      <div className="absolute right-0 z-30 mt-3 w-[min(52rem,calc(100vw-2rem))]">
+      <div className="mt-1">
         <LeagueOwnerPanel league={league} />
       </div>
     </details>
@@ -191,9 +213,9 @@ function LeagueSettingsDisclosure({ league }: { league: LeagueDetail }) {
 
 function LeagueHeaderMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid min-h-[5.75rem] place-items-center rounded-lg border border-border bg-background/45 p-3 text-center">
+    <div className="grid min-h-[4.75rem] place-items-center rounded-lg border border-border bg-background/45 p-2.5 text-center">
       <div className="min-w-0">
-        <p className="truncate font-telemetry text-lg font-bold text-primary">{value}</p>
+        <p className="truncate font-telemetry text-base font-bold text-primary">{value}</p>
         <p className="mt-1 font-telemetry text-[0.6rem] font-bold uppercase tracking-[0.12em] text-muted-foreground">
           {label}
         </p>
@@ -204,10 +226,10 @@ function LeagueHeaderMetric({ label, value }: { label: string; value: string }) 
 
 function LeagueOwnerPanel({ league }: { league: LeagueDetail }) {
   return (
-    <section className="grid gap-4 rounded-xl border border-border bg-card p-4 shadow-2xl shadow-black/25 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <section className="grid gap-4 rounded-xl border border-border bg-card p-4 shadow-2xl shadow-black/25">
       <form
         action={updateFantasyLeague}
-        className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end"
+        className="grid gap-3"
       >
         <input name="leagueId" type="hidden" value={league.id} />
         <label className="grid gap-2 text-sm font-medium" htmlFor="league-name">
@@ -683,6 +705,20 @@ function getLeagueNotice(query: LeaguePageSearchParams) {
   if (query.message === "confirm") {
     return {
       text: "Для удаления введи точное название лиги.",
+      tone: "warning" as const,
+    };
+  }
+
+  if (query.message === "owner") {
+    return {
+      text: "Создатель управляет лигой через настройки. Чтобы закрыть лигу, удали её.",
+      tone: "warning" as const,
+    };
+  }
+
+  if (query.message === "leave") {
+    return {
+      text: "Не получилось выйти из лиги. Попробуй ещё раз.",
       tone: "warning" as const,
     };
   }

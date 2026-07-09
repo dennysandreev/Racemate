@@ -3163,6 +3163,7 @@ async function buildCircuitRaceContext(race) {
     }));
   const sourceErrors = {};
   const openF1 = await collectCircuitOpenF1Data(raceSession.openf1_session_key, sourceErrors);
+  const reportRaceControl = await collectCircuitReportRaceControlData(race, sourceErrors);
   const strategy = buildCircuitStrategy(openF1.pits ?? []);
   const dnfCount = raceResults.filter((result) => result.status && !isFinisherStatus(result.status)).length;
 
@@ -3176,9 +3177,9 @@ async function buildCircuitRaceContext(race) {
     pole,
     podium,
     dnfCount,
-    safetyCarCount: openF1.safetyCarCount,
-    vscCount: openF1.vscCount,
-    redFlagCount: openF1.redFlagCount,
+    safetyCarCount: openF1.safetyCarCount ?? reportRaceControl?.safetyCarCount ?? null,
+    vscCount: openF1.vscCount ?? reportRaceControl?.vscCount ?? null,
+    redFlagCount: openF1.redFlagCount ?? reportRaceControl?.redFlagCount ?? null,
     strategy,
     raceResults,
     qualifyingResults,
@@ -3575,6 +3576,91 @@ async function collectCircuitOpenF1Data(sessionKey, sourceErrors) {
   }
 
   return result;
+}
+
+async function collectCircuitReportRaceControlData(race, sourceErrors) {
+  if (!race?.season_year || !race?.round) {
+    return null;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("grand_prix_reports")
+      .select("key_events, highlights")
+      .eq("season", race.season_year)
+      .eq("round", race.round)
+      .maybeSingle();
+
+    if (error) {
+      sourceErrors.report_race_control = error.message;
+      return null;
+    }
+
+    const keyEvents = Array.isArray(data?.key_events) ? data.key_events : [];
+    const summaryCounts = parseSafetyCarSummary(data?.highlights?.safetyCarSummary);
+
+    if (!keyEvents.length && !summaryCounts) {
+      return null;
+    }
+
+    return {
+      safetyCarCount: keyEvents.length
+        ? countReportRaceControlEvents(keyEvents, "safety_car")
+        : summaryCounts?.safetyCarCount ?? null,
+      vscCount: keyEvents.length
+        ? countReportRaceControlEvents(keyEvents, "vsc")
+        : summaryCounts?.vscCount ?? null,
+      redFlagCount: keyEvents.length
+        ? countReportRaceControlEvents(keyEvents, "red_flag")
+        : summaryCounts?.redFlagCount ?? null,
+    };
+  } catch (error) {
+    sourceErrors.report_race_control = getSafeErrorMessage(error);
+    return null;
+  }
+}
+
+function countReportRaceControlEvents(events, kind) {
+  return (events ?? []).filter((event) => {
+    const text = [
+      event?.type,
+      event?.title,
+      event?.detail,
+      event?.message,
+      event?.category,
+    ].map((value) => String(value ?? "").toLowerCase()).join(" ");
+
+    if (kind === "red_flag") {
+      return /red flag|красн/.test(text);
+    }
+
+    if (kind === "vsc") {
+      return /virtual safety car|\bvsc\b/.test(text);
+    }
+
+    return /safety car|\bsc\b|пейс.?кар|сейфти/.test(text) &&
+      !/virtual safety car|\bvsc\b|speeding|penalt|штраф|наруш/.test(text);
+  }).length;
+}
+
+function parseSafetyCarSummary(summary) {
+  const text = String(summary ?? "");
+
+  if (!text || !/SC|VSC|красн/i.test(text)) {
+    return null;
+  }
+
+  return {
+    safetyCarCount: extractSummaryCount(text, /\bSC\s*[:—-]\s*(\d+)/i),
+    vscCount: extractSummaryCount(text, /\bVSC\s*[:—-]\s*(\d+)/i),
+    redFlagCount: extractSummaryCount(text, /красн(?:ые|ых)?\s+флаг(?:и|ов)?\s*[:—-]\s*(\d+)/i),
+  };
+}
+
+function extractSummaryCount(text, pattern) {
+  const match = text.match(pattern);
+
+  return match ? numberOrNull(match[1]) : null;
 }
 
 function countOpenF1Messages(messages, includePattern, excludePattern = null) {

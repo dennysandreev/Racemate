@@ -118,7 +118,7 @@ function getWeatherLabel(precipitationMm?: number | null) {
   }
 
   if (precipitationMm >= 0.4) {
-    return "Есть дождь";
+    return "Дождь";
   }
 
   if (precipitationMm > 0) {

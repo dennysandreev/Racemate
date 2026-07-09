@@ -82,33 +82,6 @@ export default async function NewsPage({
 
       <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="grid content-start gap-5">
-          <div className="stitch-panel flex flex-wrap items-center justify-between gap-3 p-3">
-            <div className="min-w-0">
-              <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                Персональная лента
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Новости по пилотам и командам, которые ты отметил в профиле.
-              </p>
-            </div>
-            {user ? (
-              <Button
-                asChild
-                size="sm"
-                variant={activeFavoriteFilter ? "default" : "secondary"}
-              >
-                <Link href={activeFavoriteFilter ? "/news" : "/news?filter=favorites"}>
-                  Мои новости
-                </Link>
-              </Button>
-            ) : (
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/auth">Войти</Link>
-              </Button>
-            )}
-            <NewsQuickFilters activeTag={tag} drivers={driverTags} teams={teamTags} />
-          </div>
-
           {tag || race || activeFavoriteFilter ? (
             <div className="stitch-panel flex flex-wrap items-center justify-between gap-3 p-3">
               <span className="text-sm text-muted-foreground">
@@ -211,6 +184,38 @@ export default async function NewsPage({
         </div>
 
         <aside className="grid content-start gap-5">
+          <StitchPanel>
+            <div className="grid gap-4 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-primary">
+                    Персональная лента
+                  </p>
+                  <p className="mt-2 text-sm leading-5 text-muted-foreground">
+                    Быстрый фильтр по твоим командам, пилотам и тегам ленты.
+                  </p>
+                </div>
+                {user ? (
+                  <Button
+                    asChild
+                    className="shrink-0"
+                    size="sm"
+                    variant={activeFavoriteFilter ? "default" : "secondary"}
+                  >
+                    <Link href={activeFavoriteFilter ? "/news" : "/news?filter=favorites"}>
+                      Мои новости
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button asChild className="shrink-0" size="sm" variant="secondary">
+                    <Link href="/auth">Войти</Link>
+                  </Button>
+                )}
+              </div>
+              <NewsQuickFilters activeTag={tag} drivers={driverTags} teams={teamTags} />
+            </div>
+          </StitchPanel>
+
           <StitchPanel>
             <StitchPanelHeader
               icon={Sparkles}

@@ -405,6 +405,57 @@ export async function deleteFantasyLeague(formData: FormData) {
   redirect("/fantasy?tab=leagues&deleted=1");
 }
 
+export async function leaveFantasyLeague(formData: FormData) {
+  const profile = await ensureProfile();
+  const supabase = await createSupabaseServerClient();
+  const admin = createSupabaseAdminClient();
+  const leagueId = String(formData.get("leagueId") ?? "").trim();
+
+  if (!supabase || !leagueId) {
+    redirect("/fantasy?tab=leagues");
+  }
+
+  if (!profile) {
+    redirect(`/fantasy/leagues/${leagueId}?message=auth`);
+  }
+
+  const limit = consumeRateLimit("fantasy:leagues:leave", `user:${profile.id}`, 10, 10 * 60 * 1_000);
+
+  if (!limit.ok) {
+    redirect(`/fantasy/leagues/${leagueId}?message=leave`);
+  }
+
+  const db = admin ?? supabase;
+  const { data: league } = await db
+    .from("prediction_leagues")
+    .select("owner_user_id")
+    .eq("id", leagueId)
+    .maybeSingle();
+
+  if (!league) {
+    redirect("/fantasy?tab=leagues&message=not-found");
+  }
+
+  if (league.owner_user_id === profile.id) {
+    redirect(`/fantasy/leagues/${leagueId}?message=owner`);
+  }
+
+  const { error } = await db
+    .from("prediction_league_members")
+    .delete()
+    .eq("league_id", leagueId)
+    .eq("user_id", profile.id)
+    .neq("role", "owner");
+
+  if (error) {
+    redirect(`/fantasy/leagues/${leagueId}?message=leave`);
+  }
+
+  revalidatePath("/fantasy");
+  revalidatePath(`/fantasy/leagues/${leagueId}`);
+  redirect("/fantasy?tab=leagues&left=1");
+}
+
 function nullableFormValue(value: FormDataEntryValue | null) {
   const stringValue = String(value ?? "");
 

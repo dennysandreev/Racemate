@@ -19,7 +19,6 @@ export function Top10PredictionPicker({
     [defaultValue],
   );
   const [selected, setSelected] = useState(initialValue);
-  const selectedIds = new Set(selected.filter(Boolean));
 
   function updatePosition(index: number, value: string) {
     setSelected((current) =>
@@ -50,7 +49,6 @@ export function Top10PredictionPicker({
             <option value="">Пилот</option>
             {drivers.map((driver) => (
               <option
-                disabled={driver.id !== driverId && selectedIds.has(driver.id)}
                 key={driver.id}
                 value={driver.id}
               >
