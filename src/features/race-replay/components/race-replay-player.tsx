@@ -20,6 +20,19 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  buildDriverMotion,
+  pitLaneParamAt,
+  trackProgressAt,
+  type DriverMotion,
+} from "@/features/race-replay/lib/motion";
+import {
+  buildPitGeometry,
+  buildTrackGeometry,
+  TRACK_WIDTH,
+  type PitGeometry,
+  type TrackGeometry,
+} from "@/features/race-replay/lib/track-geometry";
 import { cn } from "@/lib/utils";
 import type {
   RaceReplaySnapshot,
@@ -35,11 +48,11 @@ type RaceReplayPlayerProps = {
 };
 
 const speeds = [1, 2, 5, 10];
-const maxReplayInterpolationGapMs = 180_000;
 const staleTelemetryMs = 90_000;
 
 type CurrentReplayPosition = ReplayPositionEvent & {
   isStale?: boolean;
+  trailD?: string | null;
 };
 
 type TimingRow = ReplayDriverState & {
@@ -221,13 +234,28 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     () => buildDisplayPitLane(replay.track.centerline, pitLane?.points ?? [], replay.circuitName),
     [pitLane?.points, replay.circuitName, replay.track.centerline],
   );
+  const geometry = useMemo(
+    () => buildTrackGeometry(replay.track.centerline, replay.track.startFinish?.progress ?? 0),
+    [replay.track.centerline, replay.track.startFinish?.progress],
+  );
+  const pitGeometry = useMemo(() => buildPitGeometry(displayPitLane), [displayPitLane]);
+  const motionByDriver = useMemo(() => {
+    const map = new Map<number, DriverMotion>();
+
+    for (const [driverNumber, events] of positionsByDriver.entries()) {
+      map.set(driverNumber, buildDriverMotion(events));
+    }
+
+    return map;
+  }, [positionsByDriver]);
   const pitWindows = useMemo(
     () => buildPitWindows(replay.positions),
     [replay.positions],
   );
+  const [lateralOffsets] = useState(() => new Map<number, number>());
   const currentPositions = useMemo(
-    () => getCurrentPositions(positionsByDriver, elapsedMs, replay.track.centerline, pitWindows, displayPitLane),
-    [displayPitLane, elapsedMs, pitWindows, positionsByDriver, replay.track.centerline],
+    () => getCurrentPositions(motionByDriver, elapsedMs, geometry, pitWindows, pitGeometry, lateralOffsets),
+    [elapsedMs, geometry, lateralOffsets, motionByDriver, pitGeometry, pitWindows],
   );
   const timingRows = useMemo(
     () => buildTimingRows(replay.drivers, currentPositions),
@@ -271,14 +299,6 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
   const raceStatus = useMemo(
     () => getRaceStatus(replay.raceEvents, elapsedMs, showChequeredFlag),
     [elapsedMs, replay.raceEvents, showChequeredFlag],
-  );
-  const trackDecor = useMemo(
-    () => buildTrackDecor(replay.track.centerline),
-    [replay.track.centerline],
-  );
-  const pitLaneVisualPath = useMemo(
-    () => buildPitLaneVisualPath(displayPitLane),
-    [displayPitLane],
   );
   const timelineMarkers = useMemo(
     () => buildTimelineMarkers(replay.raceEvents, duration),
@@ -443,6 +463,11 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
               <pattern id="race-replay-grid" height="42" patternUnits="userSpaceOnUse" width="42">
                 <path d="M 42 0 L 0 0 0 42" fill="none" stroke="var(--race-replay-grid)" strokeWidth="1" />
               </pattern>
+              <pattern id="race-replay-checker" height="7" patternUnits="userSpaceOnUse" width="7">
+                <rect fill="#f5f7fa" height="7" width="7" />
+                <rect fill="#101113" height="3.5" width="3.5" />
+                <rect fill="#101113" height="3.5" width="3.5" x="3.5" y="3.5" />
+              </pattern>
               <filter id="race-replay-track-shadow" x="-20%" y="-20%" width="140%" height="140%">
                 <feDropShadow dx="0" dy="10" floodColor="rgba(0,0,0,0.55)" stdDeviation="12" />
               </filter>
@@ -455,141 +480,54 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
               </filter>
             </defs>
             <rect fill="url(#race-replay-grid)" height={viewBox.height} width={viewBox.width} x="0" y="0" />
-            <path
-              d={replay.track.svg.visualPathD}
-              fill="none"
-              filter="url(#race-replay-track-shadow)"
-              stroke="var(--race-replay-track-aura)"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="42"
-            />
-            {trackDecor.sectorPaths.map((sector) => (
+            {geometry ? (
+              <TrackSurface
+                debug={debug}
+                geometry={geometry}
+                pitGeometry={pitGeometry}
+                technicalPathD={replay.track.svg.technicalPathD}
+              />
+            ) : (
               <path
-                d={sector.pathD}
+                d={replay.track.svg.visualPathD}
                 fill="none"
-                key={sector.label}
-                stroke={sector.color}
+                stroke="var(--race-replay-track-core)"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="46"
+                strokeWidth="24"
               />
-            ))}
-            {pitLaneVisualPath ? (
-              <g>
-                <path
-                d={pitLaneVisualPath}
-                fill="none"
-                  stroke="var(--race-replay-track-outer)"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="24"
-                />
-                <path
-                d={pitLaneVisualPath}
-                fill="none"
-                  stroke="var(--race-replay-track-edge)"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="14"
-                />
-                <path
-                d={pitLaneVisualPath}
-                fill="none"
-                  stroke="var(--race-replay-track-core)"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="10"
-                />
-              </g>
-            ) : null}
-            <path
-              d={replay.track.svg.visualPathD}
-              fill="none"
-              stroke="var(--race-replay-track-outer)"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="30"
-            />
-            <path
-              d={replay.track.svg.visualPathD}
-              fill="none"
-              stroke="var(--race-replay-track-edge)"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="18"
-            />
-            <path
-              d={replay.track.svg.visualPathD}
-              fill="none"
-              stroke="var(--race-replay-track-core)"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="14"
-            />
-            <g transform={`translate(${trackDecor.start.svgX} ${trackDecor.start.svgY})`}>
-              <line stroke="var(--race-replay-track-start)" strokeWidth="2.5" x1="-18" x2="18" y1="-8" y2="8" />
-              <text fill="var(--race-replay-track-label)" fontSize="10" fontWeight="900" textAnchor="end" x="-18" y="-12">
-                START
-              </text>
-            </g>
-            {debug ? (
-              <path
-                d={replay.track.svg.technicalPathD}
-                fill="none"
-                stroke="hsl(var(--success))"
-                strokeDasharray="2 4"
-                strokeWidth="1"
-              />
-            ) : null}
+            )}
+            {[...currentPositions.values()]
+              .filter((position) => !position.isStale && position.trailD)
+              .map((position) => {
+                const driver = replay.drivers.find((item) => item.driverNumber === position.driverNumber);
+
+                return (
+                  <path
+                    d={position.trailD ?? ""}
+                    fill="none"
+                    key={`trail-${position.driverNumber}`}
+                    opacity="0.32"
+                    stroke={driver?.teamColor ?? "hsl(var(--primary))"}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="3.4"
+                  />
+                );
+              })}
             {[...currentPositions.values()].filter((position) => !position.isStale).map((position) => {
               const driver = replay.drivers.find((item) => item.driverNumber === position.driverNumber);
-              const isSelected = selectedDriver === position.driverNumber;
-              const markerPosition = position;
 
               return (
-                <g
-                  aria-label={`Выбрать пилота ${driver?.fullName ?? position.driverNumber}`}
-                  className="cursor-pointer outline-none"
-                  filter={isSelected ? "url(#race-replay-glow)" : undefined}
+                <CarMarker
+                  abbreviation={driver?.abbreviation ?? String(position.driverNumber)}
+                  fullName={driver?.fullName ?? String(position.driverNumber)}
+                  isSelected={selectedDriver === position.driverNumber}
                   key={position.driverNumber}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setSelectedDriver(position.driverNumber);
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      setSelectedDriver(position.driverNumber);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  transform={`translate(${markerPosition.svgX} ${markerPosition.svgY}) rotate(${(markerPosition.headingRad * 180) / Math.PI})`}
-                >
-                  <circle fill="transparent" r="18" />
-                  <rect
-                    fill={driver?.teamColor ?? "hsl(var(--primary))"}
-                    height={isSelected ? 14 : 11}
-                    opacity={position.isStale ? 0.78 : 1}
-                    rx={isSelected ? 7 : 5.5}
-                    stroke={position.isPitLane ? "var(--race-replay-pit-marker)" : "var(--race-replay-marker-stroke)"}
-                    strokeWidth={isSelected ? 3 : position.isPitLane ? 2.5 : 2}
-                    width={isSelected ? 29 : 24}
-                    x={isSelected ? -14.5 : -12}
-                    y={isSelected ? -7 : -5.5}
-                  />
-                  <text
-                    fill="var(--race-replay-marker-text)"
-                    fontSize={isSelected ? "6.4" : "5.5"}
-                    fontWeight="900"
-                    textAnchor="middle"
-                    transform={`rotate(${-(markerPosition.headingRad * 180) / Math.PI})`}
-                    y="2"
-                  >
-                    {driver?.abbreviation ?? position.driverNumber}
-                  </text>
-                </g>
+                  onSelect={() => setSelectedDriver(position.driverNumber)}
+                  position={position}
+                  teamColor={driver?.teamColor ?? "hsl(var(--primary))"}
+                />
               );
             })}
           </svg>
@@ -738,6 +676,241 @@ function WeatherChips({ weather }: { weather: RaceReplaySnapshot["weather"] }) {
         </div>
       ))}
     </div>
+  );
+}
+
+function TrackSurface({
+  debug,
+  geometry,
+  pitGeometry,
+  technicalPathD,
+}: {
+  debug: boolean;
+  geometry: TrackGeometry;
+  pitGeometry: PitGeometry | null;
+  technicalPathD: string;
+}) {
+  const startAngle = (geometry.startFinish.headingRad * 180) / Math.PI;
+
+  return (
+    <g>
+      <path
+        d={geometry.pathD}
+        fill="none"
+        filter="url(#race-replay-track-shadow)"
+        stroke="var(--race-replay-track-aura)"
+        strokeLinejoin="round"
+        strokeWidth={TRACK_WIDTH + 22}
+      />
+      {geometry.sectorPaths.map((sector) => (
+        <path
+          d={sector.pathD}
+          fill="none"
+          key={sector.label}
+          stroke={sector.color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={TRACK_WIDTH + 16}
+        />
+      ))}
+      {pitGeometry ? (
+        <g>
+          <path
+            d={pitGeometry.pathD}
+            fill="none"
+            stroke="var(--race-replay-track-outer)"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="15"
+          />
+          <path
+            d={pitGeometry.pathD}
+            fill="none"
+            stroke="var(--race-replay-track-core)"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="10"
+          />
+          <path
+            d={pitGeometry.pathD}
+            fill="none"
+            stroke="var(--race-replay-track-edge)"
+            strokeDasharray="5 6"
+            strokeLinecap="round"
+            strokeWidth="1.1"
+          />
+          <text
+            fill="var(--race-replay-track-label)"
+            fontSize="8.5"
+            fontWeight="800"
+            textAnchor="middle"
+            x={pitGeometry.label.x}
+            y={pitGeometry.label.y}
+          >
+            PIT
+          </text>
+        </g>
+      ) : null}
+      <path
+        d={geometry.pathD}
+        fill="none"
+        stroke="var(--race-replay-track-outer)"
+        strokeLinejoin="round"
+        strokeWidth={TRACK_WIDTH + 7}
+      />
+      <path
+        d={geometry.pathD}
+        fill="none"
+        stroke="var(--race-replay-track-core)"
+        strokeLinejoin="round"
+        strokeWidth={TRACK_WIDTH}
+      />
+      <path
+        d={geometry.edgeLeftD}
+        fill="none"
+        opacity="0.75"
+        stroke="var(--race-replay-track-edge)"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+      <path
+        d={geometry.edgeRightD}
+        fill="none"
+        opacity="0.75"
+        stroke="var(--race-replay-track-edge)"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+      {geometry.corners.map((corner) => (
+        <g key={corner.number}>
+          <path d={corner.kerbPathD} fill="none" stroke="#f5f7fa" strokeLinecap="round" strokeWidth="4.6" />
+          <path
+            d={corner.kerbPathD}
+            fill="none"
+            stroke="#e10600"
+            strokeDasharray="7 7"
+            strokeLinecap="round"
+            strokeWidth="4.6"
+          />
+          <text
+            fill="var(--race-replay-track-label)"
+            fontSize="10.5"
+            fontWeight="800"
+            textAnchor="middle"
+            x={corner.labelX}
+            y={corner.labelY + 3.5}
+          >
+            T{corner.number}
+          </text>
+        </g>
+      ))}
+      <g transform={`translate(${geometry.startFinish.x} ${geometry.startFinish.y})`}>
+        <g transform={`rotate(${startAngle})`}>
+          <rect
+            fill="url(#race-replay-checker)"
+            height={TRACK_WIDTH + 6}
+            rx="1.5"
+            stroke="rgba(0,0,0,0.4)"
+            strokeWidth="0.8"
+            width="9"
+            x="-4.5"
+            y={-(TRACK_WIDTH + 6) / 2}
+          />
+        </g>
+        <text
+          fill="var(--race-replay-track-label)"
+          fontSize="9"
+          fontWeight="900"
+          textAnchor="middle"
+          y={-(TRACK_WIDTH / 2) - 12}
+        >
+          СТАРТ / ФИНИШ
+        </text>
+      </g>
+      {debug ? (
+        <path d={technicalPathD} fill="none" stroke="hsl(var(--success))" strokeDasharray="2 4" strokeWidth="1" />
+      ) : null}
+    </g>
+  );
+}
+
+function CarMarker({
+  abbreviation,
+  fullName,
+  isSelected,
+  onSelect,
+  position,
+  teamColor,
+}: {
+  abbreviation: string;
+  fullName: string;
+  isSelected: boolean;
+  onSelect: () => void;
+  position: CurrentReplayPosition;
+  teamColor: string;
+}) {
+  const angle = (position.headingRad * 180) / Math.PI;
+
+  return (
+    <g
+      aria-label={`Выбрать пилота ${fullName}`}
+      className="cursor-pointer outline-none"
+      filter={isSelected ? "url(#race-replay-glow)" : undefined}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      transform={`translate(${position.svgX} ${position.svgY})`}
+    >
+      <circle fill="transparent" r="17" />
+      <g transform={`rotate(${angle})${isSelected ? " scale(1.22)" : ""}`}>
+        {isSelected ? (
+          <circle fill="none" opacity="0.85" r="13.5" stroke={teamColor} strokeDasharray="3 3" strokeWidth="1.2" />
+        ) : null}
+        <rect fill={teamColor} height="8.6" opacity="0.95" rx="1.1" width="2.6" x="-11" y="-4.3" />
+        <rect
+          fill={teamColor}
+          height="6.6"
+          rx="3.2"
+          stroke={position.isPitLane ? "var(--race-replay-pit-marker)" : "var(--race-replay-marker-stroke)"}
+          strokeWidth={position.isPitLane ? 1.9 : 1.4}
+          width="19"
+          x="-9.5"
+          y="-3.3"
+        />
+        <rect
+          fill={teamColor}
+          height="9.2"
+          rx="1.1"
+          stroke="var(--race-replay-marker-stroke)"
+          strokeWidth="0.7"
+          width="2.4"
+          x="7.8"
+          y="-4.6"
+        />
+        <circle cx="1.2" fill="rgba(8,8,10,0.72)" r="1.7" />
+      </g>
+      <text
+        fill="var(--race-replay-track-label)"
+        fontSize={isSelected ? "6.6" : "5.6"}
+        fontWeight="900"
+        paintOrder="stroke"
+        stroke="rgba(0,0,0,0.7)"
+        strokeWidth="1.6"
+        textAnchor="middle"
+        y={isSelected ? -15 : -12.5}
+      >
+        {abbreviation}
+      </text>
+    </g>
   );
 }
 
@@ -1415,130 +1588,162 @@ function groupReplayPositionsByDriver(events: ReplayPositionEvent[]) {
 }
 
 function getCurrentPositions(
-  eventsByDriver: Map<number, ReplayPositionEvent[]>,
+  motionByDriver: Map<number, DriverMotion>,
   elapsedMs: number,
-  centerline: TrackPoint[],
+  geometry: TrackGeometry | null,
   pitWindows: PitWindow[],
-  pitLanePoints: PitLanePoint[],
+  pitGeometry: PitGeometry | null,
+  lateralOffsets: Map<number, number>,
 ) {
   const byDriver = new Map<number, CurrentReplayPosition>();
 
-  for (const [driverNumber, driverEvents] of eventsByDriver.entries()) {
+  for (const [driverNumber, motion] of motionByDriver.entries()) {
+    const driverEvents = motion.events;
+
+    if (!driverEvents.length) {
+      continue;
+    }
+
     const currentIndex = findReplayEventIndexAt(driverEvents, elapsedMs);
-    const previous = currentIndex >= 0 ? driverEvents[currentIndex] : null;
-    const next = driverEvents[currentIndex + 1] ?? (currentIndex < 0 ? driverEvents[0] : null);
-    const isRetired = previous ? isDriverRetiredOnTrack(driverEvents, elapsedMs) : false;
+    const stateEvent = currentIndex >= 0 ? driverEvents[currentIndex] : driverEvents[0];
+    const isRetired = currentIndex >= 0 ? isDriverRetiredOnTrack(driverEvents, elapsedMs) : false;
     const pitWindow = pitWindows.find((window) =>
       window.driverNumber === driverNumber && elapsedMs >= window.startMs && elapsedMs <= window.endMs,
     ) ?? null;
 
-    if (pitWindow && pitLanePoints.length) {
-      const base = previous && next && next.offsetMs - previous.offsetMs <= maxReplayInterpolationGapMs
-        ? interpolateReplayPosition(previous, next, elapsedMs, centerline)
-        : previous ?? next;
-      const pitPoint = sampleReplayPitLanePoint(pitLanePoints, pitWindow, elapsedMs);
+    let svgX = stateEvent.svgX;
+    let svgY = stateEvent.svgY;
+    let headingRad = stateEvent.headingRad;
+    let progress = stateEvent.progress;
+    let isPitLane = false;
+    let hold = true;
+    let trailD: string | null = null;
 
-      if (base && pitPoint) {
-        byDriver.set(driverNumber, {
-          ...base,
-          headingRad: pitPoint.headingRad,
-          isPitLane: true,
-          isStale: false,
-          offsetMs: elapsedMs,
-          pitLaneDuration: pitWindow.pitLaneSeconds,
-          pitStopDuration: pitWindow.pitStopSeconds,
-          svgX: pitPoint.svgX,
-          svgY: pitPoint.svgY,
-        });
-        continue;
+    if (pitWindow && pitGeometry) {
+      const point = pitGeometry.pointAt(pitLaneParamAt(pitWindow, elapsedMs));
+      svgX = point.x;
+      svgY = point.y;
+      headingRad = point.headingRad;
+      isPitLane = true;
+      hold = false;
+    } else if (geometry) {
+      const sample = trackProgressAt(motion, elapsedMs);
+
+      if (sample) {
+        progress = ((sample.unwrapped % 1) + 1) % 1;
+        const point = geometry.pointAt(progress);
+        svgX = point.x;
+        svgY = point.y;
+        headingRad = point.headingRad;
+        hold = sample.hold;
+
+        if (!sample.hold && !isRetired) {
+          trailD = buildTrailPath(motion, elapsedMs, geometry, svgX, svgY);
+        }
       }
     }
 
-    if (previous && next && next.offsetMs - previous.offsetMs <= maxReplayInterpolationGapMs) {
-      byDriver.set(driverNumber, {
-        ...interpolateReplayPosition(previous, next, elapsedMs, centerline),
-        isStale: isRetired,
-      });
-    } else if (previous) {
-      byDriver.set(driverNumber, {
-        ...previous,
-        isStale: isRetired || elapsedMs - previous.offsetMs > staleTelemetryMs,
-      });
-    } else if (next) {
-      byDriver.set(driverNumber, next);
-    }
+    const isStale = isRetired || (hold && currentIndex >= 0 && elapsedMs - stateEvent.offsetMs > staleTelemetryMs);
+
+    byDriver.set(driverNumber, {
+      ...stateEvent,
+      headingRad,
+      isPitLane,
+      isStale,
+      offsetMs: elapsedMs,
+      pitLaneDuration: pitWindow ? pitWindow.pitLaneSeconds : stateEvent.pitLaneDuration,
+      pitStopDuration: pitWindow ? pitWindow.pitStopSeconds : stateEvent.pitStopDuration,
+      progress,
+      svgX,
+      svgY,
+      trailD,
+    });
   }
+
+  applyLateralSeparation(byDriver, lateralOffsets);
 
   return byDriver;
 }
 
-function interpolateReplayPosition(
-  previous: ReplayPositionEvent,
-  next: ReplayPositionEvent,
+function buildTrailPath(
+  motion: DriverMotion,
   elapsedMs: number,
-  centerline: TrackPoint[],
+  geometry: TrackGeometry,
+  headX: number,
+  headY: number,
 ) {
-  const span = Math.max(1, next.offsetMs - previous.offsetMs);
-  const t = clamp((elapsedMs - previous.offsetMs) / span, 0, 1);
-  const shouldUseRawPosition = Boolean(previous.isPitLane && next.isPitLane);
+  const commands: string[] = [];
 
-  if (shouldUseRawPosition) {
-    return {
-      ...previous,
-      gapToLeader: next.gapToLeader ?? previous.gapToLeader,
-      headingRad: getRawHeading(previous, next),
-      intervalToAhead: next.intervalToAhead ?? previous.intervalToAhead,
-      isPitLane: Boolean(previous.isPitLane || next.isPitLane),
-      lapNumber: next.lapNumber ?? previous.lapNumber,
-      lastLapDuration: next.lastLapDuration ?? previous.lastLapDuration,
-      lastLapTime: next.lastLapTime ?? previous.lastLapTime,
-      normalizedZ: lerp(previous.normalizedZ, next.normalizedZ, t),
-      offsetMs: elapsedMs,
-      pitLaneDuration: next.pitLaneDuration ?? previous.pitLaneDuration,
-      pitStopDuration: next.pitStopDuration ?? previous.pitStopDuration,
-      position: next.position ?? previous.position,
-      progress: previous.progress,
-      sector1Time: next.sector1Time ?? previous.sector1Time,
-      sector2Time: next.sector2Time ?? previous.sector2Time,
-      sector3Time: next.sector3Time ?? previous.sector3Time,
-      svgX: lerp(previous.svgX, next.svgX, t),
-      svgY: lerp(previous.svgY, next.svgY, t),
-      timestamp: new Date(new Date(previous.timestamp).getTime() + span * t).toISOString(),
-      tyreAge: next.tyreAge ?? previous.tyreAge,
-      z: lerp(previous.z, next.z, t),
-    };
+  for (let step = 6; step >= 1; step -= 1) {
+    const sample = trackProgressAt(motion, elapsedMs - step * 240);
+
+    if (!sample) {
+      continue;
+    }
+
+    const point = geometry.pointAt(((sample.unwrapped % 1) + 1) % 1);
+    commands.push(`${commands.length === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`);
   }
 
-  const progressDelta = getProgressDelta(previous.progress, next.progress);
-  const safeTrackPoint =
-    progressDelta === null ? getTrackPointAtProgress(centerline, previous.progress) : null;
-  const progress =
-    progressDelta === null
-      ? previous.progress
-      : (previous.progress + progressDelta * t + 1) % 1;
-  const trackPoint = progressDelta === null ? safeTrackPoint : getTrackPointAtProgress(centerline, progress);
+  if (!commands.length) {
+    return null;
+  }
 
-  return {
-    ...previous,
-    gapToLeader: next.gapToLeader ?? previous.gapToLeader,
-    headingRad: trackPoint?.headingRad ?? previous.headingRad,
-    intervalToAhead: next.intervalToAhead ?? previous.intervalToAhead,
-    lapNumber: next.lapNumber ?? previous.lapNumber,
-    lastLapDuration: next.lastLapDuration ?? previous.lastLapDuration,
-    lastLapTime: next.lastLapTime ?? previous.lastLapTime,
-    normalizedZ: trackPoint?.normalizedZ ?? lerp(previous.normalizedZ, next.normalizedZ, t),
-    offsetMs: elapsedMs,
-    position: next.position ?? previous.position,
-    progress,
-    sector1Time: next.sector1Time ?? previous.sector1Time,
-    sector2Time: next.sector2Time ?? previous.sector2Time,
-    sector3Time: next.sector3Time ?? previous.sector3Time,
-    svgX: trackPoint?.svgX ?? previous.svgX,
-    svgY: trackPoint?.svgY ?? previous.svgY,
-    timestamp: new Date(new Date(previous.timestamp).getTime() + span * t).toISOString(),
-    tyreAge: next.tyreAge ?? previous.tyreAge,
-    z: trackPoint?.z ?? lerp(previous.z, next.z, t),
+  commands.push(`L${headX.toFixed(1)} ${headY.toFixed(1)}`);
+
+  return commands.join(" ");
+}
+
+/*
+ * Машины, идущие борт в борт, разводятся поперёк трассы, чтобы маркеры
+ * не накладывались друг на друга; смещение сглаживается между кадрами.
+ */
+function applyLateralSeparation(
+  byDriver: Map<number, CurrentReplayPosition>,
+  lateralOffsets: Map<number, number>,
+) {
+  const active = [...byDriver.values()]
+    .filter((position) => !position.isStale && !position.isPitLane)
+    .sort((a, b) => a.progress - b.progress);
+  const targets = new Map<number, number>();
+  let cluster: CurrentReplayPosition[] = [];
+
+  const flushCluster = () => {
+    if (cluster.length > 1) {
+      const ordered = [...cluster].sort((a, b) => a.driverNumber - b.driverNumber);
+
+      ordered.forEach((position, index) => {
+        targets.set(position.driverNumber, clamp((index - (ordered.length - 1) / 2) * 8, -12, 12));
+      });
+    }
+
+    cluster = [];
   };
+
+  for (const position of active) {
+    const previous = cluster[cluster.length - 1];
+
+    if (previous && position.progress - previous.progress < 0.0045) {
+      cluster.push(position);
+    } else {
+      flushCluster();
+      cluster = [position];
+    }
+  }
+
+  flushCluster();
+
+  for (const position of byDriver.values()) {
+    const target = targets.get(position.driverNumber) ?? 0;
+    const current = lateralOffsets.get(position.driverNumber) ?? 0;
+    const next = current + (target - current) * 0.18;
+    lateralOffsets.set(position.driverNumber, next);
+
+    if (!position.isPitLane && Math.abs(next) > 0.05) {
+      position.svgX += -Math.sin(position.headingRad) * next;
+      position.svgY += Math.cos(position.headingRad) * next;
+    }
+  }
 }
 
 function isDriverRetiredOnTrack(events: ReplayPositionEvent[], elapsedMs: number) {
@@ -1872,36 +2077,6 @@ function getTrackPointAtProgress(centerline: TrackPoint[], progress: number) {
   };
 }
 
-function buildTrackDecor(centerline: TrackPoint[]) {
-  const progressPoint = (progress: number) => getTrackPointAtProgress(centerline, progress);
-  const sectorPaths = [
-    { color: "var(--race-replay-sector-1)", end: 0.333, label: "Сектор 1", start: 0 },
-    { color: "var(--race-replay-sector-2)", end: 0.666, label: "Сектор 2", start: 0.333 },
-    { color: "var(--race-replay-sector-3)", end: 1, label: "Сектор 3", start: 0.666 },
-  ].map((sector) => ({
-    ...sector,
-    pathD: buildSectorPath(centerline, sector.start, sector.end),
-  }));
-  const start = progressPoint(0) ?? { svgX: centerline[0]?.svgX ?? 0, svgY: centerline[0]?.svgY ?? 0 };
-
-  return { sectorPaths, start };
-}
-
-function buildSectorPath(centerline: TrackPoint[], start: number, end: number) {
-  const points = centerline.filter((point) => point.progress >= start && point.progress <= end);
-  const startPoint = getTrackPointAtProgress(centerline, start);
-  const endPoint = getTrackPointAtProgress(centerline, end);
-  const sectorPoints = [
-    startPoint ? { svgX: startPoint.svgX, svgY: startPoint.svgY } : null,
-    ...points,
-    endPoint ? { svgX: endPoint.svgX, svgY: endPoint.svgY } : null,
-  ].filter(Boolean) as { svgX: number; svgY: number }[];
-
-  return sectorPoints
-    .map((point, index) => `${index === 0 ? "M" : "L"}${point.svgX.toFixed(1)} ${point.svgY.toFixed(1)}`)
-    .join(" ");
-}
-
 function buildDisplayPitLane(
   centerline: TrackPoint[],
   snapshotPoints: PitLanePoint[],
@@ -2025,92 +2200,6 @@ function inferPitLaneSideSign(centerline: TrackPoint[], pitLanePoints: PitLanePo
   const cross = tangentX * toPitY - tangentY * toPitX;
 
   return cross >= 0 ? 1 : -1;
-}
-
-function sampleReplayPitLanePoint(points: PitLanePoint[], pitWindow: PitWindow, elapsedMs: number) {
-  if (!points.length) {
-    return null;
-  }
-
-  const durationMs = Math.max(1, pitWindow.endMs - pitWindow.startMs);
-  const progress = clamp((elapsedMs - pitWindow.startMs) / durationMs, 0, 1);
-  const segmentLengths = [];
-  let totalLength = 0;
-
-  for (let index = 1; index < points.length; index += 1) {
-    const previous = points[index - 1];
-    const current = points[index];
-    const length = Math.hypot(current.svgX - previous.svgX, current.svgY - previous.svgY);
-    segmentLengths.push(length);
-    totalLength += length;
-  }
-
-  const targetDistance = totalLength * progress;
-  let traversed = 0;
-
-  for (let index = 1; index < points.length; index += 1) {
-    const segmentLength = segmentLengths[index - 1] ?? 0;
-
-    if (traversed + segmentLength < targetDistance) {
-      traversed += segmentLength;
-      continue;
-    }
-
-    const previous = points[index - 1];
-    const current = points[index];
-    const ratio = segmentLength > 0 ? clamp((targetDistance - traversed) / segmentLength, 0, 1) : 0;
-
-    return {
-      headingRad: Math.atan2(current.svgY - previous.svgY, current.svgX - previous.svgX),
-      svgX: lerp(previous.svgX, current.svgX, ratio),
-      svgY: lerp(previous.svgY, current.svgY, ratio),
-    };
-  }
-
-  const last = points.at(-1);
-  const previous = points.at(-2) ?? last;
-
-  return last && previous
-    ? {
-        headingRad: Math.atan2(last.svgY - previous.svgY, last.svgX - previous.svgX),
-        svgX: last.svgX,
-        svgY: last.svgY,
-      }
-    : null;
-}
-
-function buildPitLaneVisualPath(points: PitLanePoint[]) {
-  if (!points.length) {
-    return "";
-  }
-
-  const visualPoints = points;
-
-  if (visualPoints.length < 3) {
-    return visualPoints
-      .map((point, index) => `${index === 0 ? "M" : "L"}${point.svgX.toFixed(1)} ${point.svgY.toFixed(1)}`)
-      .join(" ");
-  }
-
-  const commands = [`M${visualPoints[0].svgX.toFixed(1)} ${visualPoints[0].svgY.toFixed(1)}`];
-
-  for (let index = 1; index < visualPoints.length - 1; index += 1) {
-    const current = visualPoints[index];
-    const next = visualPoints[index + 1];
-    const midpoint = {
-      svgX: (current.svgX + next.svgX) / 2,
-      svgY: (current.svgY + next.svgY) / 2,
-    };
-
-    commands.push(
-      `Q${current.svgX.toFixed(1)} ${current.svgY.toFixed(1)} ${midpoint.svgX.toFixed(1)} ${midpoint.svgY.toFixed(1)}`,
-    );
-  }
-
-  const last = visualPoints[visualPoints.length - 1];
-  commands.push(`T${last.svgX.toFixed(1)} ${last.svgY.toFixed(1)}`);
-
-  return commands.join(" ");
 }
 
 function getRaceStatus(events: ReplayRaceEvent[], elapsedMs: number, hasChequeredFlag: boolean): RaceStatus {
@@ -2316,32 +2405,8 @@ function isChequeredEvent(event: ReplayRaceEvent) {
   return text.includes("chequered") || text.includes("checkered");
 }
 
-function getProgressDelta(previous: number, next: number) {
-  let delta = next - previous;
-
-  if (delta < -0.5) {
-    delta += 1;
-  }
-
-  if (delta > 0.5) {
-    return null;
-  }
-
-  if (delta < 0) {
-    return null;
-  }
-
-  return delta;
-}
-
 function lerp(previous: number, next: number, t: number) {
   return previous + (next - previous) * t;
-}
-
-function getRawHeading(previous: ReplayPositionEvent, next: ReplayPositionEvent) {
-  const heading = Math.atan2(next.svgY - previous.svgY, next.svgX - previous.svgX);
-
-  return Number.isFinite(heading) ? heading : previous.headingRad;
 }
 
 function buildTimingRows(drivers: ReplayDriverState[], positions: Map<number, CurrentReplayPosition>) {
