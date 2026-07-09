@@ -96,7 +96,7 @@ type RaceStatus = {
 
 type TimelineMarker = {
   offsetMs: number;
-  tone: "green" | "yellow" | "red" | "neutral";
+  tone: "yellow" | "red" | "neutral";
   label: string;
 };
 
@@ -361,6 +361,12 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
       <section className="stitch-panel min-w-0 overflow-hidden p-0">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3 p-4 sm:px-5">
           <div className="min-w-0 flex-1">
+            <Button asChild className="mb-2.5" size="sm" variant="secondary">
+              <Link href="/weekend" prefetch={false}>
+                <ArrowLeft aria-hidden="true" data-icon="inline-start" />
+                Текущий этап
+              </Link>
+            </Button>
             <p className="font-telemetry flex items-center gap-2 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-primary">
               <RadioTower aria-hidden="true" className="size-3.5" />
               Повтор гонки · {replay.sourceSeason}
@@ -368,28 +374,9 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
             <h1 className="mt-1.5 text-balance font-display text-2xl font-extrabold leading-tight tracking-[-0.04em] sm:text-3xl">
               {replay.raceName}
             </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <p className="text-sm font-semibold text-muted-foreground">{replay.circuitName}</p>
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/weekend" prefetch={false}>
-                  <ArrowLeft aria-hidden="true" data-icon="inline-start" />
-                  Текущий этап
-                </Link>
-              </Button>
-            </div>
+            <p className="mt-1.5 text-sm font-semibold text-muted-foreground">{replay.circuitName}</p>
           </div>
-          <div className="flex flex-wrap items-stretch gap-2">
-            <div className="rounded-md border border-border/70 bg-secondary/30 px-3.5 py-2 text-right">
-              <p className="stitch-label text-[0.56rem] text-muted-foreground">Круг</p>
-              <p className="font-telemetry text-xl font-extrabold leading-tight">
-                {currentLap ?? "—"}
-                {replay.totalLaps ? (
-                  <span className="text-sm font-bold text-muted-foreground"> / {replay.totalLaps}</span>
-                ) : null}
-              </p>
-            </div>
-            <WeatherChips weather={replay.weather} />
-          </div>
+          <WeatherChips weather={replay.weather} />
         </div>
         <RaceStatusBanner status={raceStatus} />
       </section>
@@ -1223,7 +1210,6 @@ function ReplayTimeline({
   onScrub: (offsetMs: number) => void;
 }) {
   const markerTone = {
-    green: "bg-[rgb(57,255,20)]",
     neutral: "bg-foreground/70",
     red: "bg-[#E10600]",
     yellow: "bg-[#FFD60A]",
@@ -1898,7 +1884,35 @@ function buildPitWindows(events: ReplayPositionEvent[]): PitWindow[] {
     }
   }
 
-  return windows.sort((a, b) => a.startMs - b.startMs);
+  return normalizePitStopDurations(windows.sort((a, b) => a.startMs - b.startMs));
+}
+
+/*
+ * В части сезонов OpenF1 не отдает stop_duration, а pit_duration дублирует время
+ * пит-лейна — такие значения не являются временем стоянки. Тогда стоянку оцениваем
+ * через транзит пит-лейна: самый быстрый пит гонки ~ транзит + 2.2с стоянки.
+ */
+function normalizePitStopDurations(windows: PitWindow[]): PitWindow[] {
+  const laneValues = windows
+    .map((window) => window.pitLaneSeconds)
+    .filter((value): value is number => typeof value === "number" && value > 0);
+  const transitSeconds = laneValues.length >= 3 ? Math.min(...laneValues) - 2.2 : null;
+
+  return windows.map((window) => {
+    const isDegenerate =
+      window.pitStopSeconds === null ||
+      (window.pitLaneSeconds !== null && window.pitStopSeconds >= window.pitLaneSeconds - 0.5);
+
+    if (!isDegenerate) {
+      return window;
+    }
+
+    if (transitSeconds === null || window.pitLaneSeconds === null || window.pitLaneSeconds <= transitSeconds) {
+      return { ...window, pitStopSeconds: null };
+    }
+
+    return { ...window, pitStopSeconds: Math.max(1.5, window.pitLaneSeconds - transitSeconds) };
+  });
 }
 
 function getPitNotifications(
@@ -1977,19 +1991,23 @@ function buildTimelineMarkers(events: ReplayRaceEvent[], durationMs: number): Ti
       });
     } else if (isChequeredEvent(event)) {
       markers.push({ label: "Финиш", offsetMs: event.offsetMs, tone: "neutral" });
-    } else if (isTrackClearEvent(text)) {
-      markers.push({ label: "Зеленый флаг", offsetMs: event.offsetMs, tone: "green" });
+    } else if (isActiveLocalYellowEvent(event)) {
+      markers.push({
+        label: text.includes("double yellow") ? "Двойной желтый" : "Желтый флаг",
+        offsetMs: event.offsetMs,
+        tone: "yellow",
+      });
     }
   }
 
-  // Схлопываем маркеры ближе 0.8% длительности, чтобы таймлайн не превращался в частокол.
-  const minGapMs = durationMs * 0.008;
+  // Схлопываем только повторы одного и того же события, идущие почти подряд.
+  const minGapMs = durationMs * 0.004;
   const collapsed: TimelineMarker[] = [];
 
   for (const marker of markers.sort((a, b) => a.offsetMs - b.offsetMs)) {
     const last = collapsed.at(-1);
 
-    if (last && marker.offsetMs - last.offsetMs < minGapMs && last.tone === marker.tone) {
+    if (last && marker.offsetMs - last.offsetMs < minGapMs && last.label === marker.label) {
       continue;
     }
 

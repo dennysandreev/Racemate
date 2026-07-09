@@ -6825,7 +6825,15 @@ function getReplayPitLaneDuration(pit) {
 }
 
 function getReplayPitStopDuration(pit) {
-  return numberOrNull(pit?.stop_duration ?? pit?.pit_duration);
+  const stopDuration = numberOrNull(pit?.stop_duration);
+  const laneDuration = numberOrNull(pit?.lane_duration ?? pit?.pit_duration);
+
+  // pit_duration в OpenF1 дублирует время пит-лейна, это не время стоянки у бокса.
+  if (stopDuration === null || (laneDuration !== null && stopDuration >= laneDuration - 0.5)) {
+    return null;
+  }
+
+  return stopDuration;
 }
 
 function buildReplayPitLaneFromPitAnchors({ locationByDriver, pitsPayload, trackDefinition }) {
