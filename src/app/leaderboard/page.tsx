@@ -193,7 +193,7 @@ export default async function LeaderboardPage({
             <LegendSwatch className="bg-primary/60" label="В очках" />
             <LegendSwatch className="bg-secondary" label="Без очков" />
             <span className="text-[0.62rem] font-semibold text-muted-foreground">
-              Наведите на клетку этапа, чтобы увидеть гонку и очки
+              В ячейках — очки за этап; наведите, чтобы увидеть гонку
             </span>
           </div>
         </section>
@@ -284,12 +284,12 @@ function PodiumCard({
         {formatPoints(entry.points)}
         <span className="ml-1 text-[0.6rem] font-bold text-muted-foreground sm:text-xs">очк.</span>
       </p>
-      {entry.wins > 0 || entry.podiums > 0 ? (
-        <div className="hidden flex-wrap items-center justify-center gap-1.5 sm:flex">
-          {entry.wins > 0 ? <StatChip label="Победы" value={entry.wins} /> : null}
-          {entry.podiums > 0 ? <StatChip label="Подиумы" value={entry.podiums} /> : null}
-        </div>
-      ) : null}
+      <div className="hidden flex-wrap items-center justify-center gap-1.5 sm:flex">
+        <StatChip label={pluralize(entry.wins, ["победа", "победы", "побед"])} value={entry.wins} />
+        {entry.podiums > 0 ? (
+          <StatChip label={pluralize(entry.podiums, ["подиум", "подиума", "подиумов"])} value={entry.podiums} />
+        ) : null}
+      </div>
     </article>
   );
 }
@@ -374,7 +374,7 @@ function StandingRow({
       <div className="text-right">
         <p className="font-telemetry text-base font-extrabold leading-none">{formatPoints(entry.points)}</p>
         <p className="mt-1 text-[0.65rem] font-semibold text-muted-foreground">
-          {entry.position === 1 ? `${entry.wins} побед${pluralWinsSuffix(entry.wins)}` : `−${formatPoints(gap)}`}
+          {entry.position === 1 ? `${entry.wins} ${pluralize(entry.wins, ["победа", "победы", "побед"])}` : `−${formatPoints(gap)}`}
         </p>
       </div>
     </li>
@@ -382,8 +382,8 @@ function StandingRow({
 }
 
 /*
- * Лента этапов: по клетке на каждый завершенный гран-при — новые гонки
- * добавляются в конец по мере финиша. Цвет: подиум, очки или ноль.
+ * Лента этапов: по ячейке с очками на каждый завершенный гран-при — новые
+ * гонки добавляются в конец по мере финиша. Цвет: подиум, очки или ноль.
  */
 function RoundStrip({
   entry,
@@ -395,7 +395,7 @@ function RoundStrip({
   rounds: ChampionshipRound[];
 }) {
   return (
-    <div className="flex max-w-full flex-wrap items-center gap-[3px]">
+    <div className="flex max-w-full flex-wrap items-center gap-1 lg:max-w-[38rem] lg:justify-end">
       {rounds.map((round) => {
         const points = entry.pointsByRound[round.round];
         const podium = entry.podiumByRound?.[round.round];
@@ -405,31 +405,35 @@ function RoundStrip({
         }${podium ? ` · ${podiumTitle(podium)}` : ""}`;
 
         let style: React.CSSProperties | undefined;
-        let className = "bg-secondary/80";
+        let className = "bg-secondary/60 text-muted-foreground";
 
         if (podium === "winner") {
-          className = "bg-[#f4c95d]";
+          className = "bg-[#f4c95d] text-[#211a05]";
         } else if (podium === "second") {
-          className = "bg-[#cbd5e1]";
+          className = "bg-[#cbd5e1] text-[#111827]";
         } else if (podium === "third") {
-          className = "bg-[#d48a5f]";
+          className = "bg-[#d48a5f] text-[#2a1608]";
         } else if (typeof points === "number" && points > 0) {
-          className = "";
+          className = "text-foreground";
           style = {
-            backgroundColor: "var(--primary)",
-            opacity: 0.3 + 0.55 * Math.min(points / roundMax, 1),
+            backgroundColor: `rgb(225 6 0 / ${(0.28 + 0.5 * Math.min(points / roundMax, 1)).toFixed(2)})`,
           };
         } else if (typeof points !== "number") {
-          className = "border border-border/60 bg-transparent";
+          className = "border border-border/60 bg-transparent text-muted-foreground/70";
         }
 
         return (
           <span
-            className={cn("size-2.5 rounded-[3px] sm:size-3", className)}
+            className={cn(
+              "grid h-5 min-w-[1.35rem] place-items-center rounded px-0.5 font-telemetry text-[0.58rem] font-extrabold leading-none",
+              className,
+            )}
             key={round.round}
             style={style}
             title={title}
-          />
+          >
+            {typeof points === "number" ? formatPoints(points) : "–"}
+          </span>
         );
       })}
     </div>
@@ -494,19 +498,19 @@ function formatPoints(value: number) {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
-function pluralWinsSuffix(wins: number) {
-  const mod10 = wins % 10;
-  const mod100 = wins % 100;
+function pluralize(value: number, forms: [string, string, string]) {
+  const mod10 = value % 10;
+  const mod100 = value % 100;
 
   if (mod10 === 1 && mod100 !== 11) {
-    return "а";
+    return forms[0];
   }
 
   if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return "ы";
+    return forms[1];
   }
 
-  return "";
+  return forms[2];
 }
 
 function podiumTitle(finish: "winner" | "second" | "third") {
