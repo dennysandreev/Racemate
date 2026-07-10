@@ -9,6 +9,12 @@ type TeamAsset = TeamVisual & {
   aliases: string[];
 };
 
+type TeamProfileAsset = {
+  aliases: string[];
+  carImageUrl: string;
+  slug: string;
+};
+
 const circuitAssets = [
   {
     aliases: ["australia", "albert park", "melbourne"],
@@ -180,6 +186,20 @@ const teamAssets = [
   },
 ] satisfies TeamAsset[];
 
+const teamProfileAssets = [
+  { aliases: ["mercedes", "mer"], carImageUrl: "/f1/teams/cars/2026/mercedes.jpg", slug: "mercedes" },
+  { aliases: ["ferrari", "fer"], carImageUrl: "/f1/teams/cars/2026/ferrari.jpg", slug: "ferrari" },
+  { aliases: ["mclaren", "mcl"], carImageUrl: "/f1/teams/cars/2026/mclaren.jpg", slug: "mclaren" },
+  { aliases: ["red bull", "red bull racing", "red"], carImageUrl: "/f1/teams/cars/2026/red-bull.jpg", slug: "red-bull" },
+  { aliases: ["alpine", "alpine f1 team", "alp"], carImageUrl: "/f1/teams/cars/2026/alpine.jpg", slug: "alpine" },
+  { aliases: ["racing bulls", "rb f1 team", "rbx"], carImageUrl: "/f1/teams/cars/2026/racing-bulls.jpg", slug: "racing-bulls" },
+  { aliases: ["haas", "haas f1 team", "haa"], carImageUrl: "/f1/teams/cars/2026/haas.jpg", slug: "haas" },
+  { aliases: ["williams", "wil"], carImageUrl: "/f1/teams/cars/2026/williams.jpg", slug: "williams" },
+  { aliases: ["audi", "aud"], carImageUrl: "/f1/teams/cars/2026/audi.jpg", slug: "audi" },
+  { aliases: ["aston martin", "ast", "amr"], carImageUrl: "/f1/teams/cars/2026/aston-martin.jpg", slug: "aston-martin" },
+  { aliases: ["cadillac", "cadillac f1 team", "cad"], carImageUrl: "/f1/teams/cars/2026/cadillac.jpg", slug: "cadillac" },
+] satisfies TeamProfileAsset[];
+
 export function getCircuitAsset(circuitNameOrExternalId?: string | null) {
   if (!circuitNameOrExternalId) {
     return null;
@@ -214,6 +234,20 @@ export function getTeamAsset(teamNameOrCode?: string | null): TeamVisual | null 
     logo: match.logo,
     color: match.color,
   };
+}
+
+export function getTeamProfileAsset(teamNameOrCode?: string | null) {
+  if (!teamNameOrCode) {
+    return null;
+  }
+
+  const normalized = normalizeAssetKey(teamNameOrCode);
+
+  return (
+    teamProfileAssets.find((asset) =>
+      asset.aliases.some((alias) => normalized === normalizeAssetKey(alias)),
+    ) ?? null
+  );
 }
 
 type DriverTeamLookup = {

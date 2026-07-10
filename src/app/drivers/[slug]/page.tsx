@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import {
   getDriverProfileBySlug,
 } from "@/data/racemate-repository";
+import { getTeamProfileAsset } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import type { DriverProfile, DriverRaceResultRow } from "@/types/racemate";
@@ -97,6 +98,8 @@ export default async function DriverProfilePage({ params }: DriverPageProps) {
 }
 
 function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: boolean }) {
+  const teamProfile = getTeamProfileAsset(profile.team.code) ?? getTeamProfileAsset(profile.team.name);
+
   return (
     <section
       className="relative overflow-hidden rounded-xl border border-border bg-card p-4 shadow-[0_18px_70px_rgb(0_0_0_/_0.32)] sm:p-6"
@@ -130,7 +133,11 @@ function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: b
                 {profile.fullName}
               </h1>
               <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-2">
+                <Link
+                  className="flex items-center gap-2 transition-colors hover:text-foreground"
+                  href={teamProfile ? `/teams/${teamProfile.slug}` : "/leaderboard?table=constructors"}
+                  prefetch={false}
+                >
                   <TeamLogo
                     code={profile.team.code}
                     color={profile.team.color}
@@ -139,7 +146,8 @@ function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: b
                     size="sm"
                   />
                   {profile.team.name}
-                </span>
+                  <ChevronRight aria-hidden="true" className="size-3.5" />
+                </Link>
                 <span className="font-telemetry">
                   № {profile.number ?? profile.code ?? "—"}
                 </span>

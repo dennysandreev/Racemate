@@ -770,16 +770,6 @@ export const placeholderPages = {
     ctaHref: "/leaderboard",
     ctaLabel: "Открыть чемпионат",
   },
-  teams: {
-    title: "Команды",
-    description: "Готовим страницу команд текущего сезона.",
-    details: [
-      "Здесь появятся составы, цвета команд, очки, форма и связанные новости.",
-      "Пока командный контекст доступен в чемпионате, новостях и профилях пилотов.",
-    ],
-    ctaHref: "/leaderboard?tab=constructors",
-    ctaLabel: "Открыть чемпионат",
-  },
   tracks: {
     title: "Трассы",
     description: "Готовим каталог трасс и исторических данных.",

@@ -3,6 +3,7 @@ import { CalendarClock, ChevronRight, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
+import { getTeamProfileAsset } from "@/data/f1-assets";
 import { cn } from "@/lib/utils";
 import {
   getCalendarEvents,
@@ -69,18 +70,23 @@ export default async function LeaderboardPage({
         teamName: row.team,
         wins: Object.values(row.podiumByRound).filter((finish) => finish === "winner").length,
       }))
-    : constructors.rows.map((row): StandingEntry => ({
-        name: row.team,
-        podiums: 0,
-        points: row.points,
-        pointsByRound: row.pointsByRound ?? {},
-        position: row.position,
-        teamCode: row.teamCode,
-        teamColor: row.teamColor,
-        teamLogo: row.teamLogo,
-        teamName: row.team,
-        wins: row.wins,
-      }));
+    : constructors.rows.map((row): StandingEntry => {
+        const profileAsset = getTeamProfileAsset(row.teamCode) ?? getTeamProfileAsset(row.team);
+
+        return {
+          href: profileAsset ? `/teams/${profileAsset.slug}` : undefined,
+          name: row.team,
+          podiums: 0,
+          points: row.points,
+          pointsByRound: row.pointsByRound ?? {},
+          position: row.position,
+          teamCode: row.teamCode,
+          teamColor: row.teamColor,
+          teamLogo: row.teamLogo,
+          teamName: row.team,
+          wins: row.wins,
+        };
+      });
 
   const leaderPoints = Math.max(entries[0]?.points ?? 0, 1);
   const roundMaxPoints = buildRoundMaxPoints(rounds, entries);
@@ -169,9 +175,7 @@ export default async function LeaderboardPage({
             <span className="stitch-label text-[0.6rem] text-muted-foreground">
               {activeTable === "drivers" ? "Пилот" : "Команда"}
             </span>
-            <span className="stitch-label justify-self-end text-[0.6rem] text-muted-foreground">
-              Этапы сезона
-            </span>
+            <RoundHeaderStrip rounds={rounds} />
             <span className="stitch-label justify-self-end text-[0.6rem] text-muted-foreground">Очки</span>
           </div>
           <ol>
@@ -395,7 +399,7 @@ function RoundStrip({
   rounds: ChampionshipRound[];
 }) {
   return (
-    <div className="flex max-w-full flex-wrap items-center gap-1 lg:max-w-[38rem] lg:justify-end">
+    <div className="grid max-w-full grid-flow-col auto-cols-[1.35rem] gap-1 lg:max-w-[38rem]">
       {rounds.map((round) => {
         const points = entry.pointsByRound[round.round];
         const podium = entry.podiumByRound?.[round.round];
@@ -436,6 +440,23 @@ function RoundStrip({
           </span>
         );
       })}
+    </div>
+  );
+}
+
+function RoundHeaderStrip({ rounds }: { rounds: ChampionshipRound[] }) {
+  return (
+    <div className="grid grid-flow-col auto-cols-[1.35rem] gap-1 justify-self-end" aria-label="Этапы сезона">
+      {rounds.map((round) => (
+        <span
+          aria-label={`${round.raceName}, раунд ${round.round}`}
+          className="grid h-5 place-items-center text-sm leading-none"
+          key={round.round}
+          title={`${round.raceName} · раунд ${round.round}`}
+        >
+          {round.flag}
+        </span>
+      ))}
     </div>
   );
 }

@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/calendar",
     "/weekend",
     "/leaderboard",
+    "/teams",
     "/fantasy",
     "/leagues",
     "/polls",

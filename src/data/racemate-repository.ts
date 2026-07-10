@@ -14,7 +14,7 @@ import {
   standings,
   weekendSessions,
 } from "@/data/racemate-overview";
-import { getTeamAsset, getTeamMatchNames } from "@/data/f1-assets";
+import { getTeamAsset, getTeamMatchNames, getTeamProfileAsset } from "@/data/f1-assets";
 import type {
   AdminJob,
   AdminDriver,
@@ -73,6 +73,10 @@ import type {
   SocialSort,
   StandingsMeta,
   StandingRow,
+  TeamProfile,
+  TeamProfileDriver,
+  TeamProfileSummary,
+  TeamRaceResultRow,
   TrackLayout,
   WeekendWeather,
   WeekendSession,
@@ -219,6 +223,44 @@ type ConstructorStandingDbRow = {
   points: number | string;
   wins: number | null;
   teams: TeamRelationObject | TeamRelationObject[] | null;
+};
+
+type TeamProfileRelationObject = TeamRelationObject & {
+  id?: string | null;
+  short_name?: string | null;
+  country?: string | null;
+};
+
+type TeamProfileStandingDbRow = {
+  team_id: string | null;
+  position: number | null;
+  points: number | string;
+  wins: number | null;
+  teams: TeamProfileRelationObject | TeamProfileRelationObject[] | null;
+};
+
+type TeamProfileDriverStandingDbRow = {
+  position: number | null;
+  points: number | string;
+  wins: number | null;
+  drivers:
+    | {
+        id: string;
+        full_name: string;
+        slug: string | null;
+        code: string | null;
+        permanent_number: number | null;
+        ai_avatar_url: string | null;
+      }
+    | {
+        id: string;
+        full_name: string;
+        slug: string | null;
+        code: string | null;
+        permanent_number: number | null;
+        ai_avatar_url: string | null;
+      }[]
+    | null;
 };
 
 type SessionDbRow = {
@@ -2059,6 +2101,266 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
     });
 
   return { rounds, rows };
+}
+
+export async function getTeamProfiles(): Promise<TeamProfileSummary[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const latest = await getLatestCompleteStandingRound("constructor_standings", 10);
+
+  if (!latest) {
+    return [];
+  }
+
+  let query = supabase
+    .from("constructor_standings")
+    .select("team_id, position, points, wins, teams(id, name, short_name, code, country, color_hex)")
+    .eq("season_year", latest.season_year)
+    .order("position", { ascending: true, nullsFirst: false });
+
+  query = latest.round === null ? query.is("round", null) : query.eq("round", latest.round);
+
+  const { data, error } = await query;
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return (data as unknown as TeamProfileStandingDbRow[]).flatMap((row) => {
+    const team = getRelationObject(row.teams);
+    const profileAsset = getTeamProfileAsset(team?.code) ?? getTeamProfileAsset(team?.name);
+
+    if (!row.team_id || !team || !profileAsset) {
+      return [];
+    }
+
+    const visual = getTeamAsset(team.code) ?? getTeamAsset(team.name);
+
+    return [{
+      id: row.team_id,
+      slug: profileAsset.slug,
+      name: team.name,
+      shortName: team.short_name ?? visual?.name ?? team.name,
+      code: team.code ?? visual?.code ?? profileAsset.slug.toUpperCase(),
+      country: localizeTeamCountry(team.country),
+      countryCode: getCountryCode(team.country ?? ""),
+      color: visual?.color ?? team.color_hex ?? "#E10600",
+      logo: visual?.logo,
+      carImageUrl: profileAsset.carImageUrl,
+      season: latest.season_year,
+      championshipPosition: row.position,
+      points: Number(row.points ?? 0),
+      wins: row.wins ?? 0,
+    } satisfies TeamProfileSummary];
+  });
+}
+
+export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | null> {
+  const normalizedSlug = slug.trim().toLowerCase();
+  const teams = await getTeamProfiles();
+  const team = teams.find((item) => item.slug === normalizedSlug);
+
+  if (!team) {
+    return null;
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const latest = await getLatestCompleteStandingRound("driver_standings", 20);
+  const latestRound = latest?.round ?? null;
+  const season = team.season;
+
+  const [raceResult, standingHistoryResult, driverStandingResult, newsResult] = await Promise.all([
+    supabase
+      .from("races")
+      .select("id, season_year, round, race_name, race_start_at, circuits(name, country, locality)")
+      .eq("season_year", season)
+      .order("round", { ascending: true }),
+    supabase
+      .from("constructor_standings")
+      .select("team_id, round, position, points, wins, teams(name, code, color_hex)")
+      .eq("season_year", season)
+      .eq("team_id", team.id)
+      .order("round", { ascending: true, nullsFirst: false }),
+    latestRound
+      ? supabase
+          .from("driver_standings")
+          .select("position, points, wins, drivers(id, full_name, slug, code, permanent_number, ai_avatar_url)")
+          .eq("season_year", season)
+          .eq("round", latestRound)
+          .eq("team_id", team.id)
+          .order("position", { ascending: true, nullsFirst: false })
+      : Promise.resolve({ data: [], error: null }),
+    getNewsItems({ pageSize: 6, tagSlug: `team-${team.code.toLowerCase()}` }),
+  ]);
+
+  const races = (raceResult.data ?? []) as unknown as DriverRaceDbRow[];
+  const raceIds = races.map((race) => race.id);
+  const { data: sessionData, error: sessionError } = raceIds.length
+    ? await supabase
+        .from("sessions")
+        .select("id, race_id, session_type, name, start_at")
+        .in("race_id", raceIds)
+        .order("start_at", { ascending: true, nullsFirst: false })
+    : { data: [], error: null };
+  const sessions = (sessionData ?? []) as unknown as DriverSessionDbRow[];
+  const sessionIds = sessions.map((session) => session.id);
+  const { data: resultData, error: resultError } = sessionIds.length
+    ? await supabase
+        .from("session_results")
+        .select("session_id, driver_id, team_id, position, classified_position, grid, points, status, time_text, raw_payload, drivers(full_name, slug)")
+        .in("session_id", sessionIds)
+        .eq("team_id", team.id)
+    : { data: [], error: null };
+
+  if (raceResult.error || standingHistoryResult.error || driverStandingResult.error || sessionError || resultError) {
+    return null;
+  }
+
+  const results = (resultData ?? []) as unknown as DriverSessionResultDbRow[];
+  const sessionsByRace = new Map<string, DriverSessionDbRow[]>();
+  const resultsBySession = new Map<string, DriverSessionResultDbRow[]>();
+
+  sessions.forEach((session) => {
+    const list = sessionsByRace.get(session.race_id) ?? [];
+    list.push(session);
+    sessionsByRace.set(session.race_id, list);
+  });
+  results.forEach((result) => {
+    const list = resultsBySession.get(result.session_id) ?? [];
+    list.push(result);
+    resultsBySession.set(result.session_id, list);
+  });
+
+  const raceRows = races.flatMap<TeamRaceResultRow>((race) => {
+    const raceSessions = sessionsByRace.get(race.id) ?? [];
+    const raceSession = findSessionByType(raceSessions, "race");
+    const sprintSession = findSessionByType(raceSessions, "sprint");
+    const qualifyingSession = findSessionByType(raceSessions, "qualifying");
+    const raceResults = raceSession ? resultsBySession.get(raceSession.id) ?? [] : [];
+    const sprintResults = sprintSession ? resultsBySession.get(sprintSession.id) ?? [] : [];
+    const qualifyingResults = qualifyingSession ? resultsBySession.get(qualifyingSession.id) ?? [] : [];
+
+    if (!raceResults.length && !sprintResults.length) {
+      return [];
+    }
+
+    const positions = raceResults
+      .map((result) => result.position)
+      .filter((position): position is number => Boolean(position && position > 0));
+    const qualifyingPositions = qualifyingResults
+      .map((result) => result.position)
+      .filter((position): position is number => Boolean(position && position > 0));
+    const allPointResults = [...raceResults, ...sprintResults];
+    const points = allPointResults.reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+    const circuit = getRelationObject(race.circuits);
+    const finishers = raceResults
+      .slice()
+      .sort((left, right) => (left.position ?? 999) - (right.position ?? 999))
+      .map((result) => {
+        const driver = getRelationObject(result.drivers);
+        return `${driver?.full_name ?? "Пилот"} · ${result.position ? `P${result.position}` : result.status ?? "—"}`;
+      });
+
+    return [{
+      round: race.round,
+      raceName: race.race_name,
+      raceDate: formatDateTime(race.race_start_at),
+      country: circuit?.country ?? "",
+      countryCode: getCountryCode(circuit?.country ?? ""),
+      points: Number(points.toFixed(2)),
+      bestFinish: positions.length ? Math.min(...positions) : null,
+      qualifyingBest: qualifyingPositions.length ? Math.min(...qualifyingPositions) : null,
+      finishers,
+      isWin: positions.includes(1),
+      isPodium: positions.some((position) => position <= 3),
+      hadDnf: raceResults.some((result) => isDnfDriverResult(result)),
+    }];
+  });
+
+  const driverRows = (driverStandingResult.data ?? []) as unknown as TeamProfileDriverStandingDbRow[];
+  const drivers: TeamProfileDriver[] = driverRows.flatMap((row) => {
+    const driver = getRelationObject(row.drivers);
+
+    if (!driver) {
+      return [];
+    }
+
+    return [{
+      id: driver.id,
+      fullName: driver.full_name,
+      slug: driver.slug ?? undefined,
+      code: driver.code ?? undefined,
+      number: driver.permanent_number,
+      avatarUrl: driver.ai_avatar_url,
+      championshipPosition: row.position,
+      points: Number(row.points ?? 0),
+      wins: row.wins ?? 0,
+    }];
+  });
+
+  const standingsHistory = (standingHistoryResult.data ?? []) as unknown as ConstructorStandingDbRow[];
+  const standingByRound = new Map(
+    standingsHistory
+      .filter((row) => row.round)
+      .map((row) => [row.round as number, Number(row.points ?? 0)]),
+  );
+  let cumulativePoints = 0;
+  const pointsByRound = raceRows.map((row) => {
+    cumulativePoints += row.points ?? 0;
+    const storedCumulative = standingByRound.get(row.round);
+
+    return {
+      round: row.round,
+      raceName: row.raceName,
+      countryCode: row.countryCode,
+      points: row.points ?? 0,
+      cumulativePoints: storedCumulative ?? Number(cumulativePoints.toFixed(2)),
+    };
+  });
+  const raceSessionIds = sessions.filter((session) => session.session_type === "race").map((session) => session.id);
+  const qualifyingSessionIds = sessions.filter((session) => session.session_type === "qualifying").map((session) => session.id);
+  const raceResults = results.filter((result) => raceSessionIds.includes(result.session_id));
+  const qualifyingResults = results.filter((result) => qualifyingSessionIds.includes(result.session_id));
+  const classifiedPositions = raceResults
+    .filter((result) => !isDnfDriverResult(result))
+    .map((result) => result.position)
+    .filter((position): position is number => Boolean(position && position > 0));
+  const lastFive = raceRows.slice(-5);
+
+  return {
+    ...team,
+    drivers,
+    stats: {
+      points: team.points,
+      championshipPosition: team.championshipPosition,
+      wins: Math.max(team.wins, raceResults.filter((result) => result.position === 1).length),
+      podiums: raceResults.filter((result) => Boolean(result.position && result.position <= 3)).length,
+      poles: qualifyingResults.filter((result) => result.position === 1).length,
+      fastestLaps: raceResults.filter((result) => hasFastestLap(result)).length,
+      dnfs: raceResults.filter((result) => isDnfDriverResult(result)).length,
+      pointsFinishes: raceResults.filter((result) => Number(result.points ?? 0) > 0).length,
+      bestResult: classifiedPositions.length ? Math.min(...classifiedPositions) : null,
+      averageFinish: averageNumber(classifiedPositions),
+    },
+    results: raceRows,
+    pointsByRound,
+    form: {
+      labels: lastFive.map((row) => row.bestFinish ? `P${row.bestFinish}` : row.hadDnf ? "DNF" : "—"),
+      points: Number(lastFive.reduce((sum, row) => sum + (row.points ?? 0), 0).toFixed(2)),
+      podiums: lastFive.filter((row) => row.isPodium).length,
+      bestResult: lastFive.map((row) => row.bestFinish).filter((value): value is number => value !== null).sort((a, b) => a - b)[0] ?? null,
+    },
+    news: newsResult.items,
+  };
 }
 
 export async function getStandingsMeta(
@@ -6740,6 +7042,23 @@ function getTeamVisualFields(
 
 function getRelationObject<T>(relation: T | T[] | null): T | null {
   return (Array.isArray(relation) ? relation[0] : relation) ?? null;
+}
+
+function localizeTeamCountry(country?: string | null) {
+  if (!country) {
+    return null;
+  }
+
+  const localized = new Map([
+    ["american", "США"],
+    ["austrian", "Австрия"],
+    ["british", "Великобритания"],
+    ["french", "Франция"],
+    ["german", "Германия"],
+    ["italian", "Италия"],
+  ]);
+
+  return localized.get(country.trim().toLowerCase()) ?? country;
 }
 
 function getRelationList<T>(relation: T | T[] | null | undefined): T[] {

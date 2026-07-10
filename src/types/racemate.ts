@@ -224,6 +224,83 @@ export type ConstructorChampionshipMatrix = {
   rows: ConstructorStandingRow[];
 };
 
+export type TeamProfileSummary = {
+  id: string;
+  slug: string;
+  name: string;
+  shortName: string;
+  code: string;
+  country: string | null;
+  countryCode?: string | null;
+  color: string;
+  logo?: string;
+  carImageUrl: string;
+  season: number;
+  championshipPosition: number | null;
+  points: number;
+  wins: number;
+};
+
+export type TeamProfileDriver = {
+  id: string;
+  fullName: string;
+  slug?: string;
+  code?: string;
+  number: number | null;
+  avatarUrl?: string | null;
+  championshipPosition: number | null;
+  points: number;
+  wins: number;
+};
+
+export type TeamRaceResultRow = {
+  round: number;
+  raceName: string;
+  raceDate: string | null;
+  country: string;
+  countryCode?: string;
+  points: number | null;
+  bestFinish: number | null;
+  qualifyingBest: number | null;
+  finishers: string[];
+  isWin: boolean;
+  isPodium: boolean;
+  hadDnf: boolean;
+};
+
+export type TeamProfileStats = {
+  points: number;
+  championshipPosition: number | null;
+  wins: number;
+  podiums: number;
+  poles: number;
+  fastestLaps: number;
+  dnfs: number;
+  pointsFinishes: number;
+  bestResult: number | null;
+  averageFinish: number | null;
+};
+
+export type TeamProfile = TeamProfileSummary & {
+  drivers: TeamProfileDriver[];
+  stats: TeamProfileStats;
+  results: TeamRaceResultRow[];
+  pointsByRound: Array<{
+    round: number;
+    raceName: string;
+    countryCode?: string;
+    points: number;
+    cumulativePoints: number;
+  }>;
+  form: {
+    labels: string[];
+    points: number;
+    podiums: number;
+    bestResult: number | null;
+  };
+  news: NewsItem[];
+};
+
 export type TeamVisual = {
   name: string;
   code?: string;
