@@ -234,17 +234,9 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     () => buildDisplayPitLane(replay.track.centerline, pitLane?.points ?? [], replay.circuitName),
     [pitLane?.points, replay.circuitName, replay.track.centerline],
   );
-  const pitSpan = useMemo(
-    () => derivePitLaneSpan(replay.track.centerline, pitLane?.points ?? []),
-    [pitLane?.points, replay.track.centerline],
-  );
-  const startFinishProgress = useMemo(
-    () => deriveStartFinishProgress(pitSpan, replay.track.startFinish?.progress ?? 0),
-    [pitSpan, replay.track.startFinish?.progress],
-  );
   const geometry = useMemo(
-    () => buildTrackGeometry(replay.track.centerline, startFinishProgress),
-    [replay.track.centerline, startFinishProgress],
+    () => buildTrackGeometry(replay.track.centerline, replay.track.startFinish?.progress ?? 0),
+    [replay.track.centerline, replay.track.startFinish?.progress],
   );
   const pitGeometry = useMemo(() => buildPitGeometry(displayPitLane), [displayPitLane]);
   const motionByDriver = useMemo(() => {
@@ -1571,31 +1563,6 @@ function RaceStatusBanner({ status }: { status: RaceStatus }) {
   );
 }
 
-/*
- * Пит-лейн в жизни всегда обрамляет линию старт/финиш. Если «ноль»
- * параметризации трассы из снапшота лежит далеко от реального пит-лейна
- * (такое бывает, когда телеметрия сессии начинается не на линии), ставим
- * стартовую отметку в середину пит-лейна.
- */
-function deriveStartFinishProgress(
-  pitSpan: { startProgress: number; endProgress: number } | null,
-  fallback: number,
-) {
-  if (!pitSpan) {
-    return fallback;
-  }
-
-  const start = ((pitSpan.startProgress % 1) + 1) % 1;
-  const span = pitSpan.endProgress - pitSpan.startProgress;
-  const relative = ((fallback - start) % 1 + 1) % 1;
-
-  if (relative <= span + 0.06 || relative >= 1 - 0.06) {
-    return fallback;
-  }
-
-  return ((start + span / 2) % 1 + 1) % 1;
-}
-
 function groupReplayPositionsByDriver(events: ReplayPositionEvent[]) {
   const grouped = new Map<number, ReplayPositionEvent[]>();
 
@@ -2235,6 +2202,14 @@ function derivePitLaneSpan(centerline: TrackPoint[], snapshotPoints: PitLanePoin
   }
 
   if (span < 0.03 || span > 0.22) {
+    return null;
+  }
+
+  // Пит-лейн в жизни всегда обрамляет линию старт/финиш (progress 0).
+  // Спан вдали от линии — мусорные точки в снапшоте (Шанхай), не верим им.
+  const lineRelative = ((0 - entry.progress) % 1 + 1) % 1;
+
+  if (lineRelative > span + 0.08 && lineRelative < 1 - 0.08) {
     return null;
   }
 
