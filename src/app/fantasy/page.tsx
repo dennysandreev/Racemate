@@ -1,9 +1,14 @@
 import {
   CheckCircle2,
   ClipboardList,
+  Crown,
   Edit3,
+  Flag,
+  KeyRound,
+  ListOrdered,
   Lock,
   Plus,
+  Timer,
   Trophy,
   Users,
 } from "lucide-react";
@@ -17,17 +22,12 @@ import {
 import { FantasyLockCountdown } from "@/components/fantasy/fantasy-lock-countdown";
 import { PredictionShareModalLauncher } from "@/components/fantasy/PredictionShareModal";
 import { AppShell } from "@/components/racemate/app-shell";
-import { DataRow } from "@/components/racemate/data-row";
 import { FantasyScoringDialog } from "@/components/racemate/fantasy-scoring-dialog";
 import {
   PreviousPredictionResultButton,
   QualifyingResultsButton,
 } from "@/components/racemate/fantasy-prediction-tools";
 import { GlobalFantasyLeaderboardPanel } from "@/components/racemate/global-fantasy-leaderboard";
-import {
-  StitchPanel,
-  StitchPanelHeader,
-} from "@/components/racemate/stitch-primitives";
 import { Top10PredictionPicker } from "@/components/racemate/top10-prediction-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ import {
   getPublicPredictionShareBySlug,
 } from "@/data/racemate-repository";
 import { getTeamAsset } from "@/data/f1-assets";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionProfileSummary, getSessionUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import type {
   DriverOption,
@@ -89,10 +89,11 @@ export default async function FantasyPage({
 }) {
   const [status, user] = await Promise.all([searchParams, getSessionUser()]);
   const activeTab = status.tab === "leagues" || status.tab === "leaderboard" ? status.tab : "picks";
-  const [predictionState, leagues, leaderboard] = await Promise.all([
+  const [predictionState, leagues, leaderboard, profileSummary] = await Promise.all([
     getPredictionState(user?.id),
     getLeagues(user?.id),
     getGlobalFantasyLeaderboard(),
+    getSessionProfileSummary(),
   ]);
   const myLeagues = leagues.filter((league) => league.isMember || league.isOwner);
   const openLeagues = leagues.filter((league) => !league.isMember && !league.isOwner);
@@ -117,31 +118,24 @@ export default async function FantasyPage({
 
   return (
     <AppShell>
-      <section className="grid gap-6 py-6">
-        <FantasyEventHeader
-          predictionState={predictionState}
-          previousResult={predictionState.previousResult}
-        />
-
-        <FantasyTabs activeTab={activeTab} />
+      <section className="grid gap-4 py-6 sm:gap-5">
+        <FantasyHero activeTab={activeTab} predictionState={predictionState} />
 
         {notice ? <StatusNotice notice={notice} /> : null}
 
         {activeTab === "picks" ? (
-          <div className="grid min-w-0 gap-6">
-            <PredictionModule
-              completedQualificationPicks={completedQualificationPicks}
-              completedRacePicks={completedRacePicks}
-              fields={picks}
-              predictionState={predictionState}
-              teamFields={teamPicks}
-              userSignedIn={Boolean(user)}
-            />
-          </div>
+          <PredictionModule
+            completedQualificationPicks={completedQualificationPicks}
+            completedRacePicks={completedRacePicks}
+            fields={picks}
+            predictionState={predictionState}
+            teamFields={teamPicks}
+            userSignedIn={Boolean(user)}
+          />
         ) : null}
 
         {activeTab === "leagues" ? (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+          <div className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
             <LeagueActivity
               myLeagues={myLeagues}
               openLeagues={openLeagues}
@@ -149,12 +143,17 @@ export default async function FantasyPage({
               userSignedIn={Boolean(user)}
             />
             <aside className="min-w-0">
-            <LeagueControlPanel userSignedIn={Boolean(user)} />
+              <LeagueControlPanel userSignedIn={Boolean(user)} />
             </aside>
           </div>
         ) : null}
 
-        {activeTab === "leaderboard" ? <GlobalFantasyLeaderboardPanel leaderboard={leaderboard} /> : null}
+        {activeTab === "leaderboard" ? (
+          <GlobalFantasyLeaderboardPanel
+            currentDisplayName={profileSummary?.displayName ?? null}
+            leaderboard={leaderboard}
+          />
+        ) : null}
         {sharePreview && shareUrls ? (
           <PredictionShareModalLauncher
             publicUrl={shareUrls.publicUrl}
@@ -169,118 +168,92 @@ export default async function FantasyPage({
   );
 }
 
-function FantasyEventHeader({
+function FantasyHero({
+  activeTab,
   predictionState,
-  previousResult,
 }: {
+  activeTab: "picks" | "leagues" | "leaderboard";
   predictionState: PredictionState;
-  previousResult: PredictionState["previousResult"];
 }) {
   const totalScore = predictionState.seasonSummary.totalScore;
 
   return (
-    <section className="flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
-      <div className="min-w-0">
-        <span className="font-telemetry mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-primary">
-          Фентази лига
-        </span>
-        <h1 className="font-display max-w-4xl text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
-          {predictionState.race?.name ?? "Следующий этап"}
-        </h1>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-          Собери прогноз, соревнуйся в лиге с друзьями и сравнивай очки после финиша.
-        </p>
-      </div>
-
-      <div className="grid w-full max-w-xl gap-3 xl:w-[30rem]">
-        <div className="grid grid-cols-3 gap-3">
-          <FantasyPreviousPredictionAction previousResult={previousResult} />
-          <FantasyCounter label="Прогнозов" value={String(predictionState.seasonSummary.predictionCount)} />
-          <FantasyCounter
-            label="Очки"
-            value={totalScore === null || totalScore === undefined ? "—" : String(totalScore)}
+    <section className="stitch-panel relative overflow-hidden p-0">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgb(225_6_0_/_0.22),transparent_24rem),linear-gradient(135deg,rgb(255_255_255_/_0.06),transparent_40%)]"
+      />
+      <div className="relative flex flex-col justify-between gap-6 p-5 sm:p-6 xl:flex-row xl:items-end">
+        <div className="min-w-0">
+          <p className="font-telemetry flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+            <Trophy aria-hidden="true" className="size-3.5" />
+            Фэнтези-лига
+          </p>
+          <h1 className="mt-2 max-w-3xl text-balance font-display text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-4xl">
+            {predictionState.race?.name ?? "Следующий этап"}
+          </h1>
+          <p className="mt-2 max-w-xl text-sm font-semibold leading-6 text-muted-foreground">
+            Собери прогноз, соревнуйся с друзьями и сравнивай очки после финиша.
+            {predictionState.race ? ` Старт гонки: ${predictionState.race.startsAt}.` : ""}
+          </p>
+        </div>
+        <div className="grid w-full shrink-0 grid-cols-3 gap-2 xl:w-auto">
+          <HeroStat label="Очки сезона" value={totalScore === null || totalScore === undefined ? "—" : String(totalScore)} />
+          <HeroStat label="Прогнозов" value={String(predictionState.seasonSummary.predictionCount)} />
+          <PreviousPredictionResultButton
+            className="stitch-panel h-full min-h-[4.25rem] w-full min-w-0 whitespace-normal border border-border/70 bg-secondary/25 px-3 py-2.5 text-center text-foreground transition-colors hover:border-primary/50 hover:bg-accent hover:text-primary xl:min-w-[7.5rem]"
+            previousResult={predictionState.previousResult}
           />
         </div>
       </div>
+      <nav
+        aria-label="Разделы фэнтези-лиги"
+        className="relative grid grid-cols-3 gap-1 border-t stitch-divider bg-background/30 p-1.5"
+      >
+        <FantasyTab active={activeTab === "picks"} href="/fantasy?tab=picks" icon={ClipboardList} label="Прогноз" />
+        <FantasyTab active={activeTab === "leagues"} href="/fantasy?tab=leagues" icon={Users} label="Лиги" />
+        <FantasyTab active={activeTab === "leaderboard"} href="/fantasy?tab=leaderboard" icon={ListOrdered} label="Лидерборд" />
+      </nav>
     </section>
   );
 }
 
-function FantasyPreviousPredictionAction({
-  previousResult,
-}: {
-  previousResult: PredictionState["previousResult"];
-}) {
-  return (
-    <PreviousPredictionResultButton
-      className="stitch-panel h-auto min-h-[4.55rem] w-full min-w-0 whitespace-normal border-b-2 border-primary bg-card/70 px-3 py-3 text-center text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/80 hover:bg-accent hover:text-primary hover:shadow-lg hover:shadow-primary/10 sm:min-w-[7.5rem]"
-      previousResult={previousResult}
-    />
-  );
-}
-
-function FantasyTabs({ activeTab }: { activeTab: "picks" | "leagues" | "leaderboard" }) {
-  const tabs = [
-    { href: "/fantasy?tab=picks", label: "Прогноз", value: "picks" },
-    { href: "/fantasy?tab=leagues", label: "Лиги", value: "leagues" },
-    { href: "/fantasy?tab=leaderboard", label: "Лидерборд", value: "leaderboard" },
-  ] as const;
-
-  return (
-    <nav className="grid grid-cols-3 gap-2 rounded-lg border border-border bg-card/60 p-1" aria-label="Разделы фентази-лиги">
-      {tabs.map((tab) => (
-        <Link
-          className={cn(
-            "rounded-md px-3 py-2.5 text-center font-telemetry text-xs font-bold uppercase tracking-[0.08em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            activeTab === tab.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground",
-          )}
-          href={tab.href}
-          key={tab.value}
-        >
-          {tab.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
-function FantasyCounter({
-  className,
+function FantasyTab({
+  active,
+  href,
+  icon: Icon,
   label,
-  value,
 }: {
-  className?: string;
+  active: boolean;
+  href: string;
+  icon: typeof ClipboardList;
   label: string;
-  value: string;
 }) {
   return (
-    <div
+    <Link
+      aria-current={active ? "page" : undefined}
       className={cn(
-        "stitch-panel grid min-w-0 gap-2 border-b-2 border-primary px-4 py-3 text-center sm:min-w-[7.5rem]",
-        className,
+        "inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-3 py-2 font-display text-sm font-bold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        active
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:bg-accent hover:text-foreground",
       )}
+      href={href}
+      prefetch={false}
     >
-      <p className="font-telemetry text-lg font-bold leading-none">{value}</p>
-      <p className="font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-        {label}
-      </p>
-    </div>
+      <Icon aria-hidden="true" className="size-4" />
+      <span className="hidden sm:inline">{label}</span>
+      <span className="sm:hidden">{label}</span>
+    </Link>
   );
 }
 
-function PickProgressBadge({
-  completed,
-  saved,
-  total,
-}: {
-  completed: number;
-  saved: boolean;
-  total: number;
-}) {
+function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <Badge variant={saved ? "success" : "secondary"}>
-      Выборов {completed}/{total}
-    </Badge>
+    <div className="stitch-panel grid min-w-0 content-center gap-1.5 border border-border/70 bg-secondary/25 px-3 py-2.5 text-center">
+      <p className="font-telemetry text-xl font-extrabold leading-none">{value}</p>
+      <p className="stitch-label text-[0.55rem] text-muted-foreground">{label}</p>
+    </div>
   );
 }
 
@@ -299,54 +272,54 @@ function PredictionModule({
   teamFields: TeamPredictionField[];
   userSignedIn: boolean;
 }) {
-  const hasSavedQualification = completedQualificationPicks > 0;
-  const hasSavedRace = completedRacePicks > 0;
-
   return (
-    <section className="stitch-panel relative overflow-hidden p-5 sm:p-8" id="fantasy-picks">
-      <Trophy
-        aria-hidden="true"
-        className="pointer-events-none absolute right-5 top-5 size-28 text-primary opacity-10"
-      />
-      <div className="relative z-10 mb-8 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="font-display text-2xl font-bold uppercase">Фентази-пики</h2>
-          <p className="mt-2 font-telemetry text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
-            {predictionState.race
-              ? `Старт: ${predictionState.race.startsAt}`
-              : "Расписание появится после синхронизации"}
-          </p>
+    <section className="stitch-panel overflow-hidden p-0" id="fantasy-picks">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border/70 bg-secondary/40">
+            <ClipboardList aria-hidden="true" className="size-4.5 text-primary" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-bold leading-tight">Фэнтези-пики</h2>
+            <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+              {predictionState.race
+                ? `Два дедлайна: квалификация и старт гонки`
+                : "Расписание появится после синхронизации"}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <FantasyScoringDialog className="shrink-0" />
-        </div>
+        <FantasyScoringDialog className="shrink-0" />
       </div>
 
       {predictionState.race && predictionState.drivers.length ? (
-        <div className="relative z-10 grid gap-5">
-          <form action={saveFantasyPrediction} className="rounded-lg border border-border bg-background/25 p-4 sm:p-5">
+        <div className="grid gap-4 p-4 sm:gap-5 sm:p-5">
+          <form
+            action={saveFantasyPrediction}
+            className="rounded-lg border border-border/80 bg-background/25 p-4 sm:p-5"
+          >
             <input name="raceId" type="hidden" value={predictionState.race.id} />
             <input name="predictionScope" type="hidden" value="qualification" />
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-primary">Квалификация</p>
-                <h3 className="mt-2 font-display text-xl font-bold">Прогноз на стартовую решетку</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Заполняй и вноси правки до старта квалификации.</p>
-              </div>
-              <div className="grid justify-items-end gap-2">
+            <SectionHeader
+              badge={
+                <PickProgressBadge
+                  completed={completedQualificationPicks}
+                  saved={completedQualificationPicks > 0}
+                  total={1}
+                />
+              }
+              countdown={
                 <FantasyLockCountdown
                   locked={Boolean(predictionState.race.poleLocked)}
                   lockedLabel="Закрыто"
                   prefix="До квалификации"
                   startsAtIso={predictionState.race.qualifyingStartsAtIso}
                 />
-                <PickProgressBadge
-                  completed={completedQualificationPicks}
-                  saved={hasSavedQualification}
-                  total={1}
-                />
-              </div>
-            </div>
+              }
+              description="Заполняй и вноси правки до старта квалификации."
+              eyebrow="Квалификация"
+              icon={Timer}
+              title="Прогноз на стартовую решетку"
+            />
             <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-end">
               <PredictionPickCard drivers={predictionState.drivers} field={fields[0]} />
               <PredictionSaveButton
@@ -358,31 +331,41 @@ function PredictionModule({
             </div>
           </form>
 
-          <form action={saveFantasyPrediction} className="rounded-lg border border-border bg-muted/20 p-4 sm:p-5">
+          <form
+            action={saveFantasyPrediction}
+            className="rounded-lg border border-border/80 bg-muted/15 p-4 sm:p-5"
+          >
             <input name="raceId" type="hidden" value={predictionState.race.id} />
             <input name="predictionScope" type="hidden" value="race" />
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-primary">Гонка</p>
-                <h3 className="mt-2 font-display text-xl font-bold">Гоночный прогноз</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Заполняй и вноси правки до старта гонки.</p>
-              </div>
-              <div className="grid justify-items-end gap-2">
+            <SectionHeader
+              badge={
+                <PickProgressBadge
+                  completed={completedRacePicks}
+                  saved={completedRacePicks > 0}
+                  total={14}
+                />
+              }
+              countdown={
                 <FantasyLockCountdown
                   locked={Boolean(predictionState.race.raceLocked)}
                   lockedLabel="Закрыто"
                   prefix="До гонки"
                   startsAtIso={predictionState.race.raceStartsAtIso}
                 />
-                <PickProgressBadge
-                  completed={completedRacePicks}
-                  saved={hasSavedRace}
-                  total={14}
-                />
-              </div>
+              }
+              description="Спецпики и топ-10 можно править до старта гонки."
+              eyebrow="Гонка"
+              icon={Flag}
+              title="Гоночный прогноз"
+            />
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary/50">
+              <div
+                className="h-full rounded-full bg-primary transition-[width]"
+                style={{ width: `${Math.round((completedRacePicks / 14) * 100)}%` }}
+              />
             </div>
-            <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-              <div className="grid content-start gap-4">
+            <div className="mt-5 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="grid content-start gap-3">
                 {fields.slice(1).map((field) => (
                   <PredictionPickCard
                     drivers={predictionState.drivers}
@@ -398,18 +381,24 @@ function PredictionModule({
                   />
                 ))}
               </div>
-              <div className="rounded-lg border border-border bg-muted/35 p-4 transition-colors">
-                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">Топ-10 · гонка</p>
-                    <p className="mt-2 text-sm text-muted-foreground">Расставь десять пилотов в предполагаемом порядке финиша.</p>
+              <div className="rounded-lg border border-border/80 bg-background/30 p-4">
+                <div className="mb-4 grid gap-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-primary">
+                      Топ-10 · гонка
+                    </p>
+                    <Badge className="shrink-0" variant={predictionState.race.raceLocked ? "warning" : "secondary"}>
+                      {predictionState.race.raceLocked
+                        ? "Закрыто"
+                        : `${predictionState.current?.top10DriverIds?.length ?? 0}/10`}
+                    </Badge>
                   </div>
-                  <Badge variant={predictionState.race.raceLocked ? "warning" : "secondary"}>
-                    {predictionState.race.raceLocked ? "Закрыто" : `${predictionState.current?.top10DriverIds?.length ?? 0}/10`}
-                  </Badge>
-                </div>
-                <div className="mb-4 flex flex-wrap justify-end gap-2">
-                  <QualifyingResultsButton qualifyingResults={predictionState.qualifyingResults} />
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      Расставь десять пилотов в порядке финиша.
+                    </p>
+                    <QualifyingResultsButton qualifyingResults={predictionState.qualifyingResults} />
+                  </div>
                 </div>
                 <Top10PredictionPicker
                   defaultValue={predictionState.current?.top10DriverIds ?? []}
@@ -429,11 +418,60 @@ function PredictionModule({
           </form>
         </div>
       ) : (
-        <p className="relative z-10 rounded-md border border-border/70 bg-background/35 p-4 text-sm leading-6 text-muted-foreground">
+        <p className="m-4 rounded-md border border-border/70 bg-background/35 p-4 text-sm leading-6 text-muted-foreground sm:m-5">
           Прогноз откроется, когда RaceMate подтянет гонку и список пилотов.
         </p>
       )}
     </section>
+  );
+}
+
+function SectionHeader({
+  badge,
+  countdown,
+  description,
+  eyebrow,
+  icon: Icon,
+  title,
+}: {
+  badge: React.ReactNode;
+  countdown: React.ReactNode;
+  description: string;
+  eyebrow: string;
+  icon: typeof Timer;
+  title: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0">
+        <p className="font-telemetry flex items-center gap-1.5 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-primary">
+          <Icon aria-hidden="true" className="size-3.5" />
+          {eyebrow}
+        </p>
+        <h3 className="mt-1.5 font-display text-xl font-bold leading-tight">{title}</h3>
+        <p className="mt-1 text-sm font-semibold text-muted-foreground">{description}</p>
+      </div>
+      <div className="grid justify-items-end gap-2">
+        {countdown}
+        {badge}
+      </div>
+    </div>
+  );
+}
+
+function PickProgressBadge({
+  completed,
+  saved,
+  total,
+}: {
+  completed: number;
+  saved: boolean;
+  total: number;
+}) {
+  return (
+    <Badge variant={saved ? "success" : "secondary"}>
+      Выборов {completed}/{total}
+    </Badge>
   );
 }
 
@@ -482,23 +520,26 @@ function PredictionPickCard({
   return (
     <label
       className={cn(
-        "group grid gap-3 rounded-lg border border-border bg-muted/35 p-4 transition-colors hover:border-primary/60 hover:bg-accent/70",
+        "group grid gap-2.5 rounded-lg border border-border/80 bg-background/30 p-3.5 transition-colors hover:border-primary/50 hover:bg-accent/50",
         field.locked && "border-warning/50 bg-warning/5",
       )}
       htmlFor={field.name}
     >
-      <span className="flex items-start justify-between gap-3">
-        <span className="min-w-0">
-          <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">
-            {field.short}
-          </span>
-          <span className="mt-2 flex min-w-0 items-center gap-2 font-telemetry text-sm font-bold uppercase text-foreground">
-            <span
-              aria-hidden="true"
-              className="h-8 w-1 rounded-full bg-primary"
-              style={{ backgroundColor: team?.color ?? undefined }}
-            />
-            <span className="min-w-0 truncate">{displayValue}</span>
+      <span className="flex items-center gap-2.5">
+        <span
+          aria-hidden="true"
+          className="h-9 w-1.5 shrink-0 rounded-full bg-primary/70"
+          style={{ backgroundColor: team?.color ?? undefined }}
+        />
+        <span className="min-w-0 flex-1">
+          <span className="stitch-label block text-[0.56rem] text-muted-foreground">{field.short}</span>
+          <span
+            className={cn(
+              "mt-1 block truncate text-sm font-bold",
+              !selectedDriver && !(field.allowNoDnf && field.value === "__none") && "text-muted-foreground",
+            )}
+          >
+            {displayValue}
           </span>
         </span>
         {field.locked ? (
@@ -546,23 +587,21 @@ function TeamPredictionPickCard({
   return (
     <label
       className={cn(
-        "group grid gap-3 rounded-lg border border-border bg-muted/35 p-4 transition-colors hover:border-primary/60 hover:bg-accent/70",
+        "group grid gap-2.5 rounded-lg border border-border/80 bg-background/30 p-3.5 transition-colors hover:border-primary/50 hover:bg-accent/50",
         field.locked && "border-warning/50 bg-warning/5",
       )}
       htmlFor={field.name}
     >
-      <span className="flex items-start justify-between gap-3">
-        <span className="min-w-0">
-          <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">
-            {field.short}
-          </span>
-          <span className="mt-2 flex min-w-0 items-center gap-2 font-telemetry text-sm font-bold uppercase text-foreground">
-            <span
-              aria-hidden="true"
-              className="h-8 w-1 rounded-full bg-primary"
-              style={{ backgroundColor: team?.color ?? undefined }}
-            />
-            <span className="min-w-0 truncate">{displayValue}</span>
+      <span className="flex items-center gap-2.5">
+        <span
+          aria-hidden="true"
+          className="h-9 w-1.5 shrink-0 rounded-full bg-primary/70"
+          style={{ backgroundColor: team?.color ?? undefined }}
+        />
+        <span className="min-w-0 flex-1">
+          <span className="stitch-label block text-[0.56rem] text-muted-foreground">{field.short}</span>
+          <span className={cn("mt-1 block truncate text-sm font-bold", !selectedTeam && "text-muted-foreground")}>
+            {displayValue}
           </span>
         </span>
         {field.locked ? (
@@ -597,15 +636,21 @@ function TeamPredictionPickCard({
 
 function LeagueControlPanel({ userSignedIn }: { userSignedIn: boolean }) {
   return (
-    <StitchPanel>
-      <StitchPanelHeader
-        icon={Users}
-        meta="Создай комнату или войди по коду друзей."
-        title="Моя лига"
-      />
-      <div className="grid gap-5 p-5">
+    <section className="stitch-panel overflow-hidden p-0">
+      <div className="flex items-start gap-3 border-b stitch-divider p-4">
+        <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border/70 bg-secondary/40">
+          <Users aria-hidden="true" className="size-4.5 text-primary" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="font-display text-lg font-bold leading-tight">Моя лига</h2>
+          <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+            Создай комнату или войди по коду друзей
+          </p>
+        </div>
+      </div>
+      <div className="grid gap-5 p-4 sm:p-5">
         <form action={createFantasyLeague} className="grid gap-3">
-          <label className="grid gap-2 text-sm font-medium" htmlFor="name">
+          <label className="grid gap-2 text-sm font-semibold" htmlFor="name">
             Название лиги
             <input
               className="min-h-11 rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
@@ -626,7 +671,7 @@ function LeagueControlPanel({ userSignedIn }: { userSignedIn: boolean }) {
         </form>
 
         <form action={joinFantasyLeague} className="grid gap-3 border-t stitch-divider pt-5">
-          <label className="grid gap-2 text-sm font-medium" htmlFor="inviteCode">
+          <label className="grid gap-2 text-sm font-semibold" htmlFor="inviteCode">
             Код приглашения
             <input
               className="min-h-11 rounded-md border border-input bg-background px-3 font-mono text-sm uppercase outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
@@ -637,11 +682,12 @@ function LeagueControlPanel({ userSignedIn }: { userSignedIn: boolean }) {
             />
           </label>
           <Button disabled={!userSignedIn} type="submit" variant="secondary">
+            <KeyRound aria-hidden="true" data-icon="inline-start" />
             {userSignedIn ? "Войти по коду" : "Войти, чтобы вступить"}
           </Button>
         </form>
       </div>
-    </StitchPanel>
+    </section>
   );
 }
 
@@ -657,7 +703,7 @@ function LeagueActivity({
   userSignedIn: boolean;
 }) {
   return (
-    <section className="grid gap-5">
+    <section className="grid gap-4 sm:gap-5">
       <LeagueList
         emptyText="Ты пока не состоишь в лигах. Создай свою или войди по коду друзей."
         leagues={myLeagues}
@@ -692,60 +738,78 @@ function LeagueList({
   userSignedIn?: boolean;
 }) {
   return (
-    <div className="stitch-panel overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
-        <div>
-          <p className="stitch-label text-muted-foreground">Паддок друзей</p>
-          <h2 className="mt-2 font-display text-2xl font-bold">{title}</h2>
+    <div className="stitch-panel overflow-hidden p-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border/70 bg-secondary/40">
+            <Users aria-hidden="true" className="size-4.5 text-primary" />
+          </span>
+          <div>
+            <h2 className="font-display text-lg font-bold leading-tight">{title}</h2>
+            <p className="mt-0.5 text-xs font-semibold text-muted-foreground">Паддок друзей</p>
+          </div>
         </div>
-        <Badge variant="secondary">{leagues.length} лиг</Badge>
+        <Badge variant="secondary">{leagues.length}</Badge>
       </div>
       <div className="divide-y stitch-divider">
         {leagues.length ? (
           leagues.map((league) => {
             const content = (
               <>
-              <div className="min-w-0">
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <h3 className="truncate font-display text-lg font-bold">{league.name}</h3>
-                  {league.isOwner ? <Badge variant="outline">Создатель</Badge> : null}
-                  {league.isMember && !league.isOwner ? <Badge variant="outline">Ты здесь</Badge> : null}
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {league.members} участников, лидер — {league.leader}
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <DataRow label="Очки лидера" value={String(league.score)} />
+                <span
+                  aria-hidden="true"
+                  className="grid size-11 shrink-0 place-items-center rounded-md border border-border/70 bg-secondary/40 font-display text-sm font-extrabold text-primary"
+                >
+                  {getLeagueInitials(league.name)}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex min-w-0 flex-wrap items-center gap-2">
+                    <span className="truncate font-display text-base font-bold">{league.name}</span>
+                    {league.isOwner ? (
+                      <Badge variant="outline">
+                        <Crown aria-hidden="true" className="mr-1 size-3" />
+                        Создатель
+                      </Badge>
+                    ) : null}
+                    {league.isMember && !league.isOwner ? <Badge variant="outline">Ты здесь</Badge> : null}
+                  </span>
+                  <span className="mt-1 block truncate text-sm font-semibold text-muted-foreground">
+                    {league.members} {pluralize(league.members, ["участник", "участника", "участников"])} · лидер —{" "}
+                    {league.leader}
+                  </span>
+                </span>
+                <span className="grid shrink-0 justify-items-end gap-1 text-right">
+                  <span className="font-telemetry text-lg font-extrabold leading-none">{league.score}</span>
+                  <span className="text-[0.62rem] font-semibold text-muted-foreground">очки лидера</span>
+                </span>
                 {showJoinAction ? (
-                  <form action={joinFantasyLeague}>
+                  <form action={joinFantasyLeague} className="shrink-0">
                     <input name="inviteCode" type="hidden" value={league.inviteCode ?? ""} />
                     <Button disabled={!userSignedIn || !league.inviteCode} size="sm" type="submit" variant="secondary">
                       {userSignedIn ? "Присоединиться" : "Войти"}
                     </Button>
                   </form>
                 ) : (
-                  <DataRow label="Код" value={league.inviteCode ?? "Закрытая"} />
+                  <span className="font-telemetry shrink-0 rounded border border-border/70 bg-secondary/40 px-2 py-1 text-[0.68rem] font-extrabold uppercase">
+                    {league.inviteCode ?? "Закрытая"}
+                  </span>
                 )}
-              </div>
               </>
+            );
+            const rowClassName = cn(
+              "flex flex-wrap items-center gap-3 p-4",
+              selectedLeagueId === league.id && "bg-accent/60",
             );
 
             return showJoinAction ? (
-              <div
-                className={cn(
-                  "grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center",
-                  selectedLeagueId === league.id && "bg-accent/60",
-                )}
-                key={league.id ?? league.name}
-              >
+              <div className={rowClassName} key={league.id ?? league.name}>
                 {content}
               </div>
             ) : (
               <Link
                 className={cn(
-                  "grid gap-3 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center",
-                  selectedLeagueId === league.id && "bg-accent/60",
+                  rowClassName,
+                  "transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 )}
                 href={league.id ? `/fantasy/leagues/${league.id}` : "/fantasy?tab=leagues"}
                 key={league.id ?? league.name}
@@ -756,9 +820,7 @@ function LeagueList({
             );
           })
         ) : (
-          <p className="p-5 text-sm leading-6 text-muted-foreground">
-            {emptyText}
-          </p>
+          <p className="p-5 text-sm leading-6 text-muted-foreground">{emptyText}</p>
         )}
       </div>
     </div>
@@ -849,6 +911,32 @@ function buildTeamPredictionFields(
       value: current?.fastestPitStopTeamId,
     },
   ];
+}
+
+function getLeagueInitials(name: string) {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "Л"
+  );
+}
+
+function pluralize(value: number, forms: [string, string, string]) {
+  const mod10 = value % 10;
+  const mod100 = value % 100;
+
+  if (mod10 === 1 && mod100 !== 11) {
+    return forms[0];
+  }
+
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return forms[1];
+  }
+
+  return forms[2];
 }
 
 function getStatusNotice(status: FantasySearchParams) {
