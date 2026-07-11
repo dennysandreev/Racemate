@@ -4,29 +4,29 @@ import {
   ChevronRight,
   Clock3,
   Flag,
-  Gauge,
-  ListChecks,
+  ListOrdered,
   LogOut,
   Mail,
   PencilLine,
-  Target,
+  Plus,
   Trophy,
   UserRound,
   Users,
   Vote,
+  Warehouse,
 } from "lucide-react";
-import type { ComponentType, ReactNode, SVGProps } from "react";
+import type { ComponentType, SVGProps } from "react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { signOut } from "@/app/auth/actions";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
-import { TeamLogo } from "@/components/racemate/team-logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getTeamAsset } from "@/data/f1-assets";
 import {
   getConstructorChampionshipMatrix,
   getDriverChampionshipMatrix,
+  getGlobalFantasyLeaderboard,
   getPredictionState,
 } from "@/data/racemate-repository";
 import { ensureProfile } from "@/lib/auth";
@@ -91,44 +91,47 @@ export default async function AccountPage() {
     "Гость RaceMate";
   const email = profile?.email ?? "Почта не указана";
   const timezone = profile?.timezone ?? "Europe/Moscow";
-  const [overview, predictionState, driversMatrix, constructorsMatrix, extras] = await Promise.all([
+  const [overview, predictionState, driversMatrix, constructorsMatrix, leaderboard, extras] = await Promise.all([
     getAccountOverview(profile?.id ?? null),
     getPredictionState(profile?.id ?? null),
     getDriverChampionshipMatrix(),
     getConstructorChampionshipMatrix(),
+    getGlobalFantasyLeaderboard(),
     getAccountExtras(profile?.id ?? null),
   ]);
-  const favoriteDrivers = enrichFavoriteDrivers(overview.favoriteDrivers, driversMatrix.rows);
-  const favoriteTeams = enrichFavoriteTeams(overview.favoriteTeams, constructorsMatrix.rows);
-  const accentColor = favoriteTeams[0]?.color ?? favoriteDrivers[0]?.teamColor ?? null;
+  const favoriteDrivers = enrichFavoriteDrivers(overview.favoriteDrivers, driversMatrix.rows).slice(0, 2);
+  const favoriteTeam = enrichFavoriteTeams(overview.favoriteTeams, constructorsMatrix.rows)[0] ?? null;
+  const accentColor = favoriteTeam?.color ?? favoriteDrivers[0]?.teamColor ?? null;
   const summary = predictionState.seasonSummary;
-  const averageScore = summary.scoredPredictionCount
-    ? Math.round(((summary.totalScore ?? 0) / summary.scoredPredictionCount) * 10) / 10
-    : null;
+  const leaderboardRank =
+    leaderboard.rows.find(
+      (row) => row.displayName.trim().toLowerCase() === displayName.trim().toLowerCase(),
+    )?.rank ?? null;
 
   return (
     <AppShell>
       <section className="grid gap-4 py-6 sm:gap-5">
-        <section className="stitch-panel relative overflow-hidden p-5 sm:p-7">
+        <section className="stitch-panel relative overflow-hidden p-0">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0"
             style={{
-              background: `radial-gradient(circle at 14% 0%, ${hexWithAlpha(accentColor, 0.28) ?? "rgb(225 6 0 / 0.24)"}, transparent 24rem), radial-gradient(circle at 90% 110%, rgb(225 6 0 / 0.12), transparent 20rem), linear-gradient(135deg, rgb(255 255 255 / 0.07), transparent 42%)`,
+              background: `radial-gradient(circle at 12% 0%, ${hexWithAlpha(accentColor, 0.32) ?? "rgb(225 6 0 / 0.26)"}, transparent 26rem), radial-gradient(circle at 96% 120%, rgb(225 6 0 / 0.14), transparent 22rem), linear-gradient(135deg, rgb(255 255 255 / 0.07), transparent 44%)`,
             }}
           />
-          <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-            <div className="flex min-w-0 items-start gap-4 sm:gap-5">
+          <div className="relative flex flex-col justify-between gap-6 p-5 sm:p-7 lg:flex-row lg:items-center">
+            <div className="flex min-w-0 items-center gap-4 sm:gap-6">
               <span
                 aria-hidden="true"
-                className="grid size-16 shrink-0 place-items-center rounded-full border-2 bg-[oklch(0.21_0.014_250)] font-display text-xl font-extrabold sm:size-20 sm:text-2xl"
+                className="grid size-18 shrink-0 place-items-center rounded-full border-2 bg-[oklch(0.21_0.014_250)] font-display text-2xl font-extrabold sm:size-24 sm:text-3xl"
                 style={{ borderColor: accentColor ?? "var(--primary)" }}
               >
                 {getInitials(displayName)}
               </span>
               <div className="min-w-0">
-                <p className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-primary">
-                  Личный кабинет
+                <p className="font-telemetry flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+                  <UserRound aria-hidden="true" className="size-3.5" />
+                  Паддок-пасс RaceMate
                 </p>
                 <h1 className="mt-1.5 max-w-3xl text-balance font-display text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-4xl">
                   {displayName}
@@ -142,7 +145,7 @@ export default async function AccountPage() {
                 </div>
               </div>
             </div>
-            <div className="relative grid w-full shrink-0 grid-cols-2 gap-2 sm:w-auto">
+            <div className="relative grid w-full shrink-0 grid-cols-2 gap-2 sm:w-auto lg:grid-cols-1 xl:grid-cols-2">
               <Button asChild>
                 <Link href="/onboarding" prefetch={false}>
                   <PencilLine aria-hidden="true" data-icon="inline-start" />
@@ -157,47 +160,40 @@ export default async function AccountPage() {
               </form>
             </div>
           </div>
+          <div className="relative grid grid-cols-2 border-t stitch-divider bg-background/25 sm:grid-cols-4">
+            <HeroStat
+              hint="за сезон"
+              icon={Trophy}
+              label="Очки прогнозов"
+              value={summary.totalScore !== null ? formatNumber(summary.totalScore) : "—"}
+            />
+            <HeroStat
+              hint={leaderboardRank ? "в глобальном рейтинге" : "сохрани первый прогноз"}
+              icon={ListOrdered}
+              label="Место"
+              value={leaderboardRank ? `#${leaderboardRank}` : "—"}
+            />
+            <HeroStat
+              hint={summary.scoredPredictionCount ? `${summary.scoredPredictionCount} с результатом` : "пока без результатов"}
+              icon={Flag}
+              label="Прогнозов"
+              value={String(summary.predictionCount)}
+            />
+            <HeroStat hint="в опросах" icon={Vote} label="Голосов" value={String(extras.pollVotes)} />
+          </div>
         </section>
 
-        <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
-          <StatTile
-            hint="за сезон"
-            icon={Target}
-            label="Очки прогнозов"
-            value={summary.totalScore !== null ? formatNumber(summary.totalScore) : "—"}
-          />
-          <StatTile
-            hint={summary.scoredPredictionCount ? `${summary.scoredPredictionCount} с результатом` : "пока без результатов"}
-            icon={ListChecks}
-            label="Прогнозов сделано"
-            value={String(summary.predictionCount)}
-          />
-          <StatTile
-            hint="очков за этап"
-            icon={Gauge}
-            label="Средний результат"
-            value={averageScore !== null ? formatNumber(averageScore) : "—"}
-          />
-          <StatTile
-            hint="в опросах RaceMate"
-            icon={Vote}
-            label="Голосов отдано"
-            value={String(extras.pollVotes)}
-          />
+        <div className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(17rem,0.45fr)] xl:items-start">
+          <GaragePanel accentColor={accentColor} drivers={favoriteDrivers} team={favoriteTeam} />
+
+          <div className="grid gap-4 sm:gap-5">
+            <NextRacePanel
+              hasPrediction={predictionState.current !== null}
+              race={predictionState.race}
+            />
+            <QuickLinksPanel />
+          </div>
         </div>
-
-        <section className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(16rem,0.55fr)] xl:items-start">
-          <NextRacePanel
-            hasPrediction={predictionState.current !== null}
-            race={predictionState.race}
-          />
-          <QuickLinksPanel />
-        </section>
-
-        <section className="grid gap-4 sm:gap-5 xl:grid-cols-2 xl:items-start">
-          <FavoriteDriversPanel drivers={favoriteDrivers} />
-          <FavoriteTeamsPanel teams={favoriteTeams} />
-        </section>
       </section>
     </AppShell>
   );
@@ -299,7 +295,7 @@ function enrichFavoriteTeams(
   });
 }
 
-function StatTile({
+function HeroStat({
   hint,
   icon: Icon,
   label,
@@ -311,14 +307,197 @@ function StatTile({
   value: string;
 }) {
   return (
-    <article className="stitch-panel p-3.5 sm:p-4">
-      <p className="flex items-center gap-2">
+    <div className="border-r stitch-divider px-4 py-3.5 last:border-r-0 sm:px-5 [&:nth-child(2)]:border-r-0 sm:[&:nth-child(2)]:border-r [&:nth-child(-n+2)]:border-b sm:[&:nth-child(-n+2)]:border-b-0">
+      <p className="flex items-center gap-1.5">
         <Icon aria-hidden="true" className="size-3.5 shrink-0 text-primary" />
-        <span className="stitch-label text-[0.58rem] text-muted-foreground sm:text-[0.62rem]">{label}</span>
+        <span className="stitch-label text-[0.56rem] text-muted-foreground">{label}</span>
       </p>
-      <p className="font-telemetry mt-2.5 text-2xl font-extrabold leading-none sm:text-3xl">{value}</p>
-      <p className="mt-1.5 text-[0.65rem] font-semibold text-muted-foreground sm:text-xs">{hint}</p>
-    </article>
+      <p className="font-telemetry mt-2 text-xl font-extrabold leading-none sm:text-2xl">{value}</p>
+      <p className="mt-1 truncate text-[0.62rem] font-semibold text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
+/*
+ * «Гараж» — команда сезона и до двух пилотов одним цельным блоком.
+ * Пустые слоты показываются пунктиром, чтобы был понятен лимит: 1 команда, 2 пилота.
+ */
+function GaragePanel({
+  accentColor,
+  drivers,
+  team,
+}: {
+  accentColor: string | null;
+  drivers: FavoriteDriver[];
+  team: FavoriteTeam | null;
+}) {
+  const driverSlots: (FavoriteDriver | null)[] = [drivers[0] ?? null, drivers[1] ?? null];
+
+  return (
+    <section className="stitch-panel relative overflow-hidden p-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border/70 bg-secondary/40">
+            <Warehouse aria-hidden="true" className="size-4.5 text-primary" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-bold leading-tight">Мой гараж</h2>
+            <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+              Команда сезона и два пилота — RaceMate подсвечивает их везде
+            </p>
+          </div>
+        </div>
+        <Button asChild size="sm" variant="secondary">
+          <Link href="/onboarding" prefetch={false}>
+            Настроить
+            <ChevronRight aria-hidden="true" data-icon="inline-end" />
+          </Link>
+        </Button>
+      </div>
+
+      {team ? (
+        <div
+          className="relative overflow-hidden border-b stitch-divider"
+          style={{
+            background: `linear-gradient(105deg, ${hexWithAlpha(team.color, 0.3) ?? "rgb(225 6 0 / 0.2)"}, transparent 62%)`,
+          }}
+        >
+          {team.logo ? (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-6 top-1/2 h-32 w-56 -translate-y-1/2 bg-contain bg-center bg-no-repeat opacity-[0.07] sm:h-40 sm:w-72"
+              style={{ backgroundImage: `url(${team.logo})` }}
+            />
+          ) : null}
+          <div className="relative flex flex-wrap items-center gap-4 p-4 sm:p-5">
+            <span
+              aria-hidden="true"
+              className="grid h-16 w-24 shrink-0 place-items-center overflow-hidden rounded-lg border bg-[oklch(0.17_0.012_250)] p-2 sm:h-20 sm:w-32"
+              style={{ borderColor: hexWithAlpha(team.color, 0.5) ?? "var(--border)" }}
+            >
+              {team.logo ? (
+                <span
+                  className="block h-full w-full bg-contain bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url(${team.logo})` }}
+                />
+              ) : (
+                <span className="font-display text-lg font-extrabold">{team.code ?? team.name.slice(0, 3)}</span>
+              )}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="stitch-label text-[0.56rem] text-muted-foreground">Команда сезона</p>
+              <p className="mt-1 truncate font-display text-xl font-extrabold leading-tight sm:text-2xl">{team.name}</p>
+              {team.championshipPosition ? (
+                <p className="mt-1 text-xs font-semibold text-muted-foreground">
+                  Кубок конструкторов: P{team.championshipPosition} · {formatNumber(team.championshipPoints ?? 0)} очк.
+                  {team.wins ? ` · ${team.wins} ${pluralize(team.wins, ["победа", "победы", "побед"])}` : ""}
+                </p>
+              ) : null}
+            </div>
+            {team.championshipPosition ? (
+              <span
+                className="font-telemetry grid size-14 shrink-0 place-items-center rounded-full border-2 text-lg font-extrabold sm:size-16"
+                style={{ borderColor: team.color ?? "var(--primary)" }}
+              >
+                P{team.championshipPosition}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <EmptyGarageSlot
+          className="m-4 sm:m-5"
+          text="Выбери команду сезона — гараж окрасится в ее цвета."
+        />
+      )}
+
+      <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5">
+        {driverSlots.map((driver, index) =>
+          driver ? (
+            <DriverGarageCard driver={driver} key={driver.id} />
+          ) : (
+            <EmptyGarageSlot
+              key={`empty-${index}`}
+              text={index === 0 ? "Первый пилот гаража — выбери в онбординге." : "Второе место свободно."}
+            />
+          ),
+        )}
+      </div>
+      <p
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-2 right-4 font-display text-[4rem] font-extrabold leading-none tracking-tight opacity-[0.045] sm:text-[6rem]"
+        style={{ color: accentColor ?? "var(--primary)" }}
+      >
+        RM
+      </p>
+    </section>
+  );
+}
+
+function DriverGarageCard({ driver }: { driver: FavoriteDriver }) {
+  const body = (
+    <>
+      <DriverAvatarBadge
+        className="size-14 sm:size-16"
+        color={driver.teamColor}
+        name={driver.name}
+        sizes="4rem"
+        slug={driver.slug}
+      />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-display text-base font-extrabold leading-tight">{driver.name}</span>
+        <span className="mt-0.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+          <span
+            aria-hidden="true"
+            className="size-1.5 shrink-0 rounded-full"
+            style={{ backgroundColor: driver.teamColor ?? "var(--border)" }}
+          />
+          <span className="truncate">{driver.team}</span>
+        </span>
+        {driver.championshipPosition ? (
+          <span className="font-telemetry mt-2 inline-block rounded border border-border/70 bg-secondary/40 px-1.5 py-1 text-[0.62rem] font-extrabold">
+            P{driver.championshipPosition} · {formatNumber(driver.championshipPoints ?? 0)} очк.
+          </span>
+        ) : null}
+      </span>
+      {driver.slug ? (
+        <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+      ) : null}
+    </>
+  );
+  const className =
+    "relative flex min-w-0 items-center gap-3 rounded-lg border border-border/70 bg-background/35 p-3.5 transition-colors";
+
+  if (driver.slug) {
+    return (
+      <Link
+        className={cn(className, "hover:border-primary/45 hover:bg-accent/50")}
+        href={`/drivers/${driver.slug}`}
+        prefetch={false}
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return <div className={className}>{body}</div>;
+}
+
+function EmptyGarageSlot({ className, text }: { className?: string; text: string }) {
+  return (
+    <Link
+      className={cn(
+        "group flex min-h-[5.5rem] items-center justify-center gap-2 rounded-lg border border-dashed border-border/80 bg-background/20 p-4 text-center transition-colors hover:border-primary/50 hover:bg-accent/40",
+        className,
+      )}
+      href="/onboarding"
+      prefetch={false}
+    >
+      <Plus aria-hidden="true" className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+      <span className="text-sm font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
+        {text}
+      </span>
+    </Link>
   );
 }
 
@@ -333,7 +512,7 @@ function NextRacePanel({
     <section className="stitch-panel relative overflow-hidden p-4 sm:p-5">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_0%,rgb(225_6_0_/_0.16),transparent_16rem)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_0%,rgb(225_6_0_/_0.16),transparent_14rem)]"
       />
       <div className="relative">
         <p className="stitch-label flex items-center gap-2 text-muted-foreground">
@@ -342,37 +521,28 @@ function NextRacePanel({
         </p>
         {race ? (
           <>
-            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <h2 className="font-display text-xl font-extrabold leading-tight sm:text-2xl">{race.name}</h2>
-              <span
-                className={cn(
-                  "font-telemetry rounded border px-2 py-1 text-[0.6rem] font-extrabold uppercase tracking-[0.08em]",
-                  hasPrediction
-                    ? "border-[rgba(57,255,20,0.4)] bg-[rgba(57,255,20,0.1)] text-[rgb(97,255,75)]"
-                    : "border-amber-300/50 bg-amber-400/10 text-amber-300",
-                )}
-              >
-                {hasPrediction ? "Прогноз сделан" : "Прогноза нет"}
-              </span>
-            </div>
-            <p className="mt-1.5 text-sm font-semibold text-muted-foreground">
-              Старт гонки: {race.startsAt}
-              {race.raceLocked
-                ? " · приём прогнозов закрыт"
-                : race.poleLocked
-                  ? " · прогноз на поул закрыт"
-                  : ""}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <h2 className="mt-2.5 font-display text-xl font-extrabold leading-tight">{race.name}</h2>
+            <p className="mt-1 text-xs font-semibold text-muted-foreground">Старт гонки: {race.startsAt}</p>
+            <span
+              className={cn(
+                "font-telemetry mt-3 inline-block rounded border px-2 py-1 text-[0.6rem] font-extrabold uppercase tracking-[0.08em]",
+                hasPrediction
+                  ? "border-[rgba(57,255,20,0.4)] bg-[rgba(57,255,20,0.1)] text-[rgb(97,255,75)]"
+                  : "border-amber-300/50 bg-amber-400/10 text-amber-300",
+              )}
+            >
+              {hasPrediction ? "Прогноз сделан" : "Прогноза нет"}
+            </span>
+            <div className="mt-3.5 grid gap-2">
               {!race.raceLocked ? (
-                <Button asChild>
-                  <Link href="/predictions" prefetch={false}>
+                <Button asChild className="w-full">
+                  <Link href="/fantasy?tab=picks" prefetch={false}>
                     {hasPrediction ? "Изменить прогноз" : "Сделать прогноз"}
                     <ChevronRight aria-hidden="true" data-icon="inline-end" />
                   </Link>
                 </Button>
               ) : null}
-              <Button asChild variant="secondary">
+              <Button asChild className="w-full" variant="secondary">
                 <Link href="/weekend" prefetch={false}>
                   Страница этапа
                 </Link>
@@ -420,159 +590,6 @@ function QuickLinksPanel() {
         ))}
       </div>
     </section>
-  );
-}
-
-function FavoriteDriversPanel({ drivers }: { drivers: FavoriteDriver[] }) {
-  return (
-    <section className="stitch-panel min-w-0 overflow-hidden p-0">
-      <PanelHeader
-        icon={UserRound}
-        meta="RaceMate держит их ближе в новостях и прогнозах"
-        title="Любимые пилоты"
-      />
-      <div className="grid gap-2 p-3 sm:grid-cols-2 sm:gap-3 sm:p-4 xl:grid-cols-1">
-        {drivers.length ? (
-          drivers.map((driver) => (
-            <FavoriteCard
-              badge={
-                driver.championshipPosition
-                  ? `P${driver.championshipPosition} · ${formatNumber(driver.championshipPoints ?? 0)} очк.`
-                  : undefined
-              }
-              href={driver.slug ? `/drivers/${driver.slug}` : undefined}
-              key={driver.id}
-              media={
-                <DriverAvatarBadge
-                  className="size-11"
-                  color={driver.teamColor}
-                  name={driver.name}
-                  sizes="2.75rem"
-                  slug={driver.slug}
-                />
-              }
-              subtitle={driver.team}
-              title={driver.name}
-            />
-          ))
-        ) : (
-          <EmptyFavorites text="Выбери пилотов, и здесь появятся их позиции в чемпионате." />
-        )}
-      </div>
-    </section>
-  );
-}
-
-function FavoriteTeamsPanel({ teams }: { teams: FavoriteTeam[] }) {
-  return (
-    <section className="stitch-panel min-w-0 overflow-hidden p-0">
-      <PanelHeader
-        icon={Users}
-        meta="Персональные акценты в ленте и отчетах"
-        title="Любимые команды"
-      />
-      <div className="grid gap-2 p-3 sm:gap-3 sm:p-4">
-        {teams.length ? (
-          teams.map((team) => (
-            <FavoriteCard
-              badge={
-                team.championshipPosition
-                  ? `P${team.championshipPosition} · ${formatNumber(team.championshipPoints ?? 0)} очк.${
-                      team.wins ? ` · ${team.wins} ${pluralize(team.wins, ["победа", "победы", "побед"])}` : ""
-                    }`
-                  : undefined
-              }
-              key={team.id}
-              media={<TeamLogo code={team.code} color={team.color} logo={team.logo} name={team.name} size="sm" />}
-              title={team.name}
-            />
-          ))
-        ) : (
-          <EmptyFavorites text="Добавь команды, чтобы кабинет подсвечивал их результаты." />
-        )}
-      </div>
-    </section>
-  );
-}
-
-function FavoriteCard({
-  badge,
-  href,
-  media,
-  subtitle,
-  title,
-}: {
-  badge?: string;
-  href?: string;
-  media: ReactNode;
-  subtitle?: string;
-  title: string;
-}) {
-  const body = (
-    <>
-      {media}
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold">{title}</span>
-        {subtitle ? (
-          <span className="mt-0.5 block truncate text-xs font-semibold text-muted-foreground">{subtitle}</span>
-        ) : null}
-      </span>
-      {badge ? (
-        <span className="font-telemetry shrink-0 rounded border border-border/70 bg-secondary/40 px-1.5 py-1 text-[0.62rem] font-extrabold">
-          {badge}
-        </span>
-      ) : null}
-      {href ? (
-        <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
-      ) : null}
-    </>
-  );
-  const className =
-    "flex min-w-0 items-center gap-3 rounded-md border border-border/70 bg-background/35 p-3 transition-colors";
-
-  if (href) {
-    return (
-      <Link className={cn(className, "hover:border-primary/40 hover:bg-accent/50")} href={href} prefetch={false}>
-        {body}
-      </Link>
-    );
-  }
-
-  return <div className={className}>{body}</div>;
-}
-
-function PanelHeader({
-  icon: Icon,
-  meta,
-  title,
-}: {
-  icon: IconComponent;
-  meta: string;
-  title: string;
-}) {
-  return (
-    <div className="flex items-start gap-3 border-b stitch-divider p-4">
-      <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border/70 bg-secondary/40">
-        <Icon aria-hidden="true" className="size-4.5 text-primary" />
-      </span>
-      <div className="min-w-0">
-        <h2 className="font-display text-lg font-bold leading-tight">{title}</h2>
-        <p className="mt-0.5 text-xs font-semibold text-muted-foreground">{meta}</p>
-      </div>
-    </div>
-  );
-}
-
-function EmptyFavorites({ text }: { text: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-border/80 bg-background/25 p-4 sm:col-span-2">
-      <p className="text-sm leading-6 text-muted-foreground">{text}</p>
-      <Button asChild className="mt-3" size="sm" variant="secondary">
-        <Link href="/onboarding" prefetch={false}>
-          Выбрать пилотов и команды
-        </Link>
-      </Button>
-    </div>
   );
 }
 
