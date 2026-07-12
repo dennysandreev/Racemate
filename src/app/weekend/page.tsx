@@ -2,14 +2,12 @@ import {
   CalendarDays,
   ExternalLink,
   MapPin,
-  Newspaper,
   Target,
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
-import { FantasyLockCountdown } from "@/components/fantasy/fantasy-lock-countdown";
 import { AppShell } from "@/components/racemate/app-shell";
 import { CircuitStatsSection } from "@/components/racemate/circuit-stats-section";
 import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
@@ -90,7 +88,7 @@ export default async function WeekendPage() {
           weekendStatus={nextSession.status}
         />
 
-        <div className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
           <section className="stitch-panel min-w-0 overflow-hidden p-0">
             <PanelHeader
               action={<WeekendProgressDots completed={completedSessions} total={sessionResults.length} />}
@@ -106,13 +104,10 @@ export default async function WeekendPage() {
             </div>
           </section>
 
-          <div className="grid gap-4 sm:gap-5">
-            <FantasyPredictionCard predictionState={predictionState} userSignedIn={Boolean(user)} />
-            <WinnerOddsCard odds={winnerOdds} teamLookupRows={standings} />
-          </div>
+          <WinnerOddsCard odds={winnerOdds} teamLookupRows={standings} />
+          <StageNewsCard href={raceNewsHref} items={raceNews} />
+          <FantasyPredictionCard predictionState={predictionState} userSignedIn={Boolean(user)} />
         </div>
-
-        <StageNewsPanel href={raceNewsHref} items={raceNews} />
       </section>
     </AppShell>
   );
@@ -154,11 +149,14 @@ function WeekendHero({
               <span className="text-sm font-semibold text-muted-foreground">{currentRace.country}</span>
             ) : null}
           </div>
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-            <TrackLocalTimeBadge timezone={currentRace?.timezone} />
-            <Badge className="shrink-0" variant={weekendStatus === "Live" ? "success" : "warning"}>
+          <div className="ml-auto flex flex-col items-end gap-1.5">
+            <Badge
+              className="shrink-0 px-3 py-1.5 text-sm"
+              variant={weekendStatus === "Live" ? "success" : "warning"}
+            >
               {weekendStatus}
             </Badge>
+            <TrackLocalTimeBadge timezone={currentRace?.timezone} />
           </div>
         </div>
 
@@ -170,21 +168,11 @@ function WeekendHero({
           <h1 className="max-w-4xl text-balance font-display text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
             {nextRace}
           </h1>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {!isWeekendDone ? (
-              <FantasyLockCountdown
-                locked={false}
-                lockedLabel=""
-                prefix={`${formatSessionName(nextSession.session)}`}
-                startsAtIso={nextSession.startsAtIso}
-              />
-            ) : null}
-            <span className="text-sm font-semibold text-muted-foreground">
-              {isWeekendDone
-                ? "Этап завершен — смотри результаты сессий и повтор гонки."
-                : `Ближайшая сессия: ${formatSessionName(nextSession.session)} · ${nextSession.startsAt}`}
-            </span>
-          </div>
+          <p className="mt-4 text-sm font-semibold text-muted-foreground">
+            {isWeekendDone
+              ? "Этап завершен — смотри результаты сессий и повтор гонки."
+              : `Ближайшая сессия: ${formatSessionName(nextSession.session)} · ${nextSession.startsAt}`}
+          </p>
         </div>
 
         <div className="grid overflow-hidden rounded-xl border border-border/75 bg-background/32 shadow-[0_18px_60px_rgb(0_0_0_/_0.24)] backdrop-blur lg:grid-cols-[minmax(0,1fr)_23rem]">
@@ -276,7 +264,7 @@ function WeekendProgressDots({ completed, total }: { completed: number; total: n
   );
 }
 
-function StageNewsPanel({
+function StageNewsCard({
   href,
   items,
 }: {
@@ -284,34 +272,40 @@ function StageNewsPanel({
   items: Awaited<ReturnType<typeof getRaceNews>>;
 }) {
   return (
-    <section className="stitch-panel overflow-hidden p-0">
-      <PanelHeader
-        action={
-          <Button asChild size="sm" variant="secondary">
-            <Link href={href}>Все новости</Link>
-          </Button>
-        }
-        icon={Newspaper}
-        meta="Материалы, привязанные к этому гран-при"
-        title="Новости этапа"
-      />
-      <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="stitch-panel">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4">
+        <div>
+          <p className="stitch-label text-muted-foreground">Новости</p>
+          <h2 className="mt-2 font-display text-2xl font-bold">
+            <Link
+              className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={href}
+            >
+              Новости этапа
+            </Link>
+          </h2>
+        </div>
+        <Button asChild size="sm" variant="secondary">
+          <Link href={href}>Читать все новости</Link>
+        </Button>
+      </div>
+      <div className="grid gap-3 p-4 sm:grid-cols-2">
         {items.length ? (
           items.map((item) => (
             <Link
-              className="group flex min-w-0 flex-col rounded-md border border-border/70 bg-background/30 p-4 transition-colors hover:border-primary/40 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-md border border-border/70 p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               href={`/news/${item.slug}`}
               key={item.slug}
             >
-              <Badge className="self-start" variant="secondary">{item.source}</Badge>
-              <p className="mt-3 text-sm font-bold leading-5 transition-colors group-hover:text-primary">
-                {item.title}
+              <Badge variant="secondary">{item.source}</Badge>
+              <p className="mt-3 text-sm font-semibold leading-5">{item.title}</p>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                {item.summary}
               </p>
-              <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">{item.summary}</p>
             </Link>
           ))
         ) : (
-          <p className="rounded-md border border-border/70 p-4 text-sm leading-6 text-muted-foreground sm:col-span-2 xl:col-span-4">
+          <p className="rounded-md border border-border/70 p-4 text-sm leading-6 text-muted-foreground sm:col-span-2">
             Пока нет новостей, привязанных к этому этапу.
           </p>
         )}
