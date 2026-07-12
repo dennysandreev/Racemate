@@ -10,6 +10,7 @@ type SessionWeatherTileProps = {
   isActive?: boolean;
   compact?: boolean;
   showStatusBadge?: boolean;
+  winnerAvatarSrc?: string | null;
 };
 
 export function SessionWeatherTile({
@@ -17,6 +18,7 @@ export function SessionWeatherTile({
   isActive,
   compact,
   showStatusBadge = true,
+  winnerAvatarSrc,
 }: SessionWeatherTileProps) {
   const isLive = session.status === "Live";
   const isCompleted = session.status === "Завершена";
@@ -26,7 +28,7 @@ export function SessionWeatherTile({
   return (
     <div
       className={cn(
-        "relative min-h-24 rounded-md border p-3 transition-colors backdrop-blur-md",
+        "relative min-h-24 overflow-hidden rounded-md border p-3 transition-colors backdrop-blur-md",
         isLive
           ? "border-success bg-success/12 text-foreground shadow-[0_0_18px_rgb(57_255_20_/_0.12)]"
           : isHighlighted
@@ -36,7 +38,16 @@ export function SessionWeatherTile({
         compact && "min-h-20",
       )}
     >
-      <div className="flex items-start justify-between gap-2">
+      {winnerAvatarSrc ? (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 z-0 w-16 overflow-hidden opacity-20 [mask-image:linear-gradient(to_left,rgba(0,0,0,0.85),transparent)]"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img alt="" className="h-full w-full object-cover object-top" src={winnerAvatarSrc} />
+        </span>
+      ) : null}
+      <div className="relative z-10 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="font-display truncate text-xs font-bold">{formatSessionName(session.name)}</p>
           <p
@@ -59,7 +70,7 @@ export function SessionWeatherTile({
           renderWeatherIcon(session.weather?.precipitationMm)
         )}
       </div>
-      <div className="mt-3 flex items-end justify-between gap-2">
+      <div className="relative z-10 mt-3 flex items-end justify-between gap-2">
         <div>
           <p className="font-telemetry whitespace-nowrap text-lg leading-none">
             {session.weather?.temperature ?? "—"}
