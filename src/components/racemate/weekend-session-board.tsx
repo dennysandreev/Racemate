@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, Cloud, CloudRain, CloudSun, Sun } from "lucide-react";
 
+import { getLocalDriverAvatarSrc } from "@/components/racemate/driver-avatar-badge";
 import { SessionResultsDialog, type SessionWithResults } from "@/components/racemate/session-results-dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -28,11 +29,15 @@ export function WeekendSessionBoard({
           const isCurrentTarget = item.session.name === activeSessionName;
           const isCompleted = sessionStatus === "Завершена";
           const isHighlighted = isLive || (isCurrentTarget && !isCompleted);
+          const winner = isCompleted
+            ? item.results.find((result) => result.position === 1) ?? item.results[0] ?? null
+            : null;
+          const winnerAvatar = winner ? getLocalDriverAvatarSrc(winner.driverSlug) : null;
 
           return (
             <button
               className={cn(
-                "group relative grid min-h-[3.9rem] w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border/70 px-3 py-2.5 text-left transition-colors last:border-b-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4",
+                "group relative grid min-h-[3.9rem] w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden border-b border-border/70 px-3 py-2.5 text-left transition-colors last:border-b-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4",
                 isLive
                   ? "bg-success/10 text-foreground"
                   : isHighlighted
@@ -43,18 +48,28 @@ export function WeekendSessionBoard({
               )}
               key={item.session.id ?? item.session.name}
               onClick={() => setSelected(item)}
+              title={winner ? `Победитель: ${winner.driver}` : undefined}
               type="button"
             >
               <span
                 aria-hidden="true"
                 className={cn(
-                  "absolute bottom-2 left-0 top-2 w-0.5 rounded-r-full bg-border",
+                  "absolute bottom-2 left-0 top-2 z-0 w-0.5 rounded-r-full bg-border",
                   isLive && "bg-success",
                   isHighlighted && !isLive && "bg-primary",
                   isCompleted && "bg-muted-foreground/35",
                 )}
               />
-              <div className="flex min-w-0 items-center gap-3 pl-2">
+              {winnerAvatar ? (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 right-16 z-0 w-24 overflow-hidden opacity-25 [mask-image:linear-gradient(to_left,rgba(0,0,0,0.9),transparent)] sm:right-20"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img alt="" className="h-full w-full object-cover object-top" src={winnerAvatar} />
+                </span>
+              ) : null}
+              <div className="relative z-10 flex min-w-0 items-center gap-3 pl-2">
                 <Badge
                   className="hidden shrink-0 sm:inline-flex"
                   variant={isLive ? "success" : isCompleted ? "outline" : "warning"}
@@ -71,7 +86,7 @@ export function WeekendSessionBoard({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="relative z-10 flex items-center gap-3">
                 {isCompleted ? (
                   <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
                 ) : (

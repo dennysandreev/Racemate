@@ -27,6 +27,10 @@ const localDriverAvatarSlugs = new Set([
   "valtteri-bottas",
 ]);
 
+export function getLocalDriverAvatarSrc(slug?: string | null) {
+  return slug && localDriverAvatarSlugs.has(slug) ? `/drivers/avatars/${slug}.png` : null;
+}
+
 type DriverAvatarBadgeProps = {
   className?: string;
   color?: string | null;
@@ -42,7 +46,7 @@ export function DriverAvatarBadge({
   sizes = "3rem",
   slug,
 }: DriverAvatarBadgeProps) {
-  const src = slug && localDriverAvatarSlugs.has(slug) ? `/drivers/avatars/${slug}.png` : null;
+  const src = getLocalDriverAvatarSrc(slug);
 
   return (
     <span

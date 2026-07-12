@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Play, Trophy } from "lucide-react";
+import { Play } from "lucide-react";
 
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
 import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
@@ -37,12 +37,9 @@ export function GrandPrixPodiumPreview({
 
   return (
     <div className={cn("grid gap-4", className)}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="font-display text-lg font-bold leading-tight">{report.raceName}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{report.raceDate}</p>
-        </div>
-        <Trophy aria-hidden="true" className="size-6 shrink-0 text-primary" />
+      <div className="min-w-0">
+        <p className="font-display text-lg font-bold leading-tight">{report.raceName}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{report.raceDate}</p>
       </div>
 
       {podium.length >= 3 ? (
@@ -76,17 +73,12 @@ export function GrandPrixPodiumPreview({
                 </p>
                 <div
                   className={cn(
-                    "mt-2 grid w-full place-items-center rounded-t-md",
+                    "mt-2 flex w-full items-end justify-center rounded-t-md pb-2",
                     stepHeight[rank],
                     tone.step,
                   )}
                 >
                   <span className="font-display text-lg font-black leading-none">{rank}</span>
-                  {typeof result.points === "number" ? (
-                    <span className="font-telemetry mt-0.5 text-[0.6rem] font-bold leading-none opacity-80">
-                      {result.points} очк.
-                    </span>
-                  ) : null}
                 </div>
               </div>
             );
