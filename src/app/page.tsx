@@ -110,7 +110,7 @@ export default async function Home({
         />
 
         <aside className="grid gap-5 xl:col-start-2 xl:row-span-2 xl:row-start-1">
-          <LatestReportCard report={latestReport} />
+          <LatestReportCard driverSlugByName={driverSlugByName} report={latestReport} />
           <StandingsCard rows={topStandings} />
           <MarketOddsCard
             emptyText="На Polymarket пока нет рынка чемпионства сезона."
@@ -298,7 +298,13 @@ function NewsMeta({ item }: { item: NewsItem }) {
   );
 }
 
-function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
+function LatestReportCard({
+  driverSlugByName,
+  report,
+}: {
+  driverSlugByName: Record<string, string>;
+  report: GrandPrixReport | null;
+}) {
   const isReady = isGrandPrixReportReady(report);
 
   return (
@@ -311,7 +317,11 @@ function LatestReportCard({ report }: { report: GrandPrixReport | null }) {
       </CardHeader>
       <CardContent>
         {report && isReady ? (
-          <GrandPrixPodiumPreview href={`/?raceReport=${report.raceSlug}`} report={report} />
+          <GrandPrixPodiumPreview
+            driverSlugByName={driverSlugByName}
+            href={`/?raceReport=${report.raceSlug}`}
+            report={report}
+          />
         ) : report ? (
           <div className="rounded-lg border border-border bg-muted/45 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">

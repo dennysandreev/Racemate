@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Play, Trophy } from "lucide-react";
 
+import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
 import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
-import { TeamColorBar } from "@/components/racemate/team-color";
 import { Button } from "@/components/ui/button";
 import { getTeamAsset } from "@/data/f1-assets";
 import { cn } from "@/lib/utils";
@@ -10,13 +10,25 @@ import type { GrandPrixReport, RaceReplaySummary } from "@/types/racemate";
 
 type GrandPrixPodiumPreviewProps = {
   className?: string;
+  driverSlugByName?: Record<string, string>;
   href: string;
   report: GrandPrixReport;
   replay?: RaceReplaySummary | null;
 };
 
+const podiumTone: Record<number, { step: string; text: string; ring: string }> = {
+  1: { ring: "#f4c95d", step: "bg-[#f4c95d] text-[#211a05]", text: "text-[#f4c95d]" },
+  2: { ring: "#cbd5e1", step: "bg-[#cbd5e1] text-[#111827]", text: "text-[#cbd5e1]" },
+  3: { ring: "#d48a5f", step: "bg-[#d48a5f] text-[#2a1608]", text: "text-[#d48a5f]" },
+};
+
+// Классический порядок ступеней: серебро слева, золото по центру, бронза справа.
+const podiumOrder = [2, 1, 3];
+const stepHeight: Record<number, string> = { 1: "h-14", 2: "h-10", 3: "h-8" };
+
 export function GrandPrixPodiumPreview({
   className,
+  driverSlugByName = {},
   href,
   report,
   replay,
@@ -24,7 +36,7 @@ export function GrandPrixPodiumPreview({
   const podium = report.results.slice(0, 3);
 
   return (
-    <div className={cn("grid gap-5", className)}>
+    <div className={cn("grid gap-4", className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-display text-lg font-bold leading-tight">{report.raceName}</p>
@@ -34,35 +46,48 @@ export function GrandPrixPodiumPreview({
       </div>
 
       {podium.length >= 3 ? (
-        <div className="grid gap-2">
-          {podium.map((result, index) => {
+        <div className="grid grid-cols-3 items-end gap-2">
+          {podiumOrder.map((rank) => {
+            const result = podium[rank - 1];
             const team = getTeamAsset(result.team);
-            const medalClassName =
-              index === 0
-                ? "border-[#f4c95d]/50 bg-[#f4c95d]/10 text-[#f4c95d]"
-                : index === 1
-                  ? "podium-preview-second border-slate-200/35 bg-slate-200/10 text-slate-100"
-                  : "border-[#d48a5f]/45 bg-[#d48a5f]/10 text-[#d48a5f]";
+            const tone = podiumTone[rank];
+            const isCenter = rank === 1;
+            const slug = getDriverSlug(driverSlugByName, result.driver);
 
             return (
-              <div
-                className="grid grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-3 rounded-md border border-border bg-muted/20 p-3"
-                key={`${result.position}-${result.driver}`}
-              >
-                <span
-                  className={`grid h-10 place-items-center rounded-md border font-telemetry text-xs font-black ${medalClassName}`}
+              <div className="flex min-w-0 flex-col items-center text-center" key={`${result.position}-${result.driver}`}>
+                <DriverAvatarBadge
+                  className={isCenter ? "size-16" : "size-12"}
+                  color={team?.color ?? tone.ring}
+                  name={result.driver}
+                  sizes={isCenter ? "4rem" : "3rem"}
+                  slug={slug}
+                />
+                <p className="mt-1.5 w-full truncate text-sm font-bold leading-tight">
+                  {getLastName(result.driver)}
+                </p>
+                <p className="mt-0.5 flex min-w-0 max-w-full items-center gap-1 text-[0.65rem] font-semibold text-muted-foreground">
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: team?.color ?? tone.ring }}
+                  />
+                  <span className="truncate">{result.team}</span>
+                </p>
+                <div
+                  className={cn(
+                    "mt-2 grid w-full place-items-center rounded-t-md",
+                    stepHeight[rank],
+                    tone.step,
+                  )}
                 >
-                  P{index + 1}
-                </span>
-                <span className="flex min-w-0 items-center gap-3">
-                  <TeamColorBar className="h-8 w-1.5" color={team?.color} />
-                  <span className="min-w-0">
-                    <span className="block truncate font-semibold">{result.driver}</span>
-                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                      {result.team}
+                  <span className="font-display text-lg font-black leading-none">{rank}</span>
+                  {typeof result.points === "number" ? (
+                    <span className="font-telemetry mt-0.5 text-[0.6rem] font-bold leading-none opacity-80">
+                      {result.points} очк.
                     </span>
-                  </span>
-                </span>
+                  ) : null}
+                </div>
               </div>
             );
           })}
@@ -94,4 +119,23 @@ export function GrandPrixPodiumPreview({
       </div>
     </div>
   );
+}
+
+function getDriverSlug(driverSlugByName: Record<string, string>, driverName: string) {
+  return driverSlugByName[normalizeDriverName(driverName)];
+}
+
+function normalizeDriverName(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function getLastName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+
+  return parts.length ? parts[parts.length - 1] : fullName;
 }
