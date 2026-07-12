@@ -2,6 +2,7 @@ import {
   CalendarDays,
   ExternalLink,
   MapPin,
+  Newspaper,
   Target,
   TrendingUp,
 } from "lucide-react";
@@ -105,7 +106,7 @@ export default async function WeekendPage() {
           </section>
 
           <WinnerOddsCard odds={winnerOdds} teamLookupRows={standings} />
-          <StageNewsCard href={raceNewsHref} items={raceNews} />
+          <StageNewsPanel href={raceNewsHref} items={raceNews} />
           <FantasyPredictionCard predictionState={predictionState} userSignedIn={Boolean(user)} />
         </div>
       </section>
@@ -150,10 +151,7 @@ function WeekendHero({
             ) : null}
           </div>
           <div className="ml-auto flex flex-col items-end gap-1.5">
-            <Badge
-              className="shrink-0 px-3 py-1.5 text-sm"
-              variant={weekendStatus === "Live" ? "success" : "warning"}
-            >
+            <Badge className="shrink-0" variant={weekendStatus === "Live" ? "success" : "warning"}>
               {weekendStatus}
             </Badge>
             <TrackLocalTimeBadge timezone={currentRace?.timezone} />
@@ -264,7 +262,7 @@ function WeekendProgressDots({ completed, total }: { completed: number; total: n
   );
 }
 
-function StageNewsCard({
+function StageNewsPanel({
   href,
   items,
 }: {
@@ -272,36 +270,30 @@ function StageNewsCard({
   items: Awaited<ReturnType<typeof getRaceNews>>;
 }) {
   return (
-    <section className="stitch-panel">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4">
-        <div>
-          <p className="stitch-label text-muted-foreground">Новости</p>
-          <h2 className="mt-2 font-display text-2xl font-bold">
-            <Link
-              className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              href={href}
-            >
-              Новости этапа
-            </Link>
-          </h2>
-        </div>
-        <Button asChild size="sm" variant="secondary">
-          <Link href={href}>Читать все новости</Link>
-        </Button>
-      </div>
+    <section className="stitch-panel overflow-hidden p-0">
+      <PanelHeader
+        action={
+          <Button asChild size="sm" variant="secondary">
+            <Link href={href}>Все новости</Link>
+          </Button>
+        }
+        icon={Newspaper}
+        meta="Материалы, привязанные к этому гран-при"
+        title="Новости этапа"
+      />
       <div className="grid gap-3 p-4 sm:grid-cols-2">
         {items.length ? (
           items.map((item) => (
             <Link
-              className="rounded-md border border-border/70 p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group flex min-w-0 flex-col rounded-md border border-border/70 bg-background/30 p-4 transition-colors hover:border-primary/40 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               href={`/news/${item.slug}`}
               key={item.slug}
             >
-              <Badge variant="secondary">{item.source}</Badge>
-              <p className="mt-3 text-sm font-semibold leading-5">{item.title}</p>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                {item.summary}
+              <Badge className="self-start" variant="secondary">{item.source}</Badge>
+              <p className="mt-3 text-sm font-bold leading-5 transition-colors group-hover:text-primary">
+                {item.title}
               </p>
+              <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">{item.summary}</p>
             </Link>
           ))
         ) : (
