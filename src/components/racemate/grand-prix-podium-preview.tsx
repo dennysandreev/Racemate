@@ -73,7 +73,7 @@ export function GrandPrixPodiumPreview({
                 </p>
                 <div
                   className={cn(
-                    "mt-2 flex w-full items-end justify-center rounded-t-md pb-2",
+                    "mt-2 grid w-full place-items-center rounded-t-md",
                     stepHeight[rank],
                     tone.step,
                   )}
