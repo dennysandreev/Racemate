@@ -131,8 +131,8 @@ export function GrandPrixReportDialog({
 
         <div className="min-h-0 overflow-y-auto">
           <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-            <main className="grid min-w-0 gap-6">
-              <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5">
+            <main className="contents lg:grid lg:min-w-0 lg:gap-6">
+              <section className="order-1 relative overflow-hidden rounded-xl border border-border bg-card p-5">
                 <div className="absolute left-0 top-0 h-full w-1 bg-primary" />
                 <div className="mb-4 flex items-center gap-2">
                   <Sparkles aria-hidden="true" className="size-5 text-primary" />
@@ -156,7 +156,7 @@ export function GrandPrixReportDialog({
               </section>
 
               {newsSummary.length ? (
-                <section className="rounded-xl border border-border bg-card p-5">
+                <section className="order-2 rounded-xl border border-border bg-card p-5">
                   <div className="mb-4 flex items-center gap-2">
                     <Newspaper aria-hidden="true" className="size-5 text-primary" />
                     <h3 className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
@@ -173,78 +173,86 @@ export function GrandPrixReportDialog({
                 </section>
               ) : null}
 
-              <section className="grid gap-4">
+              <section className="order-4 grid gap-4">
                 <div className="flex items-center justify-between gap-4">
-                  <h3 className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                    Итоги гонки
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Trophy aria-hidden="true" className="size-5 text-primary" />
+                    <h3 className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-foreground">
+                      Итоги гонки
+                    </h3>
+                  </div>
                   <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                    Классификация
+                    {report.results.length} пилотов
                   </span>
                 </div>
-                <div className="overflow-x-auto rounded-xl border border-border bg-card">
-                  <table className="w-full min-w-[50rem] text-left text-sm">
-                    <thead className="bg-muted/35 text-xs text-muted-foreground">
-                      <tr className="border-b border-border">
-                        <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">Поз.</th>
-                        <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">Пилот</th>
-                        <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">Команда</th>
-                        <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">Старт</th>
-                        <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">+/-</th>
-                        <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">Шины</th>
-                        <th className="px-4 py-3 font-telemetry font-bold uppercase tracking-[0.08em]">Лучший круг</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {report.results.map((result) => {
-                        const teamVisual = getTeamAsset(result.team);
-                        const driverSlug = getDriverSlug(driverSlugByName, result.driver);
+                <div className="overflow-hidden rounded-xl border border-border bg-card">
+                  <div
+                    className="hidden grid-cols-[2.75rem_minmax(11rem,1fr)_3.5rem_3.5rem_minmax(7rem,auto)_5.5rem] gap-3 border-b border-border bg-muted/35 px-4 py-2.5 font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.08em] text-muted-foreground sm:grid"
+                    role="row"
+                  >
+                    <span>Поз.</span>
+                    <span>Пилот</span>
+                    <span>Старт</span>
+                    <span>+/-</span>
+                    <span>Шины</span>
+                    <span>ЛК</span>
+                  </div>
+                  <div className="divide-y divide-border" role="rowgroup">
+                    {report.results.map((result) => {
+                      const teamVisual = getTeamAsset(result.team);
+                      const driverSlug = getDriverSlug(driverSlugByName, result.driver);
 
-                        return (
-                          <tr className="transition-colors hover:bg-accent/50" key={`${result.position}-${result.driver}`}>
-                            <td className="px-4 py-3">
-                              <span className="flex items-center gap-2 font-telemetry text-muted-foreground">
-                                <TeamColorBar className="h-6 w-1" color={teamVisual?.color} />
-                                {result.position ?? "-"}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3">
+                      return (
+                        <div
+                          className="grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-3 py-3 transition-colors hover:bg-accent/50 sm:grid-cols-[2.75rem_minmax(11rem,1fr)_3.5rem_3.5rem_minmax(7rem,auto)_5.5rem] sm:px-4"
+                          key={`${result.position}-${result.driver}`}
+                          role="row"
+                        >
+                          <span className="flex items-center gap-2 font-telemetry text-base font-extrabold text-muted-foreground">
+                            <TeamColorBar className="h-8 w-1" color={teamVisual?.color} />
+                            {result.position ?? "-"}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                               {driverSlug ? (
                                 <Link
-                                  className="font-semibold transition-colors hover:text-primary"
+                                  className="truncate font-semibold transition-colors hover:text-primary"
                                   href={`/drivers/${driverSlug}`}
                                   onClick={(event) => event.stopPropagation()}
                                 >
                                   {result.driver}
                                 </Link>
                               ) : (
-                                <span className="font-semibold">{result.driver}</span>
+                                <span className="truncate font-semibold">{result.driver}</span>
                               )}
-                              <span className="ml-2 inline-flex gap-1">
-                                {result.isWinner ? <Badge variant="success">Победа</Badge> : null}
-                                {result.isFastestLap ? <Badge variant="outline">ЛК</Badge> : null}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 font-telemetry text-muted-foreground">{result.team}</td>
-                            <td className="px-4 py-3 font-telemetry text-muted-foreground">{result.grid ?? "-"}</td>
-                            <td className="px-4 py-3 font-telemetry text-muted-foreground">
-                              {formatDelta(result.positionDelta)}
-                            </td>
-                            <td className="px-4 py-3">
+                              {result.isWinner ? <Badge variant="success">Победа</Badge> : null}
+                              {result.isFastestLap ? <Badge variant="outline">ЛК</Badge> : null}
+                            </div>
+                            <p className="mt-0.5 truncate text-xs text-muted-foreground">{result.team}</p>
+                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.65rem] font-semibold text-muted-foreground sm:hidden">
+                              <span>Старт P{result.grid ?? "—"}</span>
+                              <span>{formatDelta(result.positionDelta)}</span>
                               <TyreSequence tyres={result.tyres} />
-                            </td>
-                            <td className="px-4 py-3 font-telemetry text-muted-foreground">
-                              {result.bestLap ?? "-"}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                            </div>
+                          </div>
+                          <span className="hidden font-telemetry text-muted-foreground sm:block">{result.grid ?? "-"}</span>
+                          <span className="hidden font-telemetry text-muted-foreground sm:block">
+                            {formatDelta(result.positionDelta)}
+                          </span>
+                          <div className="hidden sm:block">
+                            <TyreSequence tyres={result.tyres} />
+                          </div>
+                          <span className="justify-self-end font-telemetry text-xs font-bold text-muted-foreground sm:justify-self-auto">
+                            {result.bestLap ?? "-"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </section>
 
-              <section className="grid gap-4">
+              <section className="order-5 grid gap-4">
                 <div className="flex items-center gap-2">
                   <Flag aria-hidden="true" className="size-5 text-primary" />
                   <h3 className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
@@ -274,7 +282,7 @@ export function GrandPrixReportDialog({
               </section>
 
               {Object.keys(report.sourceErrors).length ? (
-                <section className="rounded-xl border border-warning/35 bg-warning/10 p-4">
+                <section className="order-6 rounded-xl border border-warning/35 bg-warning/10 p-4">
                   <div className="flex items-start gap-3">
                     <AlertTriangle aria-hidden="true" className="mt-0.5 size-5 text-warning" />
                     <div>
@@ -288,7 +296,7 @@ export function GrandPrixReportDialog({
               ) : null}
             </main>
 
-            <aside className="grid content-start gap-4">
+            <aside className="order-3 grid content-start gap-4 lg:order-none">
               <PodiumCard
                 driverSlugByName={driverSlugByName}
                 podium={podium}

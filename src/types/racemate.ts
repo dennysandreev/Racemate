@@ -36,6 +36,7 @@ export type StandingRow = {
   position: number;
   driver: string;
   driverSlug?: string;
+  driverNumber?: number;
   team: string;
   teamCode?: string;
   teamLogo?: string;
@@ -64,12 +65,14 @@ export type DriverChampionshipRow = {
   position: number;
   driver: string;
   driverSlug?: string;
+  driverNumber?: number;
   team: string;
   teamCode?: string;
   teamLogo?: string;
   teamColor?: string;
   total: number;
   pointsByRound: Record<number, number>;
+  positionByRound: Record<number, number>;
   podiumByRound: Record<number, "winner" | "second" | "third">;
 };
 
@@ -181,7 +184,7 @@ export type DriverProfileNewsItem = {
 };
 
 export type DriverProfileSocialPost = {
-  platform: "x" | "reddit";
+  platform: "x" | "reddit" | "telegram";
   author: string;
   title: string;
   href: string;
@@ -251,6 +254,8 @@ export type TeamProfileDriver = {
   championshipPosition: number | null;
   points: number;
   wins: number;
+  podiums: number;
+  bestResult: number | null;
 };
 
 export type TeamRaceResultRow = {
@@ -262,7 +267,20 @@ export type TeamRaceResultRow = {
   points: number | null;
   bestFinish: number | null;
   qualifyingBest: number | null;
-  finishers: string[];
+  qualifyingResults: Array<{
+    driverId?: string;
+    driver: string;
+    driverSlug?: string;
+    position: number | null;
+  }>;
+  finishResults: Array<{
+    driverId?: string;
+    driver: string;
+    driverSlug?: string;
+    position: number | null;
+    isDnf: boolean;
+  }>;
+  positionDelta: number | null;
   isWin: boolean;
   isPodium: boolean;
   hadDnf: boolean;
@@ -281,6 +299,13 @@ export type TeamProfileStats = {
   averageFinish: number | null;
 };
 
+export type TeamCumulativePointsSeries = {
+  teamCode: string;
+  team: string;
+  teamColor?: string;
+  points: DriverChartPoint[];
+};
+
 export type TeamProfile = TeamProfileSummary & {
   drivers: TeamProfileDriver[];
   stats: TeamProfileStats;
@@ -292,6 +317,7 @@ export type TeamProfile = TeamProfileSummary & {
     points: number;
     cumulativePoints: number;
   }>;
+  cumulativePointsSeries: TeamCumulativePointsSeries[];
   form: {
     labels: string[];
     points: number;
@@ -329,6 +355,7 @@ export type CalendarEvent = {
   countryCode?: string;
   date: string;
   status: string;
+  hasSprint?: boolean;
   winner?: string;
   href: string;
 };
@@ -932,21 +959,57 @@ export type AdminSource = {
   lastStatus: string;
 };
 
-export type SocialPlatform = "all" | "x" | "reddit";
+export type SocialPlatform = "all" | "x" | "reddit" | "telegram";
 
 export type SocialSort = "new" | "popular";
 
+export type SocialMode = "main" | "fresh" | "mine";
+
+export type SocialContentKind =
+  | "official"
+  | "report"
+  | "opinion"
+  | "rumor"
+  | "discussion";
+
+export type SocialPostTag = {
+  name: string;
+  slug: string;
+  type: string;
+  isPrimary: boolean;
+};
+
+export type SocialPostMedia = {
+  id: string;
+  type: "image" | "video" | "gif" | "link";
+  url: string;
+  previewUrl?: string;
+  altText?: string;
+  width?: number;
+  height?: number;
+};
+
 export type SocialPost = {
   id: string;
-  platform: "x" | "reddit";
+  platform: "x" | "reddit" | "telegram";
   author: string;
+  source: string;
+  sourceTrust: "official" | "media" | "community";
   title: string;
-  body?: string;
+  summary: string;
   originalUrl: string;
   imageUrl?: string;
+  media: SocialPostMedia[];
+  tags: SocialPostTag[];
   publishedAt: string;
+  publishedAtIso: string;
   reactionCount?: number;
+  commentCount?: number;
+  repostCount?: number;
+  viewCount?: number;
   popularityScore: number;
+  importanceScore: number;
+  contentKind: SocialContentKind;
 };
 
 export type SocialFeedResult = {
@@ -954,10 +1017,45 @@ export type SocialFeedResult = {
   nextCursor: string | null;
 };
 
+export type SocialFilterOption = {
+  label: string;
+  value: string;
+};
+
+export type SocialFilterOptions = {
+  topics: SocialFilterOption[];
+  teams: SocialFilterOption[];
+  drivers: SocialFilterOption[];
+  races: SocialFilterOption[];
+};
+
+export type SocialTrendingTopic = {
+  label: string;
+  slug: string;
+  posts: number;
+};
+
 export type AdminSocialSource = AdminSource & {
-  platform: "x" | "reddit";
+  platform: "x" | "reddit" | "telegram";
   adapter: string;
   feedKind?: string;
+  trustLevel: "official" | "media" | "community";
+  publicationMode: "auto" | "review";
+  initialBackfillDays: number;
+  nextFetchAt?: string;
+  rateLimitedUntil?: string;
+  lastSuccessAt?: string;
+  lastError?: string;
+};
+
+export type AdminSocialPost = {
+  id: string;
+  author: string;
+  platform: "x" | "reddit" | "telegram";
+  title: string;
+  status: "pending" | "processing" | "review" | "published" | "rejected";
+  error?: string;
+  publishedAt?: string;
 };
 
 export type AdminGrandPrixReport = {

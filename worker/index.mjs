@@ -3,8 +3,25 @@ import { existsSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
 import { createClient } from "@supabase/supabase-js";
+import { TelegramClient } from "telegram";
+import { StringSession } from "telegram/sessions/index.js";
+import { getPeerId } from "telegram/Utils.js";
 
 import { scoreFantasyPrediction } from "./fantasy-scoring.mjs";
+import {
+  SOCIAL_TOPIC_DEFINITIONS,
+  createSocialContentHash,
+  getSocialAiEditorialFields,
+  getSocialInitialBackfillDays,
+  getTelegramFloodWaitSeconds,
+  getSocialRetryDelayMs,
+  isSocialFormulaScopeAllowed,
+  isTelegramStorageSizeError,
+  mapRedditApiResponse,
+  mapTelegramMtprotoMessages,
+  mapXApiResponse,
+  parseSocialAiPayload,
+} from "./social-pipeline.mjs";
 
 loadEnvFiles([".env", ".env.local"]);
 
@@ -12,7 +29,11 @@ const commands = new Map([
   ["rss.fetch_all", fetchAllRss],
   ["social.fetch_all", fetchAllSocial],
   ["social.fetch_reddit", fetchRedditSocial],
+  ["social.fetch_telegram", fetchTelegramSocial],
   ["social.fetch_x", fetchXSocial],
+  ["social.process_ai", processSocialWithAi],
+  ["social.refresh_metrics", refreshSocialMetrics],
+  ["social.retry_failed", retryFailedSocialPosts],
   ["reports.check_latest", checkLatestGrandPrixReport],
   ["reports.generate", generateGrandPrixReport],
   ["reports.generate_all_completed", generateAllCompletedGrandPrixReports],
@@ -36,6 +57,8 @@ const commands = new Map([
   ["openf1.sync_laps", syncOpenF1Laps],
   ["weather.sync_weekend", syncWeekendWeather],
   ["predictions.score", scorePredictions],
+  ["notifications.enqueue", enqueueNotifications],
+  ["notifications.dispatch", dispatchNotifications],
   ["race_replay.prepare_current", prepareCurrentRaceReplay],
   ["race_replay.prepare_completed", prepareCompletedRaceReplays],
 ]);
@@ -51,8 +74,15 @@ const supabase = createWorkerClient();
 const openF1SessionsByYear = new Map();
 let openF1FetchQueue = Promise.resolve();
 let openF1LastFetchAt = 0;
+let socialEntityContextCache = null;
+let telegramClient = null;
+let telegramClientPromise = null;
 const pollKinds = ["sport", "strategy", "fan"];
-await runJob(command, commands.get(command));
+try {
+  await runJob(command, commands.get(command));
+} finally {
+  await disconnectTelegramClient();
+}
 
 function loadEnvFiles(paths) {
   for (const path of paths) {
@@ -235,29 +265,32 @@ async function fetchAllRss() {
 }
 
 async function fetchAllSocial() {
-  await ensureSocialSources({ platform: "x" });
-  return fetchSocialSources({ platform: "x" });
+  await ensureSocialSources();
+  return fetchSocialSources();
 }
 
 async function fetchRedditSocial() {
-  return {
-    itemsProcessed: 0,
-    metadata: {
-      platform: "reddit",
-      disabled: true,
-    },
-  };
+  await ensureSocialSources({ platform: "reddit" });
+  return fetchSocialSources({ platform: "reddit", ignoreSchedule: true });
 }
 
 async function fetchXSocial() {
   await ensureSocialSources({ platform: "x" });
-  return fetchSocialSources({ platform: "x" });
+  return fetchSocialSources({ platform: "x", ignoreSchedule: true });
+}
+
+async function fetchTelegramSocial() {
+  return fetchSocialSources({
+    platform: "telegram",
+    ignoreSchedule: true,
+    sourceId: getCliOption("source"),
+  });
 }
 
 async function ensureSocialSources({ platform } = {}) {
   const defaults = [];
 
-  if (!platform || platform === "x") {
+  if ((!platform || platform === "x") && (process.env.X_BEARER_TOKEN || process.env.SOCIAL_X_RSSHUB_BASE_URL)) {
     for (const account of getXAccountsFromEnv()) {
       const handle = getXHandle(account);
 
@@ -267,12 +300,34 @@ async function ensureSocialSources({ platform } = {}) {
 
       defaults.push({
         platform: "x",
-        name: `X · @${handle}`,
-        source_type: "rss",
+        name: `@${handle}`,
+        source_type: process.env.X_BEARER_TOKEN ? "api" : "rss",
         url: `https://x.com/${handle}`,
-        adapter: "rsshub-x-user",
+        adapter: process.env.X_BEARER_TOKEN ? "x-api-user" : "rsshub-x-user",
         feed_kind: "user",
+        external_key: handle,
         fetch_interval_minutes: 15,
+        trust_level: getOfficialXHandles().has(handle.toLowerCase()) ? "official" : "media",
+        publication_mode: "auto",
+        next_fetch_at: new Date().toISOString(),
+      });
+    }
+  }
+
+  if ((!platform || platform === "reddit") && process.env.REDDIT_CLIENT_ID && process.env.REDDIT_CLIENT_SECRET) {
+    for (const subreddit of getRedditSubredditsFromEnv()) {
+      defaults.push({
+        platform: "reddit",
+        name: `Reddit · r/${subreddit}`,
+        source_type: "api",
+        url: `https://www.reddit.com/r/${subreddit}`,
+        adapter: "reddit-oauth",
+        feed_kind: "new",
+        external_key: subreddit,
+        fetch_interval_minutes: 10,
+        trust_level: "community",
+        publication_mode: "review",
+        next_fetch_at: new Date().toISOString(),
       });
     }
   }
@@ -283,21 +338,27 @@ async function ensureSocialSources({ platform } = {}) {
 
   const { error } = await supabase
     .from("social_sources")
-    .upsert(defaults, { onConflict: "platform,url" });
+    .upsert(defaults, { onConflict: "platform,url", ignoreDuplicates: true });
 
   if (error) {
     throw error;
   }
 }
 
-async function fetchSocialSources({ platform } = {}) {
+async function fetchSocialSources({ platform, ignoreSchedule = false, sourceId } = {}) {
   let query = supabase
     .from("social_sources")
-    .select("id, platform, name, url, adapter, feed_kind")
+    .select("id, platform, name, url, adapter, feed_kind, external_key, cursor, last_seen_external_id, include_reposts, include_replies, fetch_interval_minutes, initial_backfill_days, next_fetch_at, rate_limited_until, metadata")
     .eq("is_active", true);
 
   if (platform) {
     query = query.eq("platform", platform);
+  } else {
+    query = query.in("platform", ["x", "reddit", "telegram"]);
+  }
+
+  if (sourceId) {
+    query = query.eq("id", sourceId);
   }
 
   const { data: sources, error } = await query.order("platform").order("name");
@@ -307,44 +368,26 @@ async function fetchSocialSources({ platform } = {}) {
   }
 
   let itemsProcessed = 0;
+  const failures = [];
 
-  for (const source of sources ?? []) {
+  const dueSources = (sources ?? []).filter((source) => ignoreSchedule || isSocialSourceDue(source));
+  const concurrency = platform === "telegram"
+    ? getBoundedInteger(process.env.TELEGRAM_FETCH_CONCURRENCY, 2, 1, 4)
+    : getBoundedInteger(process.env.WORKER_CONCURRENCY, 3, 1, 8);
+
+  await mapWithConcurrency(dueSources, concurrency, async (source) => {
+    if (!ignoreSchedule && !isSocialSourceDue(source)) {
+      return;
+    }
+
     try {
-      const feedUrl = getSocialFeedUrl(source);
-      const response = await fetch(feedUrl, {
-        headers: {
-          accept: "application/rss+xml, application/atom+xml, text/xml;q=0.9, */*;q=0.8",
-          "user-agent": "RaceMate/1.0 by racemate.ru",
-        },
-      });
-      const xml = await response.text();
+      const result = await fetchSocialSource(source);
+      const filtered = result.posts.filter((post) =>
+        (!post.isRepost || source.include_reposts) && (!post.isReply || source.include_replies),
+      );
 
-      logSocialFeedDiagnostics({
-        contentType: response.headers.get("content-type"),
-        feedUrl,
-        source,
-        status: `${response.status} ${response.statusText}`.trim(),
-        xml,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} ${response.statusText}`);
-      }
-
-      const items = parseFeedItems(xml).slice(0, Number(process.env.SOCIAL_MAX_POSTS_PER_SOURCE ?? 30));
-
-      for (const [index, item] of items.entries()) {
-        const post = mapSocialFeedItem(source, item, index);
-
-        if (!post) {
-          continue;
-        }
-
-        const saved = await upsertSocialPost(post);
-
-        if (saved) {
-          itemsProcessed += 1;
-        }
+      for (const post of filtered) {
+        if (await saveNormalizedSocialPost(post)) itemsProcessed += 1;
       }
 
       await supabase
@@ -353,25 +396,528 @@ async function fetchSocialSources({ platform } = {}) {
           last_fetched_at: new Date().toISOString(),
           last_success_at: new Date().toISOString(),
           last_error: null,
+          last_seen_external_id: result.lastSeenExternalId ?? source.last_seen_external_id,
+          cursor: result.cursor !== undefined ? result.cursor : source.cursor,
+          next_fetch_at: getNextSocialFetchAt(source.fetch_interval_minutes),
+          rate_limited_until: null,
+          metadata: { ...(source.metadata ?? {}), ...(result.metadata ?? {}) },
         })
         .eq("id", source.id);
     } catch (sourceError) {
+      const message = sanitizeSocialSourceError(sourceError);
+      failures.push({ source: source.name, error: message });
       await supabase
         .from("social_sources")
         .update({
           last_fetched_at: new Date().toISOString(),
-          last_error: sourceError instanceof Error ? sourceError.message : String(sourceError),
+          last_error: message,
+          next_fetch_at: getNextSocialFetchAt(Math.max(5, source.fetch_interval_minutes)),
+          rate_limited_until: sourceError?.rateLimitedUntil ?? null,
         })
         .eq("id", source.id);
     }
-  }
+  });
 
   return {
     itemsProcessed,
     metadata: {
       platform: platform ?? "all",
+      sourcesChecked: (sources ?? []).length,
+      failures,
     },
   };
+}
+
+async function fetchSocialSource(source) {
+  if (source.adapter === "x-api-user") return fetchXApiSource(source);
+  if (source.adapter === "reddit-oauth") return fetchRedditApiSource(source);
+  if (source.adapter === "telegram-mtproto") return fetchTelegramMtprotoSource(source);
+  if (source.adapter === "rsshub-x-user" || source.adapter === "reddit-rss") {
+    return fetchSocialRssSource(source);
+  }
+  throw new Error(`Unsupported social adapter: ${source.adapter}`);
+}
+
+async function fetchTelegramMtprotoSource(source) {
+  const client = await getTelegramClient();
+  const entity = await resolveTelegramEntity(client, source);
+  const settledBefore = Date.now() - getBoundedInteger(process.env.TELEGRAM_ALBUM_SETTLE_SECONDS, 30, 5, 300) * 1_000;
+  const maxMessages = getBoundedInteger(process.env.TELEGRAM_MAX_MESSAGES_PER_SOURCE, 2_000, 10, 10_000);
+  const lastSeenMessageId = getPositiveInteger(source.last_seen_external_id);
+  const messagesById = new Map();
+
+  try {
+    if (lastSeenMessageId) {
+      const [newMessages, recentMessages] = await Promise.all([
+        client.getMessages(entity, {
+          limit: maxMessages,
+          minId: lastSeenMessageId,
+          reverse: true,
+          waitTime: 1,
+        }),
+        client.getMessages(entity, {
+          limit: getBoundedInteger(process.env.TELEGRAM_EDIT_LOOKBACK_MESSAGES, 100, 0, 500),
+        }),
+      ]);
+
+      for (const message of [...newMessages, ...recentMessages]) {
+        if (message?.id) messagesById.set(Number(message.id), message);
+      }
+    } else {
+      const backfillDays = getSocialInitialBackfillDays(source);
+      const oldestAllowed = Date.now() - backfillDays * 24 * 60 * 60_000;
+      let loaded = 0;
+
+      for await (const message of client.iterMessages(entity, { limit: maxMessages, waitTime: 1 })) {
+        const publishedAt = getTelegramMessageTimestamp(message);
+
+        if (publishedAt && publishedAt < oldestAllowed) break;
+        if (message?.id) messagesById.set(Number(message.id), message);
+        loaded += 1;
+        if (loaded >= maxMessages) break;
+      }
+    }
+  } catch (error) {
+    throw createTelegramSourceError(error);
+  }
+
+  const settledMessages = [...messagesById.values()].filter((message) => {
+    const publishedAt = getTelegramMessageTimestamp(message);
+    return !publishedAt || publishedAt <= settledBefore;
+  });
+  const channel = {
+    id: entity.id,
+    title: entity.title ?? source.name,
+    username: entity.username ?? null,
+  };
+  const mappedPosts = mapTelegramMtprotoMessages(source, channel, settledMessages)
+    .filter((post) => post.body || post.media.length)
+    .filter((post) => (!post.isRepost || source.include_reposts) && (!post.isReply || source.include_replies));
+  const messageLookup = new Map(settledMessages.map((message) => [Number(message.id), message]));
+  const existingMediaByPost = await getExistingTelegramMedia(mappedPosts);
+  const posts = [];
+
+  for (const post of mappedPosts) {
+    posts.push(await uploadTelegramMtprotoPostMedia(
+      client,
+      source,
+      post,
+      messageLookup,
+      existingMediaByPost.get(post.externalId),
+    ));
+  }
+
+  const processedMessageIds = posts.flatMap((post) => post.messageIds).filter(Number.isInteger);
+  const newestMessageId = processedMessageIds.length
+    ? Math.max(lastSeenMessageId ?? 0, ...processedMessageIds)
+    : lastSeenMessageId;
+  const recentMessageIds = [...new Set([...processedMessageIds, ...(source.metadata?.recentMessageIds ?? [])]
+    .map(Number)
+    .filter(Number.isInteger))]
+    .sort((left, right) => right - left)
+    .slice(0, getBoundedInteger(process.env.TELEGRAM_EDIT_LOOKBACK_MESSAGES, 100, 0, 500));
+
+  return {
+    posts,
+    lastSeenExternalId: newestMessageId ? String(newestMessageId) : source.last_seen_external_id,
+    metadata: {
+      channelId: String(entity.id),
+      channelTitle: entity.title ?? source.name,
+      channelUsername: entity.username ?? null,
+      recentMessageIds,
+      resultCount: posts.length,
+    },
+  };
+}
+
+async function getTelegramClient() {
+  if (telegramClient) return telegramClient;
+  if (telegramClientPromise) return telegramClientPromise;
+
+  telegramClientPromise = createTelegramClient();
+
+  try {
+    telegramClient = await telegramClientPromise;
+    return telegramClient;
+  } finally {
+    telegramClientPromise = null;
+  }
+}
+
+async function createTelegramClient() {
+
+  const apiId = Number(process.env.TELEGRAM_API_ID);
+  const apiHash = process.env.TELEGRAM_API_HASH?.trim();
+  const session = process.env.TELEGRAM_SESSION?.trim();
+
+  if (!Number.isInteger(apiId) || apiId <= 0) {
+    throw new Error("TELEGRAM_API_ID is missing or invalid");
+  }
+  if (!apiHash) throw new Error("TELEGRAM_API_HASH is missing");
+  if (!session) throw new Error("TELEGRAM_SESSION is missing; run pnpm telegram:authorize");
+
+  const client = new TelegramClient(new StringSession(session), apiId, apiHash, {
+    connectionRetries: 3,
+    floodSleepThreshold: 0,
+  });
+  client.setLogLevel("none");
+
+  try {
+    await client.connect();
+    if (!await client.checkAuthorization()) {
+      await client.disconnect();
+      throw new Error("TELEGRAM_SESSION is not authorized; run pnpm telegram:authorize");
+    }
+  } catch (error) {
+    throw createTelegramSourceError(error);
+  }
+  return client;
+}
+
+async function disconnectTelegramClient() {
+  if (telegramClientPromise) {
+    await telegramClientPromise.catch(() => undefined);
+  }
+  if (!telegramClient) return;
+  const client = telegramClient;
+  telegramClient = null;
+  await client.disconnect().catch(() => undefined);
+}
+
+async function resolveTelegramEntity(client, source) {
+  const key = String(source.external_key || source.url || "").trim();
+  const username = key.match(/(?:https?:\/\/)?t\.me\/([^/?#]+)/i)?.[1] ?? key.replace(/^@/, "");
+
+  try {
+    if (/^[A-Za-z][A-Za-z0-9_]{3,}$/.test(username)) {
+      return await client.getEntity(username);
+    }
+
+    if (/^-?\d+$/.test(key)) {
+      const normalizedId = key.replace(/^-100(?=\d)/, "");
+      const dialogs = await client.getDialogs({ limit: 500 });
+      const dialog = dialogs.find((item) => {
+        const entityId = String(item.entity?.id ?? "");
+        const peerId = item.entity ? getPeerId(item.entity) : "";
+        return entityId === normalizedId || peerId === key;
+      });
+      if (dialog?.entity) return dialog.entity;
+    }
+  } catch (error) {
+    throw createTelegramSourceError(error);
+  }
+
+  throw new Error("Telegram channel is unavailable. Check the username or join it with the RaceMate account.");
+}
+
+async function getExistingTelegramMedia(posts) {
+  const externalIds = posts.map((post) => post.externalId);
+  if (!externalIds.length) return new Map();
+  const { data, error } = await supabase
+    .from("social_posts")
+    .select("external_id, social_post_media(media_type, url, preview_url, width, height, sort_order, provider_media_id)")
+    .eq("platform", "telegram")
+    .in("external_id", externalIds);
+  if (error) throw error;
+  return new Map((data ?? []).map((post) => [
+    post.external_id,
+    new Map((post.social_post_media ?? []).map((media) => [media.provider_media_id, media])),
+  ]));
+}
+
+async function uploadTelegramMtprotoPostMedia(client, source, post, messagesById, existingMedia = new Map()) {
+  if (!post.media.length) return post;
+  const storagePrefix = createHash("sha256").update(post.externalId).digest("hex").slice(0, 20);
+  const maxBytes = getBoundedInteger(process.env.TELEGRAM_MEDIA_MAX_BYTES, 50 * 1024 * 1024, 1, 2_000_000_000);
+  const media = [];
+
+  for (const item of post.media) {
+    const existing = existingMedia.get(item.providerMediaId);
+    if (existing?.url) {
+      media.push({
+        ...item,
+        url: existing.url,
+        previewUrl: existing.preview_url ?? (item.mediaType === "image" ? existing.url : null),
+      });
+      continue;
+    }
+
+    const message = messagesById.get(item.telegramMessageId);
+    if (!message) throw new Error(`Telegram media message ${item.telegramMessageId} is unavailable`);
+    if (item.size && item.size > maxBytes) {
+      continue;
+    }
+
+    let downloaded;
+    try {
+      downloaded = await client.downloadMedia(message, {});
+    } catch (error) {
+      throw createTelegramSourceError(error);
+    }
+    if (!Buffer.isBuffer(downloaded) || !downloaded.length) {
+      throw new Error(`Telegram media ${item.telegramMessageId} could not be downloaded`);
+    }
+    if (downloaded.length > maxBytes) {
+      continue;
+    }
+
+    const contentType = normalizeTelegramMediaContentType(item.mimeType, item.mediaType);
+    const extension = getTelegramMediaExtension(contentType, item.fileName);
+    const providerId = String(item.providerMediaId).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80) || String(item.telegramMessageId);
+    const storagePath = `telegram-mtproto/${source.id}/${storagePrefix}/${providerId}.${extension}`;
+    const { error } = await supabase.storage.from("social-media").upload(storagePath, downloaded, {
+      contentType,
+      upsert: true,
+    });
+    if (isTelegramStorageSizeError(error)) {
+      continue;
+    }
+    if (error) {
+      throw new Error(`Telegram media upload failed (${downloaded.length} bytes): ${error.message}`);
+    }
+    const { data } = supabase.storage.from("social-media").getPublicUrl(storagePath);
+    media.push({
+      ...item,
+      url: data.publicUrl,
+      previewUrl: item.mediaType === "image" ? data.publicUrl : null,
+    });
+  }
+
+  return { ...post, media };
+}
+
+function createTelegramSourceError(error) {
+  const seconds = getTelegramFloodWaitSeconds(error);
+  if (!seconds) return error instanceof Error ? error : new Error(String(error));
+  const floodError = new Error(`Telegram ограничил запросы. Повторите синхронизацию через ${seconds} сек.`);
+  floodError.rateLimitedUntil = new Date(Date.now() + seconds * 1_000).toISOString();
+  return floodError;
+}
+
+function getTelegramMessageTimestamp(message) {
+  const value = message?.date;
+  if (value instanceof Date) return value.getTime();
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return null;
+  return numeric < 10_000_000_000 ? numeric * 1_000 : numeric;
+}
+
+function normalizeTelegramMediaContentType(value, mediaType) {
+  const contentType = String(value ?? "").toLowerCase();
+  if (mediaType === "image" && ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(contentType)) return contentType;
+  if (mediaType === "video" && ["video/mp4", "video/webm"].includes(contentType)) return contentType;
+  return mediaType === "video" ? "video/mp4" : "image/jpeg";
+}
+
+function getTelegramMediaExtension(contentType, fileName) {
+  const fileExtension = String(fileName ?? "").match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toLowerCase();
+  const allowed = new Set(["jpg", "jpeg", "png", "webp", "gif", "mp4", "webm"]);
+  if (fileExtension && allowed.has(fileExtension)) return fileExtension === "jpeg" ? "jpg" : fileExtension;
+  return ({
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "video/webm": "webm",
+    "video/mp4": "mp4",
+  })[contentType] ?? "bin";
+}
+
+function sanitizeSocialSourceError(error) {
+  let message = error instanceof Error ? error.message : String(error);
+  for (const secret of [
+    process.env.TELEGRAM_API_HASH,
+    process.env.TELEGRAM_SESSION,
+    process.env.TELEGRAM_BOT_TOKEN,
+    process.env.OPENROUTER_API_KEY,
+    process.env.X_BEARER_TOKEN,
+    process.env.REDDIT_CLIENT_SECRET,
+  ]) {
+    if (secret) message = message.replaceAll(secret, "[redacted]");
+  }
+  return message.slice(0, 2_000);
+}
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  let index = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (index < items.length) {
+      const item = items[index];
+      index += 1;
+      await mapper(item);
+    }
+  });
+  await Promise.all(workers);
+}
+
+function getBoundedInteger(value, fallback, min, max) {
+  const number = Number(value);
+  return Number.isInteger(number) ? Math.max(min, Math.min(max, number)) : fallback;
+}
+
+function getPositiveInteger(value) {
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : null;
+}
+
+async function fetchXApiSource(source) {
+  const bearerToken = process.env.X_BEARER_TOKEN;
+  if (!bearerToken) throw new Error("X_BEARER_TOKEN is missing");
+  const handle = source.external_key || getXHandle(source.url);
+  if (!handle) throw new Error(`Cannot parse X handle from ${source.url}`);
+  let userId = source.metadata?.xUserId;
+
+  if (!userId) {
+    const userResponse = await fetch(`https://api.x.com/2/users/by/username/${encodeURIComponent(handle)}`, {
+      headers: { authorization: `Bearer ${bearerToken}`, "user-agent": getSocialUserAgent() },
+    });
+    await assertSocialApiResponse(userResponse, "X user lookup");
+    const payload = await userResponse.json();
+    userId = payload?.data?.id;
+  }
+  if (!userId) throw new Error(`X user ${handle} was not found`);
+
+  const params = new URLSearchParams({
+    max_results: String(Math.max(5, Math.min(100, Number(process.env.SOCIAL_MAX_POSTS_PER_SOURCE ?? 30)))),
+    "tweet.fields": "created_at,lang,public_metrics,attachments,referenced_tweets",
+    expansions: "attachments.media_keys",
+    "media.fields": "media_key,type,url,preview_image_url,width,height",
+  });
+  if (source.last_seen_external_id) params.set("since_id", source.last_seen_external_id);
+  const excludes = [];
+  if (!source.include_reposts) excludes.push("retweets");
+  if (!source.include_replies) excludes.push("replies");
+  if (excludes.length) params.set("exclude", excludes.join(","));
+
+  const response = await fetch(`https://api.x.com/2/users/${userId}/tweets?${params}`, {
+    headers: { authorization: `Bearer ${bearerToken}`, "user-agent": getSocialUserAgent() },
+  });
+  await assertSocialApiResponse(response, "X timeline");
+  const payload = await response.json();
+  const posts = mapXApiResponse(source, payload);
+  return {
+    posts,
+    lastSeenExternalId: posts[0]?.externalId ?? source.last_seen_external_id,
+    metadata: { xUserId: userId, resultCount: payload?.meta?.result_count ?? posts.length },
+  };
+}
+
+let redditAccessToken = null;
+let redditTokenExpiresAt = 0;
+
+async function fetchRedditApiSource(source) {
+  const accessToken = await getRedditAccessToken();
+  const subreddit = source.external_key || source.url.match(/\/r\/([^/?#]+)/i)?.[1];
+  if (!subreddit) throw new Error(`Cannot parse subreddit from ${source.url}`);
+  const listing = source.feed_kind === "hot" ? "hot" : "new";
+  const params = new URLSearchParams({
+    limit: String(Math.max(1, Math.min(100, Number(process.env.SOCIAL_MAX_POSTS_PER_SOURCE ?? 30)))),
+    raw_json: "1",
+  });
+  const response = await fetch(`https://oauth.reddit.com/r/${encodeURIComponent(subreddit)}/${listing}?${params}`, {
+    headers: { authorization: `Bearer ${accessToken}`, "user-agent": getSocialUserAgent() },
+  });
+  await assertSocialApiResponse(response, "Reddit listing");
+  const payload = await response.json();
+  return {
+    posts: mapRedditApiResponse(source, payload),
+    cursor: null,
+    metadata: { resultCount: payload?.data?.dist ?? 0 },
+  };
+}
+
+async function getRedditAccessToken() {
+  if (redditAccessToken && Date.now() < redditTokenExpiresAt) return redditAccessToken;
+  const clientId = process.env.REDDIT_CLIENT_ID;
+  const clientSecret = process.env.REDDIT_CLIENT_SECRET;
+  if (!clientId || !clientSecret) throw new Error("Reddit OAuth credentials are missing");
+  const response = await fetch("https://www.reddit.com/api/v1/access_token", {
+    method: "POST",
+    headers: {
+      authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+      "content-type": "application/x-www-form-urlencoded",
+      "user-agent": getSocialUserAgent(),
+    },
+    body: "grant_type=client_credentials",
+  });
+  await assertSocialApiResponse(response, "Reddit OAuth");
+  const payload = await response.json();
+  redditAccessToken = payload.access_token;
+  redditTokenExpiresAt = Date.now() + Math.max(60, Number(payload.expires_in ?? 3600) - 60) * 1_000;
+  return redditAccessToken;
+}
+
+async function fetchSocialRssSource(source) {
+  const feedUrl = getSocialFeedUrl(source);
+  const response = await fetch(feedUrl, { headers: { accept: "application/rss+xml, application/atom+xml, text/xml;q=0.9, */*;q=0.8", "user-agent": getSocialUserAgent() } });
+  const xml = await response.text();
+  logSocialFeedDiagnostics({ contentType: response.headers.get("content-type"), feedUrl, source, status: `${response.status} ${response.statusText}`.trim(), xml });
+  if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
+  const posts = parseFeedItems(xml)
+    .slice(0, Number(process.env.SOCIAL_MAX_POSTS_PER_SOURCE ?? 30))
+    .map((item, index) => mapSocialFeedItem(source, item, index))
+    .filter(Boolean)
+    .map((post) => ({
+      platform: post.platform,
+      sourceId: post.source_id,
+      externalId: post.external_id,
+      author: post.author,
+      title: post.title,
+      body: post.body,
+      originalUrl: post.original_url,
+      publishedAt: post.published_at,
+      reactionCount: post.reaction_count,
+      sourceMetrics: {},
+      rawPayload: post.raw_payload,
+      media: post.image_url ? [{ mediaType: "image", url: post.image_url, previewUrl: post.image_url, sortOrder: 0 }] : [],
+      isRepost: false,
+      isReply: false,
+    }));
+  return { posts, lastSeenExternalId: posts[0]?.externalId ?? null };
+}
+
+function isSocialSourceDue(source) {
+  const now = Date.now();
+  return (!source.next_fetch_at || new Date(source.next_fetch_at).getTime() <= now)
+    && (!source.rate_limited_until || new Date(source.rate_limited_until).getTime() <= now);
+}
+
+function getNextSocialFetchAt(minutes) {
+  return new Date(Date.now() + Math.max(5, Number(minutes) || 15) * 60_000).toISOString();
+}
+
+function getSocialUserAgent() {
+  return process.env.REDDIT_USER_AGENT || "RaceMate/1.0 (+https://racemate.ru)";
+}
+
+async function assertSocialApiResponse(response, label) {
+  if (response.ok) return;
+  const isXBillingError = response.status === 402 && label.startsWith("X ");
+  const error = new Error(
+    isXBillingError
+      ? "X API: для чтения публикаций нужны активные credits в Developer Console"
+      : `${label}: HTTP ${response.status}`,
+  );
+  if (isXBillingError) {
+    error.rateLimitedUntil = new Date(Date.now() + 24 * 60 * 60_000).toISOString();
+  }
+  if (response.status === 429) {
+    const reset = Number(response.headers.get("x-rate-limit-reset"));
+    error.rateLimitedUntil = Number.isFinite(reset)
+      ? new Date(reset * 1_000).toISOString()
+      : new Date(Date.now() + 15 * 60_000).toISOString();
+  }
+  throw error;
+}
+
+function getOfficialXHandles() {
+  return new Set((process.env.SOCIAL_X_OFFICIAL_HANDLES || "f1,fia,scuderiaferrari,mercedesamgf1,redbullracing,mclarenf1")
+    .split(",").map((value) => value.trim().replace(/^@/, "").toLowerCase()).filter(Boolean));
+}
+
+function getRedditSubredditsFromEnv() {
+  return (process.env.SOCIAL_REDDIT_SUBREDDITS || "formula1")
+    .split(",").map((value) => value.trim().replace(/^r\//, "")).filter(Boolean);
 }
 
 function getSocialFeedUrl(source) {
@@ -536,28 +1082,321 @@ function normalizeSocialAuthor(author, source) {
   return "r/formuladank";
 }
 
-async function upsertSocialPost(post) {
-  const { error } = await supabase
+async function saveNormalizedSocialPost(post) {
+  if (!post?.externalId || !post?.originalUrl || !post?.platform) return false;
+  const contentHash = createSocialContentHash(post);
+  const popularityScore = calculateSocialPopularity(post);
+  const payload = {
+    platform: post.platform,
+    source_id: post.sourceId,
+    external_id: post.externalId,
+    author: normalizeString(post.author),
+    title: normalizeString(post.title),
+    body: normalizeString(post.body),
+    original_url: post.originalUrl,
+    image_url: post.media?.find((item) => item.mediaType === "image")?.url ?? null,
+    published_at: post.publishedAt ?? new Date().toISOString(),
+    edited_at: post.editedAt ?? null,
+    reaction_count: numberOrNull(post.reactionCount),
+    comments_count: numberOrNull(post.commentsCount),
+    repost_count: numberOrNull(post.repostCount),
+    view_count: numberOrNull(post.viewCount),
+    popularity_score: popularityScore,
+    source_metrics: post.sourceMetrics ?? {},
+    content_hash: contentHash,
+    raw_payload: post.rawPayload ?? {},
+    last_synced_at: new Date().toISOString(),
+  };
+  let { data: existing } = await supabase
     .from("social_posts")
-    .upsert(post, { onConflict: "platform,external_id" });
+    .select("id, content_hash, status")
+    .eq("platform", post.platform)
+    .eq("external_id", post.externalId)
+    .maybeSingle();
+  if (!existing) {
+    const { data: byUrl } = await supabase.from("social_posts").select("id, content_hash, status").eq("original_url", post.originalUrl).maybeSingle();
+    existing = byUrl;
+  }
+  let postId = existing?.id;
 
-  if (!error) {
-    return true;
+  if (existing) {
+    const changed = contentHash !== existing.content_hash;
+    const { error } = await supabase.from("social_posts").update({
+      ...payload,
+      ...(changed ? {
+        status: "pending",
+        ai_title_ru: null,
+        ai_summary_ru: null,
+        ai_processed_at: null,
+        next_retry_at: new Date().toISOString(),
+        last_processing_error: null,
+      } : {}),
+    }).eq("id", existing.id);
+    if (error) throw error;
+  } else {
+    let duplicateOf = null;
+    if (contentHash) {
+      const { data: duplicate } = await supabase
+        .from("social_posts")
+        .select("id")
+        .eq("content_hash", contentHash)
+        .is("duplicate_of", null)
+        .limit(1)
+        .maybeSingle();
+      duplicateOf = duplicate?.id ?? null;
+    }
+    const { data: inserted, error } = await supabase.from("social_posts").insert({
+      ...payload,
+      status: duplicateOf ? "rejected" : "pending",
+      duplicate_of: duplicateOf,
+      next_retry_at: duplicateOf ? null : new Date().toISOString(),
+    }).select("id").single();
+    if (error) throw error;
+    postId = inserted.id;
   }
 
-  if (error.code === "23505" && post.original_url) {
-    const { error: updateError } = await supabase
-      .from("social_posts")
-      .update({
-        ...post,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("original_url", post.original_url);
+  if (postId && post.media?.length) {
+    const mediaRows = post.media.filter((item) => item.url).map((item, index) => ({
+      post_id: postId,
+      media_type: item.mediaType,
+      url: item.url,
+      preview_url: item.previewUrl ?? null,
+      width: numberOrNull(item.width),
+      height: numberOrNull(item.height),
+      sort_order: item.sortOrder ?? index,
+      provider_media_id: item.providerMediaId ?? null,
+    }));
+    if (mediaRows.length) {
+      const { error } = await supabase.from("social_post_media").upsert(mediaRows, { onConflict: "post_id,url" });
+      if (error) throw error;
+    }
+  }
+  return true;
+}
 
-    return !updateError;
+function calculateSocialPopularity(post) {
+  const reactions = numberOrNull(post.reactionCount) ?? 0;
+  const comments = numberOrNull(post.commentsCount) ?? 0;
+  const reposts = numberOrNull(post.repostCount) ?? 0;
+  const views = numberOrNull(post.viewCount) ?? 0;
+  return reactions + comments * 2 + reposts * 3 + Math.log10(views + 1) * 5;
+}
+
+async function processSocialWithAi() {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model = process.env.SOCIAL_AI_MODEL || process.env.AI_SUMMARY_MODEL || process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash-lite";
+  if (!apiKey) throw new Error("OPENROUTER_API_KEY is missing for social AI processing");
+  const limit = Math.max(1, Math.min(100, Number(getCliOption("limit") || process.env.SOCIAL_AI_MAX_POSTS_PER_RUN || 30)));
+  const nowIso = new Date().toISOString();
+  const { data: posts, error } = await supabase
+    .from("social_posts")
+    .select("id, platform, author, title, body, original_url, published_at, processing_attempts, social_sources(name, external_key, trust_level, publication_mode)")
+    .eq("status", "pending")
+    .is("duplicate_of", null)
+    .or(`next_retry_at.is.null,next_retry_at.lte.${nowIso}`)
+    .lt("processing_attempts", 8)
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .limit(limit);
+  if (error) throw error;
+  if (!posts?.length) return { itemsProcessed: 0, metadata: { queued: 0 } };
+
+  const context = await getSocialEntityContext();
+  let itemsProcessed = 0;
+  let published = 0;
+  let review = 0;
+  let rejected = 0;
+  const failures = [];
+
+  for (const post of posts) {
+    const attempts = Number(post.processing_attempts ?? 0) + 1;
+    try {
+      await supabase.from("social_posts").update({ status: "processing", processing_attempts: attempts }).eq("id", post.id);
+      const result = await requestSocialAi({ post, context, apiKey, model });
+      const source = firstRelation(post.social_sources) ?? {};
+      const status = decideSocialPublicationStatus(result, source, {
+        requireFormulaScope: post.platform === "telegram",
+      });
+      const taggedResult = applySocialSourceCategoryRules(result, source);
+      const editorialFields = getSocialAiEditorialFields(post.platform, result);
+      const { error: updateError } = await supabase.from("social_posts").update({
+        status,
+        original_language: result.originalLanguage,
+        ...editorialFields,
+        content_kind: result.contentKind,
+        importance_score: result.importance,
+        relevance_score: result.relevance,
+        ai_confidence: result.confidence,
+        ai_model: model,
+        ai_processed_at: nowIso,
+        next_retry_at: null,
+        last_processing_error: null,
+      }).eq("id", post.id);
+      if (updateError) throw updateError;
+      await replaceSocialPostTags(post.id, taggedResult, context);
+      itemsProcessed += 1;
+      if (status === "published") published += 1;
+      else if (status === "review") review += 1;
+      else rejected += 1;
+    } catch (postError) {
+      const message = postError instanceof Error ? postError.message : String(postError);
+      failures.push({ postId: post.id, error: message });
+      await supabase.from("social_posts").update({
+        status: "pending",
+        processing_attempts: attempts,
+        next_retry_at: new Date(Date.now() + getSocialRetryDelayMs(attempts)).toISOString(),
+        last_processing_error: message.slice(0, 2_000),
+      }).eq("id", post.id);
+    }
   }
 
-  return false;
+  return { itemsProcessed, metadata: { queued: posts.length, published, review, rejected, failures } };
+}
+
+async function requestSocialAi({ post, context, apiKey, model }) {
+  const isTelegram = post.platform === "telegram";
+  const taskInstructions = isTelegram
+    ? `Не переписывай исходный текст, не создавай заголовок или сводку. Только определи характер публикации и сформируй категории и теги.
+JSON: {"formulaScope":"target","primarySeries":"Formula 1","series":["Formula 1"],"categories":["slug"],"entities":{"teams":["точное имя"],"drivers":["точное имя"],"races":["точное имя"]},"contentType":"report","importance":0,"relevance":0.0,"confidence":0.0,"shouldPublish":true,"originalLanguage":"ru"}`
+    : `Составь короткий русский заголовок и сводку.
+JSON: {"title":"русский заголовок до 120 знаков","summary":"русская сводка до 700 знаков","formulaScope":"target","primarySeries":"Formula 1","series":["Formula 1"],"categories":["slug"],"entities":{"teams":["точное имя"],"drivers":["точное имя"],"races":["точное имя"]},"contentType":"report","importance":0,"relevance":0.0,"confidence":0.0,"shouldPublish":true,"originalLanguage":"en"}`;
+  const prompt = `Ты редактор RaceMate. Проанализируй каждую публикацию отдельно. Верни только JSON без markdown.
+Сначала определи гоночную серию по содержанию самого поста. Название канала и его общая тематика не доказывают релевантность поста.
+formulaScope="target" только для материалов, где основная тема — классические одноместные формульные серии: Formula 1 (F1), Formula 2 (F2), Formula 3 (F3), Formula 4 (F4), F1 Academy, Formula Regional и другие национальные или международные формульные чемпионаты с открытыми колёсами.
+formulaScope="excluded" для Formula E, Extreme E, WEC, Le Mans, IMSA, гонок на выносливость, GT, кузовных серий, ралли, MotoGP, NASCAR, IndyCar и любого другого автоспорта не из целевой группы. Упоминание пилота или команды F1 в таком посте не делает его целевым.
+formulaScope="unclear", если серию нельзя уверенно определить. Для excluded и unclear всегда ставь shouldPublish=false, relevance ниже 0.6 и можешь вернуть categories=[].
+Если пост смешанный, ставь target только когда формульная серия из целевой группы является главной темой и о ней есть содержательная информация. Исторические материалы о целевых формульных сериях допустимы.
+primarySeries — одна главная серия поста, series — массив всех явно определённых серий. Для unclear верни primarySeries="" и series=[]. Не называй Formula E целевой формулой.
+Допустимые categories: ${SOCIAL_TOPIC_DEFINITIONS.map((item) => `${item.slug} (${item.name})`).join(", ")}.
+Допустимые contentType: official, report, opinion, rumor, discussion.
+Актуальные команды: ${context.teams.map((item) => item.name).join(", ")}.
+Актуальные пилоты: ${context.drivers.map((item) => item.name).join(", ")}.
+Актуальные этапы: ${context.races.map((item) => item.name).join(", ")}.
+Не подтверждай слух как факт. Мемы, реклама, спам и бессодержательные реплики должны получить shouldPublish=false.
+${taskInstructions}
+Источник: ${firstRelation(post.social_sources)?.name || post.platform}
+Автор: ${post.author || "не указан"}
+Заголовок: ${post.title || ""}
+Текст: ${post.body || post.title || ""}`;
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      "content-type": "application/json",
+      "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
+      "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+    },
+    body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], response_format: { type: "json_object" }, temperature: 0.1, max_tokens: 900 }),
+  });
+  if (!response.ok) throw new Error(`OpenRouter social AI: HTTP ${response.status}`);
+  const payload = await response.json();
+  const content = payload?.choices?.[0]?.message?.content;
+  const result = parseSocialAiPayload(content, {
+    requireEditorialText: !isTelegram,
+    requireFormulaScope: isTelegram,
+  });
+  await supabase.from("ai_usage_logs").insert({
+    purpose: "social_post",
+    provider: "openrouter",
+    model,
+    input_tokens: numberOrNull(payload?.usage?.prompt_tokens),
+    output_tokens: numberOrNull(payload?.usage?.completion_tokens),
+    estimated_cost_usd: numberOrNull(payload?.usage?.cost),
+  });
+  return result;
+}
+
+function applySocialSourceCategoryRules(result, source) {
+  const sourceKey = String(source.external_key || source.name || "")
+    .replace(/^@/, "")
+    .trim()
+    .toLowerCase();
+
+  if (sourceKey === "f1telemetrydata" || sourceKey.includes("@f1telemetrydata")) {
+    return { ...result, categories: ["social-telemetry"] };
+  }
+
+  return result;
+}
+
+function decideSocialPublicationStatus(result, source, { requireFormulaScope = false } = {}) {
+  if (requireFormulaScope && !isSocialFormulaScopeAllowed(result)) return "rejected";
+  if (!result.shouldPublish || result.relevance < 0.6 || result.confidence < 0.6) return "rejected";
+  if (source.publication_mode === "review") return "review";
+  if (result.contentKind === "rumor" && source.trust_level !== "official") return "review";
+  if (result.confidence < 0.78) return "review";
+  return "published";
+}
+
+async function getSocialEntityContext() {
+  if (socialEntityContextCache) return socialEntityContextCache;
+  const [driverChoices, teamChoices, { data: latestRace }] = await Promise.all([
+    getDriverTagChoices(),
+    getTeamTagChoices(),
+    supabase.from("races").select("season_year").order("season_year", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  const { data: races } = latestRace?.season_year
+    ? await supabase.from("races").select("id, season_year, round, race_name").eq("season_year", latestRace.season_year).order("round").limit(30)
+    : { data: [] };
+  socialEntityContextCache = {
+    drivers: driverChoices.map((item) => ({
+      id: item.id,
+      name: item.fullName,
+      aliases: [item.fullName, item.firstName, item.lastName, item.code, item.slug].filter(Boolean),
+      slug: item.slug,
+      type: "driver",
+    })),
+    teams: teamChoices.map((item) => ({
+      id: item.id,
+      name: item.name,
+      aliases: [item.name, item.fullName, item.code, item.slug].filter(Boolean),
+      slug: item.slug,
+      type: "team",
+    })),
+    races: (races ?? []).map((item) => ({ id: item.id, name: item.race_name, aliases: [item.race_name], slug: `race-${item.season_year}-${String(item.round).padStart(2, "0")}`, type: "race" })),
+  };
+  return socialEntityContextCache;
+}
+
+async function replaceSocialPostTags(postId, result, context) {
+  const candidates = [
+    ...result.categories.map((slug) => ({ slug, name: SOCIAL_TOPIC_DEFINITIONS.find((item) => item.slug === slug)?.name || slug, type: "social_topic" })),
+    ...matchSocialEntities(result.entities.drivers, context.drivers),
+    ...matchSocialEntities(result.entities.teams, context.teams),
+    ...matchSocialEntities(result.entities.races, context.races),
+  ];
+  await supabase.from("social_post_tags").delete().eq("post_id", postId);
+  for (const [index, candidate] of candidates.entries()) {
+    const { data: tag, error } = await supabase.from("tags").upsert({ type: candidate.type, slug: candidate.slug, name: candidate.name }, { onConflict: "slug" }).select("id").single();
+    if (error || !tag?.id) continue;
+    await supabase.from("social_post_tags").upsert({ post_id: postId, tag_id: tag.id, confidence: result.confidence, method: "ai", is_primary: index === 0 }, { onConflict: "post_id,tag_id" });
+  }
+}
+
+function matchSocialEntities(values, candidates) {
+  const matches = [];
+  for (const value of values ?? []) {
+    const normalized = normalizeSocialEntity(value);
+    const match = candidates.find((candidate) => candidate.aliases.some((alias) => normalizeSocialEntity(alias) === normalized));
+    if (match && !matches.some((item) => item.slug === match.slug)) matches.push(match);
+  }
+  return matches;
+}
+
+function normalizeSocialEntity(value) {
+  return String(value ?? "").normalize("NFKC").toLowerCase().replace(/[^a-zа-яё0-9]/gi, "");
+}
+
+async function refreshSocialMetrics() {
+  return fetchSocialSources({ ignoreSchedule: true });
+}
+
+async function retryFailedSocialPosts() {
+  const { data, error } = await supabase.from("social_posts").update({
+    status: "pending",
+    next_retry_at: new Date().toISOString(),
+  }).eq("status", "pending").not("last_processing_error", "is", null).select("id");
+  if (error) throw error;
+  return { itemsProcessed: data?.length ?? 0, metadata: { retried: data?.length ?? 0 } };
 }
 
 async function checkLatestGrandPrixReport() {
@@ -8331,7 +9170,14 @@ async function upsertScheduleSessions(raceId, race) {
     const startAt = `${value.date}T${value.time ?? "00:00:00Z"}`;
     const status = hasSessionCompletionWindowElapsed(startAt, sessionType) ? "completed" : "scheduled";
 
-    await supabase.from("sessions").upsert(
+    const { data: previous } = await supabase
+      .from("sessions")
+      .select("id, start_at")
+      .eq("race_id", raceId)
+      .eq("session_type", sessionType)
+      .maybeSingle();
+
+    const { data: saved } = await supabase.from("sessions").upsert(
       {
         race_id: raceId,
         session_type: sessionType,
@@ -8340,8 +9186,737 @@ async function upsertScheduleSessions(raceId, race) {
         status,
       },
       { onConflict: "race_id,session_type" },
-    );
+    ).select("id").single();
+
+    if (previous?.start_at && previous.start_at !== startAt && saved?.id) {
+      await enqueueScheduleChangeNotifications({
+        sessionId: saved.id,
+        sessionName: name,
+        previousStartAt: previous.start_at,
+        startAt,
+      });
+    }
   }
+}
+
+async function enqueueNotifications() {
+  const now = new Date();
+  const since = new Date(now.getTime() - 48 * 60 * 60 * 1_000).toISOString();
+  const until = new Date(now.getTime() + 25 * 60 * 60 * 1_000).toISOString();
+  const {
+    accounts,
+    preferences,
+    profiles,
+    reveals: recipientReveals,
+    favoriteNewsTerms,
+  } = await getTelegramRecipients();
+
+  if (!accounts.length) {
+    return { itemsProcessed: 0, metadata: { recipients: 0 } };
+  }
+
+  const [
+    { data: sessions },
+    { data: predictions },
+    { data: digest },
+    { data: news },
+    { data: weatherRows },
+    { data: upcomingRace },
+  ] = await Promise.all([
+    supabase
+      .from("sessions")
+      .select("id, race_id, session_type, name, start_at, status, races(race_name)")
+      .gte("start_at", since)
+      .lte("start_at", until)
+      .order("start_at", { ascending: true }),
+    supabase
+      .from("predictions")
+      .select("id, user_id, race_id, score, scored_at, races(race_name)")
+      .not("scored_at", "is", null)
+      .gte("scored_at", since)
+      .is("league_id", null),
+    supabase
+      .from("digests")
+      .select("id, title, date_key")
+      .eq("status", "published")
+      .order("generated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("news_articles")
+      .select("id, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, importance_score, news_article_tags(tags(type,slug,name))")
+      .eq("status", "processed")
+      .gte("ai_processed_at", since)
+      .order("ai_processed_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("session_weather")
+      .select("session_id, precipitation_mm, temperature_c, weather_code, sessions(name,start_at,races(race_name))")
+      .gte("forecast_at", now.toISOString())
+      .lte("forecast_at", until),
+    supabase
+      .from("races")
+      .select("id, race_name, race_start_at, status, sessions(id,session_type,start_at)")
+      .not("status", "in", "(completed,finished)")
+      .gte("race_start_at", now.toISOString())
+      .order("race_start_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  const { data: upcomingPredictions } = upcomingRace?.id
+    ? await supabase
+        .from("predictions")
+        .select("id,user_id,pole_driver_id,fastest_lap_driver_id,dnf_driver_id,dnf_pick_kind,top_scoring_team_id,fastest_pit_stop_team_id,top10_driver_ids")
+        .eq("race_id", upcomingRace.id)
+        .is("league_id", null)
+    : { data: [] };
+
+  let itemsProcessed = 0;
+  const completedSessions = (sessions ?? []).filter((session) =>
+    session.status === "completed" && isResultSession(session.session_type),
+  );
+  const resultMap = await getSessionTopThree(completedSessions.map((session) => session.id));
+
+  for (const account of accounts) {
+    const preference = preferences.get(account.user_id);
+    const profile = profiles.get(account.user_id);
+
+    if (!preference?.telegram_enabled) {
+      continue;
+    }
+
+    for (const session of sessions ?? []) {
+      const race = firstRelation(session.races);
+      const startsAt = session.start_at ? new Date(session.start_at) : null;
+
+      if (session.status === "scheduled" && startsAt && isReminderEnabled(preference, session.session_type)) {
+        const millisecondsUntil = startsAt.getTime() - now.getTime();
+        const reminders = [
+          { key: "24h", enabled: preference.reminder_24h, leadMs: 24 * 60 * 60 * 1_000, label: "24 часа" },
+          { key: "1h", enabled: preference.reminder_1h, leadMs: 60 * 60 * 1_000, label: "1 час" },
+          { key: "15m", enabled: preference.reminder_15m, leadMs: 15 * 60 * 1_000, label: "15 минут" },
+        ];
+
+        for (const reminder of reminders) {
+          if (!reminder.enabled || millisecondsUntil > reminder.leadMs || millisecondsUntil <= reminder.leadMs - 10 * 60 * 1_000) {
+            continue;
+          }
+
+          itemsProcessed += await insertNotification({
+            userId: account.user_id,
+            eventType: "SESSION_STARTING",
+            entityType: "session",
+            entityId: session.id,
+            dedupeKey: `session:${session.id}:${account.user_id}:${reminder.key}`,
+            payload: {
+              text: `${session.name} через ${reminder.label}\n${race?.race_name ?? "Гоночный уикенд"}\nСтарт: ${formatTelegramDate(session.start_at, profile?.timezone)}`,
+              buttonText: "Открыть уикенд",
+              buttonUrl: "/weekend",
+            },
+          });
+        }
+      }
+
+      if (session.status === "cancelled" && preference.schedule_changes) {
+        itemsProcessed += await insertNotification({
+          userId: account.user_id,
+          eventType: "SESSION_CANCELLED",
+          entityType: "session",
+          entityId: session.id,
+          dedupeKey: `cancelled:${session.id}:${account.user_id}`,
+          payload: { text: `${session.name} отменена. Актуальное расписание уже доступно в RaceMate.`, buttonText: "Открыть календарь", buttonUrl: "/calendar" },
+        });
+      }
+
+      if (session.status === "completed" && isResultPreferenceEnabled(preference, session.session_type)) {
+        const topThree = resultMap.get(session.id) ?? [];
+
+        if (!topThree.length) {
+          continue;
+        }
+
+        const practice = isPracticeSession(session.session_type);
+        const eventType = practice ? "PRACTICE_FINISHED" : `${session.session_type.toUpperCase()}_FINISHED_HIDDEN`;
+        const text = practice
+          ? `${session.name} завершена\n${race?.race_name ?? ""}\n\n${topThree.map((row) => `${row.position}. ${row.driver}`).join("\n")}`
+          : `${session.name} завершена\n${race?.race_name ?? ""}\n\nРезультаты скрыты. Откройте их, когда будете готовы.`;
+
+        itemsProcessed += await insertNotification({
+          userId: account.user_id,
+          eventType,
+          entityType: "session",
+          entityId: session.id,
+          dedupeKey: `result:${session.id}:${account.user_id}`,
+          payload: practice
+            ? { text, buttonText: "Полные результаты", buttonUrl: "/weekend" }
+            : { text, callbackText: "Показать результаты", callbackData: `reveal:${session.id}`, buttonText: "Открыть на сайте", buttonUrl: "/weekend" },
+        });
+
+        if (session.session_type === "race" && preference.championship_updates) {
+          itemsProcessed += await insertNotification({
+            userId: account.user_id,
+            eventType: "CHAMPIONSHIP_UPDATED_HIDDEN",
+            entityType: "session",
+            entityId: session.id,
+            dedupeKey: `championship:${session.id}:${account.user_id}`,
+            payload: {
+              text: "Таблица чемпионата обновлена. Изменения скрыты, пока вы не откроете результаты гонки.",
+              buttonText: "Открыть таблицу",
+              buttonUrl: "/leaderboard",
+            },
+          });
+        }
+      }
+    }
+
+    for (const prediction of (predictions ?? []).filter((row) => row.user_id === account.user_id)) {
+      if (!preference.fantasy_scored) {
+        continue;
+      }
+
+      const race = firstRelation(prediction.races);
+      itemsProcessed += await insertNotification({
+        userId: account.user_id,
+        eventType: "FANTASY_SCORED_HIDDEN",
+        entityType: "prediction",
+        entityId: prediction.id,
+        dedupeKey: `fantasy-scored:${prediction.id}`,
+        payload: {
+          text: `Прогноз на ${race?.race_name ?? "этап"} рассчитан. Очки пока скрыты, чтобы не раскрывать результат гонки.`,
+          buttonText: "Посмотреть прогноз",
+          buttonUrl: "/fantasy",
+        },
+      });
+    }
+
+    if (upcomingRace) {
+      const raceSessions = upcomingRace.sessions ?? [];
+      const qualifying = raceSessions.find((session) => session.session_type === "qualifying");
+      const raceSession = raceSessions.find((session) => session.session_type === "race");
+      const prediction = (upcomingPredictions ?? []).find((row) => row.user_id === account.user_id);
+
+      if (!prediction && preference.fantasy_opened) {
+        itemsProcessed += await insertNotification({
+          userId: account.user_id,
+          eventType: "FANTASY_OPENED",
+          entityType: "race",
+          entityId: upcomingRace.id,
+          dedupeKey: `fantasy-opened:${upcomingRace.id}:${account.user_id}`,
+          payload: { text: `Прогноз на ${upcomingRace.race_name} уже открыт.`, buttonText: "Сделать прогноз", buttonUrl: "/fantasy" },
+        });
+      }
+
+      const incompleteQualification = !prediction?.pole_driver_id;
+      const incompleteRace = !prediction || !isRacePredictionComplete(prediction);
+      const deadlines = [
+        { scope: "qualification", startsAt: qualifying?.start_at, incomplete: incompleteQualification },
+        { scope: "race", startsAt: raceSession?.start_at ?? upcomingRace.race_start_at, incomplete: incompleteRace },
+      ];
+
+      for (const deadline of deadlines) {
+        if (!deadline.startsAt || !deadline.incomplete) {
+          continue;
+        }
+
+        const millisecondsUntil = new Date(deadline.startsAt).getTime() - now.getTime();
+
+        if (millisecondsUntil <= 0 && preference.fantasy_locked) {
+          itemsProcessed += await insertNotification({
+            userId: account.user_id,
+            eventType: "FANTASY_LOCKED",
+            entityType: "race",
+            entityId: upcomingRace.id,
+            dedupeKey: `fantasy-locked:${upcomingRace.id}:${account.user_id}:${deadline.scope}`,
+            payload: {
+              text: `${deadline.scope === "qualification" ? "Квалификационная" : "Гоночная"} часть прогноза закрыта. Сохранённые выборы уже нельзя изменить.`,
+              buttonText: "Открыть прогноз",
+              buttonUrl: "/fantasy",
+            },
+          });
+          continue;
+        }
+
+        if (preference.fantasy_incomplete && millisecondsUntil <= 24 * 60 * 60 * 1_000 && millisecondsUntil > 23 * 60 * 60 * 1_000) {
+          itemsProcessed += await insertNotification({
+            userId: account.user_id,
+            eventType: "FANTASY_INCOMPLETE",
+            entityType: "race",
+            entityId: upcomingRace.id,
+            dedupeKey: `fantasy-incomplete:${upcomingRace.id}:${account.user_id}:${deadline.scope}`,
+            payload: {
+              text: `Прогноз на ${upcomingRace.race_name} ещё не закончен. До закрытия ${deadline.scope === "qualification" ? "квалификационной части" : "гоночной части"} меньше суток.`,
+              buttonText: "Закончить прогноз",
+              buttonUrl: "/fantasy",
+            },
+          });
+        }
+
+        if (preference.fantasy_deadlines) {
+          for (const reminder of [
+            { key: "24h", leadMs: 24 * 60 * 60 * 1_000, label: "24 часа" },
+            { key: "2h", leadMs: 2 * 60 * 60 * 1_000, label: "2 часа" },
+            { key: "15m", leadMs: 15 * 60 * 1_000, label: "15 минут" },
+          ]) {
+            if (millisecondsUntil > reminder.leadMs || millisecondsUntil <= reminder.leadMs - 10 * 60 * 1_000) {
+              continue;
+            }
+
+            itemsProcessed += await insertNotification({
+              userId: account.user_id,
+              eventType: "FANTASY_DEADLINE",
+              entityType: "race",
+              entityId: upcomingRace.id,
+              dedupeKey: `fantasy-deadline:${upcomingRace.id}:${account.user_id}:${deadline.scope}:${reminder.key}`,
+              payload: {
+                text: `До закрытия прогноза ${reminder.label}. Незаконченные пункты ещё можно заполнить.`,
+                buttonText: "Закончить прогноз",
+                buttonUrl: "/fantasy",
+              },
+            });
+          }
+        }
+      }
+    }
+
+    if (preference.daily_digest && digest) {
+      itemsProcessed += await insertNotification({
+        userId: account.user_id,
+        eventType: "DAILY_DIGEST_READY",
+        entityType: "digest",
+        entityId: digest.id,
+        dedupeKey: `digest:${digest.id}:${account.user_id}`,
+        payload: { text: `${digest.title}\n\nСвежая сводка уже готова.`, buttonText: "Читать сводку", buttonUrl: "/" },
+      });
+    }
+
+    if (hasAnyNewsPreference(preference)) {
+      const protectedSession = completedSessions
+        .filter((session) => !isPracticeSession(session.session_type))
+        .sort((left, right) => new Date(right.start_at ?? 0).getTime() - new Date(left.start_at ?? 0).getTime())[0];
+      const revealed = protectedSession
+        ? recipientsHasReveal(account.user_id, protectedSession.id, recipientReveals)
+        : true;
+
+      for (const article of news ?? []) {
+        if (!matchesNewsPreference(article, preference, favoriteNewsTerms.get(account.user_id))) {
+          continue;
+        }
+
+        itemsProcessed += await insertNotification({
+          userId: account.user_id,
+          eventType: "IMPORTANT_NEWS",
+          entityType: "news",
+          entityId: article.id,
+          dedupeKey: `news:${article.id}:${account.user_id}`,
+          payload: revealed ? {
+            text: `${article.ai_title_ru ?? article.original_title}\n\n${String(article.ai_summary_ru ?? "").slice(0, 700)}`,
+            buttonText: "Читать",
+            buttonUrl: `/news/${article.id}`,
+          } : {
+            text: "После сессии опубликована важная новость. Заголовок скрыт, чтобы не раскрывать результат.",
+            buttonText: "Показать новость",
+            buttonUrl: `/news/${article.id}`,
+          },
+        });
+      }
+    }
+
+    for (const weather of weatherRows ?? []) {
+      const session = firstRelation(weather.sessions);
+      const race = firstRelation(session?.races);
+      const rain = Number(weather.precipitation_mm ?? 0) >= 0.5;
+      const heat = Number(weather.temperature_c ?? 0) >= 35;
+
+      if ((!rain || (!preference.weather_changes && !preference.rain_alerts)) && (!heat || (!preference.weather_changes && !preference.extreme_heat_alerts))) {
+        continue;
+      }
+
+      const condition = rain
+        ? `На сессию ожидается дождь: ${weather.precipitation_mm} мм.`
+        : `На сессию ожидается жара: около ${weather.temperature_c} °C.`;
+      itemsProcessed += await insertNotification({
+        userId: account.user_id,
+        eventType: "WEATHER_CHANGED",
+        entityType: "session",
+        entityId: weather.session_id,
+        dedupeKey: `weather:${weather.session_id}:${account.user_id}:${rain ? "rain" : "heat"}:${weather.precipitation_mm ?? weather.temperature_c}`,
+        payload: { text: `${session?.name ?? "Прогноз погоды"}\n${race?.race_name ?? ""}\n\n${condition}`, buttonText: "Открыть уикенд", buttonUrl: "/weekend" },
+      });
+    }
+  }
+
+  return { itemsProcessed, metadata: { recipients: accounts.length } };
+}
+
+async function dispatchNotifications() {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+
+  if (!botToken) {
+    throw new Error("TELEGRAM_BOT_TOKEN is missing for notification delivery");
+  }
+
+  const limit = Math.max(1, Number(process.env.NOTIFICATION_DISPATCH_LIMIT ?? 100));
+  const { data: queued, error } = await supabase
+    .from("notification_queue")
+    .select("id, user_id, event_type, payload, attempts")
+    .eq("status", "pending")
+    .lte("available_at", new Date().toISOString())
+    .order("available_at", { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  let itemsProcessed = 0;
+  const handledIds = new Set();
+
+  for (const notification of queued ?? []) {
+    if (handledIds.has(notification.id)) {
+      continue;
+    }
+
+    const [{ data: account }, { data: preference }, { data: profile }] = await Promise.all([
+      supabase.from("telegram_accounts").select("chat_id, is_active").eq("user_id", notification.user_id).maybeSingle(),
+      supabase.from("notification_preferences").select("telegram_enabled, quiet_hours_start, quiet_hours_end, delivery_mode").eq("user_id", notification.user_id).maybeSingle(),
+      supabase.from("profiles").select("timezone").eq("id", notification.user_id).maybeSingle(),
+    ]);
+    const batch = preference?.delivery_mode === "digest" && !isImmediateNotification(notification.event_type)
+      ? (queued ?? []).filter((candidate) =>
+          candidate.user_id === notification.user_id &&
+          !handledIds.has(candidate.id) &&
+          !isImmediateNotification(candidate.event_type),
+        ).slice(0, 8)
+      : [notification];
+    const batchIds = batch.map((item) => item.id);
+    batchIds.forEach((id) => handledIds.add(id));
+
+    if (!account?.is_active || !preference?.telegram_enabled) {
+      await supabase.from("notification_queue").update({ status: "cancelled" }).in("id", batchIds);
+      continue;
+    }
+
+    if (isQuietTime(preference, profile?.timezone)) {
+      await supabase
+        .from("notification_queue")
+        .update({ available_at: new Date(Date.now() + 30 * 60 * 1_000).toISOString() })
+        .in("id", batchIds);
+      continue;
+    }
+
+    await Promise.all(batch.map((item) =>
+      supabase.from("notification_queue").update({ status: "sending", attempts: Number(item.attempts ?? 0) + 1 }).eq("id", item.id),
+    ));
+
+    try {
+      const deliveryPayload = batch.length > 1
+        ? {
+            text: `Сводка RaceMate\n\n${batch.map((item, index) => `${index + 1}. ${String(item.payload?.text ?? "Новое событие").replace(/\n+/g, " ")}`).join("\n\n")}`,
+            buttonText: "Открыть RaceMate",
+            buttonUrl: "/account#telegram",
+          }
+        : notification.payload ?? {};
+      const result = await sendQueuedTelegramMessage(botToken, account.chat_id, deliveryPayload);
+      const sentAt = new Date().toISOString();
+      await Promise.all([
+        supabase.from("notification_queue").update({ status: "sent", sent_at: sentAt, last_error: null }).in("id", batchIds),
+        supabase.from("notification_logs").insert(batch.map((item) => ({
+          queue_id: item.id,
+          user_id: item.user_id,
+          event_type: item.event_type,
+          status: "sent",
+          provider_message_id: String(result.result?.message_id ?? ""),
+        }))),
+        supabase.from("telegram_accounts").update({ last_delivery_at: sentAt, last_error: null }).eq("user_id", notification.user_id),
+      ]);
+      itemsProcessed += batch.length;
+    } catch (deliveryError) {
+      const message = deliveryError instanceof Error ? deliveryError.message : String(deliveryError);
+      const blocked = /403|blocked|deactivated|chat not found/i.test(message);
+      const attempts = Math.max(...batch.map((item) => Number(item.attempts ?? 0) + 1));
+      await Promise.all([
+        supabase.from("notification_queue").update({
+          status: blocked || attempts >= 3 ? "failed" : "pending",
+          available_at: new Date(Date.now() + attempts * 5 * 60 * 1_000).toISOString(),
+          last_error: message.slice(0, 500),
+        }).in("id", batchIds),
+        supabase.from("notification_logs").insert(batch.map((item) => ({
+          queue_id: item.id,
+          user_id: item.user_id,
+          event_type: item.event_type,
+          status: "failed",
+          error_message: message.slice(0, 500),
+        }))),
+        supabase.from("telegram_accounts").update({ is_active: blocked ? false : true, last_error: message.slice(0, 500) }).eq("user_id", notification.user_id),
+      ]);
+    }
+  }
+
+  return { itemsProcessed, metadata: { selected: queued?.length ?? 0 } };
+}
+
+async function enqueueScheduleChangeNotifications({ sessionId, sessionName, previousStartAt, startAt }) {
+  const { accounts, preferences, profiles } = await getTelegramRecipients();
+  let itemsProcessed = 0;
+
+  for (const account of accounts) {
+    const preference = preferences.get(account.user_id);
+
+    if (!preference?.telegram_enabled || !preference.schedule_changes) {
+      continue;
+    }
+
+    itemsProcessed += await insertNotification({
+      userId: account.user_id,
+      eventType: "SESSION_TIME_CHANGED",
+      entityType: "session",
+      entityId: sessionId,
+      dedupeKey: `schedule:${sessionId}:${account.user_id}:${startAt}`,
+      payload: {
+        text: `${sessionName} перенесена\n\nБыло: ${formatTelegramDate(previousStartAt, profiles.get(account.user_id)?.timezone)}\nСтало: ${formatTelegramDate(startAt, profiles.get(account.user_id)?.timezone)}`,
+        buttonText: "Открыть календарь",
+        buttonUrl: "/calendar",
+      },
+    });
+  }
+
+  return itemsProcessed;
+}
+
+async function getTelegramRecipients() {
+  const { data: accounts } = await supabase.from("telegram_accounts").select("user_id, chat_id").eq("is_active", true);
+  const userIds = (accounts ?? []).map((account) => account.user_id);
+
+  if (!userIds.length) {
+    return { accounts: [], preferences: new Map(), profiles: new Map(), reveals: new Set(), favoriteNewsTerms: new Map() };
+  }
+
+  const [
+    { data: preferenceRows },
+    { data: profileRows },
+    { data: revealRows },
+    { data: favoriteTeamRows },
+    { data: favoriteDriverRows },
+  ] = await Promise.all([
+    supabase.from("notification_preferences").select("*").in("user_id", userIds),
+    supabase.from("profiles").select("id, timezone").in("id", userIds),
+    supabase.from("spoiler_reveals").select("user_id, session_id").in("user_id", userIds),
+    supabase.from("user_favorite_teams").select("user_id, teams(name,code)").in("user_id", userIds),
+    supabase.from("user_favorite_drivers").select("user_id, drivers(full_name,slug)").in("user_id", userIds),
+  ]);
+  const favoriteNewsTerms = new Map();
+
+  for (const row of favoriteTeamRows ?? []) {
+    const team = firstRelation(row.teams);
+    const terms = favoriteNewsTerms.get(row.user_id) ?? { drivers: [], teams: [] };
+    terms.teams.push(...[team?.name, team?.code].filter(Boolean).map(normalizeNewsTerm));
+    favoriteNewsTerms.set(row.user_id, terms);
+  }
+
+  for (const row of favoriteDriverRows ?? []) {
+    const driver = firstRelation(row.drivers);
+    const terms = favoriteNewsTerms.get(row.user_id) ?? { drivers: [], teams: [] };
+    terms.drivers.push(...[driver?.full_name, driver?.slug].filter(Boolean).map(normalizeNewsTerm));
+    favoriteNewsTerms.set(row.user_id, terms);
+  }
+
+  return {
+    accounts: accounts ?? [],
+    preferences: new Map((preferenceRows ?? []).map((row) => [row.user_id, row])),
+    profiles: new Map((profileRows ?? []).map((row) => [row.id, row])),
+    reveals: new Set((revealRows ?? []).map((row) => `${row.user_id}:${row.session_id}`)),
+    favoriteNewsTerms,
+  };
+}
+
+async function getSessionTopThree(sessionIds) {
+  if (!sessionIds.length) {
+    return new Map();
+  }
+
+  const { data } = await supabase
+    .from("session_results")
+    .select("session_id, position, drivers(full_name)")
+    .in("session_id", sessionIds)
+    .in("position", [1, 2, 3])
+    .order("position", { ascending: true });
+  const map = new Map();
+
+  for (const row of data ?? []) {
+    const driver = firstRelation(row.drivers);
+    const values = map.get(row.session_id) ?? [];
+    values.push({ position: row.position, driver: driver?.full_name ?? "Пилот" });
+    map.set(row.session_id, values);
+  }
+
+  return map;
+}
+
+async function insertNotification({ userId, eventType, entityType, entityId, dedupeKey, payload }) {
+  const { data, error } = await supabase
+    .from("notification_queue")
+    .upsert({
+      user_id: userId,
+      event_type: eventType,
+      entity_type: entityType,
+      entity_id: entityId,
+      dedupe_key: dedupeKey,
+      payload,
+    }, { onConflict: "dedupe_key", ignoreDuplicates: true })
+    .select("id");
+
+  if (error) {
+    throw error;
+  }
+
+  return data?.length ? 1 : 0;
+}
+
+async function sendQueuedTelegramMessage(botToken, chatId, payload) {
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://racemate.ru").replace(/\/$/, "");
+  const buttons = [];
+
+  if (payload.callbackText && payload.callbackData) {
+    buttons.push([{ text: payload.callbackText, callback_data: payload.callbackData }]);
+  }
+
+  if (payload.buttonText && payload.buttonUrl) {
+    buttons.push([{ text: payload.buttonText, url: `${baseUrl}${payload.buttonUrl}` }]);
+  }
+
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: String(payload.text ?? "Новое уведомление RaceMate"),
+      disable_web_page_preview: true,
+      ...(buttons.length ? { reply_markup: { inline_keyboard: buttons } } : {}),
+    }),
+  });
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok || result.ok === false) {
+    throw new Error(`Telegram ${response.status}: ${result.description ?? "delivery failed"}`);
+  }
+
+  return result;
+}
+
+function isReminderEnabled(preference, sessionType) {
+  if (isPracticeSession(sessionType)) return preference.practice_reminders;
+  if (sessionType === "qualifying" || sessionType === "sprint_qualifying") return preference.qualifying_reminders;
+  if (sessionType === "sprint") return preference.sprint_reminders;
+  if (sessionType === "race") return preference.race_reminders;
+  return false;
+}
+
+function isResultPreferenceEnabled(preference, sessionType) {
+  if (isPracticeSession(sessionType)) return preference.practice_results;
+  if (sessionType === "qualifying" || sessionType === "sprint_qualifying") return preference.qualifying_results;
+  if (sessionType === "sprint") return preference.sprint_results;
+  if (sessionType === "race") return preference.race_results;
+  return false;
+}
+
+function isPracticeSession(sessionType) {
+  return ["fp1", "fp2", "fp3", "practice", "practice_1", "practice_2", "practice_3"].includes(sessionType);
+}
+
+function isResultSession(sessionType) {
+  return isPracticeSession(sessionType) || ["qualifying", "sprint_qualifying", "sprint", "race"].includes(sessionType);
+}
+
+function isQuietTime(preference, timezone = "Europe/Moscow") {
+  const start = String(preference.quiet_hours_start ?? "").slice(0, 5);
+  const end = String(preference.quiet_hours_end ?? "").slice(0, 5);
+
+  if (!start || !end || start === end) {
+    return false;
+  }
+
+  let localTime;
+  try {
+    localTime = new Intl.DateTimeFormat("en-GB", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
+  } catch {
+    localTime = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Moscow", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
+  }
+
+  return start < end ? localTime >= start && localTime < end : localTime >= start || localTime < end;
+}
+
+function isImmediateNotification(eventType) {
+  return ["SESSION_STARTING", "SESSION_TIME_CHANGED", "SESSION_CANCELLED", "WEATHER_CHANGED", "TEST_NOTIFICATION"].includes(eventType);
+}
+
+function formatTelegramDate(value, timezone = "Europe/Moscow") {
+  try {
+    return new Intl.DateTimeFormat("ru-RU", {
+      timeZone: timezone || "Europe/Moscow",
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(value));
+  } catch {
+    return new Date(value).toISOString();
+  }
+}
+
+function firstRelation(value) {
+  return Array.isArray(value) ? value[0] ?? null : value ?? null;
+}
+
+function isRacePredictionComplete(prediction) {
+  return Boolean(
+    prediction?.pole_driver_id &&
+    prediction?.fastest_lap_driver_id &&
+    (prediction?.dnf_pick_kind === "none" || prediction?.dnf_driver_id) &&
+    prediction?.top_scoring_team_id &&
+    prediction?.fastest_pit_stop_team_id &&
+    Array.isArray(prediction?.top10_driver_ids) &&
+    prediction.top10_driver_ids.length === 10
+  );
+}
+
+function recipientsHasReveal(userId, sessionId, reveals) {
+  return reveals.has(`${userId}:${sessionId}`);
+}
+
+function hasAnyNewsPreference(preference) {
+  return Boolean(
+    preference.important_news ||
+    preference.favorite_driver_news ||
+    preference.favorite_team_news ||
+    preference.transfer_news ||
+    preference.steward_news ||
+    preference.technical_news
+  );
+}
+
+function matchesNewsPreference(article, preference, favoriteTerms = { drivers: [], teams: [] }) {
+  if (preference.important_news && Number(article.importance_score ?? 0) >= 8) {
+    return true;
+  }
+
+  const tags = (article.news_article_tags ?? [])
+    .map((row) => firstRelation(row.tags))
+    .filter(Boolean);
+  const haystack = tags.flatMap((tag) => [tag.type, tag.slug, tag.name]).filter(Boolean).map(normalizeNewsTerm);
+  const includesAny = (needles) => needles.some((needle) => haystack.some((value) => value.includes(needle) || needle.includes(value)));
+
+  return Boolean(
+    (preference.favorite_driver_news && includesAny(favoriteTerms.drivers ?? [])) ||
+    (preference.favorite_team_news && includesAny(favoriteTerms.teams ?? [])) ||
+    (preference.transfer_news && includesAny(["transfer", "driver-market", "переход", "контракт"])) ||
+    (preference.steward_news && includesAny(["steward", "penalty", "fia", "штраф", "стюард"])) ||
+    (preference.technical_news && includesAny(["technical", "upgrade", "technology", "техника", "обновлен"]))
+  );
+}
+
+function normalizeNewsTerm(value) {
+  return String(value ?? "").trim().toLocaleLowerCase("ru-RU").replace(/[^a-zа-яё0-9]+/g, "-");
 }
 
 async function getRaceChoices() {

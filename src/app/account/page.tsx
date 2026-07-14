@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   CalendarDays,
   ChevronRight,
@@ -11,18 +12,19 @@ import {
   Plus,
   Trophy,
   UserRound,
-  Users,
   Vote,
   Warehouse,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { PageTitle } from "@/components/racemate/page-title";
 import { signOut } from "@/app/auth/actions";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
+import { TelegramSettings } from "@/components/racemate/telegram-settings";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getTeamAsset } from "@/data/f1-assets";
+import { getTeamAsset, getTeamProfileAsset } from "@/data/f1-assets";
 import {
   getConstructorChampionshipMatrix,
   getDriverChampionshipMatrix,
@@ -110,7 +112,7 @@ export default async function AccountPage() {
 
   return (
     <AppShell>
-      <section className="grid gap-4 py-6 sm:gap-5">
+      <section className="grid gap-4 pb-6 sm:gap-5">
         <section className="stitch-panel relative overflow-hidden p-0">
           <div
             aria-hidden="true"
@@ -133,9 +135,9 @@ export default async function AccountPage() {
                   <UserRound aria-hidden="true" className="size-3.5" />
                   Паддок-пасс RaceMate
                 </p>
-                <h1 className="mt-1.5 max-w-3xl text-balance font-display text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-4xl">
+                <PageTitle className="mt-1.5 max-w-3xl">
                   {displayName}
-                </h1>
+                </PageTitle>
                 <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5">
                   <ProfileChip icon={Mail} value={email} />
                   <ProfileChip icon={Clock3} value={formatTimezone(timezone)} />
@@ -183,17 +185,8 @@ export default async function AccountPage() {
           </div>
         </section>
 
-        <div className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(17rem,0.45fr)] xl:items-start">
-          <GaragePanel accentColor={accentColor} drivers={favoriteDrivers} team={favoriteTeam} />
-
-          <div className="grid gap-4 sm:gap-5">
-            <NextRacePanel
-              hasPrediction={predictionState.current !== null}
-              race={predictionState.race}
-            />
-            <QuickLinksPanel />
-          </div>
-        </div>
+        <GaragePanel accentColor={accentColor} drivers={favoriteDrivers} team={favoriteTeam} />
+        <TelegramSettings userId={profile?.id ?? null} />
       </section>
     </AppShell>
   );
@@ -332,6 +325,9 @@ function GaragePanel({
   team: FavoriteTeam | null;
 }) {
   const driverSlots: (FavoriteDriver | null)[] = [drivers[0] ?? null, drivers[1] ?? null];
+  const teamProfileAsset = team
+    ? getTeamProfileAsset(team.code) ?? getTeamProfileAsset(team.name)
+    : null;
 
   return (
     <section className="stitch-panel relative overflow-hidden p-0">
@@ -362,7 +358,22 @@ function GaragePanel({
             background: `linear-gradient(105deg, ${hexWithAlpha(team.color, 0.3) ?? "rgb(225 6 0 / 0.2)"}, transparent 62%)`,
           }}
         >
-          {team.logo ? (
+          {teamProfileAsset ? (
+            <>
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="pointer-events-none object-cover object-center opacity-55"
+                fill
+                sizes="(min-width: 1280px) 50rem, 100vw"
+                src={teamProfileAsset.carImageUrl}
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/95 via-background/65 to-background/10"
+              />
+            </>
+          ) : team.logo ? (
             <span
               aria-hidden="true"
               className="pointer-events-none absolute -right-6 top-1/2 h-32 w-56 -translate-y-1/2 bg-contain bg-center bg-no-repeat opacity-[0.07] sm:h-40 sm:w-72"
@@ -498,98 +509,6 @@ function EmptyGarageSlot({ className, text }: { className?: string; text: string
         {text}
       </span>
     </Link>
-  );
-}
-
-function NextRacePanel({
-  hasPrediction,
-  race,
-}: {
-  hasPrediction: boolean;
-  race: Awaited<ReturnType<typeof getPredictionState>>["race"];
-}) {
-  return (
-    <section className="stitch-panel relative overflow-hidden p-4 sm:p-5">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_0%,rgb(225_6_0_/_0.16),transparent_14rem)]"
-      />
-      <div className="relative">
-        <p className="stitch-label flex items-center gap-2 text-muted-foreground">
-          <Flag aria-hidden="true" className="size-3.5 text-primary" />
-          Ближайший этап
-        </p>
-        {race ? (
-          <>
-            <h2 className="mt-2.5 font-display text-xl font-extrabold leading-tight">{race.name}</h2>
-            <p className="mt-1 text-xs font-semibold text-muted-foreground">Старт гонки: {race.startsAt}</p>
-            <span
-              className={cn(
-                "font-telemetry mt-3 inline-block rounded border px-2 py-1 text-[0.6rem] font-extrabold uppercase tracking-[0.08em]",
-                hasPrediction
-                  ? "border-[rgba(57,255,20,0.4)] bg-[rgba(57,255,20,0.1)] text-[rgb(97,255,75)]"
-                  : "border-amber-300/50 bg-amber-400/10 text-amber-300",
-              )}
-            >
-              {hasPrediction ? "Прогноз сделан" : "Прогноза нет"}
-            </span>
-            <div className="mt-3.5 grid gap-2">
-              {!race.raceLocked ? (
-                <Button asChild className="w-full">
-                  <Link href="/fantasy?tab=picks" prefetch={false}>
-                    {hasPrediction ? "Изменить прогноз" : "Сделать прогноз"}
-                    <ChevronRight aria-hidden="true" data-icon="inline-end" />
-                  </Link>
-                </Button>
-              ) : null}
-              <Button asChild className="w-full" variant="secondary">
-                <Link href="/weekend" prefetch={false}>
-                  Страница этапа
-                </Link>
-              </Button>
-            </div>
-          </>
-        ) : (
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            Расписание следующего этапа появится здесь, как только откроется уик-энд.
-          </p>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function QuickLinksPanel() {
-  const links = [
-    { href: "/fantasy", icon: Trophy, label: "Фэнтези-лига" },
-    { href: "/leagues", icon: Users, label: "Мои лиги" },
-    { href: "/polls", icon: Vote, label: "Опросы" },
-    { href: "/calendar", icon: CalendarDays, label: "Календарь сезона" },
-  ];
-
-  return (
-    <section className="stitch-panel p-2">
-      <p className="stitch-label px-2 pb-1 pt-2 text-muted-foreground">Быстрые переходы</p>
-      <div className="grid">
-        {links.map((link) => (
-          <Link
-            className="group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-accent/60"
-            href={link.href}
-            key={link.href}
-            prefetch={false}
-          >
-            <span className="grid size-8 shrink-0 place-items-center rounded-md border border-border/70 bg-secondary/40">
-              <link.icon aria-hidden="true" className="size-4 text-primary" />
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold">{link.label}</span>
-            <ChevronRight
-              aria-hidden="true"
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
-            />
-          </Link>
-        ))}
-      </div>
-    </section>
   );
 }
 

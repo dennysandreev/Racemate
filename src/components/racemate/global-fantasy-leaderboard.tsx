@@ -2,13 +2,7 @@ import { ListOrdered } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { GlobalFantasyLeaderboard, GlobalFantasyLeaderboardRow } from "@/types/racemate";
-
-const podiumTone: Record<number, { badge: string; label: string }> = {
-  1: { badge: "bg-[#f4c95d] text-[#211a05]", label: "Лидер фэнтези-сезона" },
-  2: { badge: "bg-[#cbd5e1] text-[#111827]", label: "Второе место" },
-  3: { badge: "bg-[#d48a5f] text-[#2a1608]", label: "Третье место" },
-};
+import type { GlobalFantasyLeaderboard } from "@/types/racemate";
 
 export function GlobalFantasyLeaderboardPanel({
   currentDisplayName,
@@ -18,7 +12,6 @@ export function GlobalFantasyLeaderboardPanel({
   leaderboard: GlobalFantasyLeaderboard;
 }) {
   const rows = leaderboard.rows;
-  const podium = rows.filter((row) => row.rank >= 1 && row.rank <= 3);
   const leaderScore = Math.max(rows[0]?.totalScore ?? 0, 1);
 
   if (!rows.length) {
@@ -32,19 +25,7 @@ export function GlobalFantasyLeaderboardPanel({
   }
 
   return (
-    <div className="grid gap-4 sm:gap-5">
-      {podium.length === 3 ? (
-        <div className="grid grid-cols-3 items-end gap-2 sm:gap-4">
-          {[podium[1], podium[0], podium[2]].map((row) => (
-            <PodiumCard
-              isCurrentUser={isSameName(row.displayName, currentDisplayName)}
-              key={row.rank}
-              row={row}
-            />
-          ))}
-        </div>
-      ) : null}
-
+    <div>
       <section className="stitch-panel overflow-hidden p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -112,63 +93,6 @@ export function GlobalFantasyLeaderboardPanel({
         </ol>
       </section>
     </div>
-  );
-}
-
-function PodiumCard({
-  isCurrentUser,
-  row,
-}: {
-  isCurrentUser: boolean;
-  row: GlobalFantasyLeaderboardRow;
-}) {
-  const tone = podiumTone[row.rank] ?? podiumTone[3];
-
-  return (
-    <article
-      className={cn(
-        "stitch-panel relative grid justify-items-center gap-1.5 px-2 pb-3 pt-6 text-center sm:gap-2 sm:px-4 sm:pb-5 sm:pt-8",
-        row.rank === 1 ? "border-primary/45 ring-1 ring-primary/25" : "mt-3 sm:mt-6",
-      )}
-    >
-      <span
-        aria-label={tone.label}
-        className={cn(
-          "absolute -top-3 left-1/2 grid size-7 -translate-x-1/2 place-items-center rounded-full font-display text-sm font-extrabold shadow-lg sm:-top-3.5 sm:size-8",
-          tone.badge,
-        )}
-      >
-        {row.rank}
-      </span>
-      <span
-        aria-hidden="true"
-        className="grid size-12 place-items-center rounded-full border-2 border-border/80 bg-[oklch(0.21_0.014_250)] font-display text-base font-extrabold sm:size-16 sm:text-xl"
-      >
-        {getInitials(row.displayName)}
-      </span>
-      <p className="w-full min-w-0 truncate font-display text-sm font-extrabold leading-tight sm:text-lg">
-        {row.displayName}
-        {isCurrentUser ? <span className="ml-1 text-primary">· вы</span> : null}
-      </p>
-      <p className="font-telemetry text-xl font-extrabold leading-none sm:text-3xl">
-        {row.totalScore}
-        <span className="ml-1 text-[0.6rem] font-bold text-muted-foreground sm:text-xs">очк.</span>
-      </p>
-      <p className="hidden text-[0.65rem] font-semibold text-muted-foreground sm:block">
-        {row.predictionCount} прогн. · средний {row.averageScore}
-      </p>
-    </article>
-  );
-}
-
-function getInitials(name: string) {
-  return (
-    name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase())
-      .join("") || "R"
   );
 }
 

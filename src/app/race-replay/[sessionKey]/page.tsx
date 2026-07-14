@@ -27,7 +27,7 @@ export default async function RaceReplayPage({ params, searchParams }: RaceRepla
 
   return (
     <AppShell>
-      <main className="py-5">
+      <main className="pb-5">
         <RaceReplayPlayer debug={query.debugTrack === "1"} replay={replay} />
       </main>
     </AppShell>

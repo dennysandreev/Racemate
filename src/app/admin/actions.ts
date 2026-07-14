@@ -13,6 +13,12 @@ import {
 const allowedJobs = new Set([
   "rss.fetch_all",
   "social.fetch_all",
+  "social.fetch_x",
+  "social.fetch_reddit",
+  "social.fetch_telegram",
+  "social.process_ai",
+  "social.refresh_metrics",
+  "social.retry_failed",
   "reports.check_latest",
   "reports.refresh_due",
   "reports.generate_summary",
@@ -36,6 +42,7 @@ export async function triggerJob(formData: FormData) {
   const user = await requireAdmin();
   const supabase = await createSupabaseServerClient();
   const jobName = String(formData.get("jobName") ?? "");
+  const sourceId = normalizeOptionalString(formData.get("sourceId"), 64);
 
   if (!supabase || !allowedJobs.has(jobName)) {
     redirect("/admin");
@@ -51,7 +58,7 @@ export async function triggerJob(formData: FormData) {
     job_name: jobName,
     status: "queued",
     items_processed: 0,
-    metadata: { manual: true },
+    metadata: { manual: true, ...(sourceId ? { sourceId } : {}) },
   });
 
   revalidatePath("/admin");
@@ -92,6 +99,117 @@ export async function toggleSocialSource(formData: FormData) {
     .update({ is_active: !isActive })
     .eq("id", sourceId);
 
+  revalidatePath("/admin");
+  revalidatePath("/social");
+  redirect("/admin?social=1");
+}
+
+export async function saveSocialSource(formData: FormData) {
+  await requireAdmin();
+  const supabase = createSupabaseAdminClient();
+  const platform = String(formData.get("platform") ?? "");
+  const name = normalizeOptionalString(formData.get("name"), 120);
+  const rawUrl = normalizeOptionalString(formData.get("url"), 2_048);
+  const rawExternalKey = normalizeOptionalString(formData.get("externalKey"), 120);
+  const telegramKey = platform === "telegram"
+    ? normalizeTelegramSourceKey(rawExternalKey ?? rawUrl)
+    : null;
+  const url = platform === "telegram"
+    ? normalizeTelegramSourceUrl(rawUrl, telegramKey)
+    : normalizeUrl(rawUrl ?? "");
+  const externalKey = platform === "telegram" ? telegramKey : rawExternalKey;
+  const feedKind = String(formData.get("feedKind") ?? "new") === "hot" ? "hot" : "new";
+  const trustLevel = ["official", "media", "community"].includes(String(formData.get("trustLevel")))
+    ? String(formData.get("trustLevel"))
+    : "community";
+  const publicationMode = String(formData.get("publicationMode")) === "review" ? "review" : "auto";
+  const interval = Math.max(5, Math.min(1440, Number(formData.get("fetchIntervalMinutes")) || 15));
+  const initialBackfillDays = Math.max(1, Math.min(365, Number(formData.get("initialBackfillDays")) || 30));
+  const requestedAdapter = String(formData.get("adapter") ?? "");
+
+  if (!supabase || !["x", "reddit", "telegram"].includes(platform) || !name || !url || !externalKey) {
+    redirect("/admin?social=1");
+  }
+
+  const adapter = platform === "x"
+    ? requestedAdapter === "rsshub-x-user" ? "rsshub-x-user" : "x-api-user"
+    : platform === "reddit"
+      ? "reddit-oauth"
+      : requestedAdapter === "telegram-bot-webhook" ? "telegram-bot-webhook" : "telegram-mtproto";
+  const { data: existingSource } = await supabase
+    .from("social_sources")
+    .select("metadata")
+    .eq("platform", platform)
+    .eq("url", url)
+    .maybeSingle();
+  const existingMetadata = existingSource?.metadata && typeof existingSource.metadata === "object" && !Array.isArray(existingSource.metadata)
+    ? existingSource.metadata
+    : {};
+  await supabase.from("social_sources").upsert({
+    platform,
+    name,
+    url,
+    external_key: externalKey.replace(/^@/, ""),
+    adapter,
+    source_type: adapter === "telegram-bot-webhook" ? "webhook" : "api",
+    feed_kind: platform === "reddit" ? feedKind : platform === "x" ? "user" : "channel",
+    trust_level: trustLevel,
+    publication_mode: publicationMode,
+    fetch_interval_minutes: interval,
+    initial_backfill_days: initialBackfillDays,
+    metadata: { ...existingMetadata, initialBackfillDays },
+    include_reposts: String(formData.get("includeReposts")) === "on",
+    include_replies: String(formData.get("includeReplies")) === "on",
+    next_fetch_at: new Date().toISOString(),
+    is_active: true,
+  }, { onConflict: "platform,url" });
+
+  revalidatePath("/admin");
+  redirect("/admin?social=1");
+}
+
+export async function moderateSocialPost(formData: FormData) {
+  await requireAdmin();
+  const supabase = createSupabaseAdminClient();
+  const postId = String(formData.get("postId") ?? "");
+  const action = String(formData.get("moderationAction") ?? "");
+  const topic = String(formData.get("topic") ?? "");
+  const allowedTopics = new Map([
+    ["social-upgrades", "Обновления болида"],
+    ["social-transfers", "Трансферы и контракты"],
+    ["social-technical", "Техника и регламент"],
+    ["social-telemetry", "Телеметрия"],
+    ["social-race-weekend", "Этап и результаты"],
+    ["social-statements", "Комментарии команд и пилотов"],
+    ["social-incidents", "Инциденты и штрафы"],
+    ["social-rumors", "Слухи"],
+    ["social-discussion", "Обсуждения"],
+  ]);
+  if (!supabase || !postId || !["publish", "reject", "retry"].includes(action)) {
+    redirect("/admin?social=1");
+  }
+
+  if (topic && allowedTopics.has(topic)) {
+    const { data: tag } = await supabase.from("tags").upsert({ type: "social_topic", slug: topic, name: allowedTopics.get(topic)! }, { onConflict: "slug" }).select("id").single();
+    if (tag?.id) {
+      const { data: existingTopics } = await supabase
+        .from("social_post_tags")
+        .select("tag_id, tags!inner(type)")
+        .eq("post_id", postId)
+        .eq("tags.type", "social_topic");
+      const topicTagIds = (existingTopics ?? []).map((item) => item.tag_id);
+      if (topicTagIds.length) {
+        await supabase.from("social_post_tags").delete().eq("post_id", postId).in("tag_id", topicTagIds);
+      }
+      await supabase.from("social_post_tags").upsert({ post_id: postId, tag_id: tag.id, confidence: 1, method: "admin", is_primary: true }, { onConflict: "post_id,tag_id" });
+    }
+  }
+
+  if (action === "retry") {
+    await supabase.from("social_posts").update({ status: "pending", next_retry_at: new Date().toISOString(), last_processing_error: null }).eq("id", postId);
+  } else {
+    await supabase.from("social_posts").update({ status: action === "publish" ? "published" : "rejected", next_retry_at: null }).eq("id", postId);
+  }
   revalidatePath("/admin");
   revalidatePath("/social");
   redirect("/admin?social=1");
@@ -369,6 +487,30 @@ function normalizeUrl(value: string, optional = false) {
   } catch {
     return optional ? null : "";
   }
+}
+
+function normalizeTelegramSourceKey(value: string | null) {
+  const text = value?.trim() ?? "";
+  const linkMatch = text.match(/^(?:https?:\/\/)?(?:www\.)?t\.me\/([A-Za-z][A-Za-z0-9_]{3,})(?:[/?#]|$)/i);
+  const key = linkMatch?.[1] ?? text.replace(/^@/, "");
+
+  return /^[A-Za-z][A-Za-z0-9_]{3,}$/.test(key) || /^-?\d+$/.test(key) ? key : null;
+}
+
+function normalizeTelegramSourceUrl(value: string | null, key: string | null) {
+  const normalizedUrl = value ? normalizeUrl(value, true) : null;
+
+  if (normalizedUrl) {
+    try {
+      const hostname = new URL(normalizedUrl).hostname.toLowerCase();
+      if (hostname === "t.me" || hostname === "www.t.me") return normalizedUrl;
+    } catch {
+      return "";
+    }
+  }
+
+  if (!key) return "";
+  return /^-?\d+$/.test(key) ? `telegram:${key}` : `https://t.me/${key}`;
 }
 
 function isAllowedManualXUrl(value: string) {

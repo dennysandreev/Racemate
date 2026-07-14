@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { Flag } from "lucide-react";
 
-const footerLinks = [
+const primaryFooterLinks = [
+  { href: "/legal/disclaimer", label: "Отказ от ответственности" },
+  { href: "/contacts", label: "Контакты" },
+];
+
+const secondaryFooterLinks = [
   { href: "/fantasy-rules", label: "Очки fantasy" },
   { href: "/prediction-rules", label: "Правила прогнозов" },
   { href: "/community-rules", label: "Правила сообщества" },
@@ -9,8 +14,6 @@ const footerLinks = [
   { href: "/legal/terms", label: "Соглашение" },
   { href: "/legal/privacy", label: "Конфиденциальность" },
   { href: "/legal/cookies", label: "Cookies" },
-  { href: "/legal/disclaimer", label: "Отказ от ответственности" },
-  { href: "/contacts", label: "Контакты" },
 ];
 
 export function SiteFooter() {
@@ -41,17 +44,24 @@ export function SiteFooter() {
 
           <nav
             aria-label="Ссылки подвала"
-            className="flex flex-wrap gap-x-4 gap-y-1.5 lg:justify-end"
+            className="grid gap-2 lg:justify-items-end"
           >
-            {footerLinks.map((link) => (
-              <Link
-                className="whitespace-nowrap rounded-sm text-xs font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                href={link.href}
-                key={link.href}
-                prefetch={false}
+            {[primaryFooterLinks, secondaryFooterLinks].map((links, index) => (
+              <div
+                className="flex flex-wrap gap-x-4 gap-y-1.5 lg:justify-end"
+                key={index === 0 ? "primary" : "secondary"}
               >
-                {link.label}
-              </Link>
+                {links.map((link) => (
+                  <Link
+                    className="whitespace-nowrap rounded-sm text-xs font-normal text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    href={link.href}
+                    key={link.href}
+                    prefetch={false}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
             ))}
           </nav>
         </div>

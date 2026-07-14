@@ -34,7 +34,7 @@ export function FantasyLockCountdown({
   }
 
   return (
-    <Badge variant="secondary">
+    <Badge variant="warning">
       {formatCountdown(prefix, startsAtIso, now)}
     </Badge>
   );

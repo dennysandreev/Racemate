@@ -83,11 +83,11 @@ Included in V1:
 - predictions, mini-leagues, leaderboards, polls, reactions;
 - operational admin for sources, jobs, articles, AI usage, and sync tasks;
 - worker-based external API ingestion and caching.
+- Telegram linking and configurable notifications for sessions, fantasy, important news, weather, and championship updates;
+- mandatory spoiler protection for qualifying, sprint, and race results in Telegram.
 
 Deferred from V1:
-- Telegram integration;
-- web push and other notification delivery;
-- notification preferences;
+- web push and notification channels other than Telegram;
 - live timing and live telemetry;
 - YouTube/video;
 - native mobile apps.

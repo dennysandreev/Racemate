@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   CalendarDays,
+  CarFront,
   Flag,
   Menu,
   Newspaper,
@@ -9,10 +10,10 @@ import {
   Trophy,
   Users,
   UserRound,
-  Vote,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ActiveNavigationLink } from "@/components/racemate/active-navigation-link";
 import { SidebarSessionStatus } from "@/components/racemate/sidebar-session-status";
 import { SiteFooter } from "@/components/racemate/site-footer";
 import { ThemeToggle } from "@/components/racemate/theme-toggle";
@@ -21,13 +22,13 @@ import { getIsAdmin, getSessionProfileSummary } from "@/lib/auth";
 import { formatSessionName } from "@/lib/session-display";
 
 const navigation = [
-  { href: "/news", label: "Новости", icon: Newspaper },
+  { href: "/news", label: "Новости", icon: Newspaper, activePrefixes: ["/news"] },
   { href: "/social", label: "Соцсети", icon: Radio },
-  { href: "/leaderboard", label: "Чемпионат", icon: Trophy },
+  { href: "/leaderboard", label: "Чемпионат", icon: Trophy, activePrefixes: ["/leaderboard", "/drivers"] },
+  { href: "/teams", label: "Команды", icon: CarFront, activePrefixes: ["/teams"] },
   { href: "/calendar", label: "Календарь", icon: CalendarDays },
-  { href: "/weekend", label: "Текущий этап", icon: Flag },
-  { href: "/fantasy", label: "Фентази лига", icon: Users },
-  { href: "/polls", label: "Опросы", icon: Vote },
+  { href: "/weekend", label: "Текущий этап", icon: Flag, activePrefixes: ["/weekend", "/race-replay"] },
+  { href: "/fantasy", label: "Фентази лига", icon: Users, activePrefixes: ["/fantasy", "/leagues", "/predictions", "/prediction"] },
   { href: "/admin", label: "Админка", icon: Flag },
 ];
 
@@ -72,14 +73,16 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           </summary>
           <div className="absolute right-0 top-12 z-40 grid w-[min(18rem,calc(100vw-2rem))] gap-2 rounded-lg border border-border bg-background p-2 shadow-2xl">
             {visibleNavigation.map((item) => (
-              <Link
+              <ActiveNavigationLink
+                activeClassName="bg-primary/12 text-foreground shadow-[inset_3px_0_0_var(--primary)]"
+                activePrefixes={item.activePrefixes}
                 className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 href={item.href}
                 key={item.href}
                 prefetch={false}
               >
                 {item.label}
-              </Link>
+              </ActiveNavigationLink>
             ))}
             <div className="mt-1 grid gap-2 border-t border-border pt-2">
               <ThemeToggle />
@@ -130,8 +133,10 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             const Icon = item.icon;
 
             return (
-              <Link
-                className="group flex items-center gap-4 border-r-2 border-transparent px-6 py-3.5 text-muted-foreground transition-colors hover:border-primary hover:bg-accent/60 hover:text-foreground"
+              <ActiveNavigationLink
+                activeClassName="border-primary bg-primary/10 text-foreground shadow-[inset_3px_0_0_rgb(225_6_0_/_0.18)]"
+                activePrefixes={item.activePrefixes}
+                className="group flex items-center gap-4 border-r-2 border-transparent px-6 py-3.5 text-muted-foreground transition-colors hover:border-primary hover:bg-accent/60 hover:text-foreground [&[aria-current=page]_svg]:text-primary"
                 href={item.href}
                 key={item.href}
                 prefetch={false}
@@ -140,7 +145,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                 <span className="font-telemetry text-xs font-bold uppercase tracking-[0.08em]">
                   {item.label}
                 </span>
-              </Link>
+              </ActiveNavigationLink>
             );
           })}
         </nav>
@@ -165,7 +170,7 @@ function AuthPanel({
 }) {
   if (!profile) {
     return (
-      <Button asChild className="w-full justify-center" size="sm">
+      <Button asChild className="h-10 w-full justify-center" size="sm">
         <Link href="/auth" prefetch={false}>
           Войти
           <ArrowRight aria-hidden="true" data-icon="inline-end" />
@@ -176,18 +181,18 @@ function AuthPanel({
 
   return (
     <Link
-      className="flex min-w-0 items-center gap-3 rounded-md border border-border bg-card/75 p-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-border bg-card/75 px-2.5 py-1.5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       href="/account"
       prefetch={false}
     >
-      <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary/12 text-primary">
-        <UserRound aria-hidden="true" className="size-5" />
+      <span className="grid size-7 shrink-0 place-items-center rounded-sm bg-primary/12 text-primary">
+        <UserRound aria-hidden="true" className="size-4" />
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-sm font-semibold text-foreground">
+        <span className="block truncate text-xs font-semibold leading-tight text-foreground">
           {profile.displayName}
         </span>
-        <span className="block truncate text-xs text-muted-foreground">
+        <span className="block truncate text-[0.65rem] leading-tight text-muted-foreground">
           Личный кабинет
         </span>
       </span>

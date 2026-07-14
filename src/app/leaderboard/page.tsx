@@ -1,14 +1,19 @@
+import Image from "next/image";
 import Link from "next/link";
-import { CalendarClock, ChevronRight, Trophy } from "lucide-react";
+import { ChevronRight, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
+import { PageTitle } from "@/components/racemate/page-title";
+import { SeasonProgress } from "@/components/racemate/season-progress";
 import { getTeamProfileAsset } from "@/data/f1-assets";
 import { cn } from "@/lib/utils";
 import {
   getCalendarEvents,
+  getConstructorChampionOdds,
   getConstructorChampionshipMatrix,
   getDriverChampionshipMatrix,
+  getSeasonChampionOdds,
   getStandingsMeta,
 } from "@/data/racemate-repository";
 import type { ChampionshipRound } from "@/types/racemate";
@@ -20,15 +25,19 @@ type StandingEntry = {
   name: string;
   href?: string;
   driverSlug?: string;
+  driverNumber?: number;
   subtitle?: string;
   teamName: string;
   teamCode?: string;
   teamLogo?: string;
+  teamCarImage?: string;
   teamColor?: string;
   points: number;
   wins: number;
   podiums: number;
+  titleOdds?: string;
   pointsByRound: Record<number, number>;
+  positionByRound?: Record<number, number>;
   podiumByRound?: Record<number, "winner" | "second" | "third">;
 };
 
@@ -45,25 +54,30 @@ export default async function LeaderboardPage({
 }) {
   const { table } = await searchParams;
   const activeTable = table === "constructors" ? "constructors" : "drivers";
-  const [drivers, constructors, driverMeta, calendar] = await Promise.all([
+  const [drivers, constructors, driverMeta, calendar, driverOdds, constructorOdds] = await Promise.all([
     getDriverChampionshipMatrix(),
     getConstructorChampionshipMatrix(),
     getStandingsMeta("driver_standings"),
     getCalendarEvents(),
+    getSeasonChampionOdds(),
+    getConstructorChampionOdds(),
   ]);
 
   const rounds = activeTable === "drivers" ? drivers.rounds : constructors.rounds;
   const entries = activeTable === "drivers"
     ? drivers.rows.map((row): StandingEntry => ({
         driverSlug: row.driverSlug,
+        driverNumber: row.driverNumber,
         href: row.driverSlug ? `/drivers/${row.driverSlug}` : undefined,
         name: row.driver,
         podiumByRound: row.podiumByRound,
         podiums: Object.keys(row.podiumByRound).length,
         points: row.total,
         pointsByRound: row.pointsByRound,
+        positionByRound: row.positionByRound,
         position: row.position,
         subtitle: row.team,
+        titleOdds: findMarketOddsLabel(row.driver, driverOdds?.outcomes),
         teamCode: row.teamCode,
         teamColor: row.teamColor,
         teamLogo: row.teamLogo,
@@ -81,9 +95,11 @@ export default async function LeaderboardPage({
           pointsByRound: row.pointsByRound ?? {},
           position: row.position,
           teamCode: row.teamCode,
+          teamCarImage: profileAsset?.carImageUrl,
           teamColor: row.teamColor,
           teamLogo: row.teamLogo,
           teamName: row.team,
+          titleOdds: findMarketOddsLabel(row.team, constructorOdds?.outcomes),
           wins: row.wins,
         };
       });
@@ -93,66 +109,53 @@ export default async function LeaderboardPage({
   const podium = entries.filter((entry) => entry.position >= 1 && entry.position <= 3);
   const season = driverMeta?.season ?? new Date().getUTCFullYear();
   const seasonRaces = calendar.filter((event) => event.season === season);
-  const totalRounds = seasonRaces.length || null;
-  const completedRounds = rounds.length;
-  const lastRound = rounds[rounds.length - 1] ?? null;
-  const nextRace = totalRounds
-    ? seasonRaces.find((event) => event.round === completedRounds + 1) ?? null
-    : null;
+  const totalRounds = seasonRaces.length;
+  const completedRounds = seasonRaces.filter((event) => event.status === "Завершен").length;
+  const nextRace = seasonRaces.find((event) => event.status !== "Завершен") ?? null;
 
   return (
     <AppShell>
-      <section className="grid gap-4 py-6 sm:gap-5 sm:py-8">
-        <section className="stitch-panel p-4 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
-            <div className="min-w-0">
+      <section className="grid gap-4 pb-6 sm:gap-5 sm:pb-8">
+        <section className="stitch-panel relative min-h-[13rem] overflow-hidden p-0 lg:h-40 lg:min-h-0">
+          <Image
+            alt=""
+            className="object-cover object-[center_42%] opacity-95"
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 72rem"
+            src="/stitch/championship-statistics-hero.png"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/76 to-background/15" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgb(225_6_0_/_0.25),transparent_22rem)]" />
+
+          <div className="relative z-10 flex min-h-[13rem] flex-col p-4 sm:p-5 lg:h-full lg:min-h-0">
+            <div className="min-w-0 lg:absolute lg:left-5 lg:top-5">
               <p className="stitch-label flex items-center gap-2 text-primary">
                 <Trophy aria-hidden="true" className="size-3.5" />
                 Чемпионат · сезон {season}
               </p>
-              <h1 className="mt-2 font-display text-2xl font-extrabold leading-tight tracking-[-0.04em] sm:text-3xl">
+              <PageTitle className="mt-2">
                 {activeTable === "drivers" ? "Личный зачет" : "Кубок конструкторов"}
-              </h1>
-              <p className="mt-1.5 max-w-xl text-sm font-semibold text-muted-foreground">
-                Таблица обновляется после финиша каждого гран-при
-                {lastRound ? ` — последним учтен этап ${lastRound.flag} ${lastRound.raceName}` : ""}.
-              </p>
+              </PageTitle>
             </div>
-            <div className="w-full max-w-full sm:w-64">
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="stitch-label text-[0.6rem] text-muted-foreground">Пройдено этапов</span>
-                <span className="font-telemetry text-sm font-extrabold">
-                  {completedRounds}
-                  {totalRounds ? <span className="text-muted-foreground"> / {totalRounds}</span> : null}
-                </span>
-              </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary/60">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{
-                    width: `${totalRounds ? Math.round((completedRounds / totalRounds) * 100) : 0}%`,
-                  }}
-                />
-              </div>
-              {nextRace ? (
-                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <CalendarClock aria-hidden="true" className="size-3.5 shrink-0" />
-                  <span className="truncate">
-                    Следующий: {nextRace.countryFlag} {nextRace.race} · {nextRace.date}
-                  </span>
-                </p>
-              ) : null}
+
+            <div className="mt-auto grid gap-4 pt-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
+              <nav aria-label="Тип зачета" className="grid grid-cols-2 gap-1 self-end rounded-md border border-border/70 bg-background/55 p-1 backdrop-blur-sm sm:inline-flex sm:justify-self-start lg:translate-y-2">
+                <TableTab active={activeTable === "drivers"} href="/leaderboard">
+                  Пилоты
+                </TableTab>
+                <TableTab active={activeTable === "constructors"} href="/leaderboard?table=constructors">
+                  Конструкторы
+                </TableTab>
+              </nav>
+              <SeasonProgress
+                className="lg:w-[22rem]"
+                completedCount={completedRounds}
+                nextRace={nextRace}
+                totalCount={totalRounds}
+              />
             </div>
           </div>
-
-          <nav aria-label="Тип зачета" className="mt-5 grid grid-cols-2 gap-1 rounded-md border border-border/70 bg-background/45 p-1 sm:inline-flex">
-            <TableTab active={activeTable === "drivers"} href="/leaderboard">
-              Пилоты
-            </TableTab>
-            <TableTab active={activeTable === "constructors"} href="/leaderboard?table=constructors">
-              Конструкторы
-            </TableTab>
-          </nav>
         </section>
 
         {podium.length === 3 ? (
@@ -176,7 +179,7 @@ export default async function LeaderboardPage({
               {activeTable === "drivers" ? "Пилот" : "Команда"}
             </span>
             <RoundHeaderStrip rounds={rounds} />
-            <span className="stitch-label justify-self-end text-[0.6rem] text-muted-foreground">Очки</span>
+            <span className="stitch-label justify-self-end text-[0.65rem] text-muted-foreground">Очки</span>
           </div>
           <ol>
             {entries.map((entry) => (
@@ -197,6 +200,7 @@ export default async function LeaderboardPage({
             <LegendSwatch className="bg-primary/60" label="В очках" />
             <LegendSwatch className="bg-secondary" label="Без очков" />
             <span className="text-[0.62rem] font-semibold text-muted-foreground">
+              <span className="lg:hidden">Флаг над ячейкой — этап. </span>
               В ячейках — очки за этап; наведите, чтобы увидеть гонку
             </span>
           </div>
@@ -234,35 +238,135 @@ function PodiumCard({
   showAvatar: boolean;
 }) {
   const tone = podiumTone[entry.position] ?? podiumTone[3];
+  const podiumBadgeSize = entry.position === 1
+    ? "-top-4 size-10 text-lg sm:-top-5 sm:size-12 sm:text-xl"
+    : entry.position === 2
+      ? "-top-3.5 size-9 text-base sm:-top-4 sm:size-10 sm:text-lg"
+      : "-top-3 size-8 text-sm sm:-top-3.5 sm:size-9 sm:text-base";
+  const podiumVisualSize = "size-24 sm:size-36";
 
   return (
     <article
       className={cn(
-        "stitch-panel relative grid justify-items-center gap-1.5 px-2 pb-3 pt-6 text-center sm:gap-2 sm:px-4 sm:pb-5 sm:pt-8",
+        "stitch-panel relative isolate grid h-full justify-items-center content-start gap-1.5 px-2 pb-3 pt-8 text-center sm:gap-2 sm:px-4 sm:pb-5 sm:pt-10",
         isChampionLeader ? "border-primary/45 ring-1 ring-primary/25" : "mt-3 sm:mt-6",
       )}
     >
       <span
         aria-label={tone.label}
         className={cn(
-          "absolute -top-3 left-1/2 grid size-7 -translate-x-1/2 place-items-center rounded-full font-display text-sm font-extrabold shadow-lg sm:-top-3.5 sm:size-8",
+          "absolute left-1/2 z-30 grid -translate-x-1/2 place-items-center rounded-full font-display font-extrabold shadow-lg",
+          podiumBadgeSize,
           tone.badge,
         )}
       >
         {entry.position}
       </span>
+      {entry.titleOdds ? (
+        <span
+          className="absolute right-2 top-2 z-30 grid size-12 place-content-center rounded-md border border-border/80 bg-background/90 text-center shadow-sm backdrop-blur-sm sm:right-3 sm:top-3 sm:size-14"
+          title="Вероятность победы в чемпионате по данным Polymarket"
+        >
+          <span className="grid justify-items-center gap-0.5">
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="size-3 rounded-[2px] sm:size-3.5"
+              height={14}
+              src="/brands/polymarket-icon-blue.png"
+              width={14}
+            />
+            <span className="font-telemetry text-sm font-extrabold leading-none text-primary sm:text-base">
+              {entry.titleOdds}
+            </span>
+          </span>
+          <span className="mt-0.5 text-[0.45rem] font-bold uppercase leading-none text-muted-foreground sm:text-[0.5rem]">
+            Титул
+          </span>
+        </span>
+      ) : null}
+      {!showAvatar && entry.teamCarImage ? (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-md">
+          <Image
+            alt=""
+            className="object-cover object-center opacity-70"
+            fill
+            sizes="(min-width: 640px) 24rem, 33vw"
+            src={entry.teamCarImage}
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgb(8_9_10_/_0.28),rgb(8_9_10_/_0.7)_66%,rgb(8_9_10_/_0.92)),radial-gradient(circle_at_50%_38%,transparent_0%,rgb(8_9_10_/_0.35)_75%)]" />
+        </div>
+      ) : null}
+      {showAvatar && entry.driverNumber ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-md"
+          style={{
+            background: `radial-gradient(circle at 58% 50%, ${entry.teamColor ?? "var(--primary)"}24, transparent 72%)`,
+          }}
+        >
+          <span
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none font-display text-[7rem] font-black leading-none opacity-[0.14] sm:text-[11rem] sm:opacity-[0.1] lg:text-[15rem]"
+            style={{ color: entry.teamColor ?? "var(--primary)" }}
+          >
+            {entry.driverNumber}
+          </span>
+        </div>
+      ) : null}
       {showAvatar ? (
-        <DriverAvatarBadge
-          className="size-14 sm:size-20"
-          color={entry.teamColor}
-          name={entry.name}
-          sizes="(min-width: 640px) 5rem, 3.5rem"
-          slug={entry.driverSlug}
-        />
+        <div className={cn("relative z-10", podiumVisualSize)}>
+          {entry.href ? (
+            <Link
+              aria-label={`Открыть профиль ${entry.name}`}
+              className="relative z-10 block size-full rounded-full p-1 outline-none transition-transform hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:p-2"
+              href={entry.href}
+              prefetch={false}
+            >
+              <DriverAvatarBadge
+                className="size-full"
+                color={entry.teamColor}
+                name={entry.name}
+                sizes="(min-width: 640px) 9rem, 6rem"
+                slug={entry.driverSlug}
+              />
+            </Link>
+          ) : (
+            <DriverAvatarBadge
+              className="size-full"
+              color={entry.teamColor}
+              name={entry.name}
+              sizes="(min-width: 640px) 9rem, 6rem"
+              slug={entry.driverSlug}
+            />
+          )}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 grid justify-items-center rounded-md border border-border/80 bg-background/90 px-1.5 py-1 shadow-sm backdrop-blur-sm">
+            <p className="font-telemetry text-base font-extrabold leading-none sm:text-xl">
+              {formatPoints(entry.points)}
+              <span className="ml-1 text-[0.52rem] font-bold text-muted-foreground sm:text-[0.6rem]">очк.</span>
+            </p>
+            <p className="mt-1 hidden whitespace-nowrap text-[0.56rem] font-semibold leading-none text-muted-foreground sm:block">
+              {entry.wins} {pluralize(entry.wins, ["победа", "победы", "побед"])}
+              {entry.podiums > 0 ? ` · ${entry.podiums} ${pluralize(entry.podiums, ["подиум", "подиума", "подиумов"])}` : ""}
+            </p>
+          </div>
+        </div>
       ) : (
-        <TeamMark className="size-14 sm:size-20" entry={entry} />
+        <div className={cn("relative z-10", podiumVisualSize)}>
+          <VisualProfileLink className="size-full" entry={entry} label={`Открыть профиль команды ${entry.name}`}>
+            <TeamMark className="size-full" entry={entry} />
+          </VisualProfileLink>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 grid justify-items-center rounded-md border border-border/80 bg-background/90 px-1.5 py-1 shadow-sm backdrop-blur-sm">
+            <p className="font-telemetry text-base font-extrabold leading-none sm:text-xl">
+              {formatPoints(entry.points)}
+              <span className="ml-1 text-[0.52rem] font-bold text-muted-foreground sm:text-[0.6rem]">очк.</span>
+            </p>
+            <p className="mt-1 hidden whitespace-nowrap text-[0.56rem] font-semibold leading-none text-muted-foreground sm:block">
+              {entry.wins} {pluralize(entry.wins, ["победа", "победы", "побед"])}
+            </p>
+          </div>
+        </div>
       )}
-      <div className="w-full min-w-0">
+      <div className="relative z-10 w-full min-w-0">
         {entry.href ? (
           <Link
             className="block max-w-full truncate font-display text-sm font-extrabold leading-tight hover:text-primary sm:text-lg"
@@ -284,26 +388,7 @@ function PodiumCard({
           </p>
         ) : null}
       </div>
-      <p className="font-telemetry text-xl font-extrabold leading-none sm:text-3xl">
-        {formatPoints(entry.points)}
-        <span className="ml-1 text-[0.6rem] font-bold text-muted-foreground sm:text-xs">очк.</span>
-      </p>
-      <div className="hidden flex-wrap items-center justify-center gap-1.5 sm:flex">
-        <StatChip label={pluralize(entry.wins, ["победа", "победы", "побед"])} value={entry.wins} />
-        {entry.podiums > 0 ? (
-          <StatChip label={pluralize(entry.podiums, ["подиум", "подиума", "подиумов"])} value={entry.podiums} />
-        ) : null}
-      </div>
     </article>
-  );
-}
-
-function StatChip({ label, value }: { label: string; value: number }) {
-  return (
-    <span className="inline-flex items-baseline gap-1 rounded border border-border/70 bg-secondary/30 px-1.5 py-0.5">
-      <span className="font-telemetry text-[0.7rem] font-extrabold">{value}</span>
-      <span className="text-[0.58rem] font-semibold text-muted-foreground">{label}</span>
-    </span>
   );
 }
 
@@ -336,15 +421,19 @@ function StandingRow({
         {entry.position}
       </span>
       {showAvatar ? (
-        <DriverAvatarBadge
-          className="size-10"
-          color={entry.teamColor}
-          name={entry.name}
-          sizes="2.5rem"
-          slug={entry.driverSlug}
-        />
+        <VisualProfileLink entry={entry} label={`Открыть профиль ${entry.name}`}>
+          <DriverAvatarBadge
+            className="size-10"
+            color={entry.teamColor}
+            name={entry.name}
+            sizes="2.5rem"
+            slug={entry.driverSlug}
+          />
+        </VisualProfileLink>
       ) : (
-        <TeamMark className="size-10" entry={entry} />
+        <VisualProfileLink entry={entry} label={`Открыть профиль команды ${entry.name}`}>
+          <TeamMark className="size-10" entry={entry} />
+        </VisualProfileLink>
       )}
       <div className="min-w-0">
         {entry.href ? (
@@ -376,7 +465,7 @@ function StandingRow({
         <RoundStrip entry={entry} roundMaxPoints={roundMaxPoints} rounds={rounds} />
       </div>
       <div className="text-right">
-        <p className="font-telemetry text-base font-extrabold leading-none">{formatPoints(entry.points)}</p>
+        <p className="font-telemetry text-lg font-extrabold leading-none">{formatPoints(entry.points)}</p>
         <p className="mt-1 text-[0.65rem] font-semibold text-muted-foreground">
           {entry.position === 1 ? `${entry.wins} ${pluralize(entry.wins, ["победа", "победы", "побед"])}` : `−${formatPoints(gap)}`}
         </p>
@@ -399,58 +488,73 @@ function RoundStrip({
   rounds: ChampionshipRound[];
 }) {
   return (
-    <div className="grid max-w-full grid-flow-col auto-cols-[1.35rem] gap-1 lg:max-w-[38rem]">
-      {rounds.map((round) => {
-        const points = entry.pointsByRound[round.round];
-        const podium = entry.podiumByRound?.[round.round];
-        const roundMax = Math.max(roundMaxPoints[round.round] ?? 0, 1);
-        const title = `${round.flag} ${round.raceName} · ${
-          typeof points === "number" ? `${formatPoints(points)} очк.` : "нет данных"
-        }${podium ? ` · ${podiumTitle(podium)}` : ""}`;
+    <div className="max-w-full overflow-x-auto pb-1 lg:overflow-visible lg:pb-0">
+      <div className="grid w-max grid-flow-col auto-cols-[1.6rem] gap-1 lg:max-w-[42rem]">
+        {rounds.map((round) => {
+          const points = entry.pointsByRound[round.round];
+          const finishPosition = entry.positionByRound?.[round.round];
+          const podium = entry.podiumByRound?.[round.round];
+          const roundMax = Math.max(roundMaxPoints[round.round] ?? 0, 1);
+          const title = `${round.flag} ${round.raceName}${
+            finishPosition ? ` · P${finishPosition}` : ""
+          }`;
 
-        let style: React.CSSProperties | undefined;
-        let className = "bg-secondary/60 text-muted-foreground";
+          let style: React.CSSProperties | undefined;
+          let className = "bg-secondary/60 text-muted-foreground";
 
-        if (podium === "winner") {
-          className = "bg-[#f4c95d] text-[#211a05]";
-        } else if (podium === "second") {
-          className = "bg-[#cbd5e1] text-[#111827]";
-        } else if (podium === "third") {
-          className = "bg-[#d48a5f] text-[#2a1608]";
-        } else if (typeof points === "number" && points > 0) {
-          className = "text-foreground";
-          style = {
-            backgroundColor: `rgb(225 6 0 / ${(0.28 + 0.5 * Math.min(points / roundMax, 1)).toFixed(2)})`,
-          };
-        } else if (typeof points !== "number") {
-          className = "border border-border/60 bg-transparent text-muted-foreground/70";
-        }
+          if (podium === "winner") {
+            className = "bg-[#f4c95d] text-[#211a05]";
+          } else if (podium === "second") {
+            className = "bg-[#cbd5e1] text-[#111827]";
+          } else if (podium === "third") {
+            className = "bg-[#d48a5f] text-[#2a1608]";
+          } else if (typeof points === "number" && points > 0) {
+            className = "text-foreground";
+            style = {
+              backgroundColor: `rgb(225 6 0 / ${(0.28 + 0.5 * Math.min(points / roundMax, 1)).toFixed(2)})`,
+            };
+          } else if (typeof points !== "number") {
+            className = "border border-border/60 bg-transparent text-muted-foreground/70";
+          }
 
-        return (
-          <span
-            className={cn(
-              "grid h-5 min-w-[1.35rem] place-items-center rounded px-0.5 font-telemetry text-[0.58rem] font-extrabold leading-none",
-              className,
-            )}
-            key={round.round}
-            style={style}
-            title={title}
-          >
-            {typeof points === "number" ? formatPoints(points) : "–"}
-          </span>
-        );
-      })}
+          return (
+            <span
+              aria-label={title}
+              className="grid w-[1.6rem] gap-1"
+              key={round.round}
+              title={title}
+            >
+              <span
+                aria-hidden="true"
+                className="grid h-5 place-items-center rounded-sm border border-border/60 bg-background/65 text-sm leading-none lg:hidden"
+              >
+                {round.flag}
+              </span>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "grid h-6 min-w-[1.6rem] place-items-center rounded px-0.5 font-telemetry text-[0.65rem] font-extrabold leading-none",
+                  className,
+                )}
+                style={style}
+              >
+                {typeof points === "number" ? formatPoints(points) : "–"}
+              </span>
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 function RoundHeaderStrip({ rounds }: { rounds: ChampionshipRound[] }) {
   return (
-    <div className="grid grid-flow-col auto-cols-[1.35rem] gap-1 justify-self-end" aria-label="Этапы сезона">
+    <div className="grid grid-flow-col auto-cols-[1.6rem] gap-1 justify-self-end" aria-label="Этапы сезона">
       {rounds.map((round) => (
         <span
           aria-label={`${round.raceName}, раунд ${round.round}`}
-          className="grid h-5 place-items-center text-sm leading-none"
+          className="grid h-6 place-items-center text-base leading-none"
           key={round.round}
           title={`${round.raceName} · раунд ${round.round}`}
         >
@@ -466,7 +570,7 @@ function TeamMark({ className, entry }: { className?: string; entry: StandingEnt
     <span
       aria-hidden="true"
       className={cn(
-        "inline-grid shrink-0 place-items-center overflow-hidden rounded-full border-2 bg-[oklch(0.21_0.014_250)] p-1.5",
+        "inline-grid shrink-0 place-items-center overflow-hidden rounded-full border-2 bg-[#101112] p-1.5",
         className,
       )}
       style={{ borderColor: entry.teamColor ?? "var(--border)" }}
@@ -478,11 +582,41 @@ function TeamMark({ className, entry }: { className?: string; entry: StandingEnt
           style={{ backgroundImage: `url(${entry.teamLogo})` }}
         />
       ) : (
-        <span className="font-display text-xs font-bold text-muted-foreground">
+        <span className="font-display text-xs font-bold text-white/70">
           {entry.teamCode ?? entry.teamName.slice(0, 3).toUpperCase()}
         </span>
       )}
     </span>
+  );
+}
+
+function VisualProfileLink({
+  children,
+  className,
+  entry,
+  label,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  entry: StandingEntry;
+  label: string;
+}) {
+  if (!entry.href) {
+    return children;
+  }
+
+  return (
+    <Link
+      aria-label={label}
+      className={cn(
+        "inline-grid shrink-0 rounded-full outline-none transition-transform hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        className,
+      )}
+      href={entry.href}
+      prefetch={false}
+    >
+      {children}
+    </Link>
   );
 }
 
@@ -519,6 +653,32 @@ function formatPoints(value: number) {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
+function findMarketOddsLabel(
+  name: string,
+  outcomes?: Array<{ name: string; label: string }>,
+) {
+  if (!outcomes?.length) {
+    return undefined;
+  }
+
+  const normalizedName = normalizeMarketName(name);
+  return outcomes.find((outcome) => {
+    const normalizedOutcome = normalizeMarketName(outcome.name);
+    return normalizedOutcome === normalizedName
+      || normalizedOutcome.includes(normalizedName)
+      || normalizedName.includes(normalizedOutcome);
+  })?.label;
+}
+
+function normalizeMarketName(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .replace(/f1|team|racing/g, "");
+}
+
 function pluralize(value: number, forms: [string, string, string]) {
   const mod10 = value % 10;
   const mod100 = value % 100;
@@ -532,12 +692,4 @@ function pluralize(value: number, forms: [string, string, string]) {
   }
 
   return forms[2];
-}
-
-function podiumTitle(finish: "winner" | "second" | "third") {
-  if (finish === "winner") {
-    return "победа";
-  }
-
-  return finish === "second" ? "2-е место" : "3-е место";
 }

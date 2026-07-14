@@ -17,6 +17,7 @@ import {
 import { getTeamAsset, getTeamMatchNames, getTeamProfileAsset } from "@/data/f1-assets";
 import type {
   AdminJob,
+  AdminSocialPost,
   AdminDriver,
   AdminGrandPrixReport,
   AdminSignal,
@@ -68,9 +69,12 @@ import type {
   SessionResult,
   SessionWeather,
   SocialFeedResult,
+  SocialFilterOptions,
+  SocialMode,
   SocialPlatform,
   SocialPost,
   SocialSort,
+  SocialTrendingTopic,
   StandingsMeta,
   StandingRow,
   TeamProfile,
@@ -85,20 +89,43 @@ import type {
 type SourceRelation = { name: string } | { name: string }[] | null;
 type SocialPostDbRow = {
   id: string;
-  platform: "x" | "reddit";
+  platform: "x" | "reddit" | "telegram";
   author: string | null;
   title: string | null;
   body: string | null;
+  ai_title_ru: string | null;
+  ai_summary_ru: string | null;
+  content_kind: SocialPost["contentKind"] | null;
   original_url: string;
   image_url: string | null;
   published_at: string | null;
   reaction_count: number | null;
   popularity_score: number | string | null;
+  importance_score: number | null;
+  comments_count: number | null;
+  repost_count: number | null;
+  view_count: number | null;
+  social_sources: { name: string; trust_level: string } | { name: string; trust_level: string }[] | null;
+  social_post_tags: {
+    confidence: number;
+    is_primary: boolean;
+    tags: { name: string; slug: string; type: string } | { name: string; slug: string; type: string }[] | null;
+  }[] | null;
+  social_post_media: {
+    id: string;
+    media_type: string;
+    url: string;
+    preview_url: string | null;
+    alt_text: string | null;
+    width: number | null;
+    height: number | null;
+    sort_order: number;
+  }[] | null;
 };
 
 type SocialSourceDbRow = {
   id: string;
-  platform: "x" | "reddit";
+  platform: "x" | "reddit" | "telegram";
   name: string;
   url: string;
   adapter: string;
@@ -106,6 +133,12 @@ type SocialSourceDbRow = {
   is_active: boolean;
   last_success_at: string | null;
   last_error: string | null;
+  trust_level: "official" | "media" | "community";
+  publication_mode: "auto" | "review";
+  initial_backfill_days: number;
+  metadata: { initialBackfillDays?: number } | null;
+  next_fetch_at: string | null;
+  rate_limited_until: string | null;
 };
 
 type GrandPrixReportDbRow = {
@@ -197,6 +230,10 @@ type RaceRow = {
     | { id?: string | null; name: string; country?: string | null; locality?: string | null; external_id?: string | null; timezone?: string | null }
     | { id?: string | null; name: string; country?: string | null; locality?: string | null; external_id?: string | null; timezone?: string | null }[]
     | null;
+  sessions?:
+    | { session_type: string | null; name: string | null }
+    | { session_type: string | null; name: string | null }[]
+    | null;
 };
 
 type TeamRelationObject = {
@@ -212,7 +249,10 @@ type StandingDbRow = {
   position: number | null;
   points: number | string;
   wins?: number | null;
-  drivers: { full_name: string; slug?: string | null } | { full_name: string; slug?: string | null }[] | null;
+  drivers:
+    | { full_name: string; slug?: string | null; permanent_number?: number | null }
+    | { full_name: string; slug?: string | null; permanent_number?: number | null }[]
+    | null;
   teams: TeamRelationObject | TeamRelationObject[] | null;
 };
 
@@ -980,6 +1020,19 @@ export async function getNewsTeamTags(): Promise<{ name: string; slug: string }[
 export async function getFavoriteNewsFilters(
   userId?: string | null,
 ): Promise<FavoriteNewsFilters> {
+  return getFavoriteFilters(userId, { includeDriverTeams: true });
+}
+
+export async function getFavoriteSocialFilters(
+  userId?: string | null,
+): Promise<FavoriteNewsFilters> {
+  return getFavoriteFilters(userId, { includeDriverTeams: false });
+}
+
+async function getFavoriteFilters(
+  userId: string | null | undefined,
+  { includeDriverTeams }: { includeDriverTeams: boolean },
+): Promise<FavoriteNewsFilters> {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase || !userId) {
@@ -1017,7 +1070,7 @@ export async function getFavoriteNewsFilters(
       const teamName = team?.name?.trim();
       const teamCode = team?.code ?? undefined;
 
-      if (team && teamName) {
+      if (includeDriverTeams && team && teamName) {
         getTeamNewsTagSlugs(team).forEach((teamSlug) => {
           teamMap.set(teamSlug, { name: getTeamAsset(teamCode)?.name ?? teamName, slug: teamSlug });
         });
@@ -1060,47 +1113,98 @@ export async function getSocialPosts({
   pageSize = 12,
   platform = "all",
   sort = "new",
+  mode = "main",
+  topic,
+  team,
+  driver,
+  race,
 }: {
   cursor?: string | null;
   pageSize?: number;
   platform?: SocialPlatform;
   sort?: SocialSort;
+  mode?: SocialMode;
+  topic?: string | null;
+  team?: string | null;
+  driver?: string | null;
+  race?: string | null;
 }): Promise<SocialFeedResult> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient() ?? await createSupabaseServerClient();
 
   if (!supabase) {
     return { items: [], nextCursor: null };
   }
 
-  if (platform !== "all" && platform !== "x" && platform !== "reddit") {
+  if (!(["all", "x", "reddit", "telegram"] as const).includes(platform)) {
     return { items: [], nextCursor: null };
   }
 
-  const offset = decodeSocialCursor(cursor);
   const limit = Math.min(Math.max(pageSize, 1), 30);
+  const cursorValue = decodeSocialCursor(cursor);
+  const selectedSlugs = [topic, team, driver, race].filter(isSafeSocialSlug);
+
+  if (mode === "mine") {
+    const serverClient = await createSupabaseServerClient();
+    const { data: authData } = serverClient ? await serverClient.auth.getUser() : { data: { user: null } };
+
+    if (!authData.user) {
+      return { items: [], nextCursor: null };
+    }
+
+    const favorites = await getFavoriteSocialFilters(authData.user.id);
+    const favoriteSlugs = [...favorites.drivers, ...favorites.teams].map((item) => item.slug);
+
+    if (!favoriteSlugs.length) {
+      return { items: [], nextCursor: null };
+    }
+
+    const favoritePostIds = await getSocialPostIdsForAnyTag(supabase, favoriteSlugs);
+    if (!favoritePostIds.length) {
+      return { items: [], nextCursor: null };
+    }
+    selectedSlugs.push(`__ids:${favoritePostIds.join(",")}`);
+  }
+
+  const requiredPostIdSets: string[][] = [];
+  for (const slug of selectedSlugs.filter((value) => !value.startsWith("__ids:"))) {
+    requiredPostIdSets.push(await getSocialPostIdsForAnyTag(supabase, [slug]));
+  }
+  const favoriteIds = selectedSlugs.find((value) => value.startsWith("__ids:"))?.slice(6).split(",").filter(Boolean);
+  if (favoriteIds) {
+    requiredPostIdSets.push(favoriteIds);
+  }
+  const filteredPostIds = intersectSocialPostIds(requiredPostIdSets);
+
+  if (requiredPostIdSets.length && !filteredPostIds.length) {
+    return { items: [], nextCursor: null };
+  }
+
   let query = supabase
     .from("social_posts")
     .select(
-      "id, platform, author, title, body, original_url, image_url, published_at, reaction_count, popularity_score",
-    );
+      "id, platform, author, title, body, ai_title_ru, ai_summary_ru, content_kind, original_url, image_url, published_at, reaction_count, popularity_score, importance_score, comments_count, repost_count, view_count, social_sources(name, trust_level), social_post_tags(confidence, is_primary, tags(name, slug, type)), social_post_media(id, media_type, url, preview_url, alt_text, width, height, sort_order)",
+    )
+    .eq("status", "published")
+    .is("duplicate_of", null);
 
   if (platform !== "all") {
     query = query.eq("platform", platform);
   }
 
-  if (sort === "popular") {
-    query = query
-      .order("popularity_score", { ascending: false, nullsFirst: false })
-      .order("reaction_count", { ascending: false, nullsFirst: false })
-      .order("published_at", { ascending: false, nullsFirst: false })
-      .order("id", { ascending: false });
-  } else {
-    query = query
-      .order("published_at", { ascending: false, nullsFirst: false })
-      .order("id", { ascending: false });
+  if (filteredPostIds.length) {
+    query = query.in("id", filteredPostIds);
   }
 
-  const { data, error } = await query.range(offset, offset + limit);
+  if (cursorValue) {
+    query = query.or(
+      `published_at.lt.${cursorValue.publishedAt},and(published_at.eq.${cursorValue.publishedAt},id.lt.${cursorValue.id})`,
+    );
+  }
+
+  const { data, error } = await query
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: false })
+    .limit(limit + 1);
 
   if (error || !data) {
     return { items: [], nextCursor: null };
@@ -1108,19 +1212,85 @@ export async function getSocialPosts({
 
   const rows = data as unknown as SocialPostDbRow[];
   const pageRows = rows.slice(0, limit);
+  const items = pageRows.map(mapSocialPostRow);
+
+  if (mode === "main" || sort === "popular") {
+    items.sort((left, right) => getSocialRank(right) - getSocialRank(left));
+  }
+
+  const lastRow = pageRows.at(-1);
 
   return {
-    items: pageRows.map(mapSocialPostRow),
-    nextCursor: rows.length > limit ? encodeSocialCursor(offset + limit) : null,
+    items,
+    nextCursor:
+      rows.length > limit && lastRow?.published_at
+        ? encodeSocialCursor(lastRow.published_at, lastRow.id)
+        : null,
   };
 }
 
 export function normalizeSocialPlatform(value?: string | null): SocialPlatform {
-  return value === "x" || value === "reddit" ? value : "all";
+  return value === "x" || value === "reddit" || value === "telegram" ? value : "all";
 }
 
 export function normalizeSocialSort(value?: string | null): SocialSort {
   return value === "popular" ? "popular" : "new";
+}
+
+export function normalizeSocialMode(value?: string | null): SocialMode {
+  return value === "fresh" || value === "mine" ? value : "main";
+}
+
+export async function getSocialFilterOptions(): Promise<SocialFilterOptions> {
+  const [drivers, teams] = await Promise.all([getNewsDriverTags(), getNewsTeamTags()]);
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    return { topics: [], teams: teams.map(mapSocialFilterOption), drivers: drivers.map(mapSocialFilterOption), races: [] };
+  }
+
+  const { data } = await supabase
+    .from("social_post_tags")
+    .select("tags!inner(name, slug, type), social_posts!inner(status, duplicate_of)")
+    .eq("social_posts.status", "published")
+    .is("social_posts.duplicate_of", null)
+    .limit(500);
+  const tags = ((data ?? []) as unknown as { tags: { name: string; slug: string; type: string } | { name: string; slug: string; type: string }[] }[])
+    .flatMap((row) => getRelationList(row.tags));
+  const optionsFor = (type: string) => uniqueNewsTagFiltersBySlug(
+    tags.filter((tag) => tag.type === type).map((tag) => ({ name: tag.name, slug: tag.slug })),
+  ).map(mapSocialFilterOption);
+
+  return {
+    topics: optionsFor("social_topic"),
+    teams: teams.map(mapSocialFilterOption),
+    drivers: drivers.map(mapSocialFilterOption),
+    races: optionsFor("race"),
+  };
+}
+
+export async function getSocialTrendingTopics(): Promise<SocialTrendingTopic[]> {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return [];
+  }
+  const since = new Date(Date.now() - 48 * 60 * 60 * 1_000).toISOString();
+  const { data } = await supabase
+    .from("social_post_tags")
+    .select("tags!inner(name, slug, type), social_posts!inner(status, duplicate_of, published_at)")
+    .eq("tags.type", "social_topic")
+    .eq("social_posts.status", "published")
+    .is("social_posts.duplicate_of", null)
+    .gte("social_posts.published_at", since)
+    .limit(500);
+  const counts = new Map<string, SocialTrendingTopic>();
+  for (const row of (data ?? []) as unknown as { tags: { name: string; slug: string; type: string } | { name: string; slug: string; type: string }[] }[]) {
+    for (const tag of getRelationList(row.tags)) {
+      const current = counts.get(tag.slug);
+      counts.set(tag.slug, { label: tag.name, slug: tag.slug, posts: (current?.posts ?? 0) + 1 });
+    }
+  }
+  return [...counts.values()].sort((left, right) => right.posts - left.posts).slice(0, 6);
 }
 
 export async function getLatestGrandPrixReport(): Promise<GrandPrixReport | null> {
@@ -1270,7 +1440,7 @@ export async function getCalendarEvents(): Promise<CalendarEvent[]> {
 
   const { data, error } = await supabase
     .from("races")
-    .select("id, season_year, round, race_name, race_start_at, status, circuits(id, name, country, locality, external_id)")
+    .select("id, season_year, round, race_name, race_start_at, status, circuits(id, name, country, locality, external_id), sessions(session_type, name)")
     .order("season_year", { ascending: false })
     .order("round", { ascending: true });
 
@@ -1388,7 +1558,7 @@ export async function getDriverStandings(): Promise<StandingRow[]> {
 
   let standingsQuery = supabase
     .from("driver_standings")
-    .select("position, points, drivers(full_name, slug), teams(name, code, color_hex)")
+    .select("position, points, drivers(full_name, slug, permanent_number), teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
     .order("position", { ascending: true, nullsFirst: false })
     .limit(40);
@@ -1407,6 +1577,7 @@ export async function getDriverStandings(): Promise<StandingRow[]> {
     position: row.position ?? index + 1,
     driver: getRelationName(row.drivers, "Пилот уточняется"),
     driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
+    driverNumber: getRelationObject(row.drivers)?.permanent_number ?? undefined,
     points: Number(row.points),
   }));
 }
@@ -1423,6 +1594,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
         driver: row.driver,
         total: row.points,
         pointsByRound: {},
+        positionByRound: {},
         podiumByRound: {},
       })),
     };
@@ -1439,12 +1611,14 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
         position: row.position,
         driver: row.driver,
         driverSlug: row.driverSlug,
+        driverNumber: row.driverNumber,
         team: row.team,
         teamCode: row.teamCode,
         teamLogo: row.teamLogo,
         teamColor: row.teamColor,
         total: row.points,
         pointsByRound: {},
+        positionByRound: {},
         podiumByRound: {},
       })),
     };
@@ -1455,7 +1629,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
 
   const { data, error } = await supabase
     .from("driver_standings")
-    .select("driver_id, team_id, round, position, points, drivers(full_name, slug), teams(name, code, color_hex)")
+    .select("driver_id, team_id, round, position, points, drivers(full_name, slug, permanent_number), teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
     .lte("round", standingsLatestRound)
     .order("round", { ascending: true })
@@ -1471,6 +1645,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
       driverId: string;
       driver: string;
       driverSlug?: string;
+      driverNumber?: number;
       team: string;
       teamCode?: string;
       teamLogo?: string;
@@ -1491,6 +1666,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
       driverId: row.driver_id,
       driver: getRelationName(row.drivers, "Пилот уточняется"),
       driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
+      driverNumber: getRelationObject(row.drivers)?.permanent_number ?? undefined,
       team: teamVisual.team,
       teamCode: teamVisual.teamCode,
       teamLogo: teamVisual.teamLogo,
@@ -1527,6 +1703,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     .sort((a, b) => a.latestPosition - b.latestPosition)
     .map((row) => {
       const pointsByRound: Record<number, number> = {};
+      const positionByRound: Record<number, number> = {};
       const podiumByRound: Record<number, "winner" | "second" | "third"> = {};
       const resultPoints = roundPointTotals.driverPoints.get(row.driverId);
       const racePositions = roundPointTotals.driverRacePositions.get(row.driverId);
@@ -1542,7 +1719,12 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
             );
 
         pointsByRound[round] = points;
-        const podiumFinish = getPodiumFinish(racePositions?.get(round));
+        const racePosition = racePositions?.get(round);
+        const podiumFinish = getPodiumFinish(racePosition);
+
+        if (racePosition) {
+          positionByRound[round] = racePosition;
+        }
 
         if (podiumFinish) {
           podiumByRound[round] = podiumFinish;
@@ -1555,12 +1737,14 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
         position: row.latestPosition,
         driver: row.driver,
         driverSlug: row.driverSlug,
+        driverNumber: row.driverNumber,
         team: row.team,
         teamCode: row.teamCode,
         teamLogo: row.teamLogo,
         teamColor: row.teamColor,
         total: Math.max(row.total, totalFromResults),
         pointsByRound,
+        positionByRound,
         podiumByRound,
       };
     });
@@ -1896,8 +2080,8 @@ export async function getDriverProfileNews(slug: string): Promise<DriverProfileN
   }));
 }
 
-export async function getDriverSocialPosts(driver: Pick<DriverProfileDbRow, "full_name" | "last_name" | "code">): Promise<DriverProfileSocialPost[]> {
-  const supabase = await createSupabaseServerClient();
+export async function getDriverSocialPosts(driver: Pick<DriverProfileDbRow, "slug" | "full_name" | "last_name" | "code">): Promise<DriverProfileSocialPost[]> {
+  const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
     return [];
@@ -1914,30 +2098,40 @@ export async function getDriverSocialPosts(driver: Pick<DriverProfileDbRow, "ful
   }
 
   const orFilter = searchTerms
-    .flatMap((term) => [`title.ilike.%${term}%`, `body.ilike.%${term}%`])
+    .flatMap((term) => [`ai_title_ru.ilike.%${term}%`, `ai_summary_ru.ilike.%${term}%`])
     .join(",");
-  const { data, error } = await supabase
+  const taggedPostIds = await getSocialPostIdsForAnyTag(
+    supabase,
+    getDriverNewsTagSlugs(driver),
+  );
+  let query = supabase
     .from("social_posts")
-    .select("platform, author, title, body, original_url, published_at")
-    .or(orFilter)
-    .order("published_at", { ascending: false, nullsFirst: false })
-    .limit(10);
+    .select("platform, author, ai_title_ru, ai_summary_ru, original_url, published_at")
+    .eq("status", "published")
+    .is("duplicate_of", null)
+    .order("published_at", { ascending: false, nullsFirst: false });
+
+  query = taggedPostIds.length
+    ? query.in("id", taggedPostIds)
+    : query.or(orFilter);
+
+  const { data, error } = await query.limit(10);
 
   if (error || !data?.length) {
     return [];
   }
 
   return (data as {
-    platform: "x" | "reddit";
+    platform: "x" | "reddit" | "telegram";
     author: string | null;
-    title: string | null;
-    body: string | null;
+    ai_title_ru: string | null;
+    ai_summary_ru: string | null;
     original_url: string;
     published_at: string | null;
   }[]).map((post) => ({
     platform: post.platform,
-    author: post.author ?? (post.platform === "x" ? "X" : "Reddit"),
-    title: post.title ?? post.body ?? "Пост без заголовка",
+    author: post.author ?? (post.platform === "x" ? "X" : post.platform === "telegram" ? "Telegram" : "Reddit"),
+    title: post.ai_title_ru ?? post.ai_summary_ru ?? "Публикация",
     href: post.original_url,
     publishedAt: formatRelativeTime(post.published_at),
   }));
@@ -2178,7 +2372,7 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
   const latestRound = latest?.round ?? null;
   const season = team.season;
 
-  const [raceResult, standingHistoryResult, driverStandingResult, newsResult] = await Promise.all([
+  const [raceResult, standingHistoryResult, driverStandingResult, newsResult, constructorMatrix] = await Promise.all([
     supabase
       .from("races")
       .select("id, season_year, round, race_name, race_start_at, circuits(name, country, locality)")
@@ -2200,6 +2394,7 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
           .order("position", { ascending: true, nullsFirst: false })
       : Promise.resolve({ data: [], error: null }),
     getNewsItems({ pageSize: 6, tagSlug: `team-${team.code.toLowerCase()}` }),
+    getConstructorChampionshipMatrix(),
   ]);
 
   const races = (raceResult.data ?? []) as unknown as DriverRaceDbRow[];
@@ -2239,6 +2434,10 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
     list.push(result);
     resultsBySession.set(result.session_id, list);
   });
+  const raceSessionIds = sessions.filter((session) => session.session_type === "race").map((session) => session.id);
+  const qualifyingSessionIds = sessions.filter((session) => session.session_type === "qualifying").map((session) => session.id);
+  const raceResults = results.filter((result) => raceSessionIds.includes(result.session_id));
+  const qualifyingResults = results.filter((result) => qualifyingSessionIds.includes(result.session_id));
 
   const raceRows = races.flatMap<TeamRaceResultRow>((race) => {
     const raceSessions = sessionsByRace.get(race.id) ?? [];
@@ -2259,16 +2458,43 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
     const qualifyingPositions = qualifyingResults
       .map((result) => result.position)
       .filter((position): position is number => Boolean(position && position > 0));
+    const teamQualifyingResults = qualifyingResults
+      .slice()
+      .sort((left, right) => (left.position ?? 999) - (right.position ?? 999))
+      .slice(0, 2)
+      .map((result) => {
+        const driver = getRelationObject(result.drivers);
+
+        return {
+          driverId: result.driver_id ?? undefined,
+          driver: driver?.full_name ?? "Пилот",
+          driverSlug: driver?.slug ?? undefined,
+          position: result.position,
+        };
+      });
+    const teamFinishResults = raceResults
+      .slice()
+      .sort((left, right) => (left.position ?? 999) - (right.position ?? 999))
+      .slice(0, 2)
+      .map((result) => {
+        const driver = getRelationObject(result.drivers);
+
+        return {
+          driverId: result.driver_id ?? undefined,
+          driver: driver?.full_name ?? "Пилот",
+          driverSlug: driver?.slug ?? undefined,
+          position: result.position,
+          isDnf: isDnfDriverResult(result),
+        };
+      });
     const allPointResults = [...raceResults, ...sprintResults];
     const points = allPointResults.reduce((sum, result) => sum + Number(result.points ?? 0), 0);
     const circuit = getRelationObject(race.circuits);
-    const finishers = raceResults
-      .slice()
-      .sort((left, right) => (left.position ?? 999) - (right.position ?? 999))
-      .map((result) => {
-        const driver = getRelationObject(result.drivers);
-        return `${driver?.full_name ?? "Пилот"} · ${result.position ? `P${result.position}` : result.status ?? "—"}`;
-      });
+    const positionDeltas = raceResults.flatMap((result) =>
+      result.grid && result.grid > 0 && result.position && result.position > 0
+        ? [result.grid - result.position]
+        : [],
+    );
 
     return [{
       round: race.round,
@@ -2279,7 +2505,11 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
       points: Number(points.toFixed(2)),
       bestFinish: positions.length ? Math.min(...positions) : null,
       qualifyingBest: qualifyingPositions.length ? Math.min(...qualifyingPositions) : null,
-      finishers,
+      qualifyingResults: teamQualifyingResults,
+      finishResults: teamFinishResults,
+      positionDelta: positionDeltas.length
+        ? positionDeltas.reduce((sum, value) => sum + value, 0)
+        : null,
       isWin: positions.includes(1),
       isPodium: positions.some((position) => position <= 3),
       hadDnf: raceResults.some((result) => isDnfDriverResult(result)),
@@ -2294,6 +2524,12 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
       return [];
     }
 
+    const driverRaceResults = raceResults.filter((result) => result.driver_id === driver.id);
+    const classifiedPositions = driverRaceResults
+      .filter((result) => !isDnfDriverResult(result))
+      .map((result) => result.position)
+      .filter((position): position is number => Boolean(position && position > 0));
+
     return [{
       id: driver.id,
       fullName: driver.full_name,
@@ -2303,7 +2539,9 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
       avatarUrl: driver.ai_avatar_url,
       championshipPosition: row.position,
       points: Number(row.points ?? 0),
-      wins: row.wins ?? 0,
+      wins: Math.max(row.wins ?? 0, driverRaceResults.filter((result) => result.position === 1).length),
+      podiums: driverRaceResults.filter((result) => Boolean(result.position && result.position <= 3)).length,
+      bestResult: classifiedPositions.length ? Math.min(...classifiedPositions) : null,
     }];
   });
 
@@ -2326,15 +2564,56 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
       cumulativePoints: storedCumulative ?? Number(cumulativePoints.toFixed(2)),
     };
   });
-  const raceSessionIds = sessions.filter((session) => session.session_type === "race").map((session) => session.id);
-  const qualifyingSessionIds = sessions.filter((session) => session.session_type === "qualifying").map((session) => session.id);
-  const raceResults = results.filter((result) => raceSessionIds.includes(result.session_id));
-  const qualifyingResults = results.filter((result) => qualifyingSessionIds.includes(result.session_id));
+  const cumulativePointsSeries = constructorMatrix.rows.map((row) => {
+    let total = 0;
+
+    return {
+      teamCode: row.teamCode ?? slugify(row.team),
+      team: row.team,
+      teamColor: row.teamColor,
+      points: [
+        { round: 0, raceName: "Старт", value: 0 },
+        ...constructorMatrix.rounds.map((round) => {
+          total += row.pointsByRound?.[round.round] ?? 0;
+
+          return {
+            round: round.round,
+            raceName: round.raceName,
+            value: Number(total.toFixed(2)),
+          };
+        }),
+      ],
+    };
+  });
   const classifiedPositions = raceResults
     .filter((result) => !isDnfDriverResult(result))
     .map((result) => result.position)
     .filter((position): position is number => Boolean(position && position > 0));
-  const lastFive = raceRows.slice(-5);
+  const normalizedRaceRows = raceRows.map((row) => {
+    if (!row.finishResults.length) {
+      return row;
+    }
+
+    const hasMissingDriver = drivers.some(
+      (driver) =>
+        row.qualifyingResults.some((result) => result.driverId === driver.id) &&
+        !row.finishResults.some((result) => result.driverId === driver.id),
+    );
+
+    return hasMissingDriver ? { ...row, hadDnf: true } : row;
+  });
+  const missingResultDnfs = normalizedRaceRows.reduce((count, row) => {
+    if (!row.finishResults.length) {
+      return count;
+    }
+
+    return count + drivers.filter(
+      (driver) =>
+        row.qualifyingResults.some((result) => result.driverId === driver.id) &&
+        !row.finishResults.some((result) => result.driverId === driver.id),
+    ).length;
+  }, 0);
+  const lastFive = normalizedRaceRows.slice(-5);
 
   return {
     ...team,
@@ -2346,13 +2625,28 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
       podiums: raceResults.filter((result) => Boolean(result.position && result.position <= 3)).length,
       poles: qualifyingResults.filter((result) => result.position === 1).length,
       fastestLaps: raceResults.filter((result) => hasFastestLap(result)).length,
-      dnfs: raceResults.filter((result) => isDnfDriverResult(result)).length,
+      dnfs: raceResults.filter((result) => isDnfDriverResult(result)).length + missingResultDnfs,
       pointsFinishes: raceResults.filter((result) => Number(result.points ?? 0) > 0).length,
       bestResult: classifiedPositions.length ? Math.min(...classifiedPositions) : null,
       averageFinish: averageNumber(classifiedPositions),
     },
-    results: raceRows,
+    results: normalizedRaceRows,
     pointsByRound,
+    cumulativePointsSeries: cumulativePointsSeries.length
+      ? cumulativePointsSeries
+      : [{
+          teamCode: team.code,
+          team: team.shortName,
+          teamColor: team.color,
+          points: [
+            { round: 0, raceName: "Старт", value: 0 },
+            ...pointsByRound.map((point) => ({
+              round: point.round,
+              raceName: point.raceName,
+              value: point.cumulativePoints,
+            })),
+          ],
+        }],
     form: {
       labels: lastFive.map((row) => row.bestFinish ? `P${row.bestFinish}` : row.hadDnf ? "DNF" : "—"),
       points: Number(lastFive.reduce((sum, row) => sum + (row.points ?? 0), 0).toFixed(2)),
@@ -3301,7 +3595,7 @@ export async function getAdminSources(): Promise<AdminSource[]> {
 }
 
 export async function getAdminSocialSources(): Promise<AdminSocialSource[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
     return [];
@@ -3309,7 +3603,7 @@ export async function getAdminSocialSources(): Promise<AdminSocialSource[]> {
 
   const { data, error } = await supabase
     .from("social_sources")
-    .select("id, platform, name, url, adapter, feed_kind, is_active, last_success_at, last_error")
+    .select("id, platform, name, url, adapter, feed_kind, is_active, last_success_at, last_error, trust_level, publication_mode, initial_backfill_days, metadata, next_fetch_at, rate_limited_until")
     .order("platform", { ascending: true })
     .order("name", { ascending: true });
 
@@ -3325,11 +3619,38 @@ export async function getAdminSocialSources(): Promise<AdminSocialSource[]> {
     adapter: source.adapter,
     feedKind: source.feed_kind ?? undefined,
     isActive: source.is_active,
+    trustLevel: source.trust_level,
+    publicationMode: source.publication_mode,
+    initialBackfillDays: Math.max(1, Math.min(365, Number(source.initial_backfill_days ?? source.metadata?.initialBackfillDays) || 30)),
+    nextFetchAt: source.next_fetch_at ?? undefined,
+    rateLimitedUntil: source.rate_limited_until ?? undefined,
+    lastSuccessAt: source.last_success_at ?? undefined,
+    lastError: source.last_error ?? undefined,
     lastStatus: source.last_error
       ? "Есть ошибка"
       : source.last_success_at
         ? formatRelativeTime(source.last_success_at)
         : "Еще не запускался",
+  }));
+}
+
+export async function getAdminSocialPosts(): Promise<AdminSocialPost[]> {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("social_posts")
+    .select("id, platform, author, title, ai_title_ru, status, last_processing_error, published_at")
+    .order("updated_at", { ascending: false })
+    .limit(60);
+  if (error || !data) return [];
+  return data.map((post) => ({
+    id: post.id,
+    author: post.author?.trim() || "Источник",
+    platform: post.platform as AdminSocialPost["platform"],
+    title: post.ai_title_ru?.trim() || post.title?.trim() || "Публикация",
+    status: post.status as AdminSocialPost["status"],
+    error: post.last_processing_error ?? undefined,
+    publishedAt: post.published_at ? formatRelativeTime(post.published_at) : undefined,
   }));
 }
 
@@ -4898,18 +5219,73 @@ function mapArticleRow(row: ArticleRow, tagAllowlist?: NewsTagAllowlist): NewsIt
 }
 
 function mapSocialPostRow(row: SocialPostDbRow): SocialPost {
+  const source = getRelationObject(row.social_sources);
+  const media = [...(row.social_post_media ?? [])]
+    .sort((left, right) => left.sort_order - right.sort_order)
+    .filter((item) => item.media_type === "image" || item.media_type === "video" || item.media_type === "gif" || item.media_type === "link")
+    .map((item) => ({
+      id: item.id,
+      type: item.media_type as SocialPost["media"][number]["type"],
+      url: item.url,
+      previewUrl: item.preview_url ?? undefined,
+      altText: item.alt_text ?? undefined,
+      width: item.width ?? undefined,
+      height: item.height ?? undefined,
+    }));
+  const tags = (row.social_post_tags ?? []).flatMap((relation) =>
+    getRelationList(relation.tags).map((tag) => ({
+      name: tag.name,
+      slug: tag.slug,
+      type: tag.type,
+      isPrimary: relation.is_primary,
+    })),
+  );
+  const originalTelegramText = row.body?.trim() || row.title?.trim() || "";
+  const originalTelegramTitle = row.title?.trim() || "";
+  const hasDistinctTelegramTitle = Boolean(
+    originalTelegramTitle && originalTelegramText && originalTelegramTitle !== originalTelegramText,
+  );
+
   return {
     id: row.id,
     platform: row.platform,
-    author: row.author?.trim() || (row.platform === "reddit" ? "r/formuladank" : "X"),
-    title: row.title?.trim() || row.body?.trim() || "Пост без заголовка",
-    body: row.body?.trim() || undefined,
+    author: row.author?.trim() || (row.platform === "reddit" ? "Reddit" : row.platform === "telegram" ? "Telegram" : "X"),
+    source: normalizeSocialSourceName(source?.name ?? row.author?.trim() ?? "Источник", row.platform),
+    sourceTrust: source?.trust_level === "official" || source?.trust_level === "media" ? source.trust_level : "community",
+    title: row.platform === "telegram"
+      ? (hasDistinctTelegramTitle ? originalTelegramTitle : "")
+      : row.ai_title_ru?.trim() || row.title?.trim() || "Материал из соцсетей",
+    summary: row.platform === "telegram"
+      ? originalTelegramText
+      : row.ai_summary_ru?.trim() || "Сводка готовится.",
     originalUrl: row.original_url,
-    imageUrl: row.image_url?.trim() || undefined,
+    imageUrl: media.find((item) => item.type === "image")?.url ?? row.image_url?.trim() ?? undefined,
+    media,
+    tags,
     publishedAt: row.published_at ? formatRelativeTime(row.published_at) : "Дата уточняется",
+    publishedAtIso: row.published_at ?? new Date(0).toISOString(),
     reactionCount: row.reaction_count ?? undefined,
+    commentCount: row.comments_count ?? undefined,
+    repostCount: row.repost_count ?? undefined,
+    viewCount: row.view_count ?? undefined,
     popularityScore: Number(row.popularity_score ?? 0),
+    importanceScore: Number(row.importance_score ?? 0),
+    contentKind: row.content_kind ?? "report",
   };
+}
+
+function normalizeSocialSourceName(value: string, platform: SocialPost["platform"]) {
+  const normalized = value.trim();
+
+  if (platform === "x") {
+    return normalized.replace(/^X\s*[·•:|-]\s*/i, "").trim() || "X";
+  }
+
+  if (platform === "telegram") {
+    return normalized.replace(/^(?:Telegram|Телеграм|TG)\s*[·•:|-]\s*/i, "").trim() || "Telegram";
+  }
+
+  return normalized;
 }
 
 function mapGrandPrixReportRow(row: GrandPrixReportDbRow): GrandPrixReport {
@@ -4984,25 +5360,62 @@ function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-function encodeSocialCursor(offset: number) {
-  return Buffer.from(JSON.stringify({ offset }), "utf8").toString("base64url");
+function encodeSocialCursor(publishedAt: string, id: string) {
+  return Buffer.from(JSON.stringify({ publishedAt, id }), "utf8").toString("base64url");
 }
 
 function decodeSocialCursor(cursor?: string | null) {
   if (!cursor) {
-    return 0;
+    return null;
   }
 
   try {
     const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as {
-      offset?: unknown;
+      publishedAt?: unknown;
+      id?: unknown;
     };
-    const offset = Number(parsed.offset);
-
-    return Number.isFinite(offset) && offset > 0 ? Math.floor(offset) : 0;
+    return typeof parsed.publishedAt === "string" && typeof parsed.id === "string"
+      ? { publishedAt: parsed.publishedAt, id: parsed.id }
+      : null;
   } catch {
-    return 0;
+    return null;
   }
+}
+
+function isSafeSocialSlug(value: string | null | undefined): value is string {
+  return Boolean(value && /^[a-z0-9-]{2,100}$/i.test(value));
+}
+
+async function getSocialPostIdsForAnyTag(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>> | NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  slugs: string[],
+) {
+  const { data } = await supabase
+    .from("social_post_tags")
+    .select("post_id, tags!inner(slug)")
+    .in("tags.slug", slugs)
+    .limit(2_000);
+  return [...new Set((data ?? []).map((row) => row.post_id))];
+}
+
+function intersectSocialPostIds(sets: string[][]) {
+  if (!sets.length) {
+    return [];
+  }
+  return sets.slice(1).reduce(
+    (current, values) => current.filter((id) => new Set(values).has(id)),
+    [...sets[0]],
+  );
+}
+
+function getSocialRank(item: SocialPost) {
+  const ageHours = Math.max(0, (Date.now() - new Date(item.publishedAtIso).getTime()) / 3_600_000);
+  const trust = item.sourceTrust === "official" ? 26 : item.sourceTrust === "media" ? 14 : 4;
+  return item.importanceScore * 1.8 + Math.log10(item.popularityScore + 10) * 12 + trust - ageHours * 0.8;
+}
+
+function mapSocialFilterOption(item: { name: string; slug: string }) {
+  return { label: item.name, value: item.slug };
 }
 
 async function getCircuitLayout(circuitId: string): Promise<TrackLayout | null> {
@@ -5211,18 +5624,22 @@ function buildDriverProfileContext(
     const raceSession = findSessionByType(raceSessions, "race");
     const sprintSession = findSessionByType(raceSessions, "sprint");
     const qualifyingSession = findSessionByType(raceSessions, "qualifying");
+    const raceSessionResults = raceSession ? resultsBySession.get(raceSession.id) ?? [] : [];
     const raceResult = getDriverSessionResult(resultsBySession, raceSession?.id, driverId);
     const sprintResult = getDriverSessionResult(resultsBySession, sprintSession?.id, driverId);
     const qualifyingResult = getDriverSessionResult(resultsBySession, qualifyingSession?.id, driverId);
     const racePointsValue = raceResult ? getDriverResultPoints(raceResult, "race") : 0;
     const sprintPointsValue = sprintResult ? getDriverResultPoints(sprintResult, "sprint") : 0;
-    const totalRoundPoints = raceResult || sprintResult ? racePointsValue + sprintPointsValue : null;
+    const isMissingCompletedResult = raceSessionResults.length > 0 && !raceResult;
+    const totalRoundPoints = raceResult || sprintResult || isMissingCompletedResult
+      ? racePointsValue + sprintPointsValue
+      : null;
     const circuit = getRelationObject(race.circuits);
     const finishPosition = raceResult?.position ?? null;
     const startPosition = normalizeGridPosition(raceResult?.grid);
     const positionDelta =
       startPosition && finishPosition ? startPosition - finishPosition : null;
-    const isDnf = isDnfDriverResult(raceResult);
+    const isDnf = isMissingCompletedResult || isDnfDriverResult(raceResult);
 
     if (totalRoundPoints !== null) {
       cumulative += totalRoundPoints;
@@ -5240,7 +5657,7 @@ function buildDriverProfileContext(
       finishPosition,
       positionDelta,
       points: totalRoundPoints,
-      status: raceResult?.status ?? "—",
+      status: isDnf ? "Сход" : raceResult?.status ?? "—",
       isWin: finishPosition === 1,
       isPodium: Boolean(finishPosition && finishPosition <= 3),
       isDnf,
@@ -5264,7 +5681,7 @@ function buildDriverProfileContext(
     });
   });
 
-  const completedRows = resultRows.filter((row) => row.finishPosition);
+  const completedRows = resultRows.filter((row) => row.finishPosition || row.isDnf);
   const positions = completedRows
     .map((row) => row.finishPosition)
     .filter((value): value is number => typeof value === "number");
@@ -5335,8 +5752,13 @@ function isDnfDriverResult(result?: DriverSessionResultDbRow | null) {
   }
 
   const text = `${result.status ?? ""} ${result.classified_position ?? ""}`.toLowerCase();
+  const hasDashStatus = [result.status, result.classified_position, result.time_text]
+    .some((value) => value?.trim() === "-" || value?.trim() === "—");
 
-  return /retired|dnf|accident|collision|engine|gearbox|hydraulic|withdraw|not classified|disqualified|\br\b/.test(text);
+  return (
+    /retired|dnf|accident|collision|engine|gearbox|hydraulic|withdraw|not classified|disqualified|\br\b/.test(text) ||
+    (!result.position && hasDashStatus)
+  );
 }
 
 function countFastestLaps(
@@ -5450,11 +5872,15 @@ function buildTeammateComparison(
     const qualifyingSession = findSessionByType(raceSessions, "qualifying");
     const raceSession = findSessionByType(raceSessions, "race");
     const sprintSession = findSessionByType(raceSessions, "sprint");
+    const raceSessionResults = raceSession ? resultsBySession.get(raceSession.id) ?? [] : [];
     const driverRace = getDriverSessionResult(resultsBySession, raceSession?.id, driverId);
     const driverQualifying = getDriverSessionResult(resultsBySession, qualifyingSession?.id, driverId);
-    const teammateRace = findTeammateResult(resultsBySession, raceSession?.id, driverRace?.team_id, driverId);
-    const teammateQualifying = findTeammateResult(resultsBySession, qualifyingSession?.id, driverQualifying?.team_id ?? driverRace?.team_id, driverId);
-    const teammateSprint = findTeammateResult(resultsBySession, sprintSession?.id, driverRace?.team_id, driverId);
+    const driverTeamId = driverRace?.team_id ?? driverQualifying?.team_id;
+    const teammateRace = findTeammateResult(resultsBySession, raceSession?.id, driverTeamId, driverId);
+    const teammateQualifying = findTeammateResult(resultsBySession, qualifyingSession?.id, driverTeamId, driverId);
+    const teammateSprint = findTeammateResult(resultsBySession, sprintSession?.id, driverTeamId, driverId);
+    const driverMissingResult = raceSessionResults.length > 0 && !driverRace && Boolean(driverQualifying);
+    const teammateMissingResult = raceSessionResults.length > 0 && !teammateRace && Boolean(teammateQualifying);
 
     if (driverQualifying?.position && teammateQualifying?.position) {
       if (driverQualifying.position < teammateQualifying.position) {
@@ -5470,6 +5896,10 @@ function buildTeammateComparison(
       } else if (teammateRace.position < driverRace.position) {
         comparison.races.teammate += 1;
       }
+    } else if (driverRace?.position && teammateMissingResult) {
+      comparison.races.driver += 1;
+    } else if (teammateRace?.position && driverMissingResult) {
+      comparison.races.teammate += 1;
     }
 
     if (driverRace) {
@@ -5479,6 +5909,8 @@ function buildTeammateComparison(
       comparison.dnfs.driver += isDnfDriverResult(driverRace) ? 1 : 0;
       if (driverRace.grid) driverStarts.push(driverRace.grid);
       if (driverRace.position) driverFinishes.push(driverRace.position);
+    } else if (driverMissingResult) {
+      comparison.dnfs.driver += 1;
     }
 
     if (teammateRace) {
@@ -5490,7 +5922,12 @@ function buildTeammateComparison(
       comparison.dnfs.teammate += isDnfDriverResult(teammateRace) ? 1 : 0;
       if (teammateRace.grid) teammateStarts.push(teammateRace.grid);
       if (teammateRace.position) teammateFinishes.push(teammateRace.position);
+    } else if (teammateMissingResult) {
+      comparison.dnfs.teammate += 1;
     }
+
+    const teammateIdentity = getRelationObject(teammateRace?.drivers ?? teammateQualifying?.drivers ?? null);
+    if (teammateIdentity?.full_name) teammateNames.add(teammateIdentity.full_name);
 
     const driverSprint = getDriverSessionResult(resultsBySession, sprintSession?.id, driverId);
     if (driverSprint) {
@@ -6418,6 +6855,17 @@ function mapCalendarRace(
 ): CalendarEvent {
   const circuit = getRelationObject(race.circuits);
   const country = circuit?.country ?? "Страна уточняется";
+  const sessions = Array.isArray(race.sessions)
+    ? race.sessions
+    : race.sessions
+      ? [race.sessions]
+      : [];
+  const hasSprint = sessions.some((session) => {
+    const type = session.session_type?.trim().toLowerCase() ?? "";
+    const name = session.name?.trim().toLowerCase() ?? "";
+
+    return type === "sprint" || name === "спринт" || name === "sprint";
+  });
 
   return {
     season: race.season_year,
@@ -6429,6 +6877,7 @@ function mapCalendarRace(
     countryCode: getCountryCode(country),
     date: formatDateRange(race.race_start_at),
     status: mapRaceStatus(race.status, race.race_start_at, isCurrent ? 0 : 1, isCompletedByStandings),
+    hasSprint,
     winner,
     href: `/calendar/${race.season_year}/${race.round}`,
   };
@@ -6531,6 +6980,7 @@ function getCountryCode(country: string) {
     australian: "au",
     at: "at",
     austria: "at",
+    austrian: "at",
     az: "az",
     azerbaijan: "az",
     bh: "bh",
@@ -6605,6 +7055,7 @@ function getCountryCode(country: string) {
     "u s": "us",
     "u s a": "us",
     usa: "us",
+    american: "us",
     "united states": "us",
     "united states america": "us",
     "united states of america": "us",

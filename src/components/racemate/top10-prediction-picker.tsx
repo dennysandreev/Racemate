@@ -27,16 +27,21 @@ export function Top10PredictionPicker({
   }
 
   return (
-    <div className="grid gap-3">
+    <div className="divide-y divide-border/70">
       {selected.map((driverId, index) => (
         <label
           className={cn(
-            "grid gap-2 rounded-md border border-border bg-background/35 p-3 transition-colors sm:grid-cols-[3.2rem_1fr] sm:items-center",
-            locked && "border-warning/45 bg-warning/5",
+            "grid gap-1.5 py-2.5 transition-colors sm:grid-cols-[3.2rem_1fr] sm:items-center",
+            locked && "text-warning",
           )}
           key={index}
         >
-          <span className="font-telemetry text-sm font-bold text-muted-foreground">
+          <span
+            className={cn(
+              "font-telemetry text-sm font-bold text-muted-foreground",
+              locked && "text-warning",
+            )}
+          >
             P{index + 1}
           </span>
           <select

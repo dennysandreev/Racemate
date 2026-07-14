@@ -361,12 +361,6 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
       <section className="stitch-panel min-w-0 overflow-hidden p-0">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3 p-4 sm:px-5">
           <div className="min-w-0 flex-1">
-            <Button asChild className="mb-2.5" size="sm" variant="secondary">
-              <Link href="/weekend" prefetch={false}>
-                <ArrowLeft aria-hidden="true" data-icon="inline-start" />
-                Текущий этап
-              </Link>
-            </Button>
             <p className="font-telemetry flex items-center gap-2 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-primary">
               <RadioTower aria-hidden="true" className="size-3.5" />
               Повтор гонки · {replay.sourceSeason}
@@ -375,6 +369,12 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
               {replay.raceName}
             </h1>
             <p className="mt-1.5 text-sm font-semibold text-muted-foreground">{replay.circuitName}</p>
+            <Button asChild className="mt-2.5" size="sm" variant="secondary">
+              <Link href="/weekend" prefetch={false}>
+                <ArrowLeft aria-hidden="true" data-icon="inline-start" />
+                Текущий этап
+              </Link>
+            </Button>
           </div>
           <WeatherChips weather={replay.weather} />
         </div>
@@ -970,14 +970,14 @@ function PitNotificationStack({ items }: { items: PitNotification[] }) {
           className={cn(
             "min-w-0 rounded border px-1.5 py-1 shadow-xl backdrop-blur-md",
             item.phase === "active"
-              ? "border-amber-300/55 bg-[rgba(30,20,8,0.9)]"
+              ? "border-warning/55 bg-background/92"
               : "border-border/70 bg-background/88",
           )}
           key={`${item.driverNumber}-${item.startMs}`}
         >
           <p className={cn(
             "font-telemetry text-[0.46rem] font-extrabold uppercase tracking-[0.08em]",
-            item.phase === "active" ? "text-amber-200" : "text-muted-foreground",
+            item.phase === "active" ? "text-warning" : "text-muted-foreground",
           )}>
             {item.phase === "active" ? "Пит" : "Готово"}
           </p>
@@ -988,7 +988,7 @@ function PitNotificationStack({ items }: { items: PitNotification[] }) {
             </span>
             <span className={cn(
               "whitespace-nowrap font-telemetry text-[0.58rem] font-extrabold",
-              item.phase === "active" ? "text-amber-100" : "text-foreground",
+              item.phase === "active" ? "text-warning" : "text-foreground",
             )}>
               {item.pitLaneSeconds.toFixed(1)}с
               {item.phase === "done" ? (

@@ -102,6 +102,7 @@ export default async function RaceCalendarPage({
               />
               {raceReport ? (
                 <RaceReportPreview
+                  driverSlugByName={driverSlugByName}
                   href={`/calendar/${seasonYear}/${raceRound}?raceReport=${raceReport.raceSlug}`}
                   replay={raceReplay}
                   report={raceReport}
@@ -326,15 +327,24 @@ function getSessionStats(session: WeekendSession, results: SessionResult[]) {
 }
 
 function RaceReportPreview({
+  driverSlugByName,
   href,
   replay,
   report,
 }: {
+  driverSlugByName: Record<string, string>;
   href: string;
   replay: Awaited<ReturnType<typeof getRaceReplaySummaryByRaceId>>;
   report: GrandPrixReport;
 }) {
   return (
-    <GrandPrixPodiumPreview className="mt-2" href={href} replay={replay} report={report} />
+    <GrandPrixPodiumPreview
+      className="mt-2"
+      driverSlugByName={driverSlugByName}
+      href={href}
+      replay={replay}
+      report={report}
+      showRaceHeading={false}
+    />
   );
 }

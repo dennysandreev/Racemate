@@ -1,8 +1,9 @@
-import { Sparkles } from "lucide-react";
+import { Newspaper, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { PageTitle } from "@/components/racemate/page-title";
 import { NewsImage } from "@/components/racemate/news-image";
 import { NewsQuickFilters } from "@/components/racemate/news-quick-filters";
 import {
@@ -53,7 +54,7 @@ export default async function NewsPage({
 
   return (
     <AppShell>
-      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-7">
+      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 lg:h-40">
         <Image
           alt=""
           className="object-cover opacity-80"
@@ -64,16 +65,20 @@ export default async function NewsPage({
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/76 to-background/18" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgb(255_255_255_/_0.06),transparent_44%)]" />
-        <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
-          <div className="min-w-0">
-            <h1 className="font-display max-w-4xl text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
+        <div className="relative grid gap-5 lg:h-full lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
+          <div className="min-w-0 lg:absolute lg:left-0 lg:top-0 lg:max-w-[calc(100%-20rem)]">
+            <p className="stitch-label flex items-center gap-2 text-primary">
+              <Newspaper aria-hidden="true" className="size-3.5" />
+              Новости · сезон {new Date().getUTCFullYear()}
+            </p>
+            <PageTitle className="mt-2 max-w-4xl">
               Новостной блог
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+            </PageTitle>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               Последние материалы Формулы 1 без лишнего шума: новости, контекст этапов и быстрые фильтры по любимым пилотам и командам.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 lg:absolute lg:right-0 lg:top-1/2 lg:w-[18rem] lg:-translate-y-1/2">
             <StitchMetric label="Материалов" tone="red" value={String(newsResult.totalCount)} />
             <StitchMetric label="Страница" value={`${newsResult.page}/${newsResult.totalPages}`} />
           </div>
@@ -190,9 +195,6 @@ export default async function NewsPage({
                 <div className="min-w-0">
                   <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-primary">
                     Персональная лента
-                  </p>
-                  <p className="mt-2 text-sm leading-5 text-muted-foreground">
-                    Быстрый фильтр по твоим командам, пилотам и тегам ленты.
                   </p>
                 </div>
                 {user ? (

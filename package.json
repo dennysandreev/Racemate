@@ -16,7 +16,11 @@
     "worker:rss": "node worker/index.mjs rss.fetch_all",
     "worker:social": "node worker/index.mjs social.fetch_all",
     "worker:social:reddit": "node worker/index.mjs social.fetch_reddit",
+    "worker:social:telegram": "node worker/index.mjs social.fetch_telegram",
     "worker:social:x": "node worker/index.mjs social.fetch_x",
+    "worker:social:ai": "node worker/index.mjs social.process_ai",
+    "worker:social:metrics": "node worker/index.mjs social.refresh_metrics",
+    "worker:social:retry": "node worker/index.mjs social.retry_failed",
     "worker:ai": "node worker/index.mjs ai.process_news",
     "worker:ai:retry-fallback": "node worker/index.mjs ai.reprocess_fallback_news",
     "worker:rehighlight": "node worker/index.mjs ai.rehighlight_news",
@@ -32,6 +36,8 @@
     "worker:weather": "node worker/index.mjs weather.sync_weekend",
     "worker:laps": "node worker/index.mjs openf1.sync_laps",
     "worker:score": "node worker/index.mjs predictions.score",
+    "worker:notifications": "node worker/index.mjs notifications.enqueue",
+    "worker:notifications:dispatch": "node worker/index.mjs notifications.dispatch",
     "worker:reports": "node worker/index.mjs reports.check_latest",
     "worker:reports:all": "node worker/index.mjs reports.generate_all_completed",
     "worker:reports:refresh": "node worker/index.mjs reports.refresh_due",
@@ -39,8 +45,10 @@
     "worker:circuit-stats": "node worker/index.mjs circuit_stats.sync_all",
     "supabase:smtp": "node scripts/configure-supabase-smtp.mjs",
     "supabase:auth": "node scripts/configure-supabase-smtp.mjs",
+    "telegram:authorize": "node scripts/telegram-authorize.mjs",
     "lint": "eslint .",
     "test:fantasy-scoring": "node scripts/check-fantasy-scoring.mjs",
+    "test:social-pipeline": "node --test scripts/check-social-pipeline.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -54,7 +62,8 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "tailwind-merge": "latest"
+    "tailwind-merge": "latest",
+    "telegram": "^2.26.22"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "latest",

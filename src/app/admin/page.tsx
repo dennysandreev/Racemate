@@ -5,8 +5,10 @@ import {
   addManualXPost,
   deleteDriverAvatar,
   editGrandPrixReportSummary,
+  moderateSocialPost,
   queueGrandPrixReportReload,
   queueGrandPrixReportSummary,
+  saveSocialSource,
   toggleGrandPrixReportVisibility,
   toggleSocialSource,
   toggleSource,
@@ -34,6 +36,7 @@ import {
 import {
   getAdminSources,
   getAdminSocialSources,
+  getAdminSocialPosts,
   getAdminDrivers,
   getAdminGrandPrixReports,
   getAdminJobs,
@@ -50,16 +53,23 @@ export default async function AdminPage({
 }) {
   const status = await searchParams;
   const user = await getSessionUser();
-  const [adminJobs, adminSignals, adminSources, adminSocialSources, adminReports, adminDrivers, adminTeams, aiUsage] = await Promise.all([
+  const [adminJobs, adminSignals, adminSources, adminSocialSources, adminSocialPosts, adminReports, adminDrivers, adminTeams, aiUsage] = await Promise.all([
     getAdminJobs(),
     getAdminSignals(),
     getAdminSources(),
     getAdminSocialSources(),
+    getAdminSocialPosts(),
     getAdminGrandPrixReports(),
     getAdminDrivers(),
     getAdminTeamOptions(),
     getAiUsageSummary(),
   ]);
+  const socialQueueCounts = {
+    processing: adminSocialPosts.filter((post) => post.status === "pending" || post.status === "processing").length,
+    review: adminSocialPosts.filter((post) => post.status === "review").length,
+    published: adminSocialPosts.filter((post) => post.status === "published").length,
+    rejected: adminSocialPosts.filter((post) => post.status === "rejected").length,
+  };
 
   return (
     <AppShell>
@@ -423,12 +433,83 @@ export default async function AdminPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Соцсети</CardTitle>
+            <CardTitle>Social Hub</CardTitle>
             <CardDescription>
-              Сейчас в публичную ленту попадает X через RSSHub или ручные ссылки.
+              Источники X, Reddit и Telegram проходят AI-проверку до публикации. Каналы Telegram читаются через отдельный аккаунт RaceMate.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5">
+            <form action={saveSocialSource} className="grid gap-3 rounded-md border border-border/70 p-4">
+              <div>
+                <p className="text-sm font-medium">Добавить источник</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">Повторное сохранение той же ссылки обновит её настройки.</p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className="grid gap-1 text-xs text-muted-foreground">
+                  Площадка
+                  <select className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" name="platform" required>
+                    <option value="x">X</option>
+                    <option value="reddit">Reddit</option>
+                    <option value="telegram">Telegram</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs text-muted-foreground">
+                  Название в RaceMate
+                  <input className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" name="name" placeholder="Например, Autosport" required />
+                </label>
+                <label className="grid gap-1 text-xs text-muted-foreground">
+                  Аккаунт или канал
+                  <input className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" name="externalKey" placeholder="@channel или -100…" />
+                </label>
+              </div>
+              <p className="text-xs leading-5 text-muted-foreground">
+                Для Telegram достаточно username, ссылки или ID. Приватный канал сначала откройте аккаунту RaceMate.
+              </p>
+              <label className="grid gap-1 text-xs text-muted-foreground">
+                Ссылка на источник
+                <input className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" name="url" placeholder="https://t.me/channel" type="url" />
+              </label>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                <label className="grid gap-1 text-xs text-muted-foreground">
+                  Подключение
+                  <select className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" name="adapter" defaultValue="x-api-user">
+                    <option value="x-api-user">X API</option><option value="rsshub-x-user">X через RSSHub</option><option value="reddit-oauth">Reddit OAuth</option><option value="telegram-mtproto">Telegram MTProto</option><option value="telegram-bot-webhook">Telegram Bot</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs text-muted-foreground">
+                  Доверие
+                  <select className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" name="trustLevel" defaultValue="community">
+                    <option value="official">Официальный</option><option value="media">СМИ</option><option value="community">Сообщество</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs text-muted-foreground">
+                  Публикация
+                  <select className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" name="publicationMode" defaultValue="auto">
+                    <option value="auto">После AI-проверки</option><option value="review">Через модерацию</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs text-muted-foreground">
+                  Порядок Reddit
+                  <select className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" name="feedKind" defaultValue="new">
+                    <option value="new">Новые</option><option value="hot">Популярные</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs text-muted-foreground">
+                  Интервал, мин
+                  <input className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" min="5" name="fetchIntervalMinutes" defaultValue="15" type="number" />
+                </label>
+                <label className="grid gap-1 text-xs text-muted-foreground">
+                  Первая загрузка, дней
+                  <input className="min-h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" min="1" max="365" name="initialBackfillDays" defaultValue="30" type="number" />
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-5 text-sm text-muted-foreground">
+                <label className="inline-flex items-center gap-2"><input name="includeReposts" type="checkbox" />Загружать репосты и пересланные посты</label>
+                <label className="inline-flex items-center gap-2"><input name="includeReplies" type="checkbox" />Загружать ответы</label>
+              </div>
+              <Button className="justify-self-start" disabled={!user} type="submit" variant="secondary">Сохранить источник</Button>
+            </form>
+
             <form action={addManualXPost} className="grid gap-3 rounded-md border border-border/70 p-4">
               <div>
                 <p className="text-sm font-medium">Добавить X-пост вручную</p>
@@ -478,30 +559,100 @@ export default async function AdminPage({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={source.platform === "x" ? "outline" : "secondary"}>
-                      {source.platform === "x" ? "X" : "Reddit"}
+                      {source.platform === "telegram" ? "Telegram" : source.platform === "x" ? "X" : "Reddit"}
                     </Badge>
                     <p className="truncate text-sm font-medium">{source.name}</p>
                   </div>
                   <p className="mt-1 truncate text-xs text-muted-foreground">
                     {source.adapter} · {source.url}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">{source.lastStatus}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {getTrustLabel(source.trustLevel)} · {getPublicationModeLabel(source.publicationMode)} · первая загрузка за {source.initialBackfillDays} дн.
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {source.lastSuccessAt ? `Последняя синхронизация: ${new Date(source.lastSuccessAt).toLocaleString("ru-RU")}` : source.lastStatus}
+                  </p>
+                  {source.lastError ? <p className="mt-1 text-xs leading-5 text-danger">{source.lastError}</p> : null}
+                  {source.rateLimitedUntil ? <p className="mt-1 text-xs text-warning">Лимит до {new Date(source.rateLimitedUntil).toLocaleString("ru-RU")}</p> : null}
                 </div>
                 <Badge variant={source.isActive ? "success" : "secondary"}>
                   {source.isActive ? "Активен" : "На паузе"}
                 </Badge>
-                <form action={toggleSocialSource}>
-                  <input name="sourceId" type="hidden" value={source.id} />
-                  <input name="isActive" type="hidden" value={String(source.isActive)} />
-                  <Button disabled={!user} size="sm" type="submit" variant="secondary">
-                    {source.isActive ? "Пауза" : "Включить"}
-                  </Button>
-                </form>
+                <div className="flex flex-wrap gap-2 md:justify-end">
+                  {source.adapter === "telegram-mtproto" ? (
+                    <form action={triggerJob}>
+                      <input name="jobName" type="hidden" value="social.fetch_telegram" />
+                      <input name="sourceId" type="hidden" value={source.id} />
+                      <Button disabled={!user} size="sm" type="submit" variant="outline">Проверить и загрузить</Button>
+                    </form>
+                  ) : null}
+                  <form action={toggleSocialSource}>
+                    <input name="sourceId" type="hidden" value={source.id} />
+                    <input name="isActive" type="hidden" value={String(source.isActive)} />
+                    <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                      {source.isActive ? "Пауза" : "Включить"}
+                    </Button>
+                  </form>
+                </div>
               </div>
             ))}
+
+            <div className="border-t stitch-divider pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">Очередь публикаций</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Ошибки одной записи не останавливают обработку остальных.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {["social.process_ai", "social.retry_failed", "social.refresh_metrics"].map((job) => (
+                    <form action={triggerJob} key={job}>
+                      <input name="jobName" type="hidden" value={job} />
+                      <Button disabled={!user} size="sm" type="submit" variant="secondary">
+                        {job === "social.process_ai" ? "Обработать" : job === "social.retry_failed" ? "Повторить ошибки" : "Обновить метрики"}
+                      </Button>
+                    </form>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
+                <DataRow label="На обработке" value={String(socialQueueCounts.processing)} />
+                <DataRow label="Нужна проверка" value={String(socialQueueCounts.review)} />
+                <DataRow label="Опубликовано" value={String(socialQueueCounts.published)} />
+                <DataRow label="Отклонено" value={String(socialQueueCounts.rejected)} />
+              </div>
+              <div className="mt-4 grid gap-2">
+                {adminSocialPosts.map((post) => (
+                  <form action={moderateSocialPost} className="grid items-center gap-2 rounded-md border border-border/70 p-3 md:grid-cols-[auto_minmax(0,1fr)_10rem_auto]" key={post.id}>
+                    <input name="postId" type="hidden" value={post.id} />
+                    <Badge variant={post.status === "published" ? "success" : post.status === "review" ? "warning" : post.status === "rejected" ? "danger" : "secondary"}>{post.status}</Badge>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{post.title}</p>
+                      <p className="truncate text-xs text-muted-foreground">{post.platform} · {post.author}{post.error ? ` · ${post.error}` : ""}</p>
+                    </div>
+                    <select className="h-9 rounded-md border border-input bg-background px-2 text-xs" name="topic" defaultValue="">
+                      <option value="">Категория AI</option>
+                      <option value="social-upgrades">Обновления болида</option><option value="social-transfers">Трансферы</option><option value="social-technical">Техника</option><option value="social-race-weekend">Этап</option><option value="social-statements">Комментарии</option><option value="social-incidents">Инциденты</option><option value="social-rumors">Слухи</option><option value="social-discussion">Обсуждения</option>
+                    </select>
+                    <div className="flex gap-1">
+                      <Button name="moderationAction" size="sm" type="submit" value="publish" variant="secondary">Опубликовать</Button>
+                      <Button aria-label="Повторить AI" className="px-2" name="moderationAction" size="sm" type="submit" value="retry" variant="ghost">AI</Button>
+                      <Button aria-label="Отклонить" className="px-2" name="moderationAction" size="sm" type="submit" value="reject" variant="ghost">×</Button>
+                    </div>
+                  </form>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </section>
     </AppShell>
   );
+}
+
+function getTrustLabel(value: "official" | "media" | "community") {
+  return value === "official" ? "Официальный источник" : value === "media" ? "СМИ" : "Сообщество";
+}
+
+function getPublicationModeLabel(value: "auto" | "review") {
+  return value === "review" ? "Через модерацию" : "После AI-проверки";
 }

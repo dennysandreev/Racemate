@@ -14,6 +14,7 @@ type GrandPrixPodiumPreviewProps = {
   href: string;
   report: GrandPrixReport;
   replay?: RaceReplaySummary | null;
+  showRaceHeading?: boolean;
 };
 
 const podiumTone: Record<number, { step: string; text: string; ring: string }> = {
@@ -32,15 +33,18 @@ export function GrandPrixPodiumPreview({
   href,
   report,
   replay,
+  showRaceHeading = true,
 }: GrandPrixPodiumPreviewProps) {
   const podium = report.results.slice(0, 3);
 
   return (
     <div className={cn("grid gap-4", className)}>
-      <div className="min-w-0">
-        <p className="font-display text-lg font-bold leading-tight">{report.raceName}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{report.raceDate}</p>
-      </div>
+      {showRaceHeading ? (
+        <div className="min-w-0">
+          <p className="font-display text-lg font-bold leading-tight">{report.raceName}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{report.raceDate}</p>
+        </div>
+      ) : null}
 
       {podium.length >= 3 ? (
         <div className="grid grid-cols-3 items-end gap-2">
@@ -50,19 +54,38 @@ export function GrandPrixPodiumPreview({
             const tone = podiumTone[rank];
             const isCenter = rank === 1;
             const slug = getDriverSlug(driverSlugByName, result.driver);
+            const avatar = (
+              <DriverAvatarBadge
+                className={isCenter ? "size-16" : "size-12"}
+                color={team?.color ?? tone.ring}
+                name={result.driver}
+                sizes={isCenter ? "4rem" : "3rem"}
+                slug={slug}
+              />
+            );
 
             return (
               <div className="flex min-w-0 flex-col items-center text-center" key={`${result.position}-${result.driver}`}>
-                <DriverAvatarBadge
-                  className={isCenter ? "size-16" : "size-12"}
-                  color={team?.color ?? tone.ring}
-                  name={result.driver}
-                  sizes={isCenter ? "4rem" : "3rem"}
-                  slug={slug}
-                />
-                <p className="mt-1.5 w-full truncate text-sm font-bold leading-tight">
-                  {getLastName(result.driver)}
-                </p>
+                {slug ? (
+                  <Link
+                    aria-label={`Открыть профиль: ${result.driver}`}
+                    className="group flex w-full min-w-0 flex-col items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    href={`/drivers/${slug}`}
+                    prefetch={false}
+                  >
+                    {avatar}
+                    <span className="mt-1.5 w-full truncate text-sm font-bold leading-tight transition-colors group-hover:text-primary">
+                      {getLastName(result.driver)}
+                    </span>
+                  </Link>
+                ) : (
+                  <>
+                    {avatar}
+                    <p className="mt-1.5 w-full truncate text-sm font-bold leading-tight">
+                      {getLastName(result.driver)}
+                    </p>
+                  </>
+                )}
                 <p className="mt-0.5 flex min-w-0 max-w-full items-center gap-1 text-[0.65rem] font-semibold text-muted-foreground">
                   <span
                     aria-hidden="true"

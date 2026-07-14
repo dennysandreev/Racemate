@@ -10,6 +10,7 @@ import Link from "next/link";
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { PageTitle } from "@/components/racemate/page-title";
 import { CircuitStatsSection } from "@/components/racemate/circuit-stats-section";
 import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
 import { RaceFlag } from "@/components/racemate/race-flag";
@@ -79,7 +80,7 @@ export default async function WeekendPage() {
 
   return (
     <AppShell>
-      <section className="grid gap-4 py-5 sm:gap-5">
+      <section className="grid gap-4 pb-5 sm:gap-5">
         <WeekendHero
           circuitStats={circuitStats}
           currentRace={currentRace}
@@ -134,7 +135,7 @@ function WeekendHero({
   return (
     <section className="stitch-panel relative overflow-hidden p-0">
       <div className="weekend-hero-glow pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgb(225_6_0_/_0.28),transparent_24rem),linear-gradient(125deg,rgb(255_255_255_/_0.08),transparent_38%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.28))]" />
-      <div className="relative grid gap-5 p-5 sm:p-7">
+      <div className="relative grid gap-3 px-5 pb-4 pt-3 sm:px-6 sm:pb-5 sm:pt-3.5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {currentRace ? (
@@ -159,30 +160,31 @@ function WeekendHero({
         </div>
 
         <div className="min-w-0">
-          <p className="font-telemetry mb-2.5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+          <p className="font-telemetry mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
             <MapPin aria-hidden="true" className="size-3.5" />
             {currentRace?.circuit ?? "Трасса этапа"}
           </p>
-          <h1 className="max-w-4xl text-balance font-display text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
+          <PageTitle className="max-w-4xl">
             {nextRace}
-          </h1>
-          <p className="mt-4 text-sm font-semibold text-muted-foreground">
+          </PageTitle>
+          <p className="mt-2 text-sm font-semibold text-muted-foreground">
             {isWeekendDone
               ? "Этап завершен — смотри результаты сессий и повтор гонки."
               : `Ближайшая сессия: ${formatSessionName(nextSession.session)} · ${nextSession.startsAt}`}
           </p>
         </div>
 
-        <div className="grid overflow-hidden rounded-xl border border-border/75 bg-background/32 shadow-[0_18px_60px_rgb(0_0_0_/_0.24)] backdrop-blur lg:grid-cols-[minmax(0,1fr)_23rem]">
-          <div className="h-[18rem] min-w-0 p-3 sm:h-[21rem] xl:h-[24rem]">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end">
+          <div className="h-[14rem] min-w-0 sm:h-[15.5rem] xl:h-[18rem]">
             <TrackMap
               circuit={currentRace?.circuit ?? nextRace}
               fill
               label={nextRace}
               layout={currentRace?.layout}
+              unframed
             />
           </div>
-          <div className="grid content-end gap-3 border-t border-border/75 p-4 lg:border-l lg:border-t-0">
+          <div className="grid content-end gap-2.5 border-t border-border/70 pt-4 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
             <CircuitStatsSection
               circuitName={currentRace?.circuit ?? nextRace}
               embedded

@@ -8,11 +8,11 @@ import {
   Flag,
   Gauge,
   Heart,
-  LineChart,
   Medal,
   Newspaper,
   Shield,
   Sparkles,
+  Trophy,
   Users,
 } from "lucide-react";
 
@@ -35,7 +35,7 @@ import {
 import { getTeamProfileAsset } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import type { DriverChartPoint, DriverProfile, DriverRaceResultRow } from "@/types/racemate";
+import type { DriverProfile, DriverRaceResultRow } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
 
@@ -77,10 +77,7 @@ export default async function DriverProfilePage({ params }: DriverPageProps) {
 
         <div className="grid min-w-0 gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
           <DriverCumulativePointsChart profile={profile} />
-          <div className="grid min-w-0 content-start gap-4 sm:gap-5">
-            <PositionTrendPanel points={profile.charts.championshipPosition} />
-            <FormPanel profile={profile} />
-          </div>
+          <FormPanel profile={profile} />
         </div>
 
         <div className="grid min-w-0 gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
@@ -91,7 +88,7 @@ export default async function DriverProfilePage({ params }: DriverPageProps) {
           </aside>
         </div>
 
-        <div className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <div className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem]">
           <DriverNewsPanel profile={profile} />
           <DriverSocialPanel profile={profile} />
         </div>
@@ -122,8 +119,8 @@ function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: b
         {profile.number ?? profile.code ?? ""}
       </span>
 
-      <div className="relative grid gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-end">
-        <div className="min-w-0">
+      <div className="relative grid gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
+        <div className="flex min-w-0 flex-col lg:min-h-72">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">Сезон {profile.season}</Badge>
             <Badge variant="secondary">
@@ -137,37 +134,45 @@ function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: b
             <Badge variant="outline">
               <span className="font-telemetry">№ {profile.number ?? profile.code ?? "—"}</span>
             </Badge>
+            {profile.slug === "lando-norris" ? (
+              <Badge className="border-[#f4c95d]/55 bg-[#f4c95d]/15 text-[#8a6500] dark:text-[#f4c95d]" variant="outline">
+                <Trophy aria-hidden="true" className="mr-1 size-3" />
+                Чемпион 2025
+              </Badge>
+            ) : null}
           </div>
 
-          <h1 className="mt-4 text-balance font-display leading-[0.94] tracking-[-0.04em]">
-            <span className="block text-xl font-bold text-muted-foreground sm:text-3xl">
-              {profile.firstName}
-            </span>
-            <span className="block text-4xl font-black uppercase sm:text-6xl">
-              {profile.lastName}
-            </span>
-          </h1>
+          <div className="mt-6 lg:mt-auto">
+            <h1 className="text-balance font-display leading-[0.94] tracking-[-0.04em]">
+              <span className="block text-xl font-bold text-muted-foreground sm:text-3xl">
+                {profile.firstName}
+              </span>
+              <span className="block text-4xl font-black uppercase sm:text-6xl">
+                {profile.lastName}
+              </span>
+            </h1>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Link
-              className="group inline-flex min-w-0 items-center gap-2.5 rounded-md border border-border/70 bg-background/40 py-1.5 pl-1.5 pr-2.5 transition-colors hover:border-primary/40 hover:bg-accent/50"
-              href={teamProfile ? `/teams/${teamProfile.slug}` : "/leaderboard?table=constructors"}
-              prefetch={false}
-            >
-              <TeamLogo
-                code={profile.team.code}
-                color={profile.team.color}
-                logo={profile.team.logo}
-                name={profile.team.name}
-                size="sm"
-              />
-              <span className="min-w-0 truncate text-sm font-bold">{profile.team.name}</span>
-              <ChevronRight
-                aria-hidden="true"
-                className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
-              />
-            </Link>
-            <FavoriteAction profile={profile} signedIn={signedIn} />
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <Link
+                className="group inline-flex min-w-0 items-center gap-2.5 rounded-md border border-border/70 bg-background/40 py-1.5 pl-1.5 pr-2.5 transition-colors hover:border-primary/40 hover:bg-accent/50"
+                href={teamProfile ? `/teams/${teamProfile.slug}` : "/leaderboard?table=constructors"}
+                prefetch={false}
+              >
+                <TeamLogo
+                  code={profile.team.code}
+                  color={profile.team.color}
+                  logo={profile.team.logo}
+                  name={profile.team.name}
+                  size="sm"
+                />
+                <span className="min-w-0 truncate text-sm font-bold">{profile.team.name}</span>
+                <ChevronRight
+                  aria-hidden="true"
+                  className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+                />
+              </Link>
+              <FavoriteAction profile={profile} signedIn={signedIn} />
+            </div>
           </div>
         </div>
 
@@ -290,86 +295,6 @@ function SeasonStats({ profile }: { profile: DriverProfile }) {
             <p className="font-telemetry mt-1.5 text-lg font-extrabold leading-none">{value}</p>
           </div>
         ))}
-      </div>
-    </StitchPanel>
-  );
-}
-
-/*
- * Позиция в личном зачете по этапам: серверный SVG без клиентского JS.
- * Ось Y инвертирована — P1 сверху.
- */
-function PositionTrendPanel({ points }: { points: DriverChartPoint[] }) {
-  const valid = points.filter(
-    (point): point is DriverChartPoint & { value: number } =>
-      typeof point.value === "number" && Number.isFinite(point.value),
-  );
-
-  if (valid.length < 2) {
-    return (
-      <StitchPanel>
-        <StitchPanelHeader icon={LineChart} title="Позиция в чемпионате" />
-        <p className="p-4 text-sm leading-6 text-muted-foreground">
-          График появится после первых этапов сезона.
-        </p>
-      </StitchPanel>
-    );
-  }
-
-  const width = 320;
-  const height = 96;
-  const padX = 10;
-  const padY = 12;
-  const maxPosition = Math.max(...valid.map((point) => point.value));
-  const minPosition = Math.min(...valid.map((point) => point.value));
-  const span = Math.max(maxPosition - minPosition, 1);
-  const coords = valid.map((point, index) => ({
-    x: padX + (index / (valid.length - 1)) * (width - padX * 2),
-    y: padY + ((point.value - minPosition) / span) * (height - padY * 2),
-    point,
-  }));
-  const pathD = coords
-    .map((coord, index) => `${index === 0 ? "M" : "L"}${coord.x.toFixed(1)} ${coord.y.toFixed(1)}`)
-    .join(" ");
-  const last = valid[valid.length - 1];
-
-  return (
-    <StitchPanel>
-      <StitchPanelHeader
-        action={<Badge variant="secondary">Сейчас P{last.value}</Badge>}
-        icon={LineChart}
-        title="Позиция в чемпионате"
-      />
-      <div className="grid gap-2 p-4">
-        <svg
-          aria-label={`Позиция в чемпионате по этапам: сейчас P${last.value}, лучшая P${minPosition}`}
-          className="w-full"
-          role="img"
-          viewBox={`0 0 ${width} ${height}`}
-        >
-          <path
-            d={`${pathD} L${coords[coords.length - 1].x.toFixed(1)} ${height} L${coords[0].x.toFixed(1)} ${height} Z`}
-            fill="rgb(225 6 0 / 0.1)"
-            stroke="none"
-          />
-          <path d={pathD} fill="none" stroke="var(--primary)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-          {coords.map((coord) => (
-            <circle
-              cx={coord.x.toFixed(1)}
-              cy={coord.y.toFixed(1)}
-              fill="var(--primary)"
-              key={coord.point.round}
-              r={coord.point.round === last.round ? 3.5 : 2}
-            >
-              <title>{`R${coord.point.round} · ${coord.point.raceName} — P${coord.point.value}`}</title>
-            </circle>
-          ))}
-        </svg>
-        <div className="flex items-center justify-between text-[0.65rem] font-semibold text-muted-foreground">
-          <span>R{valid[0].round}</span>
-          <span>Лучшая позиция: P{minPosition}</span>
-          <span>R{last.round}</span>
-        </div>
       </div>
     </StitchPanel>
   );
@@ -530,7 +455,10 @@ function FormPanel({ profile }: { profile: DriverProfile }) {
 
 function TeammatePanel({ profile }: { profile: DriverProfile }) {
   const comparison = profile.teammateComparison;
-  const teammate = comparison.teammateNames.join(", ") || "Напарник уточняется";
+  const teammateLastName = comparison.teammateNames
+    .map((name) => name.trim().split(/\s+/).at(-1))
+    .filter(Boolean)
+    .join(", ") || "Напарник";
   const rows: Array<{
     label: string;
     driver: number | null;
@@ -562,7 +490,7 @@ function TeammatePanel({ profile }: { profile: DriverProfile }) {
 
   return (
     <StitchPanel>
-      <StitchPanelHeader icon={Users} meta={teammate} title="Сравнение с напарником" />
+      <StitchPanelHeader icon={Users} title="Сравнение с напарником" />
       <div className="grid gap-1.5 p-3 sm:p-4">
         {rows.map((row) => {
           const driverBetter = isBetter(row.driver, row.teammate, row.lowerIsBetter);
@@ -598,7 +526,7 @@ function TeammatePanel({ profile }: { profile: DriverProfile }) {
         })}
         <p className="mt-1 flex items-center justify-between text-[0.62rem] font-semibold text-muted-foreground">
           <span className="text-primary">{profile.lastName}</span>
-          <span>напарник</span>
+          <span>{teammateLastName}</span>
         </p>
       </div>
     </StitchPanel>
@@ -689,7 +617,9 @@ function DriverSocialPanel({ profile }: { profile: DriverProfile }) {
             target="_blank"
           >
             <div className="mb-2 flex items-center justify-between gap-3">
-              <Badge variant="outline">{post.platform === "x" ? "X" : "Reddit"}</Badge>
+              <Badge variant="outline">
+                {post.platform === "x" ? "X" : post.platform === "telegram" ? "Telegram" : "Reddit"}
+              </Badge>
               <span className="text-xs text-muted-foreground">{post.publishedAt}</span>
             </div>
             <p className="line-clamp-3 text-sm leading-6">{post.title}</p>

@@ -70,7 +70,7 @@ export default async function PredictionSharePage({
 
   return (
     <AppShell>
-      <div className="grid gap-6 py-6">
+      <div className="grid gap-6 pb-6">
         <section className="stitch-panel overflow-hidden p-5 sm:p-8">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
             <div className="min-w-0">

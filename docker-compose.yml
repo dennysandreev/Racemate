@@ -25,8 +25,12 @@ services:
         tick=0
         while true; do
           node worker/index.mjs social.fetch_all || true
+          node worker/index.mjs social.process_ai || true
           node worker/index.mjs polls.generate_next_race || true
-          if [ $((tick % 2)) -eq 0 ]; then
+          if [ $((tick % 6)) -eq 0 ]; then
+            node worker/index.mjs social.refresh_metrics || true
+          fi
+          if [ $((tick % 6)) -eq 0 ]; then
             node worker/index.mjs rss.fetch_all || true
             node worker/index.mjs ai.process_news || true
             node worker/index.mjs jolpica.sync_calendar || true
@@ -41,7 +45,7 @@ services:
             node worker/index.mjs reports.refresh_due || true
           fi
           tick=$((tick + 1))
-          sleep 900
+          sleep 300
         done
     restart: unless-stopped
 

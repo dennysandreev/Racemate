@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Trophy } from "lucide-react";
+import { CalendarDays, Trophy, Zap } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { PageTitle } from "@/components/racemate/page-title";
 import { RaceFlag } from "@/components/racemate/race-flag";
+import { SeasonProgress } from "@/components/racemate/season-progress";
 import { StitchStatusBadge } from "@/components/racemate/stitch-primitives";
 import { Badge } from "@/components/ui/badge";
 import { getCircuitAsset } from "@/data/f1-assets";
@@ -16,42 +18,21 @@ export const dynamic = "force-dynamic";
 export default async function CalendarPage() {
   const calendarEvents = await getCalendarEvents();
   const completedCount = calendarEvents.filter((event) => event.status === "Завершен").length;
-  const remainingCount = Math.max(0, calendarEvents.length - completedCount);
+  const nextRace = calendarEvents.find((event) => event.status !== "Завершен") ?? null;
   const season = calendarEvents[0]?.season ?? 2026;
-  const progressPercent = calendarEvents.length
-    ? Math.round((completedCount / calendarEvents.length) * 100)
-    : 0;
 
   return (
     <AppShell>
       <section className="relative overflow-hidden rounded-xl border border-border bg-card">
-        <CalendarHero season={season} />
+        <CalendarHero
+          completedCount={completedCount}
+          nextRace={nextRace}
+          season={season}
+          totalCount={calendarEvents.length}
+        />
       </section>
 
-      <section className="grid gap-5 py-5 pb-8">
-        <div className="stitch-panel grid gap-4 p-4 sm:p-5">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="stitch-label text-muted-foreground">Прогресс сезона</p>
-              <p className="mt-2 font-display text-2xl font-extrabold tracking-[-0.04em]">
-                {progressPercent}% пройдено
-              </p>
-            </div>
-            <p className="font-telemetry text-sm font-bold text-muted-foreground">
-              {completedCount} / {calendarEvents.length} Гран-при
-            </p>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {completedCount} завершено, {remainingCount} впереди
-          </p>
-        </div>
-
+      <section className="grid gap-5 pb-8 pt-5">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {calendarEvents.map((event) => (
             <CalendarRaceCard event={event} key={`${event.season}-${event.round}`} />
@@ -63,12 +44,18 @@ export default async function CalendarPage() {
 }
 
 function CalendarHero({
+  completedCount,
+  nextRace,
   season,
+  totalCount,
 }: {
+  completedCount: number;
+  nextRace: CalendarEvent | null;
   season: number;
+  totalCount: number;
 }) {
   return (
-    <div className="relative min-h-[10.5rem] p-4 sm:p-5">
+    <div className="relative min-h-[11.5rem] p-4 sm:p-5 lg:h-40 lg:min-h-0">
       <Image
         alt=""
         className="object-cover opacity-80"
@@ -77,16 +64,25 @@ function CalendarHero({
         sizes="(max-width: 768px) 100vw, 72rem"
         src="/stitch/calendar-season-hero-v2.webp"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/72 to-background/10" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/35" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgb(225_6_0_/_0.28),transparent_20rem)]" />
-      <div className="relative z-10 flex min-h-[8rem] flex-col justify-end">
-        <h1 className="font-display max-w-4xl text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
-          Календарь сезона
-        </h1>
-        <div className="mt-3 flex items-center gap-3">
-          <Badge variant="danger">Сезон {season}</Badge>
-          <div className="h-px flex-1 bg-border" />
+      <div className="relative z-10 grid min-h-[9.5rem] gap-5 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
+        <div className="self-center lg:absolute lg:left-0 lg:top-0">
+          <p className="stitch-label flex items-center gap-2 text-primary">
+            <CalendarDays aria-hidden="true" className="size-3.5" />
+            Календарь · сезон {season}
+          </p>
+          <PageTitle className="mt-2 max-w-4xl">
+            Календарь сезона
+          </PageTitle>
         </div>
+
+        <SeasonProgress
+          className="lg:absolute lg:bottom-0 lg:right-0 lg:w-[22rem]"
+          completedCount={completedCount}
+          nextRace={nextRace}
+          totalCount={totalCount}
+        />
       </div>
     </div>
   );
@@ -130,6 +126,15 @@ function CalendarRaceCard({ event }: { event: CalendarEvent }) {
             Раунд {event.round}
           </span>
         </div>
+        {event.hasSprint ? (
+          <Badge
+            className="absolute right-3 top-3 gap-1.5 bg-background/90 backdrop-blur"
+            variant="warning"
+          >
+            <Zap aria-hidden="true" className="size-3" />
+            Спринт
+          </Badge>
+        ) : null}
       </div>
       <div className="grid gap-4 p-5">
         <div>

@@ -123,8 +123,8 @@ export function CircuitStatsSection({
         embedded ? "" : "rounded-xl border border-border bg-card/80 p-4 shadow-[0_18px_56px_rgb(0_0_0_/_0.28)] sm:p-5",
       )}>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,hsl(var(--primary)/0.16),transparent_18rem)]" />
-        <div className="relative grid gap-4">
-          <CircuitCompactDossier showCircuitName={showCircuitName} stats={stats} />
+        <div className={cn("relative grid", embedded ? "gap-2.5" : "gap-4")}>
+          <CircuitCompactDossier dense={embedded} showCircuitName={showCircuitName} stats={stats} />
           <Button
             className="w-full justify-center border-border/80 bg-secondary/70 hover:bg-accent"
             onClick={() => setOpen(true)}
@@ -170,22 +170,12 @@ function CircuitStatsDialog({
         <header className="shrink-0 border-b border-border bg-card/85 px-4 py-3 backdrop-blur sm:px-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline">Исторические данные</Badge>
-                <span className="inline-flex items-center gap-2 rounded-md border border-border bg-background/35 px-2.5 py-1 font-telemetry text-xs font-bold text-muted-foreground">
-                  <RaceFlag
-                    className="text-base"
-                    countryCode={getCircuitCountryCode(stats.circuit.country)}
-                    label={stats.circuit.country}
-                  />
-                  {stats.circuit.locality}, {stats.circuit.country}
-                </span>
-              </div>
+              <Badge variant="outline">Исторические данные</Badge>
               <h2
-                className="mt-2 text-balance font-display text-2xl font-extrabold leading-tight tracking-[-0.035em] text-foreground sm:text-3xl"
+                className="sr-only"
                 id="circuit-stats-dialog-title"
               >
-                {stats.circuit.name}
+                Исторические данные трассы {stats.circuit.name}
               </h2>
             </div>
             <Button
@@ -210,9 +200,11 @@ function CircuitStatsDialog({
 }
 
 function CircuitCompactDossier({
+  dense = false,
   showCircuitName = true,
   stats,
 }: {
+  dense?: boolean;
   showCircuitName?: boolean;
   stats: CircuitStatsView;
 }) {
@@ -240,8 +232,8 @@ function CircuitCompactDossier({
         <div>
           <p className="stitch-label text-primary">О трассе</p>
         </div>
-        <div className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-          <MapPinned aria-hidden="true" className="size-5" />
+        <div className={cn("grid shrink-0 place-items-center rounded-md bg-primary/10 text-primary", dense ? "size-8" : "size-10")}>
+          <MapPinned aria-hidden="true" className={dense ? "size-4" : "size-5"} />
         </div>
       </div>
       {showCircuitName ? (
@@ -249,10 +241,11 @@ function CircuitCompactDossier({
           {stats.circuit.name}
         </h2>
       ) : null}
-      <div className="mt-4 divide-y stitch-divider">
+      <div className={cn("divide-y stitch-divider", dense ? "mt-2" : "mt-4")}>
         {metrics.map((metric) => (
           <CircuitPreviewMetric
             icon={metric.icon}
+            dense={dense}
             key={metric.label}
             label={metric.label}
             value={metric.value}
@@ -264,18 +257,20 @@ function CircuitCompactDossier({
 }
 
 function CircuitPreviewMetric({
+  dense = false,
   icon: Icon,
   label,
   value,
 }: {
+  dense?: boolean;
   icon: typeof Gauge;
   label: string;
   value: ReactNode;
 }) {
   return (
-    <div className="grid min-h-14 grid-cols-[auto_1fr] gap-3 py-3">
-      <span className="grid size-8 place-items-center rounded-md bg-primary/10 text-primary">
-        <Icon aria-hidden="true" className="size-4" />
+    <div className={cn("grid grid-cols-[auto_1fr] gap-3", dense ? "min-h-12 py-2" : "min-h-14 py-3")}>
+      <span className={cn("grid place-items-center rounded-md bg-primary/10 text-primary", dense ? "size-7" : "size-8")}>
+        <Icon aria-hidden="true" className={dense ? "size-3.5" : "size-4"} />
       </span>
       <span className="grid min-w-0 content-center gap-1">
         <span className="text-xs font-semibold text-muted-foreground">{label}</span>

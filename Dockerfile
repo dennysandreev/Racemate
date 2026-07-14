@@ -24,6 +24,7 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/worker ./worker
+COPY --from=builder /app/scripts/telegram-authorize.mjs ./scripts/telegram-authorize.mjs
 COPY --from=builder /app/package.json ./package.json
 RUN python3 -m venv /opt/fastf1 \
   && /opt/fastf1/bin/pip install --no-cache-dir -r worker/fastf1/requirements.txt

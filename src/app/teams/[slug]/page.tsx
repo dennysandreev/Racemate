@@ -15,6 +15,7 @@ import {
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
 import { RaceFlag } from "@/components/racemate/race-flag";
+import { TeamCumulativePointsChart } from "@/components/racemate/team-cumulative-points-chart";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import { StitchPanel, StitchPanelHeader } from "@/components/racemate/stitch-primitives";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +54,7 @@ export default async function TeamProfilePage({ params }: TeamPageProps) {
 
   return (
     <AppShell>
-      <div className="grid min-w-0 gap-5 py-6 sm:gap-6 sm:py-8">
+      <div className="grid min-w-0 gap-5 pb-6 sm:gap-6 sm:pb-8">
         <TeamHero team={team} />
 
         <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_23rem]">
@@ -61,9 +62,11 @@ export default async function TeamProfilePage({ params }: TeamPageProps) {
           <TeamForm team={team} />
         </section>
 
-        <TeamSeasonStats team={team} />
-        <TeamPointsChart team={team} />
-        <TeamResultsTable results={team.results} />
+        <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
+          <TeamCumulativePointsChart team={team} />
+          <TeamSeasonStats team={team} />
+        </section>
+        <TeamResultsTable drivers={team.drivers} results={team.results} />
         <TeamNews team={team} />
       </div>
     </AppShell>
@@ -102,21 +105,18 @@ function TeamHero({ team }: { team: TeamProfile }) {
         </div>
 
         <div className="max-w-2xl">
-          <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div className="mb-4 flex items-center">
             <TeamLogo code={team.code} color={team.color} logo={team.logo} name={team.name} size="md" />
-            {team.country ? (
-              <span className="inline-flex items-center gap-2 text-sm font-semibold text-white/75">
-                <RaceFlag countryCode={team.countryCode} label={team.country} />
-                {team.country}
-              </span>
-            ) : null}
           </div>
           <h1 className="text-balance font-display text-4xl font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">
             {team.shortName}
           </h1>
-          <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-white/70 sm:text-base">
-            Состав, результаты и динамика команды в текущем чемпионате.
-          </p>
+          {team.country ? (
+            <p className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-white/75 sm:text-base">
+              <RaceFlag countryCode={team.countryCode} label={team.country} />
+              {team.country}
+            </p>
+          ) : null}
 
           <div className="mt-6 grid grid-cols-3 overflow-hidden rounded-md border border-white/15 bg-black/45 backdrop-blur-sm">
             <HeroMetric label="Место" value={formatPosition(team.stats.championshipPosition)} />
@@ -140,39 +140,52 @@ function HeroMetric({ label, value }: { label: string; value: string }) {
 
 function DriverLineup({ team }: { team: TeamProfile }) {
   return (
-    <StitchPanel className="min-w-0">
+    <StitchPanel className="grid min-w-0 grid-rows-[auto_1fr]">
       <StitchPanelHeader icon={Users} title="Пилоты команды" />
-      <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5">
+      <div className="grid h-full gap-3 p-4 sm:grid-cols-2 sm:p-5">
         {team.drivers.map((driver) => (
           <Link
-            className="group flex min-w-0 items-center gap-4 rounded-md border border-border bg-background/35 p-4 transition-colors hover:border-foreground/25 hover:bg-accent/55"
+            className="group grid min-h-[14rem] min-w-0 grid-cols-[6rem_minmax(0,1fr)_auto] content-start gap-x-4 gap-y-4 rounded-md border border-border bg-background/35 p-4 transition-colors hover:border-foreground/25 hover:bg-accent/55 sm:p-5"
             href={driver.slug ? `/drivers/${driver.slug}` : "/leaderboard"}
             key={driver.id}
             prefetch={false}
           >
             <DriverAvatarBadge
-              className="size-16"
+              className="size-24"
               color={team.color}
               name={driver.fullName}
-              sizes="4rem"
+              sizes="6rem"
               slug={driver.slug}
             />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-lg font-extrabold group-hover:text-primary">{driver.fullName}</p>
+            <div className="min-w-0 self-center">
+              <p className="text-balance font-display text-lg font-extrabold leading-tight group-hover:text-primary">{driver.fullName}</p>
               <p className="mt-1 font-telemetry text-xs font-bold text-muted-foreground">
                 {driver.code ?? "—"} · № {driver.number ?? "—"}
               </p>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                <span>P{driver.championshipPosition ?? "—"}</span>
-                <span className="text-muted-foreground">{formatStat(driver.points)} очк.</span>
-                <span className="text-muted-foreground">{driver.wins} побед</span>
-              </div>
+              <p className="mt-3 text-xs font-semibold text-muted-foreground">
+                {driver.championshipPosition ? `${driver.championshipPosition}-е место в чемпионате` : "Позиция уточняется"}
+              </p>
             </div>
-            <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground group-hover:text-primary" />
+            <ChevronRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-muted-foreground group-hover:text-primary" />
+            <div className="col-span-3 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-4">
+              <DriverMetric label="Очки" value={formatStat(driver.points)} />
+              <DriverMetric label="Победы" value={formatStat(driver.wins)} />
+              <DriverMetric label="Подиумы" value={formatStat(driver.podiums)} />
+              <DriverMetric label="Лучший финиш" value={formatPosition(driver.bestResult)} />
+            </div>
           </Link>
         ))}
       </div>
     </StitchPanel>
+  );
+}
+
+function DriverMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="grid min-h-16 content-center bg-background/70 px-3 py-2">
+      <span className="stitch-label text-[0.55rem] text-muted-foreground">{label}</span>
+      <span className="mt-1 font-telemetry text-base font-extrabold">{value}</span>
+    </span>
   );
 }
 
@@ -228,13 +241,13 @@ function TeamSeasonStats({ team }: { team: TeamProfile }) {
   ];
 
   return (
-    <StitchPanel className="min-w-0 overflow-hidden">
+    <StitchPanel className="h-full min-w-0 overflow-hidden">
       <StitchPanelHeader icon={Trophy} title={`Статистика сезона ${team.season}`} />
-      <div className="grid grid-cols-2 gap-px overflow-hidden bg-border sm:grid-cols-4 lg:grid-cols-7">
+      <div className="grid grid-cols-2 gap-3 p-4">
         {stats.map(([label, value]) => (
-          <div className="min-h-24 bg-card p-4" key={label}>
-            <p className="stitch-label min-h-7 text-muted-foreground">{label}</p>
-            <p className="mt-2 font-telemetry text-2xl font-extrabold">{value}</p>
+          <div className="rounded-md border border-border/70 bg-background/35 p-3" key={label}>
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="mt-2 font-telemetry text-lg font-bold">{value}</p>
           </div>
         ))}
       </div>
@@ -242,65 +255,33 @@ function TeamSeasonStats({ team }: { team: TeamProfile }) {
   );
 }
 
-function TeamPointsChart({ team }: { team: TeamProfile }) {
-  const points = team.pointsByRound;
-  const width = 960;
-  const height = 280;
-  const padding = { left: 54, right: 22, top: 24, bottom: 48 };
-  const maxValue = Math.max(...points.map((point) => point.cumulativePoints), 1);
-  const scaleMax = Math.ceil(maxValue / 50) * 50 || 50;
-  const x = (index: number) => padding.left + (points.length <= 1 ? 0 : index * ((width - padding.left - padding.right) / (points.length - 1)));
-  const y = (value: number) => padding.top + (height - padding.top - padding.bottom) * (1 - value / scaleMax);
-  const path = points.map((point, index) => `${index ? "L" : "M"} ${x(index).toFixed(1)} ${y(point.cumulativePoints).toFixed(1)}`).join(" ");
-  const yTicks = Array.from({ length: 5 }, (_, index) => Math.round((scaleMax / 4) * index));
-
-  return (
-    <StitchPanel className="min-w-0 overflow-hidden">
-      <StitchPanelHeader icon={Gauge} title="Накопленные очки" />
-      <div className="p-3 sm:p-5">
-        {points.length ? (
-          <svg aria-label={`График накопленных очков команды ${team.shortName}`} className="h-auto w-full" role="img" viewBox={`0 0 ${width} ${height}`}>
-            {yTicks.map((tick) => (
-              <g key={tick}>
-                <line stroke="currentColor" strokeOpacity="0.12" x1={padding.left} x2={width - padding.right} y1={y(tick)} y2={y(tick)} />
-                <text className="fill-muted-foreground font-telemetry text-[11px]" textAnchor="end" x={padding.left - 10} y={y(tick) + 4}>{tick}</text>
-              </g>
-            ))}
-            <path d={path} fill="none" stroke={team.color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" />
-            {points.map((point, index) => (
-              <g key={point.round}>
-                <circle cx={x(index)} cy={y(point.cumulativePoints)} fill={team.color} r="5" stroke="var(--card)" strokeWidth="3" />
-                <text className="fill-muted-foreground text-[13px]" textAnchor="middle" x={x(index)} y={height - 20}>
-                  {point.countryCode ? countryFlag(point.countryCode) : `R${point.round}`}
-                </text>
-              </g>
-            ))}
-          </svg>
-        ) : (
-          <p className="p-5 text-center text-sm text-muted-foreground">График появится после первого результата команды.</p>
-        )}
-      </div>
-    </StitchPanel>
-  );
-}
-
-function TeamResultsTable({ results }: { results: TeamRaceResultRow[] }) {
+function TeamResultsTable({
+  drivers,
+  results,
+}: {
+  drivers: TeamProfile["drivers"];
+  results: TeamRaceResultRow[];
+}) {
   return (
     <StitchPanel className="min-w-0 overflow-hidden">
       <StitchPanelHeader icon={CalendarDays} title="Результаты по этапам" />
       <div className="max-w-full overflow-x-auto">
-        <table className="w-full min-w-[46rem] border-collapse text-left text-sm">
+        <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
           <thead className="border-b border-border bg-background/35">
             <tr className="stitch-label text-muted-foreground">
               <th className="px-4 py-3">Этап</th>
+              <th className="px-4 py-3">Гонщик</th>
               <th className="px-4 py-3 text-center">Квалификация</th>
-              <th className="px-4 py-3 text-center">Лучший финиш</th>
-              <th className="px-4 py-3">Пилоты</th>
+              <th className="px-4 py-3 text-center">Финиш</th>
+              <th className="px-4 py-3 text-center">Старт → финиш</th>
               <th className="px-4 py-3 text-right">Очки</th>
             </tr>
           </thead>
           <tbody>
-            {results.map((result) => (
+            {results.map((result) => {
+              const driverRows = getTeamResultDriverRows(result, drivers);
+
+              return (
               <tr className="border-b border-border/70 last:border-b-0 hover:bg-accent/35" key={result.round}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -311,16 +292,85 @@ function TeamResultsTable({ results }: { results: TeamRaceResultRow[] }) {
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-center font-telemetry font-bold">{formatPosition(result.qualifyingBest)}</td>
-                <td className="px-4 py-3 text-center">
-                  <Badge variant={result.isWin ? "warning" : result.isPodium ? "secondary" : result.hadDnf ? "danger" : "outline"}>
-                    {formatPosition(result.bestFinish)}
-                  </Badge>
+                <td className="px-4 py-3">
+                  {driverRows.length ? (
+                    <div className="grid min-w-[10rem] gap-1.5">
+                      {driverRows.map((driver) => (
+                        <div className="flex min-h-6 items-center" key={`${result.round}-${driver.id}`}>
+                          {driver.slug ? (
+                            <Link
+                              className="min-w-0 truncate text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
+                              href={`/drivers/${driver.slug}`}
+                              prefetch={false}
+                            >
+                              {driver.name}
+                            </Link>
+                          ) : (
+                            <span className="min-w-0 truncate text-xs font-semibold text-muted-foreground">
+                              {driver.name}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
                 </td>
-                <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">{result.finishers.join(" · ") || "—"}</td>
+                <td className="px-4 py-3">
+                  {driverRows.length ? (
+                    <div className="grid justify-items-center gap-1.5">
+                      {driverRows.map((driver) => (
+                        <div className="flex min-h-6 items-center" key={`${result.round}-${driver.id}`}>
+                          <Badge
+                            className="min-w-10 shrink-0 justify-center"
+                            variant={getPositionBadgeVariant(driver.qualifyingPosition)}
+                          >
+                            {formatPosition(driver.qualifyingPosition)}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Badge className="mx-auto" variant="outline">
+                      {formatPosition(result.qualifyingBest)}
+                    </Badge>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {driverRows.length ? (
+                    <div className="grid justify-items-center gap-1.5">
+                      {driverRows.map((driver) => (
+                        <div className="flex min-h-6 items-center" key={`${result.round}-${driver.id}`}>
+                          <Badge
+                            className="min-w-10 justify-center"
+                            variant={getPositionBadgeVariant(driver.finishPosition, driver.isDnf)}
+                          >
+                            {driver.isDnf ? "Сход" : formatPosition(driver.finishPosition)}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Badge className="mx-auto" variant="outline">
+                      {formatPosition(result.bestFinish)}
+                    </Badge>
+                  )}
+                </td>
+                <td
+                  className={cn(
+                    "px-4 py-3 text-center font-telemetry text-base font-extrabold",
+                    result.positionDelta !== null && result.positionDelta > 0 && "text-success",
+                    result.positionDelta !== null && result.positionDelta < 0 && "text-danger",
+                    result.positionDelta === 0 && "text-muted-foreground",
+                  )}
+                >
+                  {formatPositionDelta(result.positionDelta)}
+                </td>
                 <td className="px-4 py-3 text-right font-telemetry text-base font-extrabold">{formatStat(result.points)}</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -375,8 +425,57 @@ function formatStat(value: number | null) {
   return Number.isInteger(value) ? value.toString() : value.toFixed(1);
 }
 
-function countryFlag(countryCode: string) {
-  return countryCode
-    .toUpperCase()
-    .replace(/./g, (character) => String.fromCodePoint(127397 + character.charCodeAt(0)));
+function formatPositionDelta(value: number | null) {
+  if (value === null) {
+    return "—";
+  }
+
+  return value > 0 ? `+${value}` : String(value);
+}
+
+function getTeamResultDriverRows(result: TeamRaceResultRow, drivers: TeamProfile["drivers"]) {
+  const resultDrivers = new Map(
+    [...result.qualifyingResults, ...result.finishResults]
+      .filter((driver) => driver.driverId)
+      .map((driver) => [driver.driverId as string, driver]),
+  );
+  const orderedDrivers = drivers.length
+    ? drivers.slice(0, 2).map((driver) => ({
+        id: driver.id,
+        name: driver.fullName,
+        slug: driver.slug,
+      }))
+    : [...resultDrivers.entries()].map(([id, driver]) => ({
+        id,
+        name: driver.driver,
+        slug: driver.driverSlug,
+      }));
+
+  return orderedDrivers.map((driver) => {
+    const qualifying = result.qualifyingResults.find((item) => item.driverId === driver.id);
+    const finish = result.finishResults.find((item) => item.driverId === driver.id);
+
+    return {
+      ...driver,
+      finishPosition: finish?.position ?? null,
+      isDnf: finish?.isDnf ?? (result.finishResults.length > 0 && Boolean(qualifying)),
+      qualifyingPosition: qualifying?.position ?? null,
+    };
+  });
+}
+
+function getPositionBadgeVariant(position: number | null, isDnf = false) {
+  if (isDnf) {
+    return "danger" as const;
+  }
+
+  if (position === 1) {
+    return "warning" as const;
+  }
+
+  if (position && position <= 3) {
+    return "secondary" as const;
+  }
+
+  return "outline" as const;
 }

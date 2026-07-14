@@ -76,7 +76,7 @@ export default async function FantasyLeaguePage({
 
   return (
     <AppShell>
-      <section className="grid gap-6 py-6">
+      <section className="grid gap-6 pb-6">
         <LeagueHero league={league} />
 
         {notice ? <LeagueNotice notice={notice} /> : null}

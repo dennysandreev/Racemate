@@ -25,7 +25,7 @@ export default async function PollsPage({
 
   return (
     <AppShell>
-      <section className="grid gap-5 py-6">
+      <section className="grid gap-5 pb-6">
         <PageHeading title="Опросы" />
 
         <nav aria-label="Режим опросов" className="flex w-full border-b stitch-divider">

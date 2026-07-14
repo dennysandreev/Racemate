@@ -52,7 +52,7 @@ export function DriverAvatarBadge({
     <span
       aria-hidden="true"
       className={cn(
-        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 bg-[oklch(0.21_0.014_250)]",
+        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 bg-background",
         className,
       )}
       style={{ borderColor: color ?? "var(--border)" }}

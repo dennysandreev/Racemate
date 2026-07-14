@@ -22,6 +22,7 @@ import {
 import { FantasyLockCountdown } from "@/components/fantasy/fantasy-lock-countdown";
 import { PredictionShareModalLauncher } from "@/components/fantasy/PredictionShareModal";
 import { AppShell } from "@/components/racemate/app-shell";
+import { PageTitle } from "@/components/racemate/page-title";
 import { FantasyScoringDialog } from "@/components/racemate/fantasy-scoring-dialog";
 import {
   PreviousPredictionResultButton,
@@ -118,7 +119,7 @@ export default async function FantasyPage({
 
   return (
     <AppShell>
-      <section className="grid gap-4 py-6 sm:gap-5">
+      <section className="grid gap-4 pb-6 sm:gap-5">
         <FantasyHero activeTab={activeTab} predictionState={predictionState} />
 
         {notice ? <StatusNotice notice={notice} /> : null}
@@ -189,9 +190,9 @@ function FantasyHero({
             <Trophy aria-hidden="true" className="size-3.5" />
             Фэнтези-лига
           </p>
-          <h1 className="mt-2 max-w-3xl text-balance font-display text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-4xl">
+          <PageTitle className="mt-2 max-w-3xl">
             {predictionState.race?.name ?? "Следующий этап"}
-          </h1>
+          </PageTitle>
           <p className="mt-2 max-w-xl text-sm font-semibold leading-6 text-muted-foreground">
             Собери прогноз, соревнуйся с друзьями и сравнивай очки после финиша.
             {predictionState.race ? ` Старт гонки: ${predictionState.race.startsAt}.` : ""}
@@ -283,7 +284,7 @@ function PredictionModule({
             <h2 className="font-display text-lg font-bold leading-tight">Фэнтези-пики</h2>
             <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
               {predictionState.race
-                ? `Два дедлайна: квалификация и старт гонки`
+                ? "Делай прогноз на квалификацию и гонку"
                 : "Расписание появится после синхронизации"}
             </p>
           </div>
@@ -292,10 +293,10 @@ function PredictionModule({
       </div>
 
       {predictionState.race && predictionState.drivers.length ? (
-        <div className="grid gap-4 p-4 sm:gap-5 sm:p-5">
+        <div className="grid">
           <form
             action={saveFantasyPrediction}
-            className="rounded-lg border border-border/80 bg-background/25 p-4 sm:p-5"
+            className="p-4 sm:p-5"
           >
             <input name="raceId" type="hidden" value={predictionState.race.id} />
             <input name="predictionScope" type="hidden" value="qualification" />
@@ -333,7 +334,7 @@ function PredictionModule({
 
           <form
             action={saveFantasyPrediction}
-            className="rounded-lg border border-border/80 bg-muted/15 p-4 sm:p-5"
+            className="border-t border-border/80 p-4 sm:p-5"
           >
             <input name="raceId" type="hidden" value={predictionState.race.id} />
             <input name="predictionScope" type="hidden" value="race" />
@@ -353,7 +354,7 @@ function PredictionModule({
                   startsAtIso={predictionState.race.raceStartsAtIso}
                 />
               }
-              description="Спецпики и топ-10 можно править до старта гонки."
+              description="Топ-10 гонки и другие прогнозы можно править до старта гонки."
               eyebrow="Гонка"
               icon={Flag}
               title="Гоночный прогноз"
@@ -862,15 +863,15 @@ function buildPredictionFields(
 ): PredictionField[] {
   return [
     {
-      helper: "Прогноз на квалификацию",
+      helper: "Выберите пилота",
       label: "Поул-позиция (квалификация)",
       name: "poleDriverId",
-      short: "Поул · квалификация",
+      short: "Pole position",
       locked: race?.poleLocked,
       value: current?.poleDriverId,
     },
     {
-      helper: "Выбери пилота",
+      helper: "Выберите пилота",
       label: "Лучший круг",
       name: "fastestLapDriverId",
       short: "Fastest lap",
@@ -879,7 +880,7 @@ function buildPredictionFields(
     },
     {
       allowNoDnf: true,
-      helper: "Выбери пилота",
+      helper: "Выберите пилота",
       label: "Первый сход",
       name: "dnfDriverId",
       short: "DNF",
@@ -895,7 +896,7 @@ function buildTeamPredictionFields(
 ): TeamPredictionField[] {
   return [
     {
-      helper: "Выбери команду",
+      helper: "Выберите команду",
       label: "Команда, которая наберет больше всего очков за этап",
       name: "topScoringTeamId",
       short: "Top team",
@@ -903,7 +904,7 @@ function buildTeamPredictionFields(
       value: current?.topScoringTeamId,
     },
     {
-      helper: "Выбери команду",
+      helper: "Выберите команду",
       label: "Команда с самым быстрым пит-стопом",
       name: "fastestPitStopTeamId",
       short: "Pit stop",
