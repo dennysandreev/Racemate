@@ -63,7 +63,10 @@ export default async function RaceCalendarPage({
     getCircuitStatsForRace(seasonYear, raceRound),
     getRaceReplaySummaryByRaceId(race.id),
   ]);
-  const selectedSession = sessions.find((session) => session.id === query.session) ?? sessions[0];
+  const defaultSession = race.status === "Завершен"
+    ? sessions.find((session) => session.type === "race" || session.name.toLowerCase().includes("гонка")) ?? sessions[0]
+    : sessions[0];
+  const selectedSession = sessions.find((session) => session.id === query.session) ?? defaultSession;
   const results = await getSessionResults(selectedSession?.id);
   const selectedSessionStatus = results.length ? "Завершена" : selectedSession?.status;
   const sessionStats = selectedSession ? getSessionStats(selectedSession, results) : [];

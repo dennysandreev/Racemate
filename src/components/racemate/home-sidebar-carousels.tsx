@@ -100,7 +100,9 @@ export function HomeStandingsCarousel({ slides }: { slides: HomeStandingSlide[] 
         <div
           className="home-carousel-slide divide-y divide-border"
           data-direction={carousel.direction}
+          data-dragging={carousel.isDragging || undefined}
           key={`${slide.id}-${carousel.transitionKey}`}
+          style={carousel.slideStyle}
         >
           {slide.rows.map((row) => (
             <div
@@ -178,7 +180,9 @@ function MarketCarousel({ slides }: { slides: HomeMarketSlide[] }) {
         <div
           className="home-carousel-slide grid gap-4"
           data-direction={carousel.direction}
+          data-dragging={carousel.isDragging || undefined}
           key={`${slide.id}-${carousel.transitionKey}`}
+          style={carousel.slideStyle}
         >
           {slide.odds ? (
             <>
@@ -303,7 +307,9 @@ function PollCarousel({ polls }: { polls: PollSummary[] }) {
           <div
             className="home-carousel-slide grid min-h-0 grid-rows-[auto_auto_1fr_auto] gap-3 overflow-y-auto overscroll-contain pr-1 [scrollbar-width:thin]"
             data-direction={carousel.direction}
+            data-dragging={carousel.isDragging || undefined}
             key={`${poll.id ?? poll.question}-${carousel.transitionKey}`}
+            style={carousel.slideStyle}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <Badge variant={pollKindTone(poll.kind)}>{pollKindLabel(poll.kind)}</Badge>
@@ -462,6 +468,9 @@ function CarouselCounter({ activeIndex, length }: { activeIndex: number; length:
 function useCarousel(length: number, intervalMs: number) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState<Direction>("next");
+  const [dragOffsetX, setDragOffsetX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDragSettling, setIsDragSettling] = useState(false);
   const [isTemporarilyPaused, setIsTemporarilyPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [transitionKey, setTransitionKey] = useState(0);
@@ -472,6 +481,7 @@ function useCarousel(length: number, intervalMs: number) {
     startX: number;
     startY: number;
   } | null>(null);
+  const dragSettleTimerRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
 
   const move = useCallback((step: 1 | -1) => {
@@ -498,6 +508,12 @@ function useCarousel(length: number, intervalMs: number) {
     return () => window.clearTimeout(timer);
   }, [activeIndex, intervalMs, isTemporarilyPaused, length, next, reduceMotion]);
 
+  useEffect(() => () => {
+    if (dragSettleTimerRef.current !== null) {
+      window.clearTimeout(dragSettleTimerRef.current);
+    }
+  }, []);
+
   const finishDrag = useCallback((event: React.PointerEvent<HTMLElement>, cancelled = false) => {
     const drag = dragRef.current;
     dragRef.current = null;
@@ -510,23 +526,49 @@ function useCarousel(length: number, intervalMs: number) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
-    const isHorizontalSwipe = Math.abs(drag.deltaX) >= 48 && Math.abs(drag.deltaX) > Math.abs(drag.deltaY) * 1.2;
-    if (!cancelled && isHorizontalSwipe) {
+    const width = event.currentTarget.getBoundingClientRect().width;
+    const swipeThreshold = Math.min(96, Math.max(48, width * 0.14));
+    const isHorizontalSwipe = Math.abs(drag.deltaX) >= swipeThreshold && Math.abs(drag.deltaX) > Math.abs(drag.deltaY) * 1.2;
+    const didDrag = Math.abs(drag.deltaX) > 8 && Math.abs(drag.deltaX) > Math.abs(drag.deltaY);
+
+    setIsDragging(false);
+
+    if (didDrag) {
       suppressClickRef.current = true;
-      if (drag.deltaX < 0) {
-        next();
-      } else {
-        previous();
-      }
+    }
+
+    if (!cancelled && isHorizontalSwipe) {
+      setIsDragSettling(true);
+      setDragOffsetX(drag.deltaX < 0 ? -width * 1.04 : width * 1.04);
+      dragSettleTimerRef.current = window.setTimeout(() => {
+        if (drag.deltaX < 0) {
+          next();
+        } else {
+          previous();
+        }
+        setDragOffsetX(0);
+        setIsDragSettling(false);
+        dragSettleTimerRef.current = null;
+      }, reduceMotion ? 0 : 210);
+    } else {
+      setIsDragSettling(Math.abs(dragOffsetX) > 0);
+      setDragOffsetX(0);
+      dragSettleTimerRef.current = window.setTimeout(() => {
+        setIsDragSettling(false);
+        dragSettleTimerRef.current = null;
+      }, reduceMotion ? 0 : 180);
+    }
+
+    if (didDrag) {
       window.setTimeout(() => {
         suppressClickRef.current = false;
-      }, 0);
+      }, 260);
     }
 
     if (event.pointerType !== "mouse") {
       setIsTemporarilyPaused(false);
     }
-  }, [next, previous]);
+  }, [dragOffsetX, next, previous, reduceMotion]);
 
   const dragProps = {
     onClickCapture: (event: React.MouseEvent<HTMLElement>) => {
@@ -538,6 +580,9 @@ function useCarousel(length: number, intervalMs: number) {
     onPointerCancel: (event: React.PointerEvent<HTMLElement>) => finishDrag(event, true),
     onPointerDown: (event: React.PointerEvent<HTMLElement>) => {
       if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) {
+        return;
+      }
+      if (isDragSettling) {
         return;
       }
       if ((event.target as HTMLElement).closest("[data-carousel-control]")) {
@@ -552,6 +597,7 @@ function useCarousel(length: number, intervalMs: number) {
         startY: event.clientY,
       };
       event.currentTarget.setPointerCapture(event.pointerId);
+      setIsDragging(true);
       setIsTemporarilyPaused(true);
     },
     onPointerMove: (event: React.PointerEvent<HTMLElement>) => {
@@ -563,6 +609,8 @@ function useCarousel(length: number, intervalMs: number) {
       drag.deltaX = event.clientX - drag.startX;
       drag.deltaY = event.clientY - drag.startY;
       if (Math.abs(drag.deltaX) > 8 && Math.abs(drag.deltaX) > Math.abs(drag.deltaY)) {
+        const maxOffset = event.currentTarget.getBoundingClientRect().width * 0.72;
+        setDragOffsetX(Math.max(-maxOffset, Math.min(maxOffset, drag.deltaX)));
         event.preventDefault();
       }
     },
@@ -573,6 +621,7 @@ function useCarousel(length: number, intervalMs: number) {
     activeIndex,
     dragProps,
     direction,
+    isDragging,
     next,
     onBlur: (event: React.FocusEvent<HTMLElement>) => {
       if (!event.currentTarget.contains(event.relatedTarget)) {
@@ -583,6 +632,15 @@ function useCarousel(length: number, intervalMs: number) {
     pauseTemporarily: () => setIsTemporarilyPaused(true),
     previous,
     resumeTemporarily: () => setIsTemporarilyPaused(false),
+    slideStyle: {
+      opacity: dragOffsetX ? Math.max(0.72, 1 - Math.abs(dragOffsetX) / 1_500) : 1,
+      transform: `perspective(72rem) translate3d(${dragOffsetX}px, 0, 0) rotateY(${Math.max(-5, Math.min(5, dragOffsetX / 55))}deg)`,
+      transformOrigin: dragOffsetX < 0 ? "right center" : "left center",
+      transition: isDragSettling && !reduceMotion
+        ? "transform 210ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease-out"
+        : "none",
+      willChange: isDragging || isDragSettling ? "transform, opacity" : undefined,
+    },
     transitionKey,
   };
 }

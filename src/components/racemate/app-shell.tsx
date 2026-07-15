@@ -14,6 +14,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { ActiveNavigationLink } from "@/components/racemate/active-navigation-link";
+import { RaceMateLogo } from "@/components/racemate/racemate-logo";
 import { SidebarSessionStatus } from "@/components/racemate/sidebar-session-status";
 import { SiteFooter } from "@/components/racemate/site-footer";
 import { ThemeToggle } from "@/components/racemate/theme-toggle";
@@ -45,21 +46,12 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh">
       <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/82 px-4 backdrop-blur-xl shadow-[0_2px_18px_rgb(225_6_0_/_0.12)] sm:px-6 lg:px-8 xl:hidden">
         <Link
-          className="group flex items-center gap-3 rounded-md pr-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="RaceMate, на главную"
+          className="group flex items-center rounded-md pr-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           href="/"
           prefetch={false}
         >
-          <span className="flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-[0_0_24px_rgb(225_6_0_/_0.28)] transition-transform group-hover:scale-105 sm:size-11">
-            <Flag aria-hidden="true" data-icon="inline-start" />
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="font-display text-xl font-extrabold tracking-[-0.04em] sm:text-2xl lg:text-[1.7rem]">
-              RaceMate
-            </span>
-            <span className="font-telemetry mt-1 hidden text-[0.58rem] font-bold uppercase tracking-[0.22em] text-muted-foreground sm:block">
-              гоночный центр
-            </span>
-          </span>
+          <RaceMateLogo />
         </Link>
 
         <details className="group relative xl:hidden">
@@ -95,21 +87,12 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="fixed bottom-0 left-0 top-0 z-30 hidden w-64 flex-col border-r border-border bg-background/72 py-6 backdrop-blur-xl xl:flex">
         <div className="px-6 pb-5">
           <Link
-            className="group flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="RaceMate, на главную"
+            className="group flex items-center rounded-md p-2 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             href="/"
             prefetch={false}
           >
-            <span className="flex size-11 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-[0_0_24px_rgb(225_6_0_/_0.28)] transition-transform group-hover:scale-105">
-              <Flag aria-hidden="true" data-icon="inline-start" />
-            </span>
-            <span className="flex min-w-0 flex-col leading-none">
-              <span className="font-display truncate text-[1.7rem] font-extrabold tracking-[-0.04em]">
-                RaceMate
-              </span>
-              <span className="font-telemetry mt-1 text-[0.58rem] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-                гоночный центр
-              </span>
-            </span>
+            <RaceMateLogo />
           </Link>
         </div>
         <div className="px-6 pb-6">

@@ -193,16 +193,16 @@ function CurrentRaceCard({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgb(225_6_0_/_0.18),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.05),transparent_38%)]" />
       <div className="relative grid gap-4 p-4 sm:p-5">
         <div className="min-w-0">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="mb-3 flex items-center justify-between gap-2">
             <p className="font-telemetry flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
               <Gauge aria-hidden="true" data-icon="inline-start" />
               Следующий этап
             </p>
-            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
               <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
                 {nextSession.status}
               </Badge>
-              <Badge variant="outline">Сезон 2026</Badge>
+              <Badge className="hidden sm:inline-flex" variant="outline">Сезон 2026</Badge>
             </div>
           </div>
           <h1 className="font-display max-w-4xl text-balance text-2xl font-extrabold leading-tight tracking-[-0.04em] sm:text-3xl lg:text-4xl">
@@ -220,10 +220,10 @@ function CurrentRaceCard({
         <HomeSessionStrip activeSessionName={nextSession.session} sessions={sessions} />
 
         <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,15rem)]">
-          <div className="h-[14rem] min-w-0 max-w-full overflow-hidden rounded-lg border border-border sm:h-[15.5rem] lg:h-[16.5rem]">
-            <TrackMap compact fill circuit={nextSession.circuit} label={nextSession.race} layout={currentRace?.layout} />
+          <div className="h-[14rem] min-w-0 max-w-full overflow-hidden sm:h-[15.5rem] lg:h-[16.5rem]">
+            <TrackMap compact fill circuit={nextSession.circuit} label={nextSession.race} layout={currentRace?.layout} unframed />
           </div>
-          <div className="grid min-w-0 content-between gap-3 rounded-lg border border-border bg-card/75 p-4">
+          <div className="grid min-w-0 content-between gap-3 px-1 py-2 lg:py-3">
             <div>
               <p className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
                 {currentRace?.country ?? "Гран-при"}

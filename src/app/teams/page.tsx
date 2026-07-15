@@ -55,15 +55,18 @@ export default async function TeamsPage() {
                 href={`/teams/${team.slug}`}
                 key={team.id}
                 prefetch={false}
+                style={{
+                  backgroundImage: `radial-gradient(circle at 58% 35%, color-mix(in srgb, ${team.color} 22%, transparent), transparent 56%)`,
+                }}
               >
                 <Image
                   alt={`Болид ${team.shortName} сезона ${team.season}`}
-                  className="object-cover transition-transform duration-300 group-hover:scale-[1.015]"
+                  className="object-contain object-[center_42%] p-3 pb-20 pt-8 drop-shadow-[0_10px_10px_rgb(0_0_0_/_0.28)] transition-transform duration-300 group-hover:scale-[1.02] sm:p-4 sm:pb-20 sm:pt-8"
                   fill
                   sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
                   src={team.carImageUrl}
                 />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_25%,rgb(0_0_0_/_0.9)_100%)]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/10 to-background" />
                 <div
                   aria-hidden="true"
                   className="absolute inset-x-0 bottom-0 h-1"
@@ -81,19 +84,19 @@ export default async function TeamsPage() {
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-5">
                   <div className="min-w-0">
                     {team.country ? (
-                      <span className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold text-white/70">
+                      <span className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                         <RaceFlag countryCode={team.countryCode} label={team.country} />
                         {team.country}
                       </span>
                     ) : null}
-                    <h2 className="truncate font-display text-xl font-extrabold text-white sm:text-2xl">
+                    <h2 className="truncate font-display text-xl font-extrabold text-foreground sm:text-2xl">
                       {team.shortName}
                     </h2>
-                    <p className="mt-2 font-telemetry text-sm font-bold text-white/75">
+                    <p className="mt-2 font-telemetry text-sm font-bold text-muted-foreground">
                       P{team.championshipPosition ?? "—"} · {formatPoints(team.points)} очк. · {team.wins} побед
                     </p>
                   </div>
-                  <span className="grid size-9 shrink-0 place-items-center rounded-full border border-white/20 bg-black/45 text-white transition-colors group-hover:bg-white group-hover:text-black">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full border border-border bg-background/80 text-foreground transition-colors group-hover:bg-foreground group-hover:text-background">
                     <ChevronRight aria-hidden="true" className="size-4" />
                   </span>
                 </div>

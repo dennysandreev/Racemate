@@ -186,6 +186,7 @@ export type DriverProfileNewsItem = {
 export type DriverProfileSocialPost = {
   platform: "x" | "reddit" | "telegram";
   author: string;
+  source: string;
   title: string;
   href: string;
   publishedAt: string;
@@ -325,6 +326,7 @@ export type TeamProfile = TeamProfileSummary & {
     bestResult: number | null;
   };
   news: NewsItem[];
+  socialPosts: DriverProfileSocialPost[];
 };
 
 export type TeamVisual = {
@@ -1197,12 +1199,14 @@ export type PredictionShareTeamPick = {
 };
 
 export type PublicPredictionShare = {
+  authorUserId: string;
   id: string;
   displayName: string;
   leagueName: string | null;
   ogImageUrl: string;
   publicUrl: string;
   race: {
+    id: string;
     name: string;
     round: number | null;
     season: number;
@@ -1223,6 +1227,25 @@ export type PublicPredictionShare = {
     pole: PredictionShareDriverPick | null;
     topScoringTeam: PredictionShareTeamPick | null;
     top10: PredictionShareDriverPick[];
+  };
+};
+
+export type PredictionQualificationOutcome =
+  | "correct"
+  | "incorrect"
+  | "not_submitted"
+  | "pending";
+
+export type PublicPredictionSharePageContext = {
+  author: {
+    globalRank: number | null;
+    scoredPredictionCount: number;
+    totalScore: number;
+  };
+  qualificationOutcome: PredictionQualificationOutcome;
+  raceResult: {
+    finished: boolean;
+    points: number | null;
   };
 };
 

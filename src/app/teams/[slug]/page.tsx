@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Gauge,
   Newspaper,
+  Radio,
   Trophy,
   Users,
 } from "lucide-react";
@@ -67,7 +68,10 @@ export default async function TeamProfilePage({ params }: TeamPageProps) {
           <TeamSeasonStats team={team} />
         </section>
         <TeamResultsTable drivers={team.drivers} results={team.results} />
-        <TeamNews team={team} />
+        <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
+          <TeamNews team={team} />
+          <TeamSocial team={team} />
+        </section>
       </div>
     </AppShell>
   );
@@ -75,23 +79,30 @@ export default async function TeamProfilePage({ params }: TeamPageProps) {
 
 function TeamHero({ team }: { team: TeamProfile }) {
   return (
-    <section className="relative min-h-[31rem] overflow-hidden rounded-xl border border-border bg-black sm:min-h-[35rem]">
-      <Image
-        alt={`Болид ${team.shortName} сезона ${team.season}`}
-        className="object-cover object-center"
-        fill
-        priority
-        sizes="(min-width: 1280px) 75rem, 100vw"
-        src={team.carImageUrl}
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgb(0_0_0_/_0.92)_0%,rgb(0_0_0_/_0.55)_43%,transparent_72%),linear-gradient(0deg,rgb(0_0_0_/_0.82)_0%,transparent_48%)]" />
+    <section
+      className="relative min-h-[31rem] overflow-hidden rounded-xl border border-border bg-card sm:min-h-[35rem]"
+      style={{
+        backgroundImage: `radial-gradient(circle at 68% 38%, color-mix(in srgb, ${team.color} 24%, transparent), transparent 42%)`,
+      }}
+    >
+      <div className="pointer-events-none absolute inset-x-3 top-16 h-[15rem] sm:inset-x-8 sm:top-14 sm:h-[22rem]">
+        <Image
+          alt={`Болид ${team.shortName} сезона ${team.season}`}
+          className="object-contain object-center drop-shadow-[0_16px_14px_rgb(0_0_0_/_0.3)]"
+          fill
+          priority
+          sizes="(min-width: 1280px) 75rem, 100vw"
+          src={team.carImageUrl}
+        />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-transparent" />
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-1"
         style={{ backgroundColor: team.color }}
       />
 
-      <div className="relative flex min-h-[31rem] flex-col justify-between p-5 text-white sm:min-h-[35rem] sm:p-7">
+      <div className="relative flex min-h-[31rem] flex-col justify-between p-5 text-foreground sm:min-h-[35rem] sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Button asChild size="sm" variant="secondary">
             <Link href="/teams" prefetch={false}>
@@ -99,29 +110,35 @@ function TeamHero({ team }: { team: TeamProfile }) {
               Все команды
             </Link>
           </Button>
-          <Badge className="border-white/20 bg-black/45 text-white" variant="outline">
+          <Badge className="border-border bg-background/75 text-foreground backdrop-blur-sm" variant="outline">
             Сезон {team.season}
           </Badge>
         </div>
 
         <div className="max-w-2xl">
-          <div className="mb-4 flex items-center">
+          <div className="mb-4 hidden items-center sm:flex">
             <TeamLogo code={team.code} color={team.color} logo={team.logo} name={team.name} size="md" />
           </div>
           <h1 className="text-balance font-display text-4xl font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">
             {team.shortName}
           </h1>
-          {team.country ? (
-            <p className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-white/75 sm:text-base">
-              <RaceFlag countryCode={team.countryCode} label={team.country} />
-              {team.country}
-            </p>
-          ) : null}
+          <div className="mt-3 flex min-h-10 items-center justify-between gap-4">
+            {team.country ? (
+              <p className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold text-muted-foreground sm:text-base">
+                <RaceFlag countryCode={team.countryCode} label={team.country} />
+                <span className="truncate">{team.country}</span>
+              </p>
+            ) : <span />}
+            <span className="shrink-0 sm:hidden">
+              <TeamLogo code={team.code} color={team.color} logo={team.logo} name={team.name} size="md" />
+            </span>
+          </div>
 
-          <div className="mt-6 grid grid-cols-3 overflow-hidden rounded-md border border-white/15 bg-black/45 backdrop-blur-sm">
+          <div className="mt-6 grid grid-cols-2 overflow-hidden rounded-md border border-border bg-background/80 backdrop-blur-sm sm:grid-cols-4">
             <HeroMetric label="Место" value={formatPosition(team.stats.championshipPosition)} />
             <HeroMetric label="Очки" value={formatStat(team.stats.points)} />
             <HeroMetric label="Победы" value={formatStat(team.stats.wins)} />
+            <HeroMetric label="Подиумы" value={formatStat(team.stats.podiums)} />
           </div>
         </div>
       </div>
@@ -131,8 +148,8 @@ function TeamHero({ team }: { team: TeamProfile }) {
 
 function HeroMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid min-h-20 content-center border-l border-white/15 px-3 first:border-l-0 sm:min-h-24 sm:px-5">
-      <p className="text-[0.65rem] font-bold uppercase text-white/55">{label}</p>
+    <div className="grid min-h-20 content-center border-l border-border px-3 first:border-l-0 sm:min-h-24 sm:px-5">
+      <p className="text-[0.65rem] font-bold uppercase text-muted-foreground">{label}</p>
       <p className="mt-1 font-telemetry text-2xl font-extrabold sm:text-3xl">{value}</p>
     </div>
   );
@@ -194,14 +211,14 @@ function TeamForm({ team }: { team: TeamProfile }) {
     <StitchPanel className="min-w-0">
       <StitchPanelHeader icon={Gauge} title="Последние 5 этапов" />
       <div className="grid gap-4 p-5">
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-5 gap-2">
           {team.form.labels.length ? team.form.labels.map((label, index) => (
             <span
               className={cn(
-                "grid min-h-10 min-w-10 place-items-center rounded border px-2 font-telemetry text-xs font-extrabold",
-                label === "P1" && "border-[#f4c95d]/60 bg-[#f4c95d]/10 text-[#f4c95d]",
-                label !== "P1" && label !== "DNF" && "border-border bg-background/35",
-                label === "DNF" && "border-primary/50 bg-primary/10 text-primary",
+                "grid min-h-10 min-w-0 place-items-center whitespace-nowrap rounded border px-1 font-telemetry text-[0.62rem] font-extrabold sm:text-[0.68rem]",
+                getTeamFormTone(label) === "winner" && "border-[#f4c95d]/60 bg-[#f4c95d]/10 text-[#f4c95d]",
+                getTeamFormTone(label) === "classified" && "border-border bg-background/35",
+                getTeamFormTone(label) === "dnf" && "border-primary/50 bg-primary/10 text-primary",
               )}
               key={`${label}-${index}`}
             >
@@ -241,7 +258,7 @@ function TeamSeasonStats({ team }: { team: TeamProfile }) {
   ];
 
   return (
-    <StitchPanel className="h-full min-w-0 overflow-hidden">
+    <StitchPanel className="grid h-full min-w-0 grid-rows-[auto_1fr_auto] overflow-hidden">
       <StitchPanelHeader icon={Trophy} title={`Статистика сезона ${team.season}`} />
       <div className="grid grid-cols-2 gap-3 p-4">
         {stats.map(([label, value]) => (
@@ -380,7 +397,7 @@ function TeamResultsTable({
 
 function TeamNews({ team }: { team: TeamProfile }) {
   return (
-    <StitchPanel className="min-w-0 overflow-hidden">
+    <StitchPanel className="grid h-full min-w-0 grid-rows-[auto_1fr_auto] overflow-hidden">
       <StitchPanelHeader icon={Newspaper} title={`Новости ${team.shortName}`} />
       {team.news.length ? (
         <div className="divide-y divide-border">
@@ -413,6 +430,48 @@ function TeamNews({ team }: { team: TeamProfile }) {
   );
 }
 
+function TeamSocial({ team }: { team: TeamProfile }) {
+  return (
+    <StitchPanel className="grid h-full min-w-0 grid-rows-[auto_1fr_auto] overflow-hidden">
+      <StitchPanelHeader icon={Radio} title="Лента соцсетей" />
+      <div className="divide-y divide-border">
+        {team.socialPosts.length ? team.socialPosts.slice(0, 5).map((post) => (
+          <a
+            className="group block p-4 transition-colors hover:bg-accent/35"
+            href={post.href}
+            key={`${post.platform}-${post.href}`}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <Badge variant="outline">{post.source}</Badge>
+              <span className="shrink-0 text-xs text-muted-foreground">{post.publishedAt}</span>
+            </div>
+            <p className="mt-2 line-clamp-3 text-sm font-semibold leading-6 group-hover:text-primary">
+              {post.title}
+            </p>
+          </a>
+        )) : (
+          <div className="p-6 text-center">
+            <p className="font-bold">Публикаций пока нет</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Новые сообщения команды появятся после обработки ленты.
+            </p>
+          </div>
+        )}
+      </div>
+      <div className="mt-auto border-t border-border p-4">
+        <Button asChild className="w-full" variant="secondary">
+          <Link href={`/social?team=team-${team.code.toLowerCase()}`} prefetch={false}>
+            Все публикации команды
+            <ChevronRight aria-hidden="true" data-icon="inline-end" />
+          </Link>
+        </Button>
+      </div>
+    </StitchPanel>
+  );
+}
+
 function formatPosition(value: number | null) {
   return value === null ? "—" : `P${value}`;
 }
@@ -431,6 +490,16 @@ function formatPositionDelta(value: number | null) {
   }
 
   return value > 0 ? `+${value}` : String(value);
+}
+
+function getTeamFormTone(label: string) {
+  const positions = [...label.matchAll(/P(\d+)/g)].map((match) => Number(match[1]));
+
+  if (positions.length && Math.min(...positions) === 1) {
+    return "winner";
+  }
+
+  return label.includes("DNF") && !positions.length ? "dnf" : "classified";
 }
 
 function getTeamResultDriverRows(result: TeamRaceResultRow, drivers: TeamProfile["drivers"]) {

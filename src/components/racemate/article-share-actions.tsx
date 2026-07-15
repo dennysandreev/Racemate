@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Share2 } from "lucide-react";
+import { Check, Copy, Send, Share2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -54,9 +54,18 @@ export function ArticleShareActions({ title }: ArticleShareActionsProps) {
   }
 
   return (
-    <div className="grid gap-2 border-t stitch-divider p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={share} size="sm" type="button" variant="secondary">
+    <div className="grid gap-3 border-t stitch-divider p-4">
+      <div className="flex items-start gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-md border border-primary/25 bg-primary/10 text-primary">
+          <Send aria-hidden="true" className="size-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="font-display text-sm font-bold">Поделиться материалом</p>
+          <p className="mt-0.5 text-xs leading-5 text-muted-foreground">Отправь ссылку или выбери соцсеть.</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+        <Button className="w-full" onClick={share} size="sm" type="button" variant="secondary">
           <Share2 aria-hidden="true" className="size-4" />
           Поделиться
         </Button>
@@ -71,13 +80,13 @@ export function ArticleShareActions({ title }: ArticleShareActionsProps) {
           {copied ? <Check aria-hidden="true" className="size-4 text-success" /> : <Copy aria-hidden="true" className="size-4" />}
         </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {[
           { label: "Telegram", platform: "telegram" as const },
           { label: "VK", platform: "vk" as const },
           { label: "X", platform: "x" as const },
         ].map((item) => (
-          <Button key={item.label} onClick={() => openSocialShare(item.platform)} size="sm" type="button" variant="outline">
+          <Button className="w-full px-2" key={item.label} onClick={() => openSocialShare(item.platform)} size="sm" type="button" variant="outline">
             {item.label}
           </Button>
         ))}

@@ -1,5 +1,6 @@
-import { Flag, TimerReset } from "lucide-react";
+import { TimerReset } from "lucide-react";
 
+import { RaceMateMark } from "@/components/racemate/racemate-logo";
 import { cn } from "@/lib/utils";
 
 type NavigationLoadingPlateProps = {
@@ -20,8 +21,8 @@ export function NavigationLoadingPlate({ className, label }: NavigationLoadingPl
       <div className="relative grid gap-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-md bg-primary text-primary-foreground shadow-[0_0_30px_rgb(225_6_0_/_0.32)]">
-              <Flag aria-hidden="true" className="size-5" />
+            <span className="grid size-11 place-items-center">
+              <RaceMateMark className="h-7 w-11" />
             </span>
             <div>
               <p className="font-display text-lg font-extrabold leading-none tracking-[-0.03em]">

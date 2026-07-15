@@ -21,7 +21,7 @@ export function TeamLogo({
     <span
       aria-hidden="true"
       className={cn(
-        "inline-grid shrink-0 place-items-center overflow-hidden border border-white/10 bg-[oklch(0.16_0.014_250)] text-[0.58rem] font-semibold text-foreground shadow-sm",
+        "inline-grid shrink-0 place-items-center overflow-hidden border border-white/15 bg-[oklch(0.25_0.014_250)] text-[0.58rem] font-semibold text-white shadow-sm",
         logo
           ? size === "sm"
             ? "h-8 w-24 rounded-md px-2 py-1.5"

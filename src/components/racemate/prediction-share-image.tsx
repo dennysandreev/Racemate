@@ -10,370 +10,493 @@ type PredictionShareImageProps = {
   variant: "og" | "story";
 };
 
-const baseFont = "Arial, Helvetica, sans-serif";
-const monoFont = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
-const pickLabelColor = "#fff";
+type ShareHero = {
+  accent: string;
+  driver: PredictionShareDriverPick | null;
+  team: PredictionShareTeamPick | null;
+};
+
+const colors = {
+  background: "#090909",
+  border: "#2a2a2c",
+  muted: "#aaa6a3",
+  primary: "#e10600",
+  surface: "#121214",
+  surfaceRaised: "#19191c",
+  text: "#f5f4f2",
+};
+
+const sansFont = "Geist, Arial, Helvetica, sans-serif";
+const monoFont = "Geist Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
 
 export function PredictionShareImage({ share, variant }: PredictionShareImageProps) {
-  const isStory = variant === "story";
+  const hero = getShareHero(share);
+
+  return variant === "story"
+    ? <PredictionShareFeedImage hero={hero} share={share} />
+    : <PredictionShareOgImage hero={hero} share={share} />;
+}
+
+function PredictionShareFeedImage({
+  hero,
+  share,
+}: {
+  hero: ShareHero;
+  share: PublicPredictionShare;
+}) {
   const isQualification = share.scope === "qualification";
-  const isCompressedQualificationCard = isStory && isQualification;
-  const width = isStory ? 1080 : 1200;
-  const height = isStory ? 1350 : 630;
-  const heroDriver = share.heroDriver ?? (isQualification ? share.picks.pole : share.picks.top10[0] ?? null);
-  const heroTeam = share.heroTeam ?? share.picks.topScoringTeam ?? share.picks.fastestPitStopTeam;
-  const heroColor = normalizeColor(share.heroColor || heroDriver?.team?.color || heroTeam?.color || "#e10600");
-  const topDrivers = isStory ? share.picks.top10 : share.picks.top10.slice(0, 3);
 
   return (
     <div
       style={{
-        background: `radial-gradient(circle at 78% 34%, ${withAlpha(heroColor, 0.36)}, transparent ${isStory ? 430 : 320}px), linear-gradient(135deg, #070707 0%, #101010 54%, #190807 100%)`,
-        color: "#f8f5f2",
+        background: colors.background,
+        color: colors.text,
         display: "flex",
-        fontFamily: baseFont,
-        height,
+        flexDirection: "column",
+        fontFamily: sansFont,
+        height: 1350,
         overflow: "hidden",
-        padding: isStory ? 56 : 44,
         position: "relative",
-        width,
+        width: 1080,
       }}
     >
+      <ShareHeader share={share} story />
+      <FeedHero hero={hero} share={share} showPick={!isQualification} />
+      {isQualification ? (
+        <QualificationBoard hero={hero} />
+      ) : (
+        <RacePredictionBoard hero={hero} share={share} />
+      )}
+      <AcquisitionFooter story />
+    </div>
+  );
+}
+
+function PredictionShareOgImage({
+  hero,
+  share,
+}: {
+  hero: ShareHero;
+  share: PublicPredictionShare;
+}) {
+  const isQualification = share.scope === "qualification";
+
+  return (
+    <div
+      style={{
+        background: colors.background,
+        color: colors.text,
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: sansFont,
+        height: 630,
+        overflow: "hidden",
+        position: "relative",
+        width: 1200,
+      }}
+    >
+      <ShareHeader share={share} story={false} />
       <div
         style={{
-          background: withAlpha(heroColor, 0.34),
           display: "flex",
-          height: isStory ? 980 : 520,
-          position: "absolute",
-          right: isStory ? -360 : -210,
-          top: isStory ? 120 : 44,
-          transform: "rotate(-18deg)",
-          width: isStory ? 620 : 360,
-        }}
-      />
-      <div
-        style={{
-          border: "1px solid rgba(255,255,255,0.13)",
-          display: "flex",
-          flexDirection: "column",
-          ...(isCompressedQualificationCard ? { flex: "none", height: 900, width: "100%" } : { flex: 1 }),
+          flex: 1,
           overflow: "hidden",
-          padding: isStory ? 44 : 34,
+          padding: "4px 48px 0",
           position: "relative",
         }}
       >
-        <Header scope={share.scope} story={isStory} />
-
-        <div style={{ display: "flex", flex: 1, gap: isStory ? 28 : 28, marginTop: isStory ? 42 : 28, minHeight: 0, position: "relative" }}>
-          <div
-            style={{
-              display: "flex",
-              flexBasis: isStory ? 660 : "auto",
-              flexDirection: "column",
-              flexGrow: isStory ? 0 : 1,
-              flexShrink: isStory ? 0 : 1,
-              minWidth: 0,
-              paddingRight: isStory ? 0 : 250,
-              width: isStory ? 660 : "auto",
-            }}
-          >
-            <span style={{ color: heroColor, fontFamily: monoFont, fontSize: isStory ? 21 : 16, fontWeight: 900, letterSpacing: 4 }}>
-              {share.race.season} {share.race.round ? `· Раунд ${share.race.round}` : ""}
-            </span>
-            <h1
-              style={{
-                fontSize: isStory ? 62 : 48,
-                fontWeight: 950,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.06,
-                margin: "14px 0 0",
-                maxWidth: isStory ? 610 : 610,
-              }}
-            >
-              {share.race.name}
-            </h1>
-            <p style={{ color: "#d8d0cc", fontSize: isStory ? 25 : 20, fontWeight: 750, lineHeight: 1.18, margin: isStory ? "24px 0 0" : "16px 0 0" }}>
-              Прогноз от {share.displayName}
-              {share.leagueName ? ` · ${share.leagueName}` : ""}
-            </p>
-
-            {isQualification ? (
-              <QualificationFocus driver={share.picks.pole} heroColor={heroColor} story={isStory} />
-            ) : (
-              <RacePicks
-                heroColor={heroColor}
-                picks={{
-                  dnf: share.picks.dnfKind === "none" ? "Без DNF" : share.picks.dnf?.name ?? "—",
-                  fastestLap: share.picks.fastestLap,
-                  fastestPitStopTeam: share.picks.fastestPitStopTeam,
-                  pole: share.picks.pole,
-                  topScoringTeam: share.picks.topScoringTeam,
-                  topDrivers,
-                }}
-                story={isStory}
-              />
-            )}
-          </div>
-
-          <HeroDriver driver={heroDriver} heroColor={heroColor} scope={share.scope} story={isStory} team={heroTeam} />
-        </div>
-
-        <Footer story={isStory} />
-      </div>
-    </div>
-  );
-}
-
-function Header({ scope, story }: { scope: PublicPredictionShare["scope"]; story: boolean }) {
-  return (
-    <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
-      <div style={{ alignItems: "center", display: "flex", gap: story ? 18 : 14 }}>
+        <HeroAccent accent={hero.accent} story={false} />
         <div
           style={{
-            alignItems: "center",
-            background: "#e10600",
-            borderRadius: story ? 12 : 9,
-            color: "#fff",
             display: "flex",
-            height: story ? 56 : 46,
-            justifyContent: "center",
-            width: story ? 56 : 46,
+            flexDirection: "column",
+            position: "relative",
+            width: 690,
           }}
         >
-          <div style={{ display: "flex", height: story ? 30 : 25, position: "relative", width: story ? 30 : 25 }}>
-            <div style={{ background: "#fff", borderRadius: 999, display: "flex", height: "100%", width: 4 }} />
-            <div
-              style={{
-                border: "3px solid #fff",
-                borderLeft: "0",
-                borderRadius: "0 9px 9px 0",
-                display: "flex",
-                height: story ? 18 : 15,
-                left: 4,
-                position: "absolute",
-                top: 1,
-                width: story ? 24 : 20,
-              }}
-            />
-          </div>
+          <RaceMeta story={false} />
+          <RaceTitle name={share.race.name} story={false} />
+          <AuthorLine share={share} story={false} />
+          <HeroPick
+            driver={hero.driver}
+            label={isQualification ? "Мой поул" : "Победитель"}
+            position={isQualification ? "POLE" : "P1"}
+            story={false}
+            team={hero.team}
+          />
+          {!isQualification ? <OgPodium picks={share.picks.top10.slice(1, 3)} /> : null}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-          <span style={{ fontSize: story ? 35 : 28, fontWeight: 950, letterSpacing: "-0.035em" }}>
-            RaceMate
-          </span>
-          <span style={{ color: "#b9b0ac", fontFamily: monoFont, fontSize: story ? 14 : 12, fontWeight: 850, letterSpacing: 3, marginTop: 8, textTransform: "uppercase" }}>
-            гоночный центр
-          </span>
-        </div>
+        <HeroPortrait hero={hero} story={false} />
       </div>
-      <span
-        style={{
-          border: "1px solid rgba(225,6,0,0.48)",
-          color: "#ff4d45",
-          fontFamily: monoFont,
-          fontSize: story ? 18 : 14,
-          fontWeight: 850,
-          letterSpacing: 2,
-          padding: story ? "10px 14px" : "8px 12px",
-          textTransform: "uppercase",
-        }}
-      >
-        {scope === "qualification" ? "квалификация" : "гонка"}
-      </span>
+      <AcquisitionFooter story={false} />
     </div>
   );
 }
 
-function QualificationFocus({
-  driver,
-  heroColor,
+function ShareHeader({
+  share,
   story,
 }: {
-  driver: PredictionShareDriverPick | null;
-  heroColor: string;
+  share: PublicPredictionShare;
   story: boolean;
 }) {
+  return (
+    <div
+      style={{
+        alignItems: "center",
+        display: "flex",
+        flexShrink: 0,
+        height: story ? 114 : 82,
+        justifyContent: "space-between",
+        padding: story ? "34px 56px 18px" : "24px 48px 12px",
+        position: "relative",
+      }}
+    >
+      <ShareLogo compact={!story} />
+      <div style={{ alignItems: "center", display: "flex", gap: story ? 18 : 14 }}>
+        <span
+          style={{
+            color: colors.muted,
+            fontFamily: monoFont,
+            fontSize: story ? 15 : 13,
+            fontWeight: 700,
+            letterSpacing: story ? 1.8 : 1.4,
+          }}
+        >
+          {formatRaceMeta(share)}
+        </span>
+        <span
+          style={{
+            background: colors.primary,
+            color: "#fff",
+            display: "flex",
+            fontFamily: monoFont,
+            fontSize: story ? 15 : 13,
+            fontWeight: 900,
+            letterSpacing: story ? 1.6 : 1.3,
+            padding: story ? "10px 13px" : "8px 11px",
+          }}
+        >
+          {share.scope === "qualification" ? "КВАЛИФИКАЦИЯ" : "ГОНКА"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ShareLogo({ compact }: { compact: boolean }) {
+  return (
+    <div style={{ alignItems: "center", display: "flex", gap: compact ? 12 : 15 }}>
+      <svg
+        aria-hidden="true"
+        height={compact ? 38 : 48}
+        viewBox="0 0 96 56"
+        width={compact ? 65 : 82}
+      >
+        <defs>
+          <mask id="racemate-share-mark-mask">
+            <rect fill="white" height="56" width="96" />
+            <path d="M39 36h8l-3 19Z" fill="black" />
+          </mask>
+        </defs>
+        <g fill={colors.primary} mask="url(#racemate-share-mark-mask)">
+          <path d="M6 10 16 0h29c12 0 20 7 20 18 0 12-8 19-20 19h-7l12 15-7 4-14-19h-3c-5 0-8 2-11 6L5 56H0l16-23c3-4 7-6 13-6h16c6 0 10-3 10-8.5S51 10 45 10Z" />
+          <path d="M44 56 86 0h10v56H86V17L54 56Z" />
+        </g>
+      </svg>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <span
+          style={{
+            fontSize: compact ? 27 : 35,
+            fontWeight: 900,
+            letterSpacing: "-0.035em",
+            lineHeight: 1,
+          }}
+        >
+          RaceMate
+        </span>
+        <span
+          style={{
+            color: colors.muted,
+            fontFamily: monoFont,
+            fontSize: compact ? 9 : 11,
+            fontWeight: 700,
+            letterSpacing: compact ? 1.6 : 2.1,
+            marginTop: compact ? 5 : 7,
+          }}
+        >
+          ГОНОЧНЫЙ ЦЕНТР
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function FeedHero({
+  hero,
+  share,
+  showPick,
+}: {
+  hero: ShareHero;
+  share: PublicPredictionShare;
+  showPick: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexShrink: 0,
+        height: 476,
+        overflow: "hidden",
+        padding: "20px 56px 0",
+        position: "relative",
+      }}
+    >
+      <HeroAccent accent={hero.accent} story />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+          width: 560,
+        }}
+      >
+        <RaceMeta story />
+        <RaceTitle name={share.race.name} story />
+        <AuthorLine share={share} story />
+        {showPick ? (
+          <HeroPick
+            driver={hero.driver}
+            label="Победитель"
+            position="P1"
+            story
+            team={hero.team}
+          />
+        ) : null}
+      </div>
+      <HeroPortrait hero={hero} story />
+    </div>
+  );
+}
+
+function RaceMeta({ story }: { story: boolean }) {
+  return (
+    <span
+      style={{
+        color: colors.primary,
+        display: "flex",
+        fontFamily: monoFont,
+        fontSize: story ? 16 : 14,
+        fontWeight: 900,
+        letterSpacing: story ? 2.4 : 1.8,
+      }}
+    >
+      МОЙ ПРОГНОЗ
+    </span>
+  );
+}
+
+function RaceTitle({ name, story }: { name: string; story: boolean }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        fontSize: getRaceTitleFontSize(name, story),
+        fontWeight: 900,
+        letterSpacing: "-0.04em",
+        lineHeight: 0.98,
+        marginTop: story ? 13 : 9,
+        maxHeight: story ? 118 : 102,
+        maxWidth: story ? 545 : 640,
+        overflow: "hidden",
+      }}
+    >
+      {truncateText(name, 56)}
+    </div>
+  );
+}
+
+function AuthorLine({
+  share,
+  story,
+}: {
+  share: PublicPredictionShare;
+  story: boolean;
+}) {
+  const author = truncateText(share.displayName, story ? 30 : 34);
+  const league = share.leagueName ? truncateText(share.leagueName, story ? 30 : 32) : null;
+
+  return (
+    <div
+      style={{
+        color: colors.muted,
+        display: "flex",
+        flexDirection: "column",
+        fontSize: story ? 20 : 16,
+        lineHeight: 1.2,
+        marginTop: story ? 17 : 12,
+      }}
+    >
+      <span style={{ display: "flex" }}>Прогноз от {author}</span>
+      {league ? (
+        <span style={{ display: "flex", fontSize: story ? 15 : 13, marginTop: 6 }}>
+          Лига «{league}»
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function HeroPick({
+  driver,
+  label,
+  position,
+  story,
+  team,
+}: {
+  driver: PredictionShareDriverPick | null;
+  label: string;
+  position: string;
+  story: boolean;
+  team: PredictionShareTeamPick | null;
+}) {
+  const name = getNameParts(driver?.name ?? "Не выбран");
+  const driverTeam = driver?.team?.name ?? team?.name ?? "Команда не выбрана";
+
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: story ? 8 : 7,
         marginTop: story ? 30 : 20,
-        maxWidth: story ? 450 : 380,
       }}
     >
-      <SectionTitle color={pickLabelColor}>Прогноз на стартовую решетку</SectionTitle>
-      <SharePickLine
-        color={driver?.team?.color ?? heroColor}
-        detail={driver?.team?.name ?? "Команда уточняется"}
-        label="Pole"
-        story={story}
-        value={driver?.name ?? "Выбор сохранится здесь"}
-      />
+      <span
+        style={{
+          color: colors.muted,
+          fontFamily: monoFont,
+          fontSize: story ? 14 : 12,
+          fontWeight: 700,
+          letterSpacing: story ? 2.1 : 1.7,
+        }}
+      >
+        {label.toUpperCase()}
+      </span>
+      <div style={{ alignItems: "flex-end", display: "flex", gap: story ? 20 : 16, marginTop: story ? 7 : 5 }}>
+        <span
+          style={{
+            color: colors.primary,
+            fontFamily: monoFont,
+            fontSize: story ? 82 : 58,
+            fontWeight: 900,
+            letterSpacing: "-0.06em",
+            lineHeight: 0.86,
+          }}
+        >
+          {position}
+        </span>
+        <div style={{ display: "flex", flexDirection: "column", paddingBottom: story ? 3 : 1 }}>
+          {name.first ? (
+            <span style={{ color: colors.muted, fontSize: story ? 21 : 16, lineHeight: 1 }}>
+              {name.first}
+            </span>
+          ) : null}
+          <span
+            style={{
+              fontSize: getHeroSurnameFontSize(name.last, story),
+              fontWeight: 900,
+              letterSpacing: "-0.035em",
+              lineHeight: 0.95,
+              marginTop: name.first ? 3 : 0,
+            }}
+          >
+            {name.last}
+          </span>
+        </div>
+      </div>
+      <span style={{ color: colors.muted, display: "flex", fontSize: story ? 17 : 14, marginTop: story ? 10 : 7 }}>
+        {truncateText(driverTeam, 30)}
+      </span>
     </div>
   );
 }
 
-function RacePicks({
-  heroColor,
-  picks,
-  story,
-}: {
-  heroColor: string;
-  picks: {
-    dnf: string;
-    fastestLap: PredictionShareDriverPick | null;
-    fastestPitStopTeam: PredictionShareTeamPick | null;
-    pole: PredictionShareDriverPick | null;
-    topDrivers: PredictionShareDriverPick[];
-    topScoringTeam: PredictionShareTeamPick | null;
-  };
-  story: boolean;
-}) {
+function HeroAccent({ accent, story }: { accent: string; story: boolean }) {
   return (
-    <div style={{ display: "flex", gap: story ? 18 : 16, marginTop: story ? 32 : 26 }}>
+    <>
       <div
         style={{
+          background: withAlpha(accent, story ? 0.18 : 0.2),
+          bottom: story ? -110 : -90,
           display: "flex",
-          flexBasis: story ? 340 : "auto",
-          flexDirection: "column",
-          flexGrow: story ? 0 : 0.92,
-          flexShrink: story ? 0 : 1,
-          gap: story ? 10 : 8,
-          width: story ? 340 : "auto",
+          position: "absolute",
+          right: story ? -95 : -70,
+          top: story ? -55 : -40,
+          transform: "skewX(-13deg)",
+          width: story ? 505 : 500,
         }}
-      >
-        <SectionTitle color={pickLabelColor}>{story ? "Топ-10 гонки" : "Топ-3 гонки"}</SectionTitle>
-        {picks.topDrivers.length ? picks.topDrivers.map((driver, index) => (
-          <DriverLine driver={driver} heroColor={heroColor} index={index} key={`${driver.id}-${index}`} story={story} />
-        )) : (
-          <EmptyLine text="Выбор появится после сохранения" />
-        )}
-      </div>
-
+      />
       <div
         style={{
+          background: accent,
+          bottom: 0,
           display: "flex",
-          flexBasis: story ? 300 : "auto",
-          flexDirection: "column",
-          flexGrow: story ? 0 : 1.08,
-          flexShrink: story ? 0 : 1,
-          gap: story ? 10 : 8,
-          minWidth: 0,
-          width: story ? 300 : "auto",
+          opacity: 0.9,
+          position: "absolute",
+          right: 0,
+          top: 0,
+          width: story ? 7 : 6,
         }}
-      >
-        <SectionTitle color={pickLabelColor}>Дополнительно</SectionTitle>
-        <SharePickLine
-          color={picks.pole?.team?.color ?? heroColor}
-          detail={picks.pole?.team?.name ?? "Квалификация"}
-          label="Pole"
-          story={story}
-          value={picks.pole?.name ?? "—"}
-        />
-        <SharePickLine
-          color={picks.fastestLap?.team?.color ?? heroColor}
-          detail={picks.fastestLap?.team?.name ?? "Гонка"}
-          label="Fast Lap"
-          story={story}
-          value={picks.fastestLap?.name ?? "—"}
-        />
-        <SharePickLine
-          color={heroColor}
-          detail="Первый сход"
-          label="DNF"
-          story={story}
-          value={picks.dnf}
-        />
-        {story ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: story ? 10 : 8, width: "100%" }}>
-            <SharePickLine
-              compact={story}
-              color={picks.topScoringTeam?.color ?? heroColor}
-              detail={picks.topScoringTeam?.code ?? "Команда этапа"}
-              label="Team"
-              story={story}
-              value={picks.topScoringTeam?.name ?? "—"}
-            />
-            <SharePickLine
-              compact={story}
-              color={picks.fastestPitStopTeam?.color ?? heroColor}
-              detail={picks.fastestPitStopTeam?.code ?? "Быстрый пит-стоп"}
-              label="Fast Pit"
-              story={story}
-              value={picks.fastestPitStopTeam?.name ?? "—"}
-            />
-          </div>
-        ) : null}
-      </div>
-    </div>
+      />
+    </>
   );
 }
 
-function HeroDriver({
-  driver,
-  heroColor,
-  scope,
-  story,
-  team,
-}: {
-  driver: PredictionShareDriverPick | null;
-  heroColor: string;
-  scope: PublicPredictionShare["scope"];
-  story: boolean;
-  team: PredictionShareTeamPick | null;
-}) {
-  const isQualification = scope === "qualification";
-  const size = story ? (isQualification ? 470 : 520) : (isQualification ? 285 : 310);
-  const avatarBottom = story ? (isQualification ? 118 : 8) : (isQualification ? 26 : -18);
-  const avatarRight = story ? (isQualification ? 58 : -54) : (isQualification ? 12 : -34);
-  const showHeroCaption = !isQualification;
+function HeroPortrait({ hero, story }: { hero: ShareHero; story: boolean }) {
+  const size = story ? 500 : 455;
+  const fallback = hero.driver?.number ?? hero.driver?.code ?? hero.team?.code ?? "P1";
 
   return (
     <div
       style={{
         alignItems: "flex-end",
+        bottom: 0,
         display: "flex",
+        height: story ? 476 : 450,
         justifyContent: "center",
-        marginRight: story ? -76 : -42,
-        minWidth: story ? 330 : 250,
-        position: story ? "absolute" : "relative",
-        width: story ? 360 : 285,
-        ...(story
-          ? {
-              bottom: 0,
-              right: -80,
-              top: 0,
-            }
-          : {
-              alignSelf: "stretch",
-            }),
+        overflow: "hidden",
+        position: "absolute",
+        right: story ? 18 : 35,
+        width: story ? 500 : 500,
       }}
     >
-      <div
+      <span
         style={{
-          background: `radial-gradient(circle, ${withAlpha(heroColor, 0.34)}, transparent 68%)`,
-          bottom: story ? 40 : 10,
+          color: withAlpha(hero.accent, 0.18),
           display: "flex",
-          height: size,
+          fontFamily: monoFont,
+          fontSize: story ? 210 : 180,
+          fontWeight: 900,
+          letterSpacing: "-0.08em",
+          lineHeight: 0.8,
           position: "absolute",
-          right: story ? -86 : -50,
-          width: size,
+          right: story ? 30 : 26,
+          top: story ? 48 : 32,
         }}
-      />
-      {driver?.avatarUrl ? (
+      >
+        {hero.driver?.number ?? hero.driver?.code ?? "01"}
+      </span>
+      {hero.driver?.avatarUrl ? (
         <img
           alt=""
           height={size}
-          src={driver.avatarUrl}
+          src={hero.driver.avatarUrl}
           style={{
-            bottom: avatarBottom,
-            display: "flex",
-            maxHeight: size,
+            bottom: story ? -16 : -55,
+            height: size,
             objectFit: "contain",
             position: "absolute",
-            right: avatarRight,
+            right: story ? -2 : 4,
             width: size,
           }}
           width={size}
@@ -382,247 +505,504 @@ function HeroDriver({
         <div
           style={{
             alignItems: "center",
-            background: `linear-gradient(160deg, ${withAlpha(heroColor, 0.28)}, rgba(255,255,255,0.05))`,
-            border: `1px solid ${withAlpha(heroColor, 0.7)}`,
-            color: "#fff",
+            border: `2px solid ${withAlpha(hero.accent, 0.72)}`,
+            color: colors.text,
             display: "flex",
             flexDirection: "column",
-            gap: story ? 18 : 10,
-            height: story ? 340 : 210,
+            height: story ? 330 : 280,
             justifyContent: "center",
-            position: "relative",
-            width: story ? 300 : 210,
+            marginBottom: story ? 28 : 12,
+            width: story ? 330 : 280,
           }}
         >
-          <span style={{ color: heroColor, fontFamily: monoFont, fontSize: story ? 88 : 58, fontWeight: 950, lineHeight: 0.9 }}>
-            {driver?.number ?? driver?.code ?? "?"}
+          <span style={{ color: hero.accent, fontFamily: monoFont, fontSize: story ? 112 : 92, fontWeight: 900, lineHeight: 0.9 }}>
+            {fallback}
           </span>
-          <span style={{ fontFamily: monoFont, fontSize: story ? 20 : 14, fontWeight: 900, letterSpacing: 3 }}>
-            {driver?.code ?? team?.code ?? "PICK"}
+          <span style={{ color: colors.muted, fontFamily: monoFont, fontSize: story ? 18 : 15, fontWeight: 700, letterSpacing: 2, marginTop: 18 }}>
+            ГЛАВНЫЙ ПИК
           </span>
         </div>
       )}
-      {showHeroCaption ? (
-        <div
-          style={{
-            background: "rgba(0,0,0,0.54)",
-            borderLeft: `6px solid ${heroColor}`,
-            bottom: story ? 48 : 18,
-            display: "flex",
-            flexDirection: "column",
-            maxWidth: story ? 330 : 260,
-            padding: story ? "18px 20px" : "12px 14px",
-            position: "absolute",
-            right: story ? 230 : 150,
-          }}
-        >
-          <span style={{ color: "#fff", fontSize: story ? 28 : 20, fontWeight: 900, lineHeight: 1.05 }}>
-            {driver?.name ?? "Прогноз RaceMate"}
-          </span>
-          <span style={{ color: "#c9c0bc", fontSize: story ? 17 : 13, fontWeight: 750, marginTop: 6 }}>
-            {driver?.team?.name ?? team?.name ?? "Команда уточняется"}
-          </span>
-        </div>
-      ) : null}
     </div>
   );
 }
 
-function DriverLine({
+function RacePredictionBoard({
+  hero,
+  share,
+}: {
+  hero: ShareHero;
+  share: PublicPredictionShare;
+}) {
+  const grid = Array.from({ length: 10 }, (_, index) => share.picks.top10[index] ?? null);
+  const hasTop10Picks = share.picks.top10.length > 0;
+
+  return (
+    <div
+      style={{
+        background: colors.surface,
+        borderTop: `1px solid ${colors.border}`,
+        display: "flex",
+        flexDirection: "column",
+        flexShrink: 0,
+        height: 590,
+        padding: "27px 56px 0",
+        position: "relative",
+      }}
+    >
+      <div style={{ alignItems: "baseline", display: "flex", justifyContent: "space-between" }}>
+        <span style={{ display: "flex", fontSize: 25, fontWeight: 900, letterSpacing: "-0.025em" }}>
+          Мой топ-10
+        </span>
+        <span style={{ color: colors.muted, display: "flex", fontFamily: monoFont, fontSize: 13, fontWeight: 700, letterSpacing: 1.4 }}>
+          ФИНИШНЫЙ ПОРЯДОК
+        </span>
+      </div>
+
+      {hasTop10Picks ? (
+        <div style={{ display: "flex", gap: 30, marginTop: 15 }}>
+          <StartingGridColumn drivers={grid.slice(0, 5)} heroColor={hero.accent} startIndex={0} />
+          <StartingGridColumn drivers={grid.slice(5, 10)} heroColor={hero.accent} startIndex={5} />
+        </div>
+      ) : (
+        <EmptyStartingGrid />
+      )}
+
+      <span
+        style={{
+          color: colors.muted,
+          display: "flex",
+          fontFamily: monoFont,
+          fontSize: 13,
+          fontWeight: 700,
+          letterSpacing: 1.5,
+          marginTop: 21,
+        }}
+      >
+        КЛЮЧЕВЫЕ ПИКИ
+      </span>
+
+      <div style={{ borderTop: `1px solid ${colors.border}`, display: "flex", marginTop: 10 }}>
+        <SpecialPick
+          accent={share.picks.fastestLap?.team?.color ?? hero.accent}
+          label="Лучший круг"
+          value={share.picks.fastestLap?.name ?? "Не выбран"}
+          width="50%"
+        />
+        <SpecialPick
+          accent={share.picks.dnf?.team?.color ?? hero.accent}
+          last
+          label="Первый сход"
+          value={share.picks.dnfKind === "none" ? "Без схода" : share.picks.dnf?.name ?? "Не выбран"}
+          width="50%"
+        />
+      </div>
+      <div style={{ borderTop: `1px solid ${colors.border}`, display: "flex" }}>
+        <SpecialPick
+          accent={share.picks.topScoringTeam?.color ?? hero.accent}
+          label="Команда этапа"
+          value={share.picks.topScoringTeam?.name ?? "Не выбрана"}
+          width="50%"
+        />
+        <SpecialPick
+          accent={share.picks.fastestPitStopTeam?.color ?? hero.accent}
+          last
+          label="Быстрый пит-стоп"
+          value={share.picks.fastestPitStopTeam?.name ?? "Не выбрана"}
+          width="50%"
+        />
+      </div>
+    </div>
+  );
+}
+
+function EmptyStartingGrid() {
+  return (
+    <div
+      style={{
+        alignItems: "center",
+        borderBottom: `1px solid ${colors.border}`,
+        borderTop: `1px solid ${colors.border}`,
+        display: "flex",
+        flexDirection: "column",
+        height: 225,
+        justifyContent: "center",
+        marginTop: 15,
+      }}
+    >
+      <span style={{ display: "flex", fontSize: 28, fontWeight: 900, letterSpacing: "-0.025em" }}>
+        Топ-10 ещё не собран
+      </span>
+      <span style={{ color: colors.muted, display: "flex", fontSize: 16, marginTop: 10 }}>
+        Пики можно дополнить до старта гонки
+      </span>
+    </div>
+  );
+}
+
+function StartingGridColumn({
+  drivers,
+  heroColor,
+  startIndex,
+}: {
+  drivers: Array<PredictionShareDriverPick | null>;
+  heroColor: string;
+  startIndex: number;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", width: 469 }}>
+      {drivers.map((driver, index) => (
+        <StartingGridRow
+          driver={driver}
+          heroColor={heroColor}
+          key={`${driver?.id ?? "empty"}-${startIndex + index}`}
+          position={startIndex + index + 1}
+        />
+      ))}
+    </div>
+  );
+}
+
+function StartingGridRow({
   driver,
   heroColor,
-  index,
-  story,
+  position,
 }: {
-  driver: PredictionShareDriverPick;
+  driver: PredictionShareDriverPick | null;
   heroColor: string;
-  index: number;
-  story: boolean;
+  position: number;
 }) {
-  const color = normalizeColor(driver.team?.color ?? heroColor);
+  const accent = normalizeColor(driver?.team?.color ?? heroColor);
 
   return (
     <div
       style={{
         alignItems: "center",
-        background: "rgba(255,255,255,0.055)",
-        border: `1px solid ${index === 0 ? withAlpha(color, 0.6) : "rgba(255,255,255,0.09)"}`,
+        borderBottom: `1px solid ${colors.border}`,
         display: "flex",
-        gap: story ? 13 : 10,
-        minHeight: story ? 54 : 44,
-        padding: story ? "8px 12px" : "7px 10px",
+        height: 45,
+        width: "100%",
       }}
     >
-      <span style={{ color: pickLabelColor, fontFamily: monoFont, fontSize: story ? 18 : 15, fontWeight: 950, width: story ? 44 : 36 }}>
-        P{driver.position ?? index + 1}
+      <span style={{ color: position === 1 ? colors.primary : colors.muted, fontFamily: monoFont, fontSize: 16, fontWeight: 900, width: 43 }}>
+        P{position}
       </span>
-      <span style={{ background: color, display: "flex", height: story ? 32 : 26, width: 4 }} />
-      <div style={{ display: "flex", flex: 1, flexDirection: "column", minWidth: 0 }}>
-        <span style={{ color: "#fff", fontSize: getDriverNameFontSize(driver.name, story), fontWeight: 850, lineHeight: 1.05, whiteSpace: "nowrap" }}>
-          {driver.name}
-        </span>
-        <span style={{ color: "#b9b0ac", fontSize: story ? 13 : 11, marginTop: 3 }}>
-          {driver.team?.name ?? "Команда уточняется"}
-        </span>
-      </div>
+      <span style={{ background: accent, display: "flex", height: 24, marginRight: 13, width: 3 }} />
+      <span style={{ display: "flex", fontSize: getGridNameFontSize(driver?.name ?? "Не выбран"), fontWeight: 900, lineHeight: 1, maxWidth: 315, overflow: "hidden", whiteSpace: "nowrap" }}>
+        {driver ? getSurname(driver.name) : "Не выбран"}
+      </span>
+      <span style={{ color: colors.muted, display: "flex", fontFamily: monoFont, fontSize: 12, fontWeight: 700, marginLeft: "auto" }}>
+        {driver ? getTeamCode(driver.team) : "--"}
+      </span>
     </div>
   );
 }
 
-function SharePickLine({
-  compact = false,
-  color,
-  detail,
+function SpecialPick({
+  accent,
   label,
-  story,
+  last = false,
   value,
+  width,
 }: {
-  compact?: boolean;
-  color: string | null | undefined;
-  detail: string;
+  accent: string | null | undefined;
   label: string;
-  story: boolean;
+  last?: boolean;
   value: string;
+  width: string;
 }) {
-  const accent = normalizeColor(color ?? "#e10600");
+  return (
+    <div
+      style={{
+        borderRight: last ? "none" : `1px solid ${colors.border}`,
+        display: "flex",
+        flexDirection: "column",
+        height: 66,
+        justifyContent: "center",
+        padding: "0 16px",
+        position: "relative",
+        width,
+      }}
+    >
+      <span style={{ background: normalizeColor(accent ?? colors.primary), bottom: 13, display: "flex", left: 0, position: "absolute", top: 13, width: 3 }} />
+      <span style={{ color: colors.muted, display: "flex", fontFamily: monoFont, fontSize: 11, fontWeight: 700, letterSpacing: 0.8 }}>
+        {label.toUpperCase()}
+      </span>
+      <span style={{ display: "flex", fontSize: getSpecialValueFontSize(value), fontWeight: 900, lineHeight: 1.05, marginTop: 5, maxWidth: "100%", overflow: "hidden", whiteSpace: "nowrap" }}>
+        {getCompactPickName(value)}
+      </span>
+    </div>
+  );
+}
+
+function QualificationBoard({ hero }: { hero: ShareHero }) {
+  const name = getNameParts(hero.driver?.name ?? "Не выбран");
+  const teamName = hero.driver?.team?.name ?? hero.team?.name ?? "Команда не выбрана";
 
   return (
     <div
       style={{
-        alignItems: "center",
-        background: "rgba(255,255,255,0.055)",
-        border: `1px solid ${withAlpha(accent, 0.44)}`,
+        background: colors.surface,
+        borderTop: `1px solid ${colors.border}`,
         display: "flex",
-        gap: story ? 13 : 10,
-        minHeight: story ? 54 : 44,
-        padding: story ? "8px 12px" : "7px 10px",
-        width: compact ? 240 : "100%",
+        flexDirection: "column",
+        flexShrink: 0,
+        height: 590,
+        overflow: "hidden",
+        padding: "46px 56px",
+        position: "relative",
       }}
     >
-      <span style={{ color: pickLabelColor, fontFamily: monoFont, fontSize: story ? 16 : 13, fontWeight: 950, width: story ? 88 : 66 }}>
-        {label}
+      <span
+        style={{
+          color: withAlpha(hero.accent, 0.08),
+          display: "flex",
+          fontFamily: monoFont,
+          fontSize: 224,
+          fontWeight: 900,
+          letterSpacing: "-0.08em",
+          lineHeight: 0.82,
+          position: "absolute",
+          right: 42,
+          top: 76,
+        }}
+      >
+        POLE
       </span>
-      <span style={{ background: accent, display: "flex", height: story ? 32 : 26, width: 4 }} />
-      <div style={{ display: "flex", flex: 1, flexDirection: "column", minWidth: 0 }}>
-        <span style={{ color: "#fff", fontSize: getPickValueFontSize(value, story, compact), fontWeight: 850, lineHeight: 1.05, whiteSpace: "nowrap" }}>
-          {value}
+      <span style={{ color: colors.primary, display: "flex", fontFamily: monoFont, fontSize: 15, fontWeight: 900, letterSpacing: 2.2, position: "relative" }}>
+        МОЙ ВЫБОР НА ПОУЛ
+      </span>
+      <div style={{ alignItems: "flex-end", display: "flex", gap: 25, marginTop: 40, position: "relative" }}>
+        <span style={{ color: colors.primary, display: "flex", fontFamily: monoFont, fontSize: 108, fontWeight: 900, letterSpacing: "-0.07em", lineHeight: 0.82 }}>
+          POLE
         </span>
-        <span style={{ color: "#b9b0ac", fontSize: story ? 13 : 11, marginTop: 3 }}>
-          {detail}
+        <div style={{ display: "flex", flexDirection: "column", paddingBottom: 5 }}>
+          {name.first ? <span style={{ color: colors.muted, display: "flex", fontSize: 27 }}>{name.first}</span> : null}
+          <span style={{ display: "flex", fontSize: getHeroSurnameFontSize(name.last, true), fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 0.95, marginTop: 5 }}>
+            {name.last}
+          </span>
+        </div>
+      </div>
+      <div style={{ alignItems: "center", borderTop: `1px solid ${colors.border}`, display: "flex", marginTop: 54, paddingTop: 26, position: "relative" }}>
+        <span style={{ background: hero.accent, display: "flex", height: 42, marginRight: 18, width: 5 }} />
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span style={{ color: colors.muted, display: "flex", fontFamily: monoFont, fontSize: 12, fontWeight: 700, letterSpacing: 1.2 }}>
+            КОМАНДА
+          </span>
+          <span style={{ display: "flex", fontSize: 24, fontWeight: 900, marginTop: 5 }}>
+            {truncateText(teamName, 34)}
+          </span>
+        </div>
+      </div>
+      <div
+        style={{
+          borderTop: `1px solid ${colors.border}`,
+          display: "flex",
+          flexDirection: "column",
+          marginTop: "auto",
+          paddingTop: 22,
+        }}
+      >
+        <span style={{ display: "flex", fontSize: 30, fontWeight: 900, letterSpacing: "-0.025em" }}>
+          Мой выбор сделан
+        </span>
+        <span style={{ color: colors.muted, display: "flex", fontSize: 18, marginTop: 8 }}>
+          Теперь твой ход
         </span>
       </div>
     </div>
   );
 }
 
-function SectionTitle({ children, color }: { children: string; color: string }) {
+function OgPodium({ picks }: { picks: PredictionShareDriverPick[] }) {
+  if (!picks.length) {
+    return null;
+  }
+
   return (
-    <div
-      style={{
-        color,
-        display: "flex",
-        fontFamily: monoFont,
-        fontSize: 15,
-        fontWeight: 900,
-        letterSpacing: 3,
-        marginBottom: 4,
-        textTransform: "uppercase",
-      }}
-    >
-      {children}
+    <div style={{ borderTop: `1px solid ${colors.border}`, display: "flex", gap: 26, marginTop: 18, paddingTop: 14, width: 510 }}>
+      {picks.map((driver, index) => (
+        <div style={{ alignItems: "center", display: "flex", width: 238 }} key={`${driver.id}-${index}`}>
+          <span style={{ color: colors.muted, fontFamily: monoFont, fontSize: 15, fontWeight: 900, marginRight: 10 }}>
+            P{index + 2}
+          </span>
+          <span style={{ background: normalizeColor(driver.team?.color ?? colors.primary), display: "flex", height: 25, marginRight: 10, width: 3 }} />
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ display: "flex", fontSize: 17, fontWeight: 900 }}>{getSurname(driver.name)}</span>
+            <span style={{ color: colors.muted, display: "flex", fontFamily: monoFont, fontSize: 11, marginTop: 3 }}>{getTeamCode(driver.team)}</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
-function EmptyLine({ text }: { text: string }) {
+function AcquisitionFooter({ story }: { story: boolean }) {
   return (
     <div
       style={{
         alignItems: "center",
-        background: "rgba(255,255,255,0.055)",
-        border: "1px solid rgba(255,255,255,0.09)",
-        color: "#b9b0ac",
+        background: colors.primary,
+        color: "#fff",
         display: "flex",
-        fontSize: 20,
-        minHeight: 78,
-        padding: "16px 18px",
-      }}
-    >
-      {text}
-    </div>
-  );
-}
-
-function Footer({ story }: { story: boolean }) {
-  return (
-    <div
-      style={{
-        alignItems: "center",
-        borderTop: "1px solid rgba(255,255,255,0.12)",
-        display: "flex",
+        flexShrink: 0,
+        height: story ? 170 : 102,
         justifyContent: "space-between",
-        marginTop: story ? 34 : 18,
-        paddingTop: story ? 24 : 16,
+        padding: story ? "0 56px" : "0 48px",
+        position: "relative",
       }}
     >
-      <span style={{ color: "#f8f5f2", fontSize: story ? 26 : 20, fontWeight: 850 }}>
-        Сделай свой прогноз на RaceMate
-      </span>
-      <span style={{ color: "#e10600", fontFamily: monoFont, fontSize: story ? 20 : 15, fontWeight: 900 }}>
-        racemate.ru
-      </span>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <span style={{ display: "flex", fontSize: story ? 42 : 31, fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 1 }}>
+          Сможешь точнее?
+        </span>
+        <span style={{ display: "flex", fontSize: story ? 19 : 15, fontWeight: 700, marginTop: story ? 11 : 7 }}>
+          Собери свой прогноз на RaceMate
+        </span>
+      </div>
+      <div style={{ alignItems: "flex-end", display: "flex", flexDirection: "column" }}>
+        <span style={{ display: "flex", fontFamily: monoFont, fontSize: story ? 22 : 17, fontWeight: 900 }}>
+          racemate.ru/fantasy
+        </span>
+        <span style={{ display: "flex", fontFamily: monoFont, fontSize: story ? 13 : 10, fontWeight: 700, letterSpacing: story ? 1.6 : 1.2, marginTop: story ? 8 : 5, opacity: 0.76 }}>
+          СРАВНИ ПИКИ С ДРУЗЬЯМИ
+        </span>
+      </div>
     </div>
   );
 }
 
-function normalizeColor(value: string) {
-  return value.startsWith("#") ? value : "#e10600";
+function getShareHero(share: PublicPredictionShare): ShareHero {
+  const driver = share.scope === "qualification"
+    ? share.heroDriver ?? share.picks.pole
+    : share.heroDriver
+      ?? share.picks.top10[0]
+      ?? null;
+  const driverTeam = driver?.team
+    ? {
+        code: driver.team.code,
+        color: driver.team.color,
+        id: driver.id,
+        name: driver.team.name,
+      }
+    : null;
+  const team = driverTeam;
+  const accent = normalizeColor(driver?.team?.color ?? share.heroColor ?? colors.primary);
+
+  return { accent, driver, team };
 }
 
-function getDriverNameFontSize(name: string, story: boolean) {
-  if (!story) {
-    return 16;
-  }
-
-  if (name.length > 21) {
-    return 15;
-  }
-
-  if (name.length > 16) {
-    return 17;
-  }
-
-  return 19;
+function formatRaceMeta(share: PublicPredictionShare) {
+  return share.race.round
+    ? `${share.race.season} / ЭТАП ${share.race.round}`
+    : String(share.race.season);
 }
 
-function getPickValueFontSize(value: string, story: boolean, compact: boolean) {
-  if (!story) {
-    return 15;
+function getRaceTitleFontSize(name: string, story: boolean) {
+  const length = Array.from(name).length;
+
+  if (story) {
+    if (length > 40) return 43;
+    if (length > 28) return 49;
+    return 57;
   }
 
-  if (compact) {
-    return value.length > 10 ? 15 : 17;
+  if (length > 40) return 36;
+  if (length > 28) return 42;
+  return 49;
+}
+
+function getHeroSurnameFontSize(name: string, story: boolean) {
+  const length = Array.from(name).length;
+
+  if (story) {
+    if (length > 15) return 37;
+    if (length > 11) return 43;
+    return 49;
   }
 
-  if (value.length > 21) {
-    return 14;
-  }
+  if (length > 15) return 28;
+  if (length > 11) return 33;
+  return 38;
+}
 
-  if (value.length > 17) {
-    return 15;
-  }
+function getGridNameFontSize(name: string) {
+  const length = Array.from(getSurname(name)).length;
 
+  if (length > 15) return 16;
+  if (length > 11) return 18;
+  return 20;
+}
+
+function getSpecialValueFontSize(value: string) {
+  const length = Array.from(getCompactPickName(value)).length;
+
+  if (length > 17) return 14;
+  if (length > 12) return 16;
   return 18;
 }
 
+function getNameParts(name: string) {
+  const parts = truncateText(name.trim() || "Не выбран", 34).split(/\s+/);
+  const last = parts.pop() ?? "Не выбран";
+
+  return {
+    first: parts.join(" "),
+    last,
+  };
+}
+
+function getSurname(name: string) {
+  return getNameParts(name).last;
+}
+
+function getCompactPickName(value: string) {
+  if (value === "Не выбран" || value === "Не выбрана" || value === "Без схода") {
+    return value;
+  }
+
+  return getSurname(value);
+}
+
+function getTeamCode(team: PredictionShareDriverPick["team"]) {
+  const explicit = team?.code?.trim();
+
+  if (explicit) {
+    return truncateText(explicit.toUpperCase(), 5);
+  }
+
+  return team?.name
+    ? truncateText(team.name.replace(/[^\p{L}\p{N}]/gu, "").toUpperCase(), 4)
+    : "--";
+}
+
+function truncateText(value: string, maxLength: number) {
+  const characters = Array.from(value.trim());
+
+  return characters.length > maxLength
+    ? `${characters.slice(0, Math.max(1, maxLength - 1)).join("")}…`
+    : characters.join("");
+}
+
+function normalizeColor(value: string) {
+  const normalized = value.trim();
+
+  if (/^#[0-9a-f]{6}$/i.test(normalized)) {
+    return normalized;
+  }
+
+  if (/^#[0-9a-f]{3}$/i.test(normalized)) {
+    return `#${normalized.slice(1).split("").map((part) => `${part}${part}`).join("")}`;
+  }
+
+  return colors.primary;
+}
+
 function withAlpha(color: string, alpha: number) {
-  const normalized = normalizeColor(color).replace("#", "");
-  const full = normalized.length === 3
-    ? normalized.split("").map((part) => `${part}${part}`).join("")
-    : normalized.padEnd(6, "0").slice(0, 6);
-  const red = parseInt(full.slice(0, 2), 16);
-  const green = parseInt(full.slice(2, 4), 16);
-  const blue = parseInt(full.slice(4, 6), 16);
+  const normalized = normalizeColor(color).slice(1);
+  const red = parseInt(normalized.slice(0, 2), 16);
+  const green = parseInt(normalized.slice(2, 4), 16);
+  const blue = parseInt(normalized.slice(4, 6), 16);
 
   return `rgba(${red},${green},${blue},${alpha})`;
 }

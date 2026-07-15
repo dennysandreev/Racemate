@@ -19,7 +19,6 @@ import {
   X,
 } from "lucide-react";
 
-import { StitchPanel } from "@/components/racemate/stitch-primitives";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -190,7 +189,7 @@ function CircuitStatsDialog({
           </div>
         </header>
 
-        <div className="min-h-0 overflow-y-auto p-3 sm:p-5">
+        <div className="min-h-0 max-w-full overflow-x-hidden overflow-y-auto p-3 sm:p-5">
           <CircuitStatsDetails stats={stats} />
         </div>
       </div>
@@ -217,7 +216,7 @@ function CircuitCompactDossier({
     {
       icon: Route,
       label: "Дистанция",
-      value: formatDistanceValue(stats.circuit.raceDistanceKm, stats.circuit.raceLaps),
+      value: formatCompactDistanceValue(stats.circuit.raceDistanceKm, stats.circuit.raceLaps),
     },
     {
       icon: TimerReset,
@@ -294,7 +293,7 @@ function CircuitParameterRow({
   return (
     <div
       className={cn(
-        "grid min-h-11 gap-1.5 rounded-md border border-border/55 bg-muted/65 px-3 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] sm:items-center sm:gap-3",
+        "grid min-h-11 gap-1.5 border-b border-border/65 py-2.5 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] sm:items-center sm:gap-3",
         className,
       )}
     >
@@ -318,58 +317,54 @@ function CircuitStatsDetails({ stats }: { stats: CircuitStatsView }) {
   ];
 
   return (
-    <div className="grid gap-4">
-      <StitchPanel className="overflow-hidden p-3 sm:p-4">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
-          <div className="grid gap-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="stitch-label text-primary">О трассе</p>
-                <h3 className="mt-1 font-display text-xl font-extrabold leading-tight tracking-[-0.03em] sm:text-2xl">
-                  {stats.circuit.name}
-                </h3>
-                <p className="mt-1 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                  <RaceFlag
-                    className="text-base"
-                    countryCode={getCircuitCountryCode(stats.circuit.country)}
-                    label={stats.circuit.country}
-                  />
-                  {stats.circuit.locality}, {stats.circuit.country}
-                </p>
-              </div>
-              <MapPinned aria-hidden="true" className="size-5 shrink-0 text-primary" />
+    <div className="divide-y divide-border/80">
+      <section className="grid gap-5 pb-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:gap-8">
+        <div className="min-w-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="stitch-label text-primary">О трассе</p>
+              <h3 className="mt-1 text-balance font-display text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:text-3xl">
+                {stats.circuit.name}
+              </h3>
+              <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <RaceFlag
+                  className="text-base"
+                  countryCode={getCircuitCountryCode(stats.circuit.country)}
+                  label={stats.circuit.country}
+                />
+                {stats.circuit.locality}, {stats.circuit.country}
+              </p>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <CircuitParameterRow label="Страна" value={`${stats.circuit.locality}, ${stats.circuit.country}`} />
-              <CircuitParameterRow label="Первый Гран-при" value={formatNumber(stats.circuit.firstGrandPrixYear)} />
-              <CircuitParameterRow label="Длина круга" value={formatKm(stats.circuit.lapLengthKm)} />
-              <CircuitParameterRow label="Дистанция" value={formatDistanceValue(stats.circuit.raceDistanceKm, stats.circuit.raceLaps)} />
-              <CircuitParameterRow label="Повороты" value={formatNumber(stats.circuit.turnsCount)} />
-              <CircuitParameterRow label="Прямые для активного крыла" value={formatNumber(stats.circuit.drsZonesCount)} />
-            </div>
+            <MapPinned aria-hidden="true" className="size-5 shrink-0 text-primary" />
           </div>
-          <div className="grid gap-2">
-            <CircuitRecordCard
-              icon={TimerReset}
-              label="Рекорд трассы"
-              value={formatLapRecord(stats.circuit.lapRecordTime, stats.circuit.lapRecordDriver, stats.circuit.lapRecordYear)}
-            />
-            <CircuitRecordCard icon={Medal} label="Самый успешный пилот" value={stats.records.mostSuccessfulDriver ?? "—"} />
-            <CircuitRecordCard icon={Flag} label="Самая успешная команда" value={stats.records.mostSuccessfulTeam ?? "—"} />
-            <CircuitRecordCard icon={ShieldAlert} label="Максимум сходов" value={formatNumber(stats.records.maxDnfCount ?? null)} />
+          <div className="mt-4 grid gap-x-6 sm:grid-cols-2">
+            <CircuitParameterRow label="Первый Гран-при" value={formatNumber(stats.circuit.firstGrandPrixYear)} />
+            <CircuitParameterRow label="Длина круга" value={formatKm(stats.circuit.lapLengthKm)} />
+            <CircuitParameterRow label="Дистанция" value={formatDistanceValue(stats.circuit.raceDistanceKm, stats.circuit.raceLaps)} />
+            <CircuitParameterRow label="Повороты" value={formatNumber(stats.circuit.turnsCount)} />
+            <CircuitParameterRow label="Прямые для активного крыла" value={formatNumber(stats.circuit.drsZonesCount)} />
           </div>
         </div>
-      </StitchPanel>
+        <div className="border-t border-border/80 pt-2 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <CircuitRecordRow
+            icon={TimerReset}
+            label="Рекорд трассы"
+            value={formatLapRecord(stats.circuit.lapRecordTime, stats.circuit.lapRecordDriver, stats.circuit.lapRecordYear)}
+          />
+          <CircuitRecordRow icon={Medal} label="Самый успешный пилот" value={stats.records.mostSuccessfulDriver ?? "—"} />
+          <CircuitRecordRow icon={Flag} label="Самая успешная команда" value={stats.records.mostSuccessfulTeam ?? "—"} />
+          <CircuitRecordRow icon={ShieldAlert} label="Максимум сходов" value={formatNumber(stats.records.maxDnfCount ?? null)} />
+        </div>
+      </section>
 
-      <StitchPanel>
-        <CircuitSectionHeader icon={Gauge} title="Характер трассы" />
-        <div className="grid gap-3 p-3 sm:p-4">
-          <div className="grid gap-2 sm:grid-cols-3">
+      <CircuitFlatSection className="py-5" icon={Gauge} title="Характер трассы">
+        <div className="grid gap-4">
+          <div className="grid divide-y divide-border/70 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {characterFacts.map((fact) => (
               <CircuitStatTile key={fact.label} label={fact.label} value={fact.value} />
             ))}
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 xl:grid-cols-3">
             {characterRatings.map((rating) => (
               <RatingRow key={rating.label} rating={rating} />
             ))}
@@ -377,13 +372,13 @@ function CircuitStatsDetails({ stats }: { stats: CircuitStatsView }) {
           <p className="text-xs leading-5 text-muted-foreground">
             {stats.character.racesCount
               ? `Рассчитано на основе ${stats.character.racesCount} гонок.`
-              : "Характер трассы обновится после пересчета исторических данных."}
+              : "Оценка появится после обновления исторических данных."}
           </p>
         </div>
-      </StitchPanel>
+      </CircuitFlatSection>
 
-      <div className="grid gap-3 xl:grid-cols-3">
-        <InsightPanel
+      <section className="grid divide-y divide-border/80 py-5 xl:grid-cols-3 xl:divide-x xl:divide-y-0">
+        <CircuitInsightGroup
           icon={BadgeCheck}
           title="Квалификация"
           rows={[
@@ -391,7 +386,7 @@ function CircuitStatsDetails({ stats }: { stats: CircuitStatsView }) {
             ["Средний старт победителя", formatPosition(stats.qualifying.winnerAvgStartPosition)],
           ]}
         />
-        <InsightPanel
+        <CircuitInsightGroup
           icon={ArrowDownUp}
           title="Обгоны"
           rows={[
@@ -400,46 +395,47 @@ function CircuitStatsDetails({ stats }: { stats: CircuitStatsView }) {
             ["Лучший прорыв", formatPositionRecord(stats.overtaking.bestGain)],
           ]}
         />
-        <InsightPanel
+        <CircuitInsightGroup
           icon={ShieldAlert}
           title="Safety Car и хаос"
           rows={[
-            ["SC / гонку", formatNumber(stats.chaos.safetyCarFrequency)],
-            ["VSC / гонку", formatNumber(stats.chaos.vscFrequency)],
+            ["Событий SC / гонку", formatNumber(stats.chaos.safetyCarFrequency)],
+            ["Событий VSC / гонку", formatNumber(stats.chaos.vscFrequency)],
             ["Красные флаги / гонку", formatNumber(stats.chaos.redFlagFrequency)],
           ]}
         />
-      </div>
+      </section>
 
-      <div className="grid items-stretch gap-3 xl:grid-cols-[minmax(13rem,0.38fr)_minmax(0,1.62fr)]">
-        <StitchPanel className="h-full">
+      <section className="grid py-5 xl:grid-cols-[minmax(13rem,0.35fr)_minmax(0,1.65fr)]">
+        <div className="pb-5 xl:border-r xl:border-border/80 xl:pb-0 xl:pr-5">
           <CircuitSectionHeader icon={Activity} title="Стратегия и пит-стопы" />
-          <div className="grid gap-2 p-3 sm:p-4">
+          <div className="mt-2">
             <CircuitFactRow label="Средние пит-стопы" value={formatNumber(stats.strategy.avgPitStops)} />
             <CircuitFactRow label="Первый пит-стоп" value={stats.strategy.avgFirstPitLap === null ? "—" : `круг ${formatNumber(stats.strategy.avgFirstPitLap)}`} />
             <CircuitFactRow label="Частая стратегия" value={stats.strategy.mostCommonStrategy ?? "—"} />
             <CircuitFactRow label="Вариативность" value={stats.strategy.strategyVariabilityLevel ?? "—"} />
           </div>
-        </StitchPanel>
-
-        <StitchPanel className="h-full">
+        </div>
+        <div className="border-t border-border/80 pt-5 xl:border-t-0 xl:pl-5 xl:pt-0">
           <CircuitSectionHeader icon={Trophy} title="Последние гонки на этой трассе" />
-          <HistoryTable rows={stats.history} />
-        </StitchPanel>
-      </div>
+          <div className="mt-2">
+            <HistoryTable rows={stats.history} />
+          </div>
+        </div>
+      </section>
 
-      <div className="grid gap-3 xl:grid-cols-2">
-        <StitchPanel>
+      <section className="grid py-5 xl:grid-cols-2 xl:divide-x xl:divide-border/80">
+        <div className="pb-5 xl:pb-0 xl:pr-5">
           <CircuitSectionHeader icon={Medal} title="Пилоты на этой трассе" />
           <DriverStatsList rows={stats.topDrivers} />
-        </StitchPanel>
-        <StitchPanel>
+        </div>
+        <div className="border-t border-border/80 pt-5 xl:border-t-0 xl:pl-5 xl:pt-0">
           <CircuitSectionHeader icon={Flag} title="Команды на этой трассе" />
           <TeamStatsList rows={stats.topTeams} />
-        </StitchPanel>
-      </div>
+        </div>
+      </section>
 
-      <p className="px-1 text-right text-xs leading-5 text-muted-foreground">
+      <p className="pt-4 text-right text-xs leading-5 text-muted-foreground">
         Историческая база:{" "}
         <span className="font-telemetry font-bold text-foreground/80">
           {stats.summary.racesCount ? `${stats.summary.racesCount} гонок` : "данные уточняются"}
@@ -449,7 +445,7 @@ function CircuitStatsDetails({ stats }: { stats: CircuitStatsView }) {
   );
 }
 
-function CircuitRecordCard({
+function CircuitRecordRow({
   icon: Icon,
   label,
   value,
@@ -459,7 +455,7 @@ function CircuitRecordCard({
   value: ReactNode;
 }) {
   return (
-    <div className="grid gap-2 rounded-md border border-border/70 bg-background/35 p-3">
+    <div className="grid gap-1.5 border-b border-border/65 py-3 last:border-b-0">
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-semibold leading-5 text-muted-foreground">{label}</span>
         <Icon aria-hidden="true" className="size-4 shrink-0 text-primary" />
@@ -479,7 +475,7 @@ function CircuitSectionHeader({
   title: string;
 }) {
   return (
-    <div className="border-b stitch-divider px-4 py-3">
+    <div>
       <h2 className="flex min-w-0 items-center gap-2 font-display text-lg font-bold leading-tight">
         <Icon aria-hidden="true" className="size-5 shrink-0" />
         <span className="min-w-0 text-wrap">{title}</span>
@@ -496,7 +492,7 @@ function CircuitFactRow({
   value: ReactNode;
 }) {
   return (
-    <div className="grid min-h-10 gap-1 rounded-md border border-border/60 bg-background/35 px-3 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] sm:items-center sm:gap-3">
+    <div className="grid min-h-10 gap-1 border-b border-border/65 py-2 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] sm:items-center sm:gap-3">
       <span className="min-w-0 text-sm font-medium leading-5 text-foreground">{label}</span>
       <span className="min-w-0 break-words font-mono text-sm leading-5 text-foreground sm:text-right">
         {value}
@@ -513,7 +509,7 @@ function CircuitStatTile({
   value: ReactNode;
 }) {
   return (
-    <div className="grid min-h-20 content-between gap-3 rounded-md border border-border/70 bg-background/35 p-3">
+    <div className="grid min-h-20 content-between gap-3 py-3 sm:px-5 sm:py-2 sm:first:pl-0 sm:last:pr-0">
       <p className="text-sm font-medium leading-5 text-foreground">{label}</p>
       <p className="break-words font-telemetry text-xl font-extrabold leading-none text-foreground">
         {value}
@@ -530,7 +526,7 @@ function RatingRow({
   const displayValue = rating.valueLabel ?? (rating.value ? `${rating.value}/5` : "—");
 
   return (
-    <div className="grid min-h-20 content-between gap-3 rounded-md border border-border/70 bg-background/35 p-3">
+    <div className="grid min-h-16 content-between gap-3">
       <div className="flex items-center justify-between gap-3">
         <p className="font-medium">{rating.label}</p>
         <span className="text-right font-telemetry text-sm text-muted-foreground">{displayValue}</span>
@@ -550,7 +546,26 @@ function RatingRow({
   );
 }
 
-function InsightPanel({
+function CircuitFlatSection({
+  children,
+  className,
+  icon: Icon,
+  title,
+}: {
+  children: ReactNode;
+  className?: string;
+  icon: typeof BadgeCheck;
+  title: string;
+}) {
+  return (
+    <section className={className}>
+      <CircuitSectionHeader icon={Icon} title={title} />
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function CircuitInsightGroup({
   icon: Icon,
   rows,
   title,
@@ -560,14 +575,14 @@ function InsightPanel({
   title: string;
 }) {
   return (
-    <StitchPanel>
+    <div className="py-4 first:pt-0 last:pb-0 xl:px-5 xl:py-0 xl:first:pl-0 xl:last:pr-0">
       <CircuitSectionHeader icon={Icon} title={title} />
-      <div className="grid gap-2 p-3 sm:p-4">
+      <div className="mt-2">
         {rows.map(([label, value]) => (
           <CircuitFactRow key={label} label={label} value={value} />
         ))}
       </div>
-    </StitchPanel>
+    </div>
   );
 }
 
@@ -577,8 +592,30 @@ function HistoryTable({ rows }: { rows: CircuitGrandPrixHistoryRow[] }) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[560px] text-sm">
+    <>
+      <div className="grid gap-2 sm:hidden">
+        {rows.map((row) => (
+          <article className="grid gap-3 border-b border-border/70 py-3 first:pt-0 last:border-b-0" key={`${row.season}-${row.round}`}>
+            <div className="flex items-start justify-between gap-3">
+              <Link className="font-telemetry text-base font-bold hover:text-primary" href={row.href}>
+                {row.season}
+              </Link>
+              <span className="font-telemetry text-xs text-muted-foreground">
+                SC/VSC/RF&nbsp;{[row.safetyCarCount, row.vscCount, row.redFlagCount].map((value) => value ?? "—").join("/")}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <HistoryMobileFact label="Победитель" value={row.winner} />
+              <HistoryMobileFact label="Поул" value={row.pole} />
+              <HistoryMobileFact className="col-span-2" label="Подиум" value={row.podium.join(" · ") || "—"} />
+              <HistoryMobileFact label="Команда" value={row.winnerTeam} />
+              <HistoryMobileFact label="Сходы" value={String(row.dnfCount ?? "—")} />
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto sm:block">
+        <table className="w-full min-w-[560px] text-sm">
         <thead className="text-left text-xs text-muted-foreground">
           <tr className="border-b stitch-divider">
             <th className="px-3 py-2 font-medium">Сезон</th>
@@ -614,7 +651,25 @@ function HistoryTable({ rows }: { rows: CircuitGrandPrixHistoryRow[] }) {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
+    </>
+  );
+}
+
+function HistoryMobileFact({
+  className,
+  label,
+  value,
+}: {
+  className?: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className={cn("min-w-0", className)}>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-0.5 break-words font-medium leading-5">{value}</p>
     </div>
   );
 }
@@ -625,10 +680,10 @@ function DriverStatsList({ rows }: { rows: CircuitDriverStat[] }) {
   }
 
   return (
-    <div className="grid gap-2 p-3 sm:p-4">
+    <div className="mt-2 divide-y divide-border/65">
       {rows.map((row, index) => (
         <Link
-          className="grid gap-3 rounded-md border border-border/70 bg-background/35 p-3 transition-colors hover:bg-accent sm:grid-cols-[auto_1fr_auto]"
+          className="grid gap-3 py-3 transition-colors hover:text-primary sm:grid-cols-[auto_1fr_auto]"
           href={row.driverSlug ? `/drivers/${row.driverSlug}` : "#"}
           key={`${row.driver}-${index}`}
           prefetch={false}
@@ -657,14 +712,14 @@ function DriverStatsList({ rows }: { rows: CircuitDriverStat[] }) {
 
 function TeamStatsList({ rows }: { rows: CircuitTeamStat[] }) {
   if (!rows.length) {
-    return <EmptyLine>Командная статистика появится после backfill результатов.</EmptyLine>;
+    return <EmptyLine>Командная статистика появится после обновления истории этапа.</EmptyLine>;
   }
 
   return (
-    <div className="grid gap-2 p-3 sm:p-4">
+    <div className="mt-2 divide-y divide-border/65">
       {rows.map((row, index) => (
         <div
-          className="grid gap-3 rounded-md border border-border/70 bg-background/35 p-3 sm:grid-cols-[auto_1fr_auto]"
+          className="grid gap-3 py-3 sm:grid-cols-[auto_1fr_auto]"
           key={`${row.team}-${index}`}
         >
           <span className="font-telemetry text-muted-foreground">#{index + 1}</span>
@@ -690,7 +745,7 @@ function TeamStatsList({ rows }: { rows: CircuitTeamStat[] }) {
 }
 
 function EmptyLine({ children }: { children: string }) {
-  return <div className="p-4 text-sm leading-6 text-muted-foreground">{children}</div>;
+  return <div className="py-4 text-sm leading-6 text-muted-foreground">{children}</div>;
 }
 
 function formatKm(value: number | null) {
@@ -708,6 +763,17 @@ function formatDistanceValue(distance: number | null, laps: number | null) {
       {laps !== null ? <span>{laps} кругов</span> : null}
     </span>
   );
+}
+
+function formatCompactDistanceValue(distance: number | null, laps: number | null) {
+  if (distance === null && laps === null) {
+    return "—";
+  }
+
+  return [
+    distance !== null ? `${distance.toFixed(1)} км` : null,
+    laps !== null ? `${laps} кругов` : null,
+  ].filter(Boolean).join(" · ");
 }
 
 function formatLapRecord(time: string | null, driver: string | null, year: number | null) {

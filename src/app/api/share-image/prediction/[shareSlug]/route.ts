@@ -6,6 +6,7 @@ import {
   getPublicPredictionShareBySlug,
   normalizePredictionShareScope,
 } from "@/data/racemate-repository";
+import { getPredictionShareFonts } from "@/lib/prediction-share-fonts";
 import { consumeIpRateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +31,10 @@ export async function GET(
   const { shareSlug } = await params;
   const { searchParams } = new URL(request.url);
   const scope = normalizePredictionShareScope(searchParams.get("scope"));
-  const share = await getPublicPredictionShareBySlug(shareSlug, scope);
+  const [share, fonts] = await Promise.all([
+    getPublicPredictionShareBySlug(shareSlug, scope),
+    getPredictionShareFonts(),
+  ]);
 
   if (!share) {
     return new Response("Prediction not found", { status: 404 });
@@ -41,6 +45,7 @@ export async function GET(
     {
       headers: cacheHeaders,
       height: 1350,
+      fonts,
       width: 1080,
     },
   );

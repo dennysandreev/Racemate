@@ -1,4 +1,4 @@
-import { Newspaper, Sparkles } from "lucide-react";
+import { ListFilter, Newspaper, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -75,10 +75,10 @@ export default async function NewsPage({
               Новостной блог
             </PageTitle>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Последние материалы Формулы 1 без лишнего шума: новости, контекст этапов и быстрые фильтры по любимым пилотам и командам.
+              Всё главное из мира Формулы-1 в одном месте, свежие новости и разбор этапов
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3 lg:absolute lg:right-0 lg:top-1/2 lg:w-[18rem] lg:-translate-y-1/2">
+          <div className="grid grid-cols-2 gap-3 [&>div]:border-foreground/15 [&>div]:bg-background/85 [&>div]:shadow-sm [&>div]:backdrop-blur-md [&_p:first-child]:text-foreground/70 [&_p:last-child]:text-xl lg:absolute lg:right-0 lg:top-1/2 lg:w-[18rem] lg:-translate-y-1/2">
             <StitchMetric label="Материалов" tone="red" value={String(newsResult.totalCount)} />
             <StitchMetric label="Страница" value={`${newsResult.page}/${newsResult.totalPages}`} />
           </div>
@@ -192,8 +192,11 @@ export default async function NewsPage({
           <StitchPanel>
             <div className="grid gap-4 p-4">
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-primary">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                    <ListFilter aria-hidden="true" className="size-4" />
+                  </span>
+                  <p className="font-display text-sm font-bold text-foreground">
                     Персональная лента
                   </p>
                 </div>

@@ -113,18 +113,21 @@ export default async function NewsArticlePage({
           <StitchPanel>
             <StitchPanelHeader
               icon={Flame}
-              meta="Отметь материал, если он стоит внимания."
-              title="Реакции"
+              meta="Отметь материал или отправь его друзьям."
+              title="Оцени и поделись"
             />
-            <form action={reactToArticle} className="flex flex-wrap gap-2 p-4">
-              <input name="articleId" type="hidden" value={article.slug} />
-              {Object.entries(reactions).map(([reaction, count]) => (
-                <Button key={reaction} name="reaction" type="submit" value={reaction} variant="secondary">
-                  {reaction}
-                  <Badge variant="outline">{count}</Badge>
-                </Button>
-              ))}
-            </form>
+            <div className="p-4">
+              <p className="mb-3 text-xs font-bold uppercase text-muted-foreground">Твоя реакция</p>
+              <form action={reactToArticle} className="flex flex-wrap gap-2">
+                <input name="articleId" type="hidden" value={article.slug} />
+                {Object.entries(reactions).map(([reaction, count]) => (
+                  <Button className="min-w-20 justify-between" key={reaction} name="reaction" type="submit" value={reaction} variant="secondary">
+                    {reaction}
+                    <Badge variant="outline">{count}</Badge>
+                  </Button>
+                ))}
+              </form>
+            </div>
             <ArticleShareActions title={article.title} />
           </StitchPanel>
 

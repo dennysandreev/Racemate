@@ -363,7 +363,7 @@ function GaragePanel({
               <Image
                 alt=""
                 aria-hidden="true"
-                className="pointer-events-none object-cover object-center opacity-55"
+                className="pointer-events-none object-contain object-[85%_center] p-5 opacity-65 drop-shadow-[0_10px_10px_rgb(0_0_0_/_0.24)] sm:p-7"
                 fill
                 sizes="(min-width: 1280px) 50rem, 100vw"
                 src={teamProfileAsset.carImageUrl}

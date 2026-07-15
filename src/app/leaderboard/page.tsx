@@ -32,6 +32,7 @@ type StandingEntry = {
   teamLogo?: string;
   teamCarImage?: string;
   teamColor?: string;
+  teamHref?: string;
   points: number;
   wins: number;
   podiums: number;
@@ -65,25 +66,30 @@ export default async function LeaderboardPage({
 
   const rounds = activeTable === "drivers" ? drivers.rounds : constructors.rounds;
   const entries = activeTable === "drivers"
-    ? drivers.rows.map((row): StandingEntry => ({
-        driverSlug: row.driverSlug,
-        driverNumber: row.driverNumber,
-        href: row.driverSlug ? `/drivers/${row.driverSlug}` : undefined,
-        name: row.driver,
-        podiumByRound: row.podiumByRound,
-        podiums: Object.keys(row.podiumByRound).length,
-        points: row.total,
-        pointsByRound: row.pointsByRound,
-        positionByRound: row.positionByRound,
-        position: row.position,
-        subtitle: row.team,
-        titleOdds: findMarketOddsLabel(row.driver, driverOdds?.outcomes),
-        teamCode: row.teamCode,
-        teamColor: row.teamColor,
-        teamLogo: row.teamLogo,
-        teamName: row.team,
-        wins: Object.values(row.podiumByRound).filter((finish) => finish === "winner").length,
-      }))
+    ? drivers.rows.map((row): StandingEntry => {
+        const profileAsset = getTeamProfileAsset(row.teamCode) ?? getTeamProfileAsset(row.team);
+
+        return {
+          driverSlug: row.driverSlug,
+          driverNumber: row.driverNumber,
+          href: row.driverSlug ? `/drivers/${row.driverSlug}` : undefined,
+          name: row.driver,
+          podiumByRound: row.podiumByRound,
+          podiums: Object.keys(row.podiumByRound).length,
+          points: row.total,
+          pointsByRound: row.pointsByRound,
+          positionByRound: row.positionByRound,
+          position: row.position,
+          subtitle: row.team,
+          titleOdds: findMarketOddsLabel(row.driver, driverOdds?.outcomes),
+          teamCode: row.teamCode,
+          teamColor: row.teamColor,
+          teamHref: profileAsset ? `/teams/${profileAsset.slug}` : undefined,
+          teamLogo: row.teamLogo,
+          teamName: row.team,
+          wins: Object.values(row.podiumByRound).filter((finish) => finish === "winner").length,
+        };
+      })
     : constructors.rows.map((row): StandingEntry => {
         const profileAsset = getTeamProfileAsset(row.teamCode) ?? getTeamProfileAsset(row.team);
 
@@ -189,6 +195,7 @@ export default async function LeaderboardPage({
                 leaderPoints={leaderPoints}
                 roundMaxPoints={roundMaxPoints}
                 rounds={rounds}
+                season={season}
                 showAvatar={activeTable === "drivers"}
               />
             ))}
@@ -255,7 +262,7 @@ function PodiumCard({
       <span
         aria-label={tone.label}
         className={cn(
-          "absolute left-1/2 z-30 grid -translate-x-1/2 place-items-center rounded-full font-display font-extrabold shadow-lg",
+          "absolute left-1/2 z-40 grid -translate-x-1/2 place-items-center rounded-full font-display font-extrabold shadow-lg",
           podiumBadgeSize,
           tone.badge,
         )}
@@ -286,15 +293,21 @@ function PodiumCard({
         </span>
       ) : null}
       {!showAvatar && entry.teamCarImage ? (
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-md">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-md"
+          style={{
+            background: `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${entry.teamColor ?? "var(--primary)"} 24%, transparent), transparent 68%)`,
+          }}
+        >
           <Image
             alt=""
-            className="object-cover object-center opacity-70"
+            className="scale-[1.12] object-contain object-[center_36%] opacity-85 drop-shadow-[0_8px_8px_rgb(0_0_0_/_0.28)]"
             fill
             sizes="(min-width: 640px) 24rem, 33vw"
             src={entry.teamCarImage}
           />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgb(8_9_10_/_0.28),rgb(8_9_10_/_0.7)_66%,rgb(8_9_10_/_0.92)),radial-gradient(circle_at_50%_38%,transparent_0%,rgb(8_9_10_/_0.35)_75%)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background/90" />
         </div>
       ) : null}
       {showAvatar && entry.driverNumber ? (
@@ -351,9 +364,9 @@ function PodiumCard({
           </div>
         </div>
       ) : (
-        <div className={cn("relative z-10", podiumVisualSize)}>
-          <VisualProfileLink className="size-full" entry={entry} label={`Открыть профиль команды ${entry.name}`}>
-            <TeamMark className="size-full" entry={entry} />
+        <div className={cn("relative z-10 grid place-items-center", podiumVisualSize)}>
+          <VisualProfileLink className="place-items-center" entry={entry} label={`Открыть профиль команды ${entry.name}`}>
+            <TeamMark className="size-14 sm:size-20" entry={entry} />
           </VisualProfileLink>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 grid justify-items-center rounded-md border border-border/80 bg-background/90 px-1.5 py-1 shadow-sm backdrop-blur-sm">
             <p className="font-telemetry text-base font-extrabold leading-none sm:text-xl">
@@ -384,7 +397,13 @@ function PodiumCard({
               className="size-1.5 shrink-0 rounded-full"
               style={{ backgroundColor: entry.teamColor ?? "var(--border)" }}
             />
-            <span className="truncate">{entry.subtitle}</span>
+            {entry.teamHref ? (
+              <Link className="truncate transition-colors hover:text-primary" href={entry.teamHref} prefetch={false}>
+                {entry.subtitle}
+              </Link>
+            ) : (
+              <span className="truncate">{entry.subtitle}</span>
+            )}
           </p>
         ) : null}
       </div>
@@ -397,12 +416,14 @@ function StandingRow({
   leaderPoints,
   roundMaxPoints,
   rounds,
+  season,
   showAvatar,
 }: {
   entry: StandingEntry;
   leaderPoints: number;
   roundMaxPoints: Record<number, number>;
   rounds: ChampionshipRound[];
+  season: number;
   showAvatar: boolean;
 }) {
   const gap = leaderPoints - entry.points;
@@ -449,7 +470,17 @@ function StandingRow({
           <p className="truncate text-sm font-bold">{entry.name}</p>
         )}
         {entry.subtitle ? (
-          <p className="mt-0.5 truncate text-xs font-semibold text-muted-foreground">{entry.subtitle}</p>
+          entry.teamHref ? (
+            <Link
+              className="mt-0.5 block truncate text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
+              href={entry.teamHref}
+              prefetch={false}
+            >
+              {entry.subtitle}
+            </Link>
+          ) : (
+            <p className="mt-0.5 truncate text-xs font-semibold text-muted-foreground">{entry.subtitle}</p>
+          )
         ) : null}
         <div aria-hidden="true" className="mt-1.5 h-1 max-w-56 overflow-hidden rounded-full bg-secondary/50">
           <div
@@ -462,7 +493,7 @@ function StandingRow({
         </div>
       </div>
       <div className="order-last col-span-full lg:order-none lg:col-span-1 lg:justify-self-end">
-        <RoundStrip entry={entry} roundMaxPoints={roundMaxPoints} rounds={rounds} />
+        <RoundStrip entry={entry} roundMaxPoints={roundMaxPoints} rounds={rounds} season={season} />
       </div>
       <div className="text-right">
         <p className="font-telemetry text-lg font-extrabold leading-none">{formatPoints(entry.points)}</p>
@@ -482,10 +513,12 @@ function RoundStrip({
   entry,
   roundMaxPoints,
   rounds,
+  season,
 }: {
   entry: StandingEntry;
   roundMaxPoints: Record<number, number>;
   rounds: ChampionshipRound[];
+  season: number;
 }) {
   return (
     <div className="max-w-full overflow-x-auto pb-1 lg:overflow-visible lg:pb-0">
@@ -518,10 +551,12 @@ function RoundStrip({
           }
 
           return (
-            <span
+            <Link
               aria-label={title}
-              className="grid w-[1.6rem] gap-1"
+              className="grid w-[1.6rem] gap-1 rounded-sm outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+              href={`/calendar/${season}/${round.round}`}
               key={round.round}
+              prefetch={false}
               title={title}
             >
               <span
@@ -540,7 +575,7 @@ function RoundStrip({
               >
                 {typeof points === "number" ? formatPoints(points) : "–"}
               </span>
-            </span>
+            </Link>
           );
         })}
       </div>

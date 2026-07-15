@@ -88,7 +88,7 @@ export default async function SocialPage({
               <Radio aria-hidden="true" className="size-3.5" />
               Соцсети · сезон {new Date().getUTCFullYear()}
             </p>
-            <PageTitle className="mt-2 max-w-4xl">Социальная лента</PageTitle>
+            <PageTitle className="mt-2 max-w-4xl">Лента соцсетей</PageTitle>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               Публикации команд, пилотов и сообщества с короткой сводкой RaceMate.
             </p>
@@ -97,7 +97,7 @@ export default async function SocialPage({
             <StitchSegmentedLinks
               items={modeFilters.map((option) => ({
                 active: option.value === mode,
-                href: getSocialHref({ mode: option.value }),
+                href: getSocialHref({ ...activeFilters, mode: option.value, platform }),
                 label: option.label,
               }))}
             />

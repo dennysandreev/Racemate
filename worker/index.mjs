@@ -9,6 +9,19 @@ import { getPeerId } from "telegram/Utils.js";
 
 import { scoreFantasyPrediction } from "./fantasy-scoring.mjs";
 import {
+  escapeTelegramHtml,
+  getSessionNotificationSetting,
+  isRacePredictionComplete,
+  isReminderDue,
+  telegramMedal,
+} from "./notification-rules.mjs";
+import {
+  countOpenF1SafetyEvents,
+  countReportSafetyEvents,
+  getHistoricalSafetyEventCounts,
+  loadHistoricalSafetyEventIndex,
+} from "./circuit-safety-events.mjs";
+import {
   SOCIAL_TOPIC_DEFINITIONS,
   createSocialContentHash,
   getSocialAiEditorialFields,
@@ -74,6 +87,7 @@ const supabase = createWorkerClient();
 const openF1SessionsByYear = new Map();
 let openF1FetchQueue = Promise.resolve();
 let openF1LastFetchAt = 0;
+let historicalSafetyEventIndexPromise = null;
 let socialEntityContextCache = null;
 let telegramClient = null;
 let telegramClientPromise = null;
@@ -3834,9 +3848,21 @@ async function syncCircuitStatsForRace(targetRace) {
   const contexts = [];
   const seenContextKeys = new Set();
   const historyEntityCache = createCircuitHistoryEntityCache();
+  let historicalSafetyEvents = null;
+  let historicalSafetyEventsError = null;
+
+  try {
+    historicalSafetyEvents = await getHistoricalSafetyEventIndexCached();
+  } catch (error) {
+    historicalSafetyEventsError = getSafeErrorMessage(error);
+  }
 
   for (const race of raceRows ?? []) {
-    const context = await buildCircuitRaceContext(race);
+    const context = await buildCircuitRaceContext(
+      race,
+      historicalSafetyEvents,
+      historicalSafetyEventsError,
+    );
 
     if (context) {
       seenContextKeys.add(`${context.season}-${context.round}`);
@@ -3846,7 +3872,13 @@ async function syncCircuitStatsForRace(targetRace) {
   }
 
   if (circuit.external_id) {
-    const historicalContexts = await fetchJolpicaCircuitHistoryContexts(circuit, targetRace.season_year, historyEntityCache);
+    const historicalContexts = await fetchJolpicaCircuitHistoryContexts(
+      circuit,
+      targetRace.season_year,
+      historyEntityCache,
+      historicalSafetyEvents,
+      historicalSafetyEventsError,
+    );
 
     for (const context of historicalContexts) {
       const key = `${context.season}-${context.round}`;
@@ -3940,6 +3972,14 @@ async function syncCircuitStatsForRace(targetRace) {
   return contexts.length;
 }
 
+function getHistoricalSafetyEventIndexCached() {
+  if (!historicalSafetyEventIndexPromise) {
+    historicalSafetyEventIndexPromise = loadHistoricalSafetyEventIndex();
+  }
+
+  return historicalSafetyEventIndexPromise;
+}
+
 async function ensureCircuitSlug(circuit) {
   if (circuit.slug) {
     return circuit.slug;
@@ -3951,7 +3991,7 @@ async function ensureCircuitSlug(circuit) {
   return slug;
 }
 
-async function buildCircuitRaceContext(race) {
+async function buildCircuitRaceContext(race, historicalSafetyEvents, historicalSafetyEventsError) {
   const { data: sessions } = await supabase
     .from("sessions")
     .select("id, session_type, openf1_session_key")
@@ -4001,6 +4041,16 @@ async function buildCircuitRaceContext(race) {
       position: result.position,
     }));
   const sourceErrors = {};
+  const historicalSafety = getHistoricalSafetyEventCounts(
+    historicalSafetyEvents,
+    race.season_year,
+    race.race_name,
+  );
+
+  if (historicalSafetyEventsError && Number(race.season_year) >= 2000) {
+    sourceErrors.race_data = historicalSafetyEventsError;
+  }
+
   const openF1 = await collectCircuitOpenF1Data(raceSession.openf1_session_key, sourceErrors);
   const reportRaceControl = await collectCircuitReportRaceControlData(race, sourceErrors);
   const strategy = buildCircuitStrategy(openF1.pits ?? []);
@@ -4016,9 +4066,9 @@ async function buildCircuitRaceContext(race) {
     pole,
     podium,
     dnfCount,
-    safetyCarCount: openF1.safetyCarCount ?? reportRaceControl?.safetyCarCount ?? null,
-    vscCount: openF1.vscCount ?? reportRaceControl?.vscCount ?? null,
-    redFlagCount: openF1.redFlagCount ?? reportRaceControl?.redFlagCount ?? null,
+    safetyCarCount: openF1.safetyCarCount ?? historicalSafety?.safetyCarCount ?? reportRaceControl?.safetyCarCount ?? null,
+    vscCount: openF1.vscCount ?? historicalSafety?.vscCount ?? reportRaceControl?.vscCount ?? null,
+    redFlagCount: openF1.redFlagCount ?? historicalSafety?.redFlagCount ?? reportRaceControl?.redFlagCount ?? null,
     strategy,
     raceResults,
     qualifyingResults,
@@ -4033,10 +4083,20 @@ function createCircuitHistoryEntityCache() {
   };
 }
 
-async function fetchJolpicaCircuitHistoryContexts(circuit, maxSeason, entityCache = createCircuitHistoryEntityCache()) {
+async function fetchJolpicaCircuitHistoryContexts(
+  circuit,
+  maxSeason,
+  entityCache = createCircuitHistoryEntityCache(),
+  historicalSafetyEvents = null,
+  historicalSafetyEventsError = null,
+) {
   const baseUrl = process.env.JOLPICA_BASE_URL ?? "https://api.jolpi.ca/ergast/f1";
   const encodedCircuit = encodeURIComponent(circuit.external_id);
   const sourceErrors = {};
+
+  if (historicalSafetyEventsError && Number(maxSeason) >= 2000) {
+    sourceErrors.race_data = historicalSafetyEventsError;
+  }
   let raceRows = [];
   let qualifyingRows = [];
 
@@ -4073,6 +4133,7 @@ async function fetchJolpicaCircuitHistoryContexts(circuit, maxSeason, entityCach
       qualifying: qualifyingByRace.get(`${race.season}-${race.round}`),
       sourceErrors,
       entityCache,
+      historicalSafetyEvents,
     });
 
     if (context) {
@@ -4158,7 +4219,13 @@ function dedupeJolpicaResults(results, resultKey) {
   });
 }
 
-async function buildJolpicaCircuitContext({ qualifying, race, sourceErrors, entityCache }) {
+async function buildJolpicaCircuitContext({
+  qualifying,
+  race,
+  sourceErrors,
+  entityCache,
+  historicalSafetyEvents,
+}) {
   const season = numberOrNull(race.season);
   const round = numberOrNull(race.round);
 
@@ -4231,6 +4298,11 @@ async function buildJolpicaCircuitContext({ qualifying, race, sourceErrors, enti
       team: result.team,
       position: result.position,
     }));
+  const historicalSafety = getHistoricalSafetyEventCounts(
+    historicalSafetyEvents,
+    season,
+    race.raceName,
+  );
 
   return {
     season,
@@ -4242,9 +4314,9 @@ async function buildJolpicaCircuitContext({ qualifying, race, sourceErrors, enti
     pole,
     podium,
     dnfCount: raceResults.filter((result) => result.status && !isFinisherStatus(result.status)).length,
-    safetyCarCount: null,
-    vscCount: null,
-    redFlagCount: null,
+    safetyCarCount: historicalSafety?.safetyCarCount ?? null,
+    vscCount: historicalSafety?.vscCount ?? null,
+    redFlagCount: historicalSafety?.redFlagCount ?? null,
     strategy: {
       avgPitStops: null,
       avgFirstPitLap: null,
@@ -4401,9 +4473,10 @@ async function collectCircuitOpenF1Data(sessionKey, sourceErrors) {
 
   try {
     const raceControl = await fetchJson(`${baseUrl}/race_control?session_key=${sessionKey}`);
-    result.safetyCarCount = countOpenF1Messages(raceControl, /safety car/i, /virtual safety car|\bvsc\b/i);
-    result.vscCount = countOpenF1Messages(raceControl, /virtual safety car|\bvsc\b/i);
-    result.redFlagCount = countOpenF1Messages(raceControl, /red flag/i);
+    const counts = countOpenF1SafetyEvents(raceControl);
+    result.safetyCarCount = counts.safetyCarCount;
+    result.vscCount = counts.vscCount;
+    result.redFlagCount = counts.redFlagCount;
   } catch (error) {
     sourceErrors.openf1_race_control = getSafeErrorMessage(error);
   }
@@ -4425,7 +4498,7 @@ async function collectCircuitReportRaceControlData(race, sourceErrors) {
   try {
     const { data, error } = await supabase
       .from("grand_prix_reports")
-      .select("key_events, highlights")
+      .select("key_events")
       .eq("season", race.season_year)
       .eq("round", race.round)
       .maybeSingle();
@@ -4436,78 +4509,15 @@ async function collectCircuitReportRaceControlData(race, sourceErrors) {
     }
 
     const keyEvents = Array.isArray(data?.key_events) ? data.key_events : [];
-    const summaryCounts = parseSafetyCarSummary(data?.highlights?.safetyCarSummary);
-
-    if (!keyEvents.length && !summaryCounts) {
+    if (!keyEvents.length) {
       return null;
     }
 
-    return {
-      safetyCarCount: keyEvents.length
-        ? countReportRaceControlEvents(keyEvents, "safety_car")
-        : summaryCounts?.safetyCarCount ?? null,
-      vscCount: keyEvents.length
-        ? countReportRaceControlEvents(keyEvents, "vsc")
-        : summaryCounts?.vscCount ?? null,
-      redFlagCount: keyEvents.length
-        ? countReportRaceControlEvents(keyEvents, "red_flag")
-        : summaryCounts?.redFlagCount ?? null,
-    };
+    return countReportSafetyEvents(keyEvents);
   } catch (error) {
     sourceErrors.report_race_control = getSafeErrorMessage(error);
     return null;
   }
-}
-
-function countReportRaceControlEvents(events, kind) {
-  return (events ?? []).filter((event) => {
-    const text = [
-      event?.type,
-      event?.title,
-      event?.detail,
-      event?.message,
-      event?.category,
-    ].map((value) => String(value ?? "").toLowerCase()).join(" ");
-
-    if (kind === "red_flag") {
-      return /red flag|красн/.test(text);
-    }
-
-    if (kind === "vsc") {
-      return /virtual safety car|\bvsc\b/.test(text);
-    }
-
-    return /safety car|\bsc\b|пейс.?кар|сейфти/.test(text) &&
-      !/virtual safety car|\bvsc\b|speeding|penalt|штраф|наруш/.test(text);
-  }).length;
-}
-
-function parseSafetyCarSummary(summary) {
-  const text = String(summary ?? "");
-
-  if (!text || !/SC|VSC|красн/i.test(text)) {
-    return null;
-  }
-
-  return {
-    safetyCarCount: extractSummaryCount(text, /\bSC\s*[:—-]\s*(\d+)/i),
-    vscCount: extractSummaryCount(text, /\bVSC\s*[:—-]\s*(\d+)/i),
-    redFlagCount: extractSummaryCount(text, /красн(?:ые|ых)?\s+флаг(?:и|ов)?\s*[:—-]\s*(\d+)/i),
-  };
-}
-
-function extractSummaryCount(text, pattern) {
-  const match = text.match(pattern);
-
-  return match ? numberOrNull(match[1]) : null;
-}
-
-function countOpenF1Messages(messages, includePattern, excludePattern = null) {
-  return (messages ?? []).filter((message) => {
-    const text = `${message.message ?? ""} ${message.category ?? ""} ${message.flag ?? ""}`;
-
-    return includePattern.test(text) && (!excludePattern || !excludePattern.test(text));
-  }).length;
 }
 
 function buildCircuitStrategy(pits) {
@@ -4569,6 +4579,7 @@ async function upsertCircuitHistory(circuitId, context) {
       strategy_json: context.strategy,
       raw_payload: {
         raceSessionResults: context.raceResults.length,
+        safetyEventUnit: "events",
       },
       source_errors: context.sourceErrors,
     },
@@ -9192,6 +9203,7 @@ async function upsertScheduleSessions(raceId, race) {
       await enqueueScheduleChangeNotifications({
         sessionId: saved.id,
         sessionName: name,
+        sessionType,
         previousStartAt: previous.start_at,
         startAt,
       });
@@ -9203,11 +9215,21 @@ async function enqueueNotifications() {
   const now = new Date();
   const since = new Date(now.getTime() - 48 * 60 * 60 * 1_000).toISOString();
   const until = new Date(now.getTime() + 25 * 60 * 60 * 1_000).toISOString();
+  const { data: previousRun } = await supabase
+    .from("job_runs")
+    .select("finished_at")
+    .eq("job_name", "notifications.enqueue")
+    .eq("status", "success")
+    .order("finished_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const defaultNewsSince = now.getTime() - 15 * 60 * 1_000;
+  const previousNewsSince = previousRun?.finished_at ? new Date(previousRun.finished_at).getTime() : defaultNewsSince;
+  const newsSince = new Date(Math.max(now.getTime() - 48 * 60 * 60 * 1_000, previousNewsSince)).toISOString();
   const {
     accounts,
     preferences,
     profiles,
-    reveals: recipientReveals,
     favoriteNewsTerms,
   } = await getTelegramRecipients();
 
@@ -9217,10 +9239,7 @@ async function enqueueNotifications() {
 
   const [
     { data: sessions },
-    { data: predictions },
-    { data: digest },
     { data: news },
-    { data: weatherRows },
     { data: upcomingRace },
   ] = await Promise.all([
     supabase
@@ -9230,30 +9249,12 @@ async function enqueueNotifications() {
       .lte("start_at", until)
       .order("start_at", { ascending: true }),
     supabase
-      .from("predictions")
-      .select("id, user_id, race_id, score, scored_at, races(race_name)")
-      .not("scored_at", "is", null)
-      .gte("scored_at", since)
-      .is("league_id", null),
-    supabase
-      .from("digests")
-      .select("id, title, date_key")
-      .eq("status", "published")
-      .order("generated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase
       .from("news_articles")
-      .select("id, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, importance_score, news_article_tags(tags(type,slug,name))")
+      .select("id, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, image_url, source_image_url, news_sources(name), news_article_tags(tags(type,slug,name))")
       .eq("status", "processed")
-      .gte("ai_processed_at", since)
+      .gte("ai_processed_at", newsSince)
       .order("ai_processed_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("session_weather")
-      .select("session_id, precipitation_mm, temperature_c, weather_code, sessions(name,start_at,races(race_name))")
-      .gte("forecast_at", now.toISOString())
-      .lte("forecast_at", until),
+      .limit(60),
     supabase
       .from("races")
       .select("id, race_name, race_start_at, status, sessions(id,session_type,start_at)")
@@ -9288,17 +9289,22 @@ async function enqueueNotifications() {
     for (const session of sessions ?? []) {
       const race = firstRelation(session.races);
       const startsAt = session.start_at ? new Date(session.start_at) : null;
+      const sessionPreference = getSessionNotificationSetting(preference, session.session_type);
 
-      if (session.status === "scheduled" && startsAt && isReminderEnabled(preference, session.session_type)) {
+      if (!sessionPreference?.enabled) {
+        continue;
+      }
+
+      if (session.status === "scheduled" && startsAt) {
         const millisecondsUntil = startsAt.getTime() - now.getTime();
         const reminders = [
-          { key: "24h", enabled: preference.reminder_24h, leadMs: 24 * 60 * 60 * 1_000, label: "24 часа" },
-          { key: "1h", enabled: preference.reminder_1h, leadMs: 60 * 60 * 1_000, label: "1 час" },
-          { key: "15m", enabled: preference.reminder_15m, leadMs: 15 * 60 * 1_000, label: "15 минут" },
+          { key: "24h", enabled: sessionPreference.reminder_24h, leadMs: 24 * 60 * 60 * 1_000, label: "24 часа" },
+          { key: "1h", enabled: sessionPreference.reminder_1h, leadMs: 60 * 60 * 1_000, label: "1 час" },
+          { key: "15m", enabled: sessionPreference.reminder_15m, leadMs: 15 * 60 * 1_000, label: "15 минут" },
         ];
 
         for (const reminder of reminders) {
-          if (!reminder.enabled || millisecondsUntil > reminder.leadMs || millisecondsUntil <= reminder.leadMs - 10 * 60 * 1_000) {
+          if (!reminder.enabled || !isReminderDue(millisecondsUntil, reminder.leadMs)) {
             continue;
           }
 
@@ -9309,7 +9315,8 @@ async function enqueueNotifications() {
             entityId: session.id,
             dedupeKey: `session:${session.id}:${account.user_id}:${reminder.key}`,
             payload: {
-              text: `${session.name} через ${reminder.label}\n${race?.race_name ?? "Гоночный уикенд"}\nСтарт: ${formatTelegramDate(session.start_at, profile?.timezone)}`,
+              text: `🏁 <b>${escapeTelegramHtml(session.name)} уже близко</b>\n\n📍 ${escapeTelegramHtml(race?.race_name ?? "Гоночный уикенд")}\n⏱ Старт через <b>${reminder.label}</b>\n🗓 ${escapeTelegramHtml(formatTelegramDate(session.start_at, profile?.timezone))}`,
+              parseMode: "HTML",
               buttonText: "Открыть уикенд",
               buttonUrl: "/weekend",
             },
@@ -9317,29 +9324,36 @@ async function enqueueNotifications() {
         }
       }
 
-      if (session.status === "cancelled" && preference.schedule_changes) {
+      if (session.status === "cancelled") {
         itemsProcessed += await insertNotification({
           userId: account.user_id,
           eventType: "SESSION_CANCELLED",
           entityType: "session",
           entityId: session.id,
           dedupeKey: `cancelled:${session.id}:${account.user_id}`,
-          payload: { text: `${session.name} отменена. Актуальное расписание уже доступно в RaceMate.`, buttonText: "Открыть календарь", buttonUrl: "/calendar" },
+          payload: {
+            text: `⚠️ <b>${escapeTelegramHtml(session.name)} отменена</b>\n\nАктуальное расписание уже доступно в RaceMate.`,
+            parseMode: "HTML",
+            buttonText: "Открыть календарь",
+            buttonUrl: "/calendar",
+          },
         });
       }
 
-      if (session.status === "completed" && isResultPreferenceEnabled(preference, session.session_type)) {
+      if (session.status === "completed") {
         const topThree = resultMap.get(session.id) ?? [];
 
         if (!topThree.length) {
           continue;
         }
 
-        const practice = isPracticeSession(session.session_type);
-        const eventType = practice ? "PRACTICE_FINISHED" : `${session.session_type.toUpperCase()}_FINISHED_HIDDEN`;
-        const text = practice
-          ? `${session.name} завершена\n${race?.race_name ?? ""}\n\n${topThree.map((row) => `${row.position}. ${row.driver}`).join("\n")}`
-          : `${session.name} завершена\n${race?.race_name ?? ""}\n\nРезультаты скрыты. Откройте их, когда будете готовы.`;
+        const hidden = sessionPreference.spoiler_free;
+        const eventType = hidden
+          ? `${session.session_type.toUpperCase()}_FINISHED_HIDDEN`
+          : `${session.session_type.toUpperCase()}_FINISHED`;
+        const text = hidden
+          ? `🏁 <b>${escapeTelegramHtml(session.name)} завершена</b>\n\n📍 ${escapeTelegramHtml(race?.race_name ?? "Гоночный уикенд")}\n🛡 Результаты уже готовы — без спойлеров в сообщении.`
+          : `🏁 <b>${escapeTelegramHtml(session.name)} завершена</b>\n\n📍 ${escapeTelegramHtml(race?.race_name ?? "Гоночный уикенд")}\n\n${topThree.map((row) => `${telegramMedal(row.position)} <b>${escapeTelegramHtml(row.driver)}</b>`).join("\n")}`;
 
         itemsProcessed += await insertNotification({
           userId: account.user_id,
@@ -9347,64 +9361,21 @@ async function enqueueNotifications() {
           entityType: "session",
           entityId: session.id,
           dedupeKey: `result:${session.id}:${account.user_id}`,
-          payload: practice
-            ? { text, buttonText: "Полные результаты", buttonUrl: "/weekend" }
-            : { text, callbackText: "Показать результаты", callbackData: `reveal:${session.id}`, buttonText: "Открыть на сайте", buttonUrl: "/weekend" },
+          payload: {
+            text,
+            parseMode: "HTML",
+            buttonText: hidden ? "Открыть результаты" : "Полные результаты",
+            buttonUrl: "/weekend",
+          },
         });
-
-        if (session.session_type === "race" && preference.championship_updates) {
-          itemsProcessed += await insertNotification({
-            userId: account.user_id,
-            eventType: "CHAMPIONSHIP_UPDATED_HIDDEN",
-            entityType: "session",
-            entityId: session.id,
-            dedupeKey: `championship:${session.id}:${account.user_id}`,
-            payload: {
-              text: "Таблица чемпионата обновлена. Изменения скрыты, пока вы не откроете результаты гонки.",
-              buttonText: "Открыть таблицу",
-              buttonUrl: "/leaderboard",
-            },
-          });
-        }
       }
     }
 
-    for (const prediction of (predictions ?? []).filter((row) => row.user_id === account.user_id)) {
-      if (!preference.fantasy_scored) {
-        continue;
-      }
-
-      const race = firstRelation(prediction.races);
-      itemsProcessed += await insertNotification({
-        userId: account.user_id,
-        eventType: "FANTASY_SCORED_HIDDEN",
-        entityType: "prediction",
-        entityId: prediction.id,
-        dedupeKey: `fantasy-scored:${prediction.id}`,
-        payload: {
-          text: `Прогноз на ${race?.race_name ?? "этап"} рассчитан. Очки пока скрыты, чтобы не раскрывать результат гонки.`,
-          buttonText: "Посмотреть прогноз",
-          buttonUrl: "/fantasy",
-        },
-      });
-    }
-
-    if (upcomingRace) {
+    if (upcomingRace && preference.fantasy_deadlines) {
       const raceSessions = upcomingRace.sessions ?? [];
       const qualifying = raceSessions.find((session) => session.session_type === "qualifying");
       const raceSession = raceSessions.find((session) => session.session_type === "race");
       const prediction = (upcomingPredictions ?? []).find((row) => row.user_id === account.user_id);
-
-      if (!prediction && preference.fantasy_opened) {
-        itemsProcessed += await insertNotification({
-          userId: account.user_id,
-          eventType: "FANTASY_OPENED",
-          entityType: "race",
-          entityId: upcomingRace.id,
-          dedupeKey: `fantasy-opened:${upcomingRace.id}:${account.user_id}`,
-          payload: { text: `Прогноз на ${upcomingRace.race_name} уже открыт.`, buttonText: "Сделать прогноз", buttonUrl: "/fantasy" },
-        });
-      }
 
       const incompleteQualification = !prediction?.pole_driver_id;
       const incompleteRace = !prediction || !isRacePredictionComplete(prediction);
@@ -9419,84 +9390,34 @@ async function enqueueNotifications() {
         }
 
         const millisecondsUntil = new Date(deadline.startsAt).getTime() - now.getTime();
+        const scopeLabel = deadline.scope === "qualification" ? "квалификацию" : "гонку";
 
-        if (millisecondsUntil <= 0 && preference.fantasy_locked) {
+        for (const reminder of [
+          { key: "4h", leadMs: 4 * 60 * 60 * 1_000, label: "4 часа", urgency: "⏳" },
+          { key: "15m", leadMs: 15 * 60 * 1_000, label: "15 минут", urgency: "🚨" },
+        ]) {
+          if (!isReminderDue(millisecondsUntil, reminder.leadMs)) {
+            continue;
+          }
+
           itemsProcessed += await insertNotification({
             userId: account.user_id,
-            eventType: "FANTASY_LOCKED",
+            eventType: "FANTASY_DEADLINE",
             entityType: "race",
             entityId: upcomingRace.id,
-            dedupeKey: `fantasy-locked:${upcomingRace.id}:${account.user_id}:${deadline.scope}`,
+            dedupeKey: `fantasy-deadline:${upcomingRace.id}:${account.user_id}:${deadline.scope}:${reminder.key}`,
             payload: {
-              text: `${deadline.scope === "qualification" ? "Квалификационная" : "Гоночная"} часть прогноза закрыта. Сохранённые выборы уже нельзя изменить.`,
-              buttonText: "Открыть прогноз",
-              buttonUrl: "/fantasy",
-            },
-          });
-          continue;
-        }
-
-        if (preference.fantasy_incomplete && millisecondsUntil <= 24 * 60 * 60 * 1_000 && millisecondsUntil > 23 * 60 * 60 * 1_000) {
-          itemsProcessed += await insertNotification({
-            userId: account.user_id,
-            eventType: "FANTASY_INCOMPLETE",
-            entityType: "race",
-            entityId: upcomingRace.id,
-            dedupeKey: `fantasy-incomplete:${upcomingRace.id}:${account.user_id}:${deadline.scope}`,
-            payload: {
-              text: `Прогноз на ${upcomingRace.race_name} ещё не закончен. До закрытия ${deadline.scope === "qualification" ? "квалификационной части" : "гоночной части"} меньше суток.`,
+              text: `${reminder.urgency} <b>Прогноз ещё не заполнен</b>\n\n🏎 ${escapeTelegramHtml(upcomingRace.race_name)}\n⏱ До дедлайна на ${scopeLabel} — <b>${reminder.label}</b>.\n\nУспейте сохранить выбор до закрытия.`,
+              parseMode: "HTML",
               buttonText: "Закончить прогноз",
               buttonUrl: "/fantasy",
             },
           });
         }
-
-        if (preference.fantasy_deadlines) {
-          for (const reminder of [
-            { key: "24h", leadMs: 24 * 60 * 60 * 1_000, label: "24 часа" },
-            { key: "2h", leadMs: 2 * 60 * 60 * 1_000, label: "2 часа" },
-            { key: "15m", leadMs: 15 * 60 * 1_000, label: "15 минут" },
-          ]) {
-            if (millisecondsUntil > reminder.leadMs || millisecondsUntil <= reminder.leadMs - 10 * 60 * 1_000) {
-              continue;
-            }
-
-            itemsProcessed += await insertNotification({
-              userId: account.user_id,
-              eventType: "FANTASY_DEADLINE",
-              entityType: "race",
-              entityId: upcomingRace.id,
-              dedupeKey: `fantasy-deadline:${upcomingRace.id}:${account.user_id}:${deadline.scope}:${reminder.key}`,
-              payload: {
-                text: `До закрытия прогноза ${reminder.label}. Незаконченные пункты ещё можно заполнить.`,
-                buttonText: "Закончить прогноз",
-                buttonUrl: "/fantasy",
-              },
-            });
-          }
-        }
       }
     }
 
-    if (preference.daily_digest && digest) {
-      itemsProcessed += await insertNotification({
-        userId: account.user_id,
-        eventType: "DAILY_DIGEST_READY",
-        entityType: "digest",
-        entityId: digest.id,
-        dedupeKey: `digest:${digest.id}:${account.user_id}`,
-        payload: { text: `${digest.title}\n\nСвежая сводка уже готова.`, buttonText: "Читать сводку", buttonUrl: "/" },
-      });
-    }
-
     if (hasAnyNewsPreference(preference)) {
-      const protectedSession = completedSessions
-        .filter((session) => !isPracticeSession(session.session_type))
-        .sort((left, right) => new Date(right.start_at ?? 0).getTime() - new Date(left.start_at ?? 0).getTime())[0];
-      const revealed = protectedSession
-        ? recipientsHasReveal(account.user_id, protectedSession.id, recipientReveals)
-        : true;
-
       for (const article of news ?? []) {
         if (!matchesNewsPreference(article, preference, favoriteNewsTerms.get(account.user_id))) {
           continue;
@@ -9508,40 +9429,15 @@ async function enqueueNotifications() {
           entityType: "news",
           entityId: article.id,
           dedupeKey: `news:${article.id}:${account.user_id}`,
-          payload: revealed ? {
-            text: `${article.ai_title_ru ?? article.original_title}\n\n${String(article.ai_summary_ru ?? "").slice(0, 700)}`,
-            buttonText: "Читать",
-            buttonUrl: `/news/${article.id}`,
-          } : {
-            text: "После сессии опубликована важная новость. Заголовок скрыт, чтобы не раскрывать результат.",
-            buttonText: "Показать новость",
+          payload: {
+            text: formatNewsTelegramText(article),
+            parseMode: "HTML",
+            photoUrl: article.image_url ?? article.source_image_url ?? null,
+            buttonText: "Читать подробнее",
             buttonUrl: `/news/${article.id}`,
           },
         });
       }
-    }
-
-    for (const weather of weatherRows ?? []) {
-      const session = firstRelation(weather.sessions);
-      const race = firstRelation(session?.races);
-      const rain = Number(weather.precipitation_mm ?? 0) >= 0.5;
-      const heat = Number(weather.temperature_c ?? 0) >= 35;
-
-      if ((!rain || (!preference.weather_changes && !preference.rain_alerts)) && (!heat || (!preference.weather_changes && !preference.extreme_heat_alerts))) {
-        continue;
-      }
-
-      const condition = rain
-        ? `На сессию ожидается дождь: ${weather.precipitation_mm} мм.`
-        : `На сессию ожидается жара: около ${weather.temperature_c} °C.`;
-      itemsProcessed += await insertNotification({
-        userId: account.user_id,
-        eventType: "WEATHER_CHANGED",
-        entityType: "session",
-        entityId: weather.session_id,
-        dedupeKey: `weather:${weather.session_id}:${account.user_id}:${rain ? "rain" : "heat"}:${weather.precipitation_mm ?? weather.temperature_c}`,
-        payload: { text: `${session?.name ?? "Прогноз погоды"}\n${race?.race_name ?? ""}\n\n${condition}`, buttonText: "Открыть уикенд", buttonUrl: "/weekend" },
-      });
     }
   }
 
@@ -9569,84 +9465,55 @@ async function dispatchNotifications() {
   }
 
   let itemsProcessed = 0;
-  const handledIds = new Set();
 
   for (const notification of queued ?? []) {
-    if (handledIds.has(notification.id)) {
-      continue;
-    }
-
-    const [{ data: account }, { data: preference }, { data: profile }] = await Promise.all([
+    const [{ data: account }, { data: preference }] = await Promise.all([
       supabase.from("telegram_accounts").select("chat_id, is_active").eq("user_id", notification.user_id).maybeSingle(),
-      supabase.from("notification_preferences").select("telegram_enabled, quiet_hours_start, quiet_hours_end, delivery_mode").eq("user_id", notification.user_id).maybeSingle(),
-      supabase.from("profiles").select("timezone").eq("id", notification.user_id).maybeSingle(),
+      supabase.from("notification_preferences").select("telegram_enabled").eq("user_id", notification.user_id).maybeSingle(),
     ]);
-    const batch = preference?.delivery_mode === "digest" && !isImmediateNotification(notification.event_type)
-      ? (queued ?? []).filter((candidate) =>
-          candidate.user_id === notification.user_id &&
-          !handledIds.has(candidate.id) &&
-          !isImmediateNotification(candidate.event_type),
-        ).slice(0, 8)
-      : [notification];
-    const batchIds = batch.map((item) => item.id);
-    batchIds.forEach((id) => handledIds.add(id));
 
     if (!account?.is_active || !preference?.telegram_enabled) {
-      await supabase.from("notification_queue").update({ status: "cancelled" }).in("id", batchIds);
+      await supabase.from("notification_queue").update({ status: "cancelled" }).eq("id", notification.id);
       continue;
     }
 
-    if (isQuietTime(preference, profile?.timezone)) {
-      await supabase
-        .from("notification_queue")
-        .update({ available_at: new Date(Date.now() + 30 * 60 * 1_000).toISOString() })
-        .in("id", batchIds);
-      continue;
-    }
-
-    await Promise.all(batch.map((item) =>
-      supabase.from("notification_queue").update({ status: "sending", attempts: Number(item.attempts ?? 0) + 1 }).eq("id", item.id),
-    ));
+    const nextAttempt = Number(notification.attempts ?? 0) + 1;
+    await supabase
+      .from("notification_queue")
+      .update({ status: "sending", attempts: nextAttempt })
+      .eq("id", notification.id);
 
     try {
-      const deliveryPayload = batch.length > 1
-        ? {
-            text: `Сводка RaceMate\n\n${batch.map((item, index) => `${index + 1}. ${String(item.payload?.text ?? "Новое событие").replace(/\n+/g, " ")}`).join("\n\n")}`,
-            buttonText: "Открыть RaceMate",
-            buttonUrl: "/account#telegram",
-          }
-        : notification.payload ?? {};
-      const result = await sendQueuedTelegramMessage(botToken, account.chat_id, deliveryPayload);
+      const result = await sendQueuedTelegramMessage(botToken, account.chat_id, notification.payload ?? {});
       const sentAt = new Date().toISOString();
       await Promise.all([
-        supabase.from("notification_queue").update({ status: "sent", sent_at: sentAt, last_error: null }).in("id", batchIds),
-        supabase.from("notification_logs").insert(batch.map((item) => ({
-          queue_id: item.id,
-          user_id: item.user_id,
-          event_type: item.event_type,
+        supabase.from("notification_queue").update({ status: "sent", sent_at: sentAt, last_error: null }).eq("id", notification.id),
+        supabase.from("notification_logs").insert({
+          queue_id: notification.id,
+          user_id: notification.user_id,
+          event_type: notification.event_type,
           status: "sent",
           provider_message_id: String(result.result?.message_id ?? ""),
-        }))),
+        }),
         supabase.from("telegram_accounts").update({ last_delivery_at: sentAt, last_error: null }).eq("user_id", notification.user_id),
       ]);
-      itemsProcessed += batch.length;
+      itemsProcessed += 1;
     } catch (deliveryError) {
       const message = deliveryError instanceof Error ? deliveryError.message : String(deliveryError);
       const blocked = /403|blocked|deactivated|chat not found/i.test(message);
-      const attempts = Math.max(...batch.map((item) => Number(item.attempts ?? 0) + 1));
       await Promise.all([
         supabase.from("notification_queue").update({
-          status: blocked || attempts >= 3 ? "failed" : "pending",
-          available_at: new Date(Date.now() + attempts * 5 * 60 * 1_000).toISOString(),
+          status: blocked || nextAttempt >= 3 ? "failed" : "pending",
+          available_at: new Date(Date.now() + nextAttempt * 5 * 60 * 1_000).toISOString(),
           last_error: message.slice(0, 500),
-        }).in("id", batchIds),
-        supabase.from("notification_logs").insert(batch.map((item) => ({
-          queue_id: item.id,
-          user_id: item.user_id,
-          event_type: item.event_type,
+        }).eq("id", notification.id),
+        supabase.from("notification_logs").insert({
+          queue_id: notification.id,
+          user_id: notification.user_id,
+          event_type: notification.event_type,
           status: "failed",
           error_message: message.slice(0, 500),
-        }))),
+        }),
         supabase.from("telegram_accounts").update({ is_active: blocked ? false : true, last_error: message.slice(0, 500) }).eq("user_id", notification.user_id),
       ]);
     }
@@ -9655,14 +9522,15 @@ async function dispatchNotifications() {
   return { itemsProcessed, metadata: { selected: queued?.length ?? 0 } };
 }
 
-async function enqueueScheduleChangeNotifications({ sessionId, sessionName, previousStartAt, startAt }) {
+async function enqueueScheduleChangeNotifications({ sessionId, sessionName, sessionType, previousStartAt, startAt }) {
   const { accounts, preferences, profiles } = await getTelegramRecipients();
   let itemsProcessed = 0;
 
   for (const account of accounts) {
     const preference = preferences.get(account.user_id);
+    const sessionPreference = getSessionNotificationSetting(preference, sessionType);
 
-    if (!preference?.telegram_enabled || !preference.schedule_changes) {
+    if (!preference?.telegram_enabled || !sessionPreference?.enabled) {
       continue;
     }
 
@@ -9673,7 +9541,8 @@ async function enqueueScheduleChangeNotifications({ sessionId, sessionName, prev
       entityId: sessionId,
       dedupeKey: `schedule:${sessionId}:${account.user_id}:${startAt}`,
       payload: {
-        text: `${sessionName} перенесена\n\nБыло: ${formatTelegramDate(previousStartAt, profiles.get(account.user_id)?.timezone)}\nСтало: ${formatTelegramDate(startAt, profiles.get(account.user_id)?.timezone)}`,
+        text: `🗓 <b>Время сессии изменилось</b>\n\n${escapeTelegramHtml(sessionName)}\n\nБыло: <s>${escapeTelegramHtml(formatTelegramDate(previousStartAt, profiles.get(account.user_id)?.timezone))}</s>\nСтало: <b>${escapeTelegramHtml(formatTelegramDate(startAt, profiles.get(account.user_id)?.timezone))}</b>`,
+        parseMode: "HTML",
         buttonText: "Открыть календарь",
         buttonUrl: "/calendar",
       },
@@ -9688,35 +9557,33 @@ async function getTelegramRecipients() {
   const userIds = (accounts ?? []).map((account) => account.user_id);
 
   if (!userIds.length) {
-    return { accounts: [], preferences: new Map(), profiles: new Map(), reveals: new Set(), favoriteNewsTerms: new Map() };
+    return { accounts: [], preferences: new Map(), profiles: new Map(), favoriteNewsTerms: new Map() };
   }
 
   const [
     { data: preferenceRows },
     { data: profileRows },
-    { data: revealRows },
     { data: favoriteTeamRows },
     { data: favoriteDriverRows },
   ] = await Promise.all([
     supabase.from("notification_preferences").select("*").in("user_id", userIds),
     supabase.from("profiles").select("id, timezone").in("id", userIds),
-    supabase.from("spoiler_reveals").select("user_id, session_id").in("user_id", userIds),
-    supabase.from("user_favorite_teams").select("user_id, teams(name,code)").in("user_id", userIds),
-    supabase.from("user_favorite_drivers").select("user_id, drivers(full_name,slug)").in("user_id", userIds),
+    supabase.from("user_favorite_teams").select("user_id, teams(name,short_name,code)").in("user_id", userIds),
+    supabase.from("user_favorite_drivers").select("user_id, drivers(full_name,slug,code)").in("user_id", userIds),
   ]);
   const favoriteNewsTerms = new Map();
 
   for (const row of favoriteTeamRows ?? []) {
     const team = firstRelation(row.teams);
     const terms = favoriteNewsTerms.get(row.user_id) ?? { drivers: [], teams: [] };
-    terms.teams.push(...[team?.name, team?.code].filter(Boolean).map(normalizeNewsTerm));
+    terms.teams.push(...[team?.name, team?.short_name, team?.code].filter(Boolean).map(normalizeNewsTerm));
     favoriteNewsTerms.set(row.user_id, terms);
   }
 
   for (const row of favoriteDriverRows ?? []) {
     const driver = firstRelation(row.drivers);
     const terms = favoriteNewsTerms.get(row.user_id) ?? { drivers: [], teams: [] };
-    terms.drivers.push(...[driver?.full_name, driver?.slug].filter(Boolean).map(normalizeNewsTerm));
+    terms.drivers.push(...[driver?.full_name, driver?.slug, driver?.code].filter(Boolean).map(normalizeNewsTerm));
     favoriteNewsTerms.set(row.user_id, terms);
   }
 
@@ -9724,7 +9591,6 @@ async function getTelegramRecipients() {
     accounts: accounts ?? [],
     preferences: new Map((preferenceRows ?? []).map((row) => [row.user_id, row])),
     profiles: new Map((profileRows ?? []).map((row) => [row.id, row])),
-    reveals: new Set((revealRows ?? []).map((row) => `${row.user_id}:${row.session_id}`)),
     favoriteNewsTerms,
   };
 }
@@ -9781,42 +9647,57 @@ async function sendQueuedTelegramMessage(botToken, chatId, payload) {
   }
 
   if (payload.buttonText && payload.buttonUrl) {
-    buttons.push([{ text: payload.buttonText, url: `${baseUrl}${payload.buttonUrl}` }]);
+    const buttonUrl = /^https?:\/\//i.test(payload.buttonUrl)
+      ? payload.buttonUrl
+      : `${baseUrl}${String(payload.buttonUrl).startsWith("/") ? payload.buttonUrl : `/${payload.buttonUrl}`}`;
+    buttons.push([{ text: payload.buttonText, url: buttonUrl }]);
   }
 
-  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
+  const text = String(payload.text ?? "Новое уведомление RaceMate");
+  const replyMarkup = buttons.length ? { reply_markup: { inline_keyboard: buttons } } : {};
+  const parseMode = payload.parseMode ? { parse_mode: payload.parseMode } : {};
+  const send = async (method, body) => {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || result.ok === false) {
+      throw new Error(`Telegram ${response.status}: ${result.description ?? "delivery failed"}`);
+    }
+
+    return result;
+  };
+
+  if (payload.photoUrl) {
+    const photoUrl = /^https?:\/\//i.test(payload.photoUrl)
+      ? payload.photoUrl
+      : `${baseUrl}${String(payload.photoUrl).startsWith("/") ? payload.photoUrl : `/${payload.photoUrl}`}`;
+
+    try {
+      return await send("sendPhoto", {
+        chat_id: chatId,
+        photo: photoUrl,
+        caption: text,
+        ...parseMode,
+        ...replyMarkup,
+      });
+    } catch (error) {
+      if (/403|blocked|deactivated|chat not found/i.test(error instanceof Error ? error.message : String(error))) {
+        throw error;
+      }
+    }
+  }
+
+  return send("sendMessage", {
       chat_id: chatId,
-      text: String(payload.text ?? "Новое уведомление RaceMate"),
+      text,
       disable_web_page_preview: true,
-      ...(buttons.length ? { reply_markup: { inline_keyboard: buttons } } : {}),
-    }),
+      ...parseMode,
+      ...replyMarkup,
   });
-  const result = await response.json().catch(() => ({}));
-
-  if (!response.ok || result.ok === false) {
-    throw new Error(`Telegram ${response.status}: ${result.description ?? "delivery failed"}`);
-  }
-
-  return result;
-}
-
-function isReminderEnabled(preference, sessionType) {
-  if (isPracticeSession(sessionType)) return preference.practice_reminders;
-  if (sessionType === "qualifying" || sessionType === "sprint_qualifying") return preference.qualifying_reminders;
-  if (sessionType === "sprint") return preference.sprint_reminders;
-  if (sessionType === "race") return preference.race_reminders;
-  return false;
-}
-
-function isResultPreferenceEnabled(preference, sessionType) {
-  if (isPracticeSession(sessionType)) return preference.practice_results;
-  if (sessionType === "qualifying" || sessionType === "sprint_qualifying") return preference.qualifying_results;
-  if (sessionType === "sprint") return preference.sprint_results;
-  if (sessionType === "race") return preference.race_results;
-  return false;
 }
 
 function isPracticeSession(sessionType) {
@@ -9825,28 +9706,6 @@ function isPracticeSession(sessionType) {
 
 function isResultSession(sessionType) {
   return isPracticeSession(sessionType) || ["qualifying", "sprint_qualifying", "sprint", "race"].includes(sessionType);
-}
-
-function isQuietTime(preference, timezone = "Europe/Moscow") {
-  const start = String(preference.quiet_hours_start ?? "").slice(0, 5);
-  const end = String(preference.quiet_hours_end ?? "").slice(0, 5);
-
-  if (!start || !end || start === end) {
-    return false;
-  }
-
-  let localTime;
-  try {
-    localTime = new Intl.DateTimeFormat("en-GB", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
-  } catch {
-    localTime = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Moscow", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
-  }
-
-  return start < end ? localTime >= start && localTime < end : localTime >= start || localTime < end;
-}
-
-function isImmediateNotification(eventType) {
-  return ["SESSION_STARTING", "SESSION_TIME_CHANGED", "SESSION_CANCELLED", "WEATHER_CHANGED", "TEST_NOTIFICATION"].includes(eventType);
 }
 
 function formatTelegramDate(value, timezone = "Europe/Moscow") {
@@ -9868,35 +9727,16 @@ function firstRelation(value) {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
 }
 
-function isRacePredictionComplete(prediction) {
-  return Boolean(
-    prediction?.pole_driver_id &&
-    prediction?.fastest_lap_driver_id &&
-    (prediction?.dnf_pick_kind === "none" || prediction?.dnf_driver_id) &&
-    prediction?.top_scoring_team_id &&
-    prediction?.fastest_pit_stop_team_id &&
-    Array.isArray(prediction?.top10_driver_ids) &&
-    prediction.top10_driver_ids.length === 10
-  );
-}
-
-function recipientsHasReveal(userId, sessionId, reveals) {
-  return reveals.has(`${userId}:${sessionId}`);
-}
-
 function hasAnyNewsPreference(preference) {
   return Boolean(
     preference.important_news ||
     preference.favorite_driver_news ||
-    preference.favorite_team_news ||
-    preference.transfer_news ||
-    preference.steward_news ||
-    preference.technical_news
+    preference.favorite_team_news
   );
 }
 
 function matchesNewsPreference(article, preference, favoriteTerms = { drivers: [], teams: [] }) {
-  if (preference.important_news && Number(article.importance_score ?? 0) >= 8) {
+  if (preference.important_news) {
     return true;
   }
 
@@ -9908,11 +9748,17 @@ function matchesNewsPreference(article, preference, favoriteTerms = { drivers: [
 
   return Boolean(
     (preference.favorite_driver_news && includesAny(favoriteTerms.drivers ?? [])) ||
-    (preference.favorite_team_news && includesAny(favoriteTerms.teams ?? [])) ||
-    (preference.transfer_news && includesAny(["transfer", "driver-market", "переход", "контракт"])) ||
-    (preference.steward_news && includesAny(["steward", "penalty", "fia", "штраф", "стюард"])) ||
-    (preference.technical_news && includesAny(["technical", "upgrade", "technology", "техника", "обновлен"]))
+    (preference.favorite_team_news && includesAny(favoriteTerms.teams ?? []))
   );
+}
+
+function formatNewsTelegramText(article) {
+  const source = firstRelation(article.news_sources);
+  const title = escapeTelegramHtml(article.ai_title_ru ?? article.original_title ?? "Новая история из мира Формулы-1");
+  const summary = escapeTelegramHtml(String(article.ai_summary_ru ?? "Свежий материал уже доступен в RaceMate.").slice(0, 620));
+  const sourceLine = source?.name ? `\n\n📰 ${escapeTelegramHtml(source.name)}` : "";
+
+  return `🏎 <b>${title}</b>\n\n${summary}${sourceLine}`;
 }
 
 function normalizeNewsTerm(value) {

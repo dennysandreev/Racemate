@@ -115,7 +115,15 @@ export function SocialFeed({ initialResult, platform, mode, filters, personaliza
         </div>
       ) : null}
       <div className="divide-y stitch-divider">
-        {items.map((item) => <SocialPostCard item={item} key={item.id} />)}
+        {items.map((item) => (
+          <SocialPostCard
+            filters={filters}
+            item={item}
+            key={item.id}
+            mode={mode}
+            platform={platform}
+          />
+        ))}
       </div>
       <div ref={sentinelRef} />
       {isLoading ? <p className="py-4 text-center text-sm text-muted-foreground">Обновляем ленту...</p> : null}
@@ -130,7 +138,7 @@ export function SocialFeed({ initialResult, platform, mode, filters, personaliza
   );
 }
 
-function SocialPostCard({ item }: { item: SocialPost }) {
+function SocialPostCard({ filters, item, mode, platform }: { filters: SocialFeedProps["filters"]; item: SocialPost; mode: SocialMode; platform: SocialPlatform }) {
   const media = item.media.filter((entry) => entry.type === "image" || entry.type === "video" || entry.previewUrl);
   const hasVideo = media.some((entry) => entry.type === "video");
 
@@ -147,7 +155,12 @@ function SocialPostCard({ item }: { item: SocialPost }) {
         {item.summary ? <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{item.summary}</p> : null}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {item.tags.slice(0, 5).map((tag) => (
-            <Link className="rounded-sm border border-border/70 px-2 py-1 text-[0.68rem] font-medium transition-colors hover:border-primary/60 hover:text-primary" href={`/social?${tag.type === "social_topic" ? "topic" : tag.type}=${tag.slug}`} key={`${tag.type}-${tag.slug}`}>
+            <Link
+              className={`rounded-sm border px-2 py-1 text-[0.68rem] font-medium transition-colors hover:border-primary/60 hover:text-primary ${isSocialTagActive(tag, filters) ? "border-primary/60 bg-primary/10 text-primary" : "border-border/70"}`}
+              href={getSocialTagHref(tag, { filters, mode, platform })}
+              key={`${tag.type}-${tag.slug}`}
+              scroll={false}
+            >
               {tag.name}
             </Link>
           ))}
@@ -167,6 +180,34 @@ function SocialPostCard({ item }: { item: SocialPost }) {
       {media.length || item.imageUrl ? <SocialMediaCarousel fallbackUrl={item.imageUrl} media={media} originalUrl={item.originalUrl} /> : null}
     </article>
   );
+}
+
+function getSocialTagHref(
+  tag: SocialPost["tags"][number],
+  context: { filters: SocialFeedProps["filters"]; mode: SocialMode; platform: SocialPlatform },
+) {
+  const params = new URLSearchParams();
+
+  if (context.mode !== "main") params.set("mode", context.mode);
+  if (context.platform !== "all") params.set("platform", context.platform);
+  Object.entries(context.filters).forEach(([key, value]) => value && params.set(key, value));
+
+  const key = getSocialTagFilterKey(tag.type);
+  if (key) params.set(key, tag.slug);
+
+  const query = params.toString();
+  return query ? `/social?${query}` : "/social";
+}
+
+function isSocialTagActive(tag: SocialPost["tags"][number], filters: SocialFeedProps["filters"]) {
+  const key = getSocialTagFilterKey(tag.type);
+  return key ? filters[key] === tag.slug : false;
+}
+
+function getSocialTagFilterKey(type: string): keyof SocialFeedProps["filters"] | null {
+  if (type === "social_topic") return "topic";
+  if (type === "team" || type === "driver" || type === "race") return type;
+  return null;
 }
 
 function SocialMediaCarousel({

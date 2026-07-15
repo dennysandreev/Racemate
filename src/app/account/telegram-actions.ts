@@ -6,12 +6,12 @@ import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/lib/auth";
 import {
-  defaultNotificationPreferences,
   notificationBooleanKeys,
+  retiredNotificationBooleanKeys,
+  sessionNotificationKeys,
+  type SessionNotificationPreferences,
 } from "@/lib/notification-preferences";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-
-const timePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 
 export async function connectTelegram() {
   const user = await requireUser();
@@ -75,24 +75,39 @@ export async function saveTelegramPreferences(formData: FormData) {
     redirect("/account?telegram=error#telegram");
   }
 
-  const quietStart = normalizeTime(formData.get("quiet_hours_start"));
-  const quietEnd = normalizeTime(formData.get("quiet_hours_end"));
-  const deliveryMode = formData.get("delivery_mode") === "digest" ? "digest" : "instant";
   const values = Object.fromEntries(
     notificationBooleanKeys.map((key) => [key, formData.get(key) === "on"]),
   );
-
-  await admin.from("notification_preferences").upsert(
+  const retiredValues = Object.fromEntries(
+    retiredNotificationBooleanKeys.map((key) => [key, false]),
+  );
+  const sessionNotifications = Object.fromEntries(sessionNotificationKeys.map((key) => [
+    key,
     {
-      ...defaultNotificationPreferences,
+      enabled: formData.get(`session_${key}_enabled`) === "on",
+      reminder_24h: formData.get(`session_${key}_reminder_24h`) === "on",
+      reminder_1h: formData.get(`session_${key}_reminder_1h`) === "on",
+      reminder_15m: formData.get(`session_${key}_reminder_15m`) === "on",
+      spoiler_free: formData.get(`session_${key}_spoiler_free`) === "on",
+    },
+  ])) as SessionNotificationPreferences;
+
+  const { error } = await admin.from("notification_preferences").upsert(
+    {
       ...values,
+      ...retiredValues,
       user_id: user.id,
-      quiet_hours_start: quietStart,
-      quiet_hours_end: quietEnd,
-      delivery_mode: deliveryMode,
+      session_notifications: sessionNotifications,
+      quiet_hours_start: null,
+      quiet_hours_end: null,
+      delivery_mode: "instant",
     },
     { onConflict: "user_id" },
   );
+
+  if (error) {
+    redirect("/account?telegram=error#telegram");
+  }
 
   revalidatePath("/account");
   redirect("/account?telegram=saved#telegram");
@@ -112,7 +127,10 @@ export async function sendTelegramTest() {
       user_id: user.id,
       event_type: "TEST_NOTIFICATION",
       payload: {
-        text: "Связь с RaceMate работает. Следующее полезное уведомление придёт по вашим настройкам.",
+        text: "🏁 <b>RaceMate на связи</b>\n\nУведомления настроены. Напишем, когда появится действительно важный повод.",
+        parseMode: "HTML",
+        buttonText: "Открыть настройки",
+        buttonUrl: "/account#telegram",
       },
       dedupe_key: `test:${user.id}:${minuteKey}`,
     },
@@ -124,9 +142,4 @@ export async function sendTelegramTest() {
 
 function hashToken(value: string) {
   return createHash("sha256").update(value).digest("hex");
-}
-
-function normalizeTime(value: FormDataEntryValue | null) {
-  const normalized = String(value ?? "").trim();
-  return timePattern.test(normalized) ? normalized : null;
 }

@@ -1,4 +1,5 @@
 import { CalendarClock } from "lucide-react";
+import Link from "next/link";
 
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { cn } from "@/lib/utils";
@@ -50,22 +51,27 @@ export function SeasonProgress({
           style={{ width: `${progressPercent}%` }}
         />
       </div>
-      <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-foreground/75">
-        <CalendarClock aria-hidden="true" className="size-3.5 shrink-0" />
-        {nextRace ? (
-          <>
-            <span className="shrink-0">Следующий этап:</span>
-            <RaceFlag
-              countryCode={nextRace.countryCode}
-              label={nextRace.country}
-              value={nextRace.countryFlag}
-            />
-            <span className="truncate">{nextRace.race} · {nextRace.date}</span>
-          </>
-        ) : (
+      {nextRace ? (
+        <Link
+          className="flex min-w-0 items-center gap-1.5 rounded-sm text-xs font-semibold text-foreground/75 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          href="/weekend"
+          prefetch={false}
+        >
+          <CalendarClock aria-hidden="true" className="size-3.5 shrink-0" />
+          <span className="shrink-0">Следующий этап:</span>
+          <RaceFlag
+            countryCode={nextRace.countryCode}
+            label={nextRace.country}
+            value={nextRace.countryFlag}
+          />
+          <span className="truncate">{nextRace.race} · {nextRace.date}</span>
+        </Link>
+      ) : (
+        <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-foreground/75">
+          <CalendarClock aria-hidden="true" className="size-3.5 shrink-0" />
           <span>{totalCount > 0 && completedCount >= totalCount ? "Сезон завершён" : "Следующий этап уточняется"}</span>
-        )}
-      </p>
+        </p>
+      )}
     </div>
   );
 }

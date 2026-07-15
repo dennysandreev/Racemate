@@ -48,6 +48,7 @@
     "telegram:authorize": "node scripts/telegram-authorize.mjs",
     "lint": "eslint .",
     "test:fantasy-scoring": "node scripts/check-fantasy-scoring.mjs",
+    "test:notifications": "node --test worker/notification-rules.test.mjs",
     "test:social-pipeline": "node --test scripts/check-social-pipeline.mjs",
     "typecheck": "tsc --noEmit"
   },

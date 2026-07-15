@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Flag } from "lucide-react";
+
+import { RaceMateLogo } from "@/components/racemate/racemate-logo";
 
 const primaryFooterLinks = [
   { href: "/legal/disclaimer", label: "Отказ от ответственности" },
@@ -24,22 +25,12 @@ export function SiteFooter() {
 
         <div className="relative flex flex-col gap-3.5 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
           <Link
-            aria-label="RaceMate — на главную"
-            className="group flex w-fit shrink-0 items-center gap-2.5"
+            aria-label="RaceMate, на главную"
+            className="group flex w-fit shrink-0 items-center"
             href="/"
             prefetch={false}
           >
-            <span className="grid size-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-[0_0_18px_rgb(225_6_0_/_0.2)] transition-transform group-active:translate-y-px">
-              <Flag aria-hidden="true" className="size-4" />
-            </span>
-            <span className="min-w-0">
-              <span className="block font-display text-sm font-extrabold leading-none text-foreground">
-                RaceMate
-              </span>
-              <span className="stitch-label mt-1 block text-[0.5rem] text-muted-foreground">
-                Гоночный центр
-              </span>
-            </span>
+            <RaceMateLogo size="footer" />
           </Link>
 
           <nav

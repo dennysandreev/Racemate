@@ -187,17 +187,17 @@ const teamAssets = [
 ] satisfies TeamAsset[];
 
 const teamProfileAssets = [
-  { aliases: ["mercedes", "mer"], carImageUrl: "/f1/teams/cars/2026/mercedes.jpg", slug: "mercedes" },
-  { aliases: ["ferrari", "fer"], carImageUrl: "/f1/teams/cars/2026/ferrari.jpg", slug: "ferrari" },
-  { aliases: ["mclaren", "mcl"], carImageUrl: "/f1/teams/cars/2026/mclaren.jpg", slug: "mclaren" },
-  { aliases: ["red bull", "red bull racing", "red"], carImageUrl: "/f1/teams/cars/2026/red-bull.jpg", slug: "red-bull" },
-  { aliases: ["alpine", "alpine f1 team", "alp"], carImageUrl: "/f1/teams/cars/2026/alpine.jpg", slug: "alpine" },
-  { aliases: ["racing bulls", "rb f1 team", "rbx"], carImageUrl: "/f1/teams/cars/2026/racing-bulls.jpg", slug: "racing-bulls" },
-  { aliases: ["haas", "haas f1 team", "haa"], carImageUrl: "/f1/teams/cars/2026/haas.jpg", slug: "haas" },
-  { aliases: ["williams", "wil"], carImageUrl: "/f1/teams/cars/2026/williams.jpg", slug: "williams" },
-  { aliases: ["audi", "aud"], carImageUrl: "/f1/teams/cars/2026/audi.jpg", slug: "audi" },
-  { aliases: ["aston martin", "ast", "amr"], carImageUrl: "/f1/teams/cars/2026/aston-martin.jpg", slug: "aston-martin" },
-  { aliases: ["cadillac", "cadillac f1 team", "cad"], carImageUrl: "/f1/teams/cars/2026/cadillac.jpg", slug: "cadillac" },
+  { aliases: ["mercedes", "mer"], carImageUrl: "/f1/teams/cars/2026/mercedes.webp", slug: "mercedes" },
+  { aliases: ["ferrari", "fer"], carImageUrl: "/f1/teams/cars/2026/ferrari.webp", slug: "ferrari" },
+  { aliases: ["mclaren", "mcl"], carImageUrl: "/f1/teams/cars/2026/mclaren.webp", slug: "mclaren" },
+  { aliases: ["red bull", "red bull racing", "red"], carImageUrl: "/f1/teams/cars/2026/red-bull.webp", slug: "red-bull" },
+  { aliases: ["alpine", "alpine f1 team", "alp"], carImageUrl: "/f1/teams/cars/2026/alpine.webp", slug: "alpine" },
+  { aliases: ["racing bulls", "rb f1 team", "rbx"], carImageUrl: "/f1/teams/cars/2026/racing-bulls.webp", slug: "racing-bulls" },
+  { aliases: ["haas", "haas f1 team", "haa"], carImageUrl: "/f1/teams/cars/2026/haas.webp", slug: "haas" },
+  { aliases: ["williams", "wil"], carImageUrl: "/f1/teams/cars/2026/williams.webp", slug: "williams" },
+  { aliases: ["audi", "aud"], carImageUrl: "/f1/teams/cars/2026/audi.webp", slug: "audi" },
+  { aliases: ["aston martin", "ast", "amr"], carImageUrl: "/f1/teams/cars/2026/aston-martin.webp", slug: "aston-martin" },
+  { aliases: ["cadillac", "cadillac f1 team", "cad"], carImageUrl: "/f1/teams/cars/2026/cadillac.webp", slug: "cadillac" },
 ] satisfies TeamProfileAsset[];
 
 export function getCircuitAsset(circuitNameOrExternalId?: string | null) {

@@ -1,5 +1,12 @@
 export const notificationBooleanKeys = [
   "telegram_enabled",
+  "fantasy_deadlines",
+  "important_news",
+  "favorite_driver_news",
+  "favorite_team_news",
+] as const;
+
+export const retiredNotificationBooleanKeys = [
   "practice_reminders",
   "qualifying_reminders",
   "sprint_reminders",
@@ -14,13 +21,9 @@ export const notificationBooleanKeys = [
   "race_results",
   "fantasy_opened",
   "fantasy_incomplete",
-  "fantasy_deadlines",
   "fantasy_locked",
   "fantasy_scored",
   "fantasy_rank_changes",
-  "important_news",
-  "favorite_driver_news",
-  "favorite_team_news",
   "transfer_news",
   "steward_news",
   "technical_news",
@@ -32,47 +35,81 @@ export const notificationBooleanKeys = [
   "championship_updates",
 ] as const;
 
+export const sessionNotificationKeys = [
+  "practice",
+  "sprint_qualifying",
+  "qualifying",
+  "sprint",
+  "race",
+] as const;
+
 export type NotificationBooleanKey = (typeof notificationBooleanKeys)[number];
+export type SessionNotificationKey = (typeof sessionNotificationKeys)[number];
+
+export type SessionNotificationSetting = {
+  enabled: boolean;
+  reminder_24h: boolean;
+  reminder_1h: boolean;
+  reminder_15m: boolean;
+  spoiler_free: boolean;
+};
+
+export type SessionNotificationPreferences = Record<SessionNotificationKey, SessionNotificationSetting>;
 
 export type NotificationPreferences = Record<NotificationBooleanKey, boolean> & {
-  quiet_hours_start: string | null;
-  quiet_hours_end: string | null;
-  delivery_mode: "instant" | "digest";
+  session_notifications: SessionNotificationPreferences;
+};
+
+const defaultSessionSetting: SessionNotificationSetting = {
+  enabled: true,
+  reminder_24h: false,
+  reminder_1h: true,
+  reminder_15m: true,
+  spoiler_free: true,
+};
+
+export const defaultSessionNotificationPreferences: SessionNotificationPreferences = {
+  practice: {
+    ...defaultSessionSetting,
+    enabled: false,
+    spoiler_free: false,
+  },
+  sprint_qualifying: { ...defaultSessionSetting },
+  qualifying: { ...defaultSessionSetting },
+  sprint: { ...defaultSessionSetting },
+  race: { ...defaultSessionSetting },
 };
 
 export const defaultNotificationPreferences: NotificationPreferences = {
   telegram_enabled: true,
-  practice_reminders: false,
-  qualifying_reminders: true,
-  sprint_reminders: true,
-  race_reminders: true,
-  reminder_24h: false,
-  reminder_1h: true,
-  reminder_15m: true,
-  schedule_changes: true,
-  practice_results: true,
-  qualifying_results: true,
-  sprint_results: true,
-  race_results: true,
-  fantasy_opened: true,
-  fantasy_incomplete: true,
   fantasy_deadlines: true,
-  fantasy_locked: false,
-  fantasy_scored: true,
-  fantasy_rank_changes: true,
   important_news: true,
   favorite_driver_news: false,
   favorite_team_news: false,
-  transfer_news: false,
-  steward_news: true,
-  technical_news: false,
-  daily_digest: false,
-  weather_changes: true,
-  rain_alerts: true,
-  extreme_heat_alerts: true,
-  possible_session_delay: true,
-  championship_updates: true,
-  quiet_hours_start: null,
-  quiet_hours_end: null,
-  delivery_mode: "instant",
+  session_notifications: defaultSessionNotificationPreferences,
 };
+
+export function normalizeSessionNotificationPreferences(value: unknown): SessionNotificationPreferences {
+  const source = isRecord(value) ? value : {};
+
+  return Object.fromEntries(sessionNotificationKeys.map((key) => {
+    const candidate = isRecord(source[key]) ? source[key] : {};
+    const fallback = defaultSessionNotificationPreferences[key];
+
+    return [key, {
+      enabled: readBoolean(candidate.enabled, fallback.enabled),
+      reminder_24h: readBoolean(candidate.reminder_24h, fallback.reminder_24h),
+      reminder_1h: readBoolean(candidate.reminder_1h, fallback.reminder_1h),
+      reminder_15m: readBoolean(candidate.reminder_15m, fallback.reminder_15m),
+      spoiler_free: readBoolean(candidate.spoiler_free, fallback.spoiler_free),
+    }];
+  })) as SessionNotificationPreferences;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readBoolean(value: unknown, fallback: boolean) {
+  return typeof value === "boolean" ? value : fallback;
+}

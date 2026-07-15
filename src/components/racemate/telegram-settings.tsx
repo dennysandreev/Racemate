@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
+
 import {
   BellRing,
   Bot,
   Check,
-  Clock3,
-  CloudRain,
+  ChevronDown,
   Flag,
   Newspaper,
   Send,
@@ -21,10 +22,14 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   defaultNotificationPreferences,
+  normalizeSessionNotificationPreferences,
   type NotificationBooleanKey,
   type NotificationPreferences,
+  type SessionNotificationKey,
+  type SessionNotificationSetting,
 } from "@/lib/notification-preferences";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 type TelegramAccount = {
   username: string | null;
@@ -33,71 +38,16 @@ type TelegramAccount = {
   connected_at: string;
 };
 
-type SettingItem = {
-  key: NotificationBooleanKey;
+const sessionRows: Array<{
+  key: SessionNotificationKey;
   label: string;
-  hint?: string;
-};
-
-const settingGroups: Array<{
-  title: string;
-  description: string;
-  icon: typeof Flag;
-  items: SettingItem[];
+  shortLabel: string;
 }> = [
-  {
-    title: "Сессии",
-    description: "Напоминания и результаты гоночного уикенда",
-    icon: Flag,
-    items: [
-      { key: "practice_reminders", label: "Напоминать о практиках" },
-      { key: "qualifying_reminders", label: "Напоминать о квалификации" },
-      { key: "sprint_reminders", label: "Напоминать о спринте" },
-      { key: "race_reminders", label: "Напоминать о гонке" },
-      { key: "schedule_changes", label: "Сообщать о переносах и отменах" },
-      { key: "practice_results", label: "Присылать результаты практик", hint: "Топ-3 будет виден сразу" },
-      { key: "qualifying_results", label: "Сообщать о результатах квалификации" },
-      { key: "sprint_results", label: "Сообщать о результатах спринта" },
-      { key: "race_results", label: "Сообщать о результатах гонки" },
-    ],
-  },
-  {
-    title: "Фэнтези",
-    description: "Только моменты, когда прогноз требует внимания",
-    icon: Sparkles,
-    items: [
-      { key: "fantasy_opened", label: "Прогнозы открылись" },
-      { key: "fantasy_incomplete", label: "Прогноз остался незаполненным" },
-      { key: "fantasy_deadlines", label: "Дедлайн приближается" },
-      { key: "fantasy_locked", label: "Приём прогнозов закрыт" },
-      { key: "fantasy_scored", label: "Очки рассчитаны" },
-    ],
-  },
-  {
-    title: "Новости",
-    description: "Выберите темы, ради которых стоит отвлечься",
-    icon: Newspaper,
-    items: [
-      { key: "important_news", label: "Главные новости" },
-      { key: "favorite_driver_news", label: "Любимые пилоты" },
-      { key: "favorite_team_news", label: "Любимая команда" },
-      { key: "transfer_news", label: "Переходы пилотов" },
-      { key: "steward_news", label: "Штрафы и решения стюардов" },
-      { key: "technical_news", label: "Технические обновления" },
-      { key: "daily_digest", label: "Главное за день" },
-    ],
-  },
-  {
-    title: "Погода и чемпионат",
-    description: "Заметные изменения перед стартом и после этапа",
-    icon: CloudRain,
-    items: [
-      { key: "weather_changes", label: "Важные изменения прогноза" },
-      { key: "rain_alerts", label: "Появился дождь" },
-      { key: "extreme_heat_alerts", label: "Ожидается сильная жара" },
-      { key: "championship_updates", label: "Таблица чемпионата обновилась" },
-    ],
-  },
+  { key: "practice", label: "Практики", shortLabel: "П" },
+  { key: "sprint_qualifying", label: "Спринт-квалификация", shortLabel: "СК" },
+  { key: "qualifying", label: "Квалификация", shortLabel: "К" },
+  { key: "sprint", label: "Спринт", shortLabel: "С" },
+  { key: "race", label: "Гонка", shortLabel: "Г" },
 ];
 
 export async function TelegramSettings({ userId }: { userId: string | null }) {
@@ -117,9 +67,11 @@ export async function TelegramSettings({ userId }: { userId: string | null }) {
       ])
     : [{ data: null }, { data: null }];
   const account = accountResult.data as TelegramAccount | null;
-  const preferences = {
+  const savedPreferences = preferencesResult.data as Partial<NotificationPreferences> | null;
+  const preferences: NotificationPreferences = {
     ...defaultNotificationPreferences,
-    ...(preferencesResult.data as Partial<NotificationPreferences> | null),
+    ...savedPreferences,
+    session_notifications: normalizeSessionNotificationPreferences(savedPreferences?.session_notifications),
   };
   const connected = Boolean(account?.is_active);
 
@@ -139,7 +91,7 @@ export async function TelegramSettings({ userId }: { userId: string | null }) {
               </span>
             </div>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-              RaceMate напомнит о старте, прогнозе и важных изменениях. Результаты квалификации, спринта и гонки всегда скрыты до вашего нажатия.
+              Живые напоминания о сессиях, дедлайнах прогнозов и новостях в удобном формате.
             </p>
           </div>
         </div>
@@ -170,87 +122,86 @@ export async function TelegramSettings({ userId }: { userId: string | null }) {
       </div>
 
       {connected ? (
-        <form action={saveTelegramPreferences}>
-          <div className="grid lg:grid-cols-[minmax(0,1fr)_17rem]">
-            <div className="grid gap-px bg-border/60 sm:grid-cols-2">
-              {settingGroups.map((group) => (
-                <fieldset className="bg-background p-4 sm:p-5" key={group.title}>
-                  <legend className="w-full">
-                    <span className="flex items-center gap-2 font-display text-base font-bold">
-                      <group.icon aria-hidden="true" className="size-4 text-primary" />
-                      {group.title}
-                    </span>
-                    <span className="mt-1 block text-xs leading-5 text-muted-foreground">{group.description}</span>
-                  </legend>
-                  <div className="mt-4 grid gap-1">
-                    {group.items.map((item) => (
-                      <PreferenceCheckbox
-                        defaultChecked={preferences[item.key]}
-                        hint={item.hint}
-                        key={item.key}
-                        label={item.label}
-                        name={item.key}
-                      />
-                    ))}
-                  </div>
-                </fieldset>
-              ))}
+        <details className="group/telegram-settings">
+          <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5 [&::-webkit-details-marker]:hidden">
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                <BellRing aria-hidden="true" className="size-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-display text-sm font-bold">Настройки уведомлений</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">Только нужные события, без лишнего шума</span>
+              </span>
+            </span>
+            <ChevronDown aria-hidden="true" className="size-5 shrink-0 text-muted-foreground transition-transform duration-200 group-open/telegram-settings:rotate-180" />
+          </summary>
+
+          <form action={saveTelegramPreferences} className="border-t stitch-divider">
+            <div className="grid md:grid-cols-2">
+              <PreferenceSection
+                description="Можно получать всю ленту или только материалы об избранных."
+                icon={Newspaper}
+                title="Новости"
+              >
+                <PreferenceToggle defaultChecked={preferences.important_news} label="Все новости" name="important_news" />
+                <PreferenceToggle defaultChecked={preferences.favorite_driver_news} label="Любимые пилоты" name="favorite_driver_news" />
+                <PreferenceToggle defaultChecked={preferences.favorite_team_news} label="Любимая команда" name="favorite_team_news" />
+              </PreferenceSection>
+
+              <PreferenceSection
+                className="border-t md:border-l md:border-t-0"
+                description="Напомним за 4 часа и за 15 минут, только если прогноз не заполнен."
+                icon={Sparkles}
+                title="Фентази"
+              >
+                <PreferenceToggle defaultChecked={preferences.fantasy_deadlines} label="Дедлайн по прогнозам" name="fantasy_deadlines" />
+                <div className="mt-3 flex flex-wrap gap-2 pl-2">
+                  <TimingBadge label="За 4 часа" />
+                  <TimingBadge label="За 15 минут" />
+                  <span className="self-center text-xs text-muted-foreground">для квалификации и гонки</span>
+                </div>
+              </PreferenceSection>
             </div>
 
-            <aside className="border-t stitch-divider p-4 sm:p-5 lg:border-l lg:border-t-0">
-              <div className="flex items-center gap-2">
-                <BellRing aria-hidden="true" className="size-4 text-primary" />
-                <h3 className="font-display text-base font-bold">Когда писать</h3>
-              </div>
-              <div className="mt-4 grid gap-1">
-                <PreferenceCheckbox defaultChecked={preferences.reminder_24h} label="За 24 часа" name="reminder_24h" />
-                <PreferenceCheckbox defaultChecked={preferences.reminder_1h} label="За 1 час" name="reminder_1h" />
-                <PreferenceCheckbox defaultChecked={preferences.reminder_15m} label="За 15 минут" name="reminder_15m" />
-              </div>
-
-              <label className="mt-5 grid gap-2 text-xs font-bold" htmlFor="delivery_mode">
-                Формат сообщений
-                <select
-                  className="h-10 rounded-md border border-border bg-secondary/50 px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  defaultValue={preferences.delivery_mode}
-                  id="delivery_mode"
-                  name="delivery_mode"
-                >
-                  <option value="instant">Сразу</option>
-                  <option value="digest">Одним дайджестом</option>
-                </select>
-              </label>
-
-              <div className="mt-5">
-                <p className="flex items-center gap-2 text-xs font-bold">
-                  <Clock3 aria-hidden="true" className="size-4 text-primary" />
-                  Тихие часы
-                </p>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <TimeField defaultValue={preferences.quiet_hours_start} label="С" name="quiet_hours_start" />
-                  <TimeField defaultValue={preferences.quiet_hours_end} label="До" name="quiet_hours_end" />
+            <div className="border-t stitch-divider p-4 sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="flex items-center gap-2 font-display text-base font-bold">
+                    <Flag aria-hidden="true" className="size-4 text-primary" />
+                    Сессии
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Для каждой сессии выберите время напоминаний и формат сообщения после финиша.
+                  </p>
                 </div>
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">Время берём из часового пояса профиля.</p>
-              </div>
-
-              <div className="mt-5 rounded-md border border-border bg-secondary/35 p-3">
-                <p className="flex items-center gap-2 text-xs font-bold">
+                <span className="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                   <ShieldCheck aria-hidden="true" className="size-4 text-[var(--success)]" />
-                  Без спойлеров
-                </p>
-                <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-                  Победитель, подиум, очки прогноза и изменения чемпионата откроются только после вашего подтверждения.
-                </p>
+                  Без спойлеров скрывает результаты
+                </span>
               </div>
 
-              <input defaultChecked={preferences.telegram_enabled} name="telegram_enabled" type="hidden" value="on" />
-              <Button className="mt-5 w-full" type="submit">Сохранить</Button>
-              <p className="mt-3 text-center text-xs text-muted-foreground">
-                {account?.username ? `@${account.username}` : account?.first_name || "Telegram подключён"}
+              <div className="mt-4 divide-y divide-border/70 border-y border-border/70">
+                {sessionRows.map((session) => (
+                  <SessionPreferenceRow
+                    key={session.key}
+                    label={session.label}
+                    name={session.key}
+                    setting={preferences.session_notifications[session.key]}
+                    shortLabel={session.shortLabel}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 border-t stitch-divider bg-secondary/20 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <p className="text-xs text-muted-foreground">
+                {account?.username ? `Уведомления для @${account.username}` : account?.first_name || "Telegram подключён"}
               </p>
-            </aside>
-          </div>
-        </form>
+              <input name="telegram_enabled" type="hidden" value="on" />
+              <Button className="sm:min-w-40" type="submit">Сохранить</Button>
+            </div>
+          </form>
+        </details>
       ) : (
         <div className="p-5 sm:p-6">
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -262,43 +213,113 @@ export async function TelegramSettings({ userId }: { userId: string | null }) {
   );
 }
 
-function PreferenceCheckbox({
-  defaultChecked,
-  hint,
-  label,
-  name,
+function PreferenceSection({
+  children,
+  className,
+  description,
+  icon: Icon,
+  title,
 }: {
-  defaultChecked: boolean;
-  hint?: string;
-  label: string;
-  name: NotificationBooleanKey;
+  children: ReactNode;
+  className?: string;
+  description: string;
+  icon: typeof Newspaper;
+  title: string;
 }) {
   return (
-    <label className="group flex min-h-11 cursor-pointer items-start gap-3 rounded-md px-2 py-2 transition-colors hover:bg-accent/50">
-      <input
-        className="mt-0.5 size-4 shrink-0 accent-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        defaultChecked={defaultChecked}
-        name={name}
-        type="checkbox"
+    <fieldset className={cn("border-border/70 p-4 sm:p-5", className)}>
+      <legend className="sr-only">{title}</legend>
+      <div>
+        <h3 className="flex items-center gap-2 font-display text-base font-bold">
+          <Icon aria-hidden="true" className="size-4 text-primary" />
+          {title}
+        </h3>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>
+      </div>
+      <div className="mt-3 grid gap-1">{children}</div>
+    </fieldset>
+  );
+}
+
+function SessionPreferenceRow({
+  label,
+  name,
+  setting,
+  shortLabel,
+}: {
+  label: string;
+  name: SessionNotificationKey;
+  setting: SessionNotificationSetting;
+  shortLabel: string;
+}) {
+  return (
+    <div className="grid gap-3 py-3 sm:grid-cols-[minmax(10rem,1fr)_auto_auto] sm:items-center sm:gap-5">
+      <PreferenceToggle
+        defaultChecked={setting.enabled}
+        label={label}
+        name={`session_${name}_enabled`}
+        prefix={shortLabel}
       />
-      <span className="min-w-0 text-sm font-semibold leading-5">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 pl-2 sm:pl-0">
+        <span className="mr-1 text-[0.68rem] font-bold uppercase text-muted-foreground">Напомнить</span>
+        <TimingCheckbox defaultChecked={setting.reminder_24h} label="24 ч" name={`session_${name}_reminder_24h`} />
+        <TimingCheckbox defaultChecked={setting.reminder_1h} label="1 ч" name={`session_${name}_reminder_1h`} />
+        <TimingCheckbox defaultChecked={setting.reminder_15m} label="15 мин" name={`session_${name}_reminder_15m`} />
+      </div>
+      <label className="flex cursor-pointer items-center gap-2 pl-2 text-xs font-semibold sm:justify-end sm:pl-0">
+        <input
+          className="size-4 accent-[var(--primary)]"
+          defaultChecked={setting.spoiler_free}
+          name={`session_${name}_spoiler_free`}
+          type="checkbox"
+        />
+        <ShieldCheck aria-hidden="true" className="size-4 text-[var(--success)]" />
+        Без спойлеров
+      </label>
+    </div>
+  );
+}
+
+function PreferenceToggle({
+  defaultChecked,
+  label,
+  name,
+  prefix,
+}: {
+  defaultChecked: boolean;
+  label: string;
+  name: NotificationBooleanKey | string;
+  prefix?: string;
+}) {
+  return (
+    <label className="group flex min-h-10 cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-accent/45">
+      {prefix ? (
+        <span className="grid size-7 shrink-0 place-items-center rounded-sm bg-primary/10 font-telemetry text-[0.68rem] font-extrabold text-primary">
+          {prefix}
+        </span>
+      ) : null}
+      <span className="min-w-0 flex-1 text-sm font-semibold">{label}</span>
+      <input className="peer sr-only" defaultChecked={defaultChecked} name={name} type="checkbox" />
+      <span className="relative h-5 w-9 shrink-0 rounded-full bg-secondary ring-1 ring-border transition-colors after:absolute after:left-0.5 after:top-0.5 after:size-4 after:rounded-full after:bg-muted-foreground after:transition-transform peer-checked:bg-primary peer-checked:after:translate-x-4 peer-checked:after:bg-primary-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring" />
+    </label>
+  );
+}
+
+function TimingCheckbox({ defaultChecked, label, name }: { defaultChecked: boolean; label: string; name: string }) {
+  return (
+    <label className="cursor-pointer">
+      <input className="peer sr-only" defaultChecked={defaultChecked} name={name} type="checkbox" />
+      <span className="inline-flex h-7 items-center rounded-sm border border-border bg-secondary/35 px-2 font-telemetry text-[0.68rem] font-bold text-muted-foreground transition-colors peer-checked:border-primary/55 peer-checked:bg-primary/10 peer-checked:text-primary peer-focus-visible:ring-2 peer-focus-visible:ring-ring">
         {label}
-        {hint ? <span className="block text-xs font-normal text-muted-foreground">{hint}</span> : null}
       </span>
     </label>
   );
 }
 
-function TimeField({ defaultValue, label, name }: { defaultValue: string | null; label: string; name: string }) {
+function TimingBadge({ label }: { label: string }) {
   return (
-    <label className="grid gap-1 text-[0.68rem] font-bold text-muted-foreground">
+    <span className="inline-flex h-7 items-center rounded-sm border border-primary/35 bg-primary/10 px-2 font-telemetry text-[0.68rem] font-bold text-primary">
       {label}
-      <input
-        className="h-10 min-w-0 rounded-md border border-border bg-secondary/50 px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        defaultValue={defaultValue?.slice(0, 5) ?? ""}
-        name={name}
-        type="time"
-      />
-    </label>
+    </span>
   );
 }

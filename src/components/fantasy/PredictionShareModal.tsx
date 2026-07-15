@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,10 @@ type PredictionShareModalProps = {
   scope: PredictionShareScope;
 };
 
+const subscribeToMountState = () => () => {};
+const getClientMountState = () => true;
+const getServerMountState = () => false;
+
 export function PredictionShareModalLauncher({
   publicUrl,
   raceName,
@@ -29,6 +33,11 @@ export function PredictionShareModalLauncher({
 }: Omit<PredictionShareModalProps, "onOpenChange" | "open">) {
   const router = useRouter();
   const [open, setOpen] = useState(Boolean(shareSlug));
+  const mounted = useSyncExternalStore(
+    subscribeToMountState,
+    getClientMountState,
+    getServerMountState,
+  );
 
   const handleOpenChange = useCallback((nextOpen: boolean) => {
     setOpen(nextOpen);
@@ -41,7 +50,7 @@ export function PredictionShareModalLauncher({
   return (
     <PredictionShareModal
       onOpenChange={handleOpenChange}
-      open={open}
+      open={mounted && open}
       publicUrl={publicUrl}
       raceName={raceName}
       scope={scope}
@@ -64,6 +73,10 @@ export function PredictionShareModal({
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const imageFailed = failedImageUrl === shareImageUrl;
+  const fileName = buildPredictionShareFileName(scope, shareSlug);
+  const shareTitle = scope === "qualification"
+    ? "Прогноз на квалификацию RaceMate"
+    : "Прогноз на гонку RaceMate";
 
   useEffect(() => {
     if (!open) {
@@ -99,7 +112,7 @@ export function PredictionShareModal({
   }
 
   async function sharePrediction() {
-    const shareText = buildPredictionShareText(raceName, publicUrl);
+    const shareText = buildPredictionShareText(raceName, publicUrl, scope);
 
     if (!navigator.share) {
       await copyLink();
@@ -108,8 +121,13 @@ export function PredictionShareModal({
 
     try {
       const response = await fetch(shareImageUrl);
+
+      if (!response.ok) {
+        throw new Error("Share image is unavailable");
+      }
+
       const blob = await response.blob();
-      const file = new File([blob], `racemate-prediction-${shareSlug}.png`, {
+      const file = new File([blob], fileName, {
         type: blob.type || "image/png",
       });
 
@@ -117,7 +135,7 @@ export function PredictionShareModal({
         await navigator.share({
           files: [file],
           text: shareText,
-          title: "Прогноз RaceMate",
+          title: shareTitle,
           url: publicUrl,
         });
         return;
@@ -129,7 +147,7 @@ export function PredictionShareModal({
     try {
       await navigator.share({
         text: shareText,
-        title: "Прогноз RaceMate",
+        title: shareTitle,
         url: publicUrl,
       });
     } catch (error) {
@@ -144,11 +162,16 @@ export function PredictionShareModal({
   async function downloadImage() {
     try {
       const response = await fetch(shareImageUrl);
+
+      if (!response.ok) {
+        throw new Error("Share image is unavailable");
+      }
+
       const blob = await response.blob();
       const href = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = href;
-      link.download = `racemate-prediction-${shareSlug}.png`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -208,7 +231,7 @@ export function PredictionShareModal({
 
         <div className="min-h-0 overflow-y-auto p-5 sm:p-6">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-            <div className="overflow-hidden rounded-lg border border-border bg-background/45">
+            <div className="overflow-hidden rounded-lg border border-border bg-background/45 lg:max-w-[34rem] lg:justify-self-center">
               {imageFailed ? (
                 <div className={cn(
                   "grid place-items-center p-6 text-center",
@@ -233,12 +256,15 @@ export function PredictionShareModal({
                 </div>
               ) : (
                 <Image
-                  alt={`Превью прогноза RaceMate на ${raceName}`}
+                  alt={scope === "qualification"
+                    ? `Превью прогноза RaceMate на поул: ${raceName}`
+                    : `Превью прогноза RaceMate на гонку ${raceName}`}
                   className={cn(
                     "block w-full object-cover",
                     "aspect-[1080/1350]",
                   )}
                   height={1350}
+                  loading="eager"
                   onError={() => setFailedImageUrl(shareImageUrl)}
                   src={shareImageUrl}
                   unoptimized
@@ -254,7 +280,7 @@ export function PredictionShareModal({
                   <p className="font-display text-lg font-bold">Карточка готова</p>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Отправь карточку вместе со ссылкой на прогноз или сохрани PNG для поста.
+                  Поделись карточкой и позови друзей сравнить прогнозы.
                 </p>
                 {status ? (
                   <p className="mt-3 rounded-sm border border-success/35 bg-success/10 px-3 py-2 text-sm text-success">
@@ -280,6 +306,18 @@ export function PredictionShareModal({
   );
 }
 
-function buildPredictionShareText(raceName: string, publicUrl: string) {
-  return `Мой прогноз на ${raceName} в RaceMate. Сделай свой прогноз: ${publicUrl}`;
+function buildPredictionShareFileName(scope: PredictionShareScope, shareSlug: string) {
+  const predictionType = scope === "qualification" ? "qualification" : "race";
+
+  return `racemate-${predictionType}-${shareSlug}.png`;
+}
+
+function buildPredictionShareText(
+  raceName: string,
+  publicUrl: string,
+  scope: PredictionShareScope,
+) {
+  return scope === "qualification"
+    ? `Вот мой выбор на поул: ${raceName}. А кого выберешь ты? ${publicUrl}`
+    : `Вот мой прогноз на ${raceName}. Сможешь точнее? ${publicUrl}`;
 }

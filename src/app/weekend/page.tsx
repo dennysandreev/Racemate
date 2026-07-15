@@ -136,19 +136,24 @@ function WeekendHero({
     <section className="stitch-panel relative overflow-hidden p-0">
       <div className="weekend-hero-glow pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgb(225_6_0_/_0.28),transparent_24rem),linear-gradient(125deg,rgb(255_255_255_/_0.08),transparent_38%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.28))]" />
       <div className="relative grid gap-3 px-5 pb-4 pt-3 sm:px-6 sm:pb-5 sm:pt-3.5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-2">
             {currentRace ? (
-              <RaceFlag
-                className="text-xl"
-                countryCode={currentRace.countryCode}
-                label={currentRace.country}
-                value={currentRace.countryFlag}
-              />
+              <span className="grid min-w-0 justify-items-start gap-1">
+                <RaceFlag
+                  className="text-xl"
+                  countryCode={currentRace.countryCode}
+                  label={currentRace.country}
+                  value={currentRace.countryFlag}
+                />
+                <span className="max-w-24 truncate text-[0.68rem] font-semibold text-muted-foreground sm:hidden">
+                  {currentRace.country}
+                </span>
+              </span>
             ) : null}
             <Badge variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
             {currentRace?.country ? (
-              <span className="text-sm font-semibold text-muted-foreground">{currentRace.country}</span>
+              <span className="hidden text-sm font-semibold text-muted-foreground sm:inline">{currentRace.country}</span>
             ) : null}
           </div>
           <div className="ml-auto flex flex-col items-end gap-1.5">
@@ -190,7 +195,7 @@ function WeekendHero({
               embedded
               footerAction={(
                 <Button asChild className="w-full justify-center" size="sm">
-                  <Link href="https://vk.com/versportaa" rel="noreferrer" target="_blank">
+                  <Link href="https://vkvideo.ru/@versportaa" rel="noreferrer" target="_blank">
                     Смотреть онлайн
                     <ExternalLink aria-hidden="true" data-icon="inline-end" />
                   </Link>
@@ -272,7 +277,7 @@ function StageNewsPanel({
   items: Awaited<ReturnType<typeof getRaceNews>>;
 }) {
   return (
-    <section className="stitch-panel overflow-hidden p-0">
+    <section className="order-4 stitch-panel overflow-hidden p-0 xl:order-3">
       <PanelHeader
         action={
           <Button asChild size="sm" variant="secondary">
@@ -389,7 +394,7 @@ function FantasyPredictionCard({
   }));
 
   return (
-    <section className="stitch-panel overflow-hidden p-0">
+    <section className="order-3 stitch-panel overflow-hidden p-0 xl:order-4">
       <PanelHeader
         action={
           <span

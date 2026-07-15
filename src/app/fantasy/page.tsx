@@ -443,18 +443,23 @@ function SectionHeader({
   title: string;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
+    <div className="grid gap-3">
+      <div className="flex min-w-0 items-center justify-between gap-3">
         <p className="font-telemetry flex items-center gap-1.5 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-primary">
           <Icon aria-hidden="true" className="size-3.5" />
           {eyebrow}
         </p>
-        <h3 className="mt-1.5 font-display text-xl font-bold leading-tight">{title}</h3>
-        <p className="mt-1 text-sm font-semibold text-muted-foreground">{description}</p>
+        <span className="shrink-0 sm:hidden">{badge}</span>
       </div>
-      <div className="grid justify-items-end gap-2">
-        {countdown}
-        {badge}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="mt-1.5 font-display text-xl font-bold leading-tight">{title}</h3>
+          <p className="mt-1 text-sm font-semibold text-muted-foreground">{description}</p>
+        </div>
+        <div className="grid justify-items-end gap-2">
+          {countdown}
+          <span className="hidden sm:inline-flex">{badge}</span>
+        </div>
       </div>
     </div>
   );

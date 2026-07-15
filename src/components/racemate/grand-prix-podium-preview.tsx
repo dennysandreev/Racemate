@@ -75,14 +75,14 @@ export function GrandPrixPodiumPreview({
                   >
                     {avatar}
                     <span className="mt-1.5 w-full truncate text-sm font-bold leading-tight transition-colors group-hover:text-primary">
-                      {getLastName(result.driver)}
+                      {getShortDriverName(result.driver)}
                     </span>
                   </Link>
                 ) : (
                   <>
                     {avatar}
                     <p className="mt-1.5 w-full truncate text-sm font-bold leading-tight">
-                      {getLastName(result.driver)}
+                      {getShortDriverName(result.driver)}
                     </p>
                   </>
                 )}
@@ -149,8 +149,12 @@ function normalizeDriverName(value: string) {
     .trim();
 }
 
-function getLastName(fullName: string) {
+function getShortDriverName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
 
-  return parts.length ? parts[parts.length - 1] : fullName;
+  if (parts.length < 2) {
+    return parts[0] ?? fullName;
+  }
+
+  return `${parts[0][0]}. ${parts[parts.length - 1]}`;
 }

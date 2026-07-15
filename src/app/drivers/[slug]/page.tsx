@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
+  ChevronDown,
   ChevronRight,
   CircleUserRound,
   Flag,
@@ -80,9 +81,9 @@ export default async function DriverProfilePage({ params }: DriverPageProps) {
           <FormPanel profile={profile} />
         </div>
 
-        <div className="grid min-w-0 gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+        <div className="grid min-w-0 gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
           <RaceResultsPanel results={profile.results} />
-          <aside className="grid min-w-0 gap-4 sm:gap-5">
+          <aside className="grid h-full min-w-0 gap-4 sm:gap-5">
             <TeammatePanel profile={profile} />
             <DeltaPanel profile={profile} />
           </aside>
@@ -301,11 +302,37 @@ function SeasonStats({ profile }: { profile: DriverProfile }) {
 }
 
 function RaceResultsPanel({ results }: { results: DriverRaceResultRow[] }) {
-  return (
-    <StitchPanel>
-      <StitchPanelHeader icon={Flag} title="Результаты по этапам" />
+  const completedResults = results.filter((result) => result.finishPosition !== null || result.isDnf);
+  const recentResults = completedResults.slice(-10);
+  const hasHiddenResults = results.length > recentResults.length;
 
-      {/* Десктоп: полная таблица */}
+  return (
+    <StitchPanel className="h-full overflow-hidden">
+      <StitchPanelHeader icon={Flag} title="Результаты по этапам" />
+      {hasHiddenResults ? (
+        <>
+          <details className="group peer">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 border-b stitch-divider px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+              <span className="group-open:hidden">Показать все этапы · {results.length}</span>
+              <span className="hidden group-open:inline">Оставить последние 10</span>
+              <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+            </summary>
+            <RaceResultsContent results={results} />
+          </details>
+          <div className="peer-open:hidden">
+            <RaceResultsContent results={recentResults} />
+          </div>
+        </>
+      ) : (
+        <RaceResultsContent results={results} />
+      )}
+    </StitchPanel>
+  );
+}
+
+function RaceResultsContent({ results }: { results: DriverRaceResultRow[] }) {
+  return (
+    <>
       <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-muted text-left text-xs text-muted-foreground">
@@ -353,7 +380,6 @@ function RaceResultsPanel({ results }: { results: DriverRaceResultRow[] }) {
         </table>
       </div>
 
-      {/* Мобильный: карточки без горизонтального скролла */}
       <div className="grid gap-2 p-3 sm:hidden">
         {results.map((result) => (
           <article
@@ -397,7 +423,7 @@ function RaceResultsPanel({ results }: { results: DriverRaceResultRow[] }) {
           </article>
         ))}
       </div>
-    </StitchPanel>
+    </>
   );
 }
 
@@ -586,7 +612,7 @@ function DriverNewsPanel({ profile }: { profile: DriverProfile }) {
             key={item.href}
             prefetch={false}
           >
-            <div className="flex items-center gap-2">
+            <div className="grid justify-items-start gap-1">
               <Badge variant="outline">{item.source}</Badge>
               <span className="text-xs text-muted-foreground">{item.time}</span>
             </div>
@@ -606,7 +632,18 @@ function DriverNewsPanel({ profile }: { profile: DriverProfile }) {
 function DriverSocialPanel({ profile }: { profile: DriverProfile }) {
   return (
     <StitchPanel>
-      <StitchPanelHeader icon={Shield} title="Соцсети" />
+      <StitchPanelHeader
+        action={(
+          <Button asChild size="sm" variant="secondary">
+            <Link href={`/social?driver=driver-${profile.slug}`} prefetch={false}>
+              Все публикации гонщика
+              <ChevronRight aria-hidden="true" data-icon="inline-end" />
+            </Link>
+          </Button>
+        )}
+        icon={Shield}
+        title="Соцсети"
+      />
       <div className="grid gap-3 p-4">
         {profile.socialPosts.length ? profile.socialPosts.map((post) => (
           <a
@@ -617,13 +654,10 @@ function DriverSocialPanel({ profile }: { profile: DriverProfile }) {
             target="_blank"
           >
             <div className="mb-2 flex items-center justify-between gap-3">
-              <Badge variant="outline">
-                {post.platform === "x" ? "X" : post.platform === "telegram" ? "Telegram" : "Reddit"}
-              </Badge>
+              <Badge variant="outline">{post.source}</Badge>
               <span className="text-xs text-muted-foreground">{post.publishedAt}</span>
             </div>
             <p className="line-clamp-3 text-sm leading-6">{post.title}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{post.author}</p>
           </a>
         )) : (
           <p className="rounded-md border border-border/70 p-4 text-sm text-muted-foreground">

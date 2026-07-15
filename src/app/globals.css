@@ -49,6 +49,8 @@
   --mclaren-papaya: #ff8700;
   --obsidian-elevated: #121212;
   --obsidian-surface: #1e1e1e;
+  --racemate-logo-wordmark: #f5f4f2;
+  --racemate-logo-descriptor: #bdb8b6;
   --racemate-css-revision: 20260618;
   --race-replay-grid: rgb(255 255 255 / 0.035);
   --race-replay-map-bg: #07110d;
@@ -85,6 +87,8 @@ html[data-theme="light"] {
   --success: #168f16;
   --warning: #a85b00;
   --danger: #c11a12;
+  --racemate-logo-wordmark: #191313;
+  --racemate-logo-descriptor: #6e5e5a;
   --race-replay-grid: rgb(40 28 24 / 0.07);
   --race-replay-map-bg: #f6f2ef;
   --race-replay-marker-stroke: #fffaf8;

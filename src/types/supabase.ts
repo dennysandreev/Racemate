@@ -80,6 +80,7 @@ export type Database = {
         extreme_heat_alerts: boolean;
         possible_session_delay: boolean;
         championship_updates: boolean;
+        session_notifications: Json;
         quiet_hours_start: string | null;
         quiet_hours_end: string | null;
         delivery_mode: string;
