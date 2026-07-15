@@ -1122,9 +1122,12 @@ export type PollSummary = {
 };
 
 export type DriverOption = {
+  code?: string | null;
   id: string;
   name: string;
+  slug?: string | null;
   team: string;
+  teamCode?: string | null;
 };
 
 export type TeamOption = {
@@ -1205,6 +1208,7 @@ export type PublicPredictionShare = {
   leagueName: string | null;
   ogImageUrl: string;
   publicUrl: string;
+  shareUrl: string;
   race: {
     id: string;
     name: string;

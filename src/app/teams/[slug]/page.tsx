@@ -199,7 +199,7 @@ function DriverLineup({ team }: { team: TeamProfile }) {
 
 function DriverMetric({ label, value }: { label: string; value: string }) {
   return (
-    <span className="grid min-h-16 content-center bg-background/70 px-3 py-2">
+    <span className="grid min-h-16 content-center bg-card px-3 py-2">
       <span className="stitch-label text-[0.55rem] text-muted-foreground">{label}</span>
       <span className="mt-1 font-telemetry text-base font-extrabold">{value}</span>
     </span>
@@ -207,6 +207,12 @@ function DriverMetric({ label, value }: { label: string; value: string }) {
 }
 
 function TeamForm({ team }: { team: TeamProfile }) {
+  const bestQualifyingPosition = team.results
+    .slice(-5)
+    .map((result) => result.qualifyingBest)
+    .filter((position): position is number => position !== null)
+    .sort((left, right) => left - right)[0] ?? null;
+
   return (
     <StitchPanel className="min-w-0">
       <StitchPanelHeader icon={Gauge} title="Последние 5 этапов" />
@@ -217,7 +223,7 @@ function TeamForm({ team }: { team: TeamProfile }) {
               className={cn(
                 "grid min-h-10 min-w-0 place-items-center whitespace-nowrap rounded border px-1 font-telemetry text-[0.62rem] font-extrabold sm:text-[0.68rem]",
                 getTeamFormTone(label) === "winner" && "border-[#f4c95d]/60 bg-[#f4c95d]/10 text-[#f4c95d]",
-                getTeamFormTone(label) === "classified" && "border-border bg-background/35",
+                getTeamFormTone(label) === "classified" && "border-border bg-card",
                 getTeamFormTone(label) === "dnf" && "border-primary/50 bg-primary/10 text-primary",
               )}
               key={`${label}-${index}`}
@@ -230,7 +236,7 @@ function TeamForm({ team }: { team: TeamProfile }) {
           <MiniMetric label="Очки" value={formatStat(team.form.points)} />
           <MiniMetric label="Подиумы" value={formatStat(team.form.podiums)} />
           <MiniMetric label="Лучший финиш" value={formatPosition(team.form.bestResult)} />
-          <MiniMetric label="Этапов" value={formatStat(team.form.labels.length)} />
+          <MiniMetric label="Лучшая квалификация" value={formatPosition(bestQualifyingPosition)} />
         </div>
       </div>
     </StitchPanel>
@@ -239,7 +245,7 @@ function TeamForm({ team }: { team: TeamProfile }) {
 
 function MiniMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-background/65 p-3">
+    <div className="bg-card p-3">
       <p className="stitch-label text-muted-foreground">{label}</p>
       <p className="mt-2 font-telemetry text-lg font-extrabold">{value}</p>
     </div>
@@ -262,7 +268,7 @@ function TeamSeasonStats({ team }: { team: TeamProfile }) {
       <StitchPanelHeader icon={Trophy} title={`Статистика сезона ${team.season}`} />
       <div className="grid grid-cols-2 gap-3 p-4">
         {stats.map(([label, value]) => (
-          <div className="rounded-md border border-border/70 bg-background/35 p-3" key={label}>
+          <div className="rounded-md border border-border/70 bg-card p-3" key={label}>
             <p className="text-xs text-muted-foreground">{label}</p>
             <p className="mt-2 font-telemetry text-lg font-bold">{value}</p>
           </div>

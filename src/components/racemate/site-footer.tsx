@@ -8,9 +8,6 @@ const primaryFooterLinks = [
 ];
 
 const secondaryFooterLinks = [
-  { href: "/fantasy-rules", label: "Очки fantasy" },
-  { href: "/prediction-rules", label: "Правила прогнозов" },
-  { href: "/community-rules", label: "Правила сообщества" },
   { href: "/data-sources", label: "Источники данных" },
   { href: "/legal/terms", label: "Соглашение" },
   { href: "/legal/privacy", label: "Конфиденциальность" },

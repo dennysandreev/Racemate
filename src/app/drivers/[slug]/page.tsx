@@ -591,39 +591,39 @@ function DeltaPanel({ profile }: { profile: DriverProfile }) {
 
 function DriverNewsPanel({ profile }: { profile: DriverProfile }) {
   return (
-    <StitchPanel>
-      <StitchPanelHeader
-        action={(
-          <Button asChild size="sm" variant="secondary">
-            <Link href={`/news?tag=driver-${profile.slug}`} prefetch={false}>
-              Все новости гонщика
-              <ChevronRight aria-hidden="true" data-icon="inline-end" />
+    <StitchPanel className="grid h-full min-w-0 grid-rows-[auto_1fr_auto] overflow-hidden">
+      <StitchPanelHeader icon={Newspaper} title="Новости по гонщику" />
+      {profile.news.length ? (
+        <div className="divide-y divide-border">
+          {profile.news.map((item) => (
+            <Link
+              className="group grid gap-2 p-4 transition-colors hover:bg-accent/35 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:items-start sm:p-5"
+              href={item.href}
+              key={item.href}
+              prefetch={false}
+            >
+              <p className="text-xs font-semibold text-muted-foreground">{item.source} · {item.time}</p>
+              <div className="min-w-0">
+                <p className="font-display text-base font-extrabold group-hover:text-primary">{item.title}</p>
+                <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>
+              </div>
+              <ChevronRight aria-hidden="true" className="hidden size-4 text-muted-foreground group-hover:text-primary sm:block" />
             </Link>
-          </Button>
-        )}
-        icon={Newspaper}
-        title="Новости по гонщику"
-      />
-      <div className="grid gap-3 p-4">
-        {profile.news.length ? profile.news.map((item) => (
-          <Link
-            className="grid gap-2 rounded-md border border-border/70 bg-background/30 p-3 transition-colors hover:border-primary/40 hover:bg-accent/50"
-            href={item.href}
-            key={item.href}
-            prefetch={false}
-          >
-            <div className="grid justify-items-start gap-1">
-              <Badge variant="outline">{item.source}</Badge>
-              <span className="text-xs text-muted-foreground">{item.time}</span>
-            </div>
-            <h2 className="text-base font-semibold leading-6">{item.title}</h2>
-            <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>
+          ))}
+        </div>
+      ) : (
+        <div className="p-7 text-center">
+          <p className="font-bold">Свежих материалов пока нет</p>
+          <p className="mt-1 text-sm text-muted-foreground">Новости появятся после обновления ленты RaceMate.</p>
+        </div>
+      )}
+      <div className="border-t border-border p-4">
+        <Button asChild variant="secondary">
+          <Link href={`/news?tag=driver-${profile.slug}`} prefetch={false}>
+            Все новости гонщика
+            <ChevronRight aria-hidden="true" data-icon="inline-end" />
           </Link>
-        )) : (
-          <p className="rounded-md border border-border/70 p-4 text-sm text-muted-foreground">
-            Как только в ленте появятся материалы про этого гонщика, они будут здесь.
-          </p>
-        )}
+        </Button>
       </div>
     </StitchPanel>
   );
@@ -631,39 +631,37 @@ function DriverNewsPanel({ profile }: { profile: DriverProfile }) {
 
 function DriverSocialPanel({ profile }: { profile: DriverProfile }) {
   return (
-    <StitchPanel>
-      <StitchPanelHeader
-        action={(
-          <Button asChild size="sm" variant="secondary">
-            <Link href={`/social?driver=driver-${profile.slug}`} prefetch={false}>
-              Все публикации гонщика
-              <ChevronRight aria-hidden="true" data-icon="inline-end" />
-            </Link>
-          </Button>
-        )}
-        icon={Shield}
-        title="Соцсети"
-      />
-      <div className="grid gap-3 p-4">
-        {profile.socialPosts.length ? profile.socialPosts.map((post) => (
+    <StitchPanel className="grid h-full min-w-0 grid-rows-[auto_1fr_auto] overflow-hidden">
+      <StitchPanelHeader icon={Shield} title="Лента соцсетей" />
+      <div className="divide-y divide-border">
+        {profile.socialPosts.length ? profile.socialPosts.slice(0, 5).map((post) => (
           <a
-            className="rounded-md border border-border/70 bg-background/30 p-3 transition-colors hover:border-primary/40 hover:bg-accent/50"
+            className="group block p-4 transition-colors hover:bg-accent/35"
             href={post.href}
             key={post.href}
             rel="noreferrer"
             target="_blank"
           >
-            <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="flex items-start justify-between gap-3">
               <Badge variant="outline">{post.source}</Badge>
-              <span className="text-xs text-muted-foreground">{post.publishedAt}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">{post.publishedAt}</span>
             </div>
-            <p className="line-clamp-3 text-sm leading-6">{post.title}</p>
+            <p className="mt-2 line-clamp-3 text-sm font-semibold leading-6 group-hover:text-primary">{post.title}</p>
           </a>
         )) : (
-          <p className="rounded-md border border-border/70 p-4 text-sm text-muted-foreground">
-            В сохраненной соцленте пока нет постов по этому гонщику.
-          </p>
+          <div className="p-6 text-center">
+            <p className="font-bold">Публикаций пока нет</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">Новые сообщения появятся после обработки ленты.</p>
+          </div>
         )}
+      </div>
+      <div className="mt-auto border-t border-border p-4">
+        <Button asChild className="w-full" variant="secondary">
+          <Link href={`/social?driver=driver-${profile.slug}`} prefetch={false}>
+            Все публикации гонщика
+            <ChevronRight aria-hidden="true" data-icon="inline-end" />
+          </Link>
+        </Button>
       </div>
     </StitchPanel>
   );

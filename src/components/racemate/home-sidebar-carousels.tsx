@@ -302,7 +302,7 @@ function PollCarousel({ polls }: { polls: PollSummary[] }) {
           <CarouselCounter activeIndex={carousel.activeIndex} length={items.length} />
         </div>
       </CardHeader>
-      <CardContent className="grid h-[25.5rem] min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 overflow-hidden pt-4 sm:pt-4">
+      <CardContent className="grid h-[26.5rem] min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 overflow-hidden pt-4 sm:pt-4">
         {poll ? (
           <div
             className="home-carousel-slide grid min-h-0 grid-rows-[auto_auto_1fr_auto] gap-3 overflow-y-auto overscroll-contain pr-1 [scrollbar-width:thin]"

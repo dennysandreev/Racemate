@@ -157,11 +157,11 @@ export default async function FantasyPage({
         ) : null}
         {sharePreview && shareUrls ? (
           <PredictionShareModalLauncher
-            publicUrl={shareUrls.publicUrl}
             raceName={sharePreview.race.name}
             scope={shareScope}
             shareImageUrl={shareUrls.shareImageUrl}
             shareSlug={sharePreview.shareSlug}
+            shareUrl={sharePreview.shareUrl}
           />
         ) : null}
       </section>
@@ -195,7 +195,6 @@ function FantasyHero({
           </PageTitle>
           <p className="mt-2 max-w-xl text-sm font-semibold leading-6 text-muted-foreground">
             Собери прогноз, соревнуйся с друзьями и сравнивай очки после финиша.
-            {predictionState.race ? ` Старт гонки: ${predictionState.race.startsAt}.` : ""}
           </p>
         </div>
         <div className="grid w-full shrink-0 grid-cols-3 gap-2 xl:w-auto">
@@ -316,7 +315,6 @@ function PredictionModule({
                   startsAtIso={predictionState.race.qualifyingStartsAtIso}
                 />
               }
-              description="Заполняй и вноси правки до старта квалификации."
               eyebrow="Квалификация"
               icon={Timer}
               title="Прогноз на стартовую решетку"
@@ -354,7 +352,6 @@ function PredictionModule({
                   startsAtIso={predictionState.race.raceStartsAtIso}
                 />
               }
-              description="Топ-10 гонки и другие прогнозы можно править до старта гонки."
               eyebrow="Гонка"
               icon={Flag}
               title="Гоночный прогноз"
@@ -430,14 +427,12 @@ function PredictionModule({
 function SectionHeader({
   badge,
   countdown,
-  description,
   eyebrow,
   icon: Icon,
   title,
 }: {
   badge: React.ReactNode;
   countdown: React.ReactNode;
-  description: string;
   eyebrow: string;
   icon: typeof Timer;
   title: string;
@@ -449,16 +444,14 @@ function SectionHeader({
           <Icon aria-hidden="true" className="size-3.5" />
           {eyebrow}
         </p>
-        <span className="shrink-0 sm:hidden">{badge}</span>
+        <span className="shrink-0">{badge}</span>
       </div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="mt-1.5 font-display text-xl font-bold leading-tight">{title}</h3>
-          <p className="mt-1 text-sm font-semibold text-muted-foreground">{description}</p>
         </div>
         <div className="grid justify-items-end gap-2">
           {countdown}
-          <span className="hidden sm:inline-flex">{badge}</span>
         </div>
       </div>
     </div>

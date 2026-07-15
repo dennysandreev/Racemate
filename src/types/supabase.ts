@@ -328,6 +328,13 @@ export type Database = {
         created_at: string;
         updated_at: string;
       }>;
+      share_links: TableDefinition<{
+        code: string;
+        news_article_id: string | null;
+        prediction_id: string | null;
+        prediction_scope: string | null;
+        created_at: string;
+      }>;
       tags: TableDefinition<{
         id: string;
         type: string;

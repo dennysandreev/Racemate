@@ -13,10 +13,10 @@ import type { PredictionShareScope } from "@/types/racemate";
 type PredictionShareModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  publicUrl: string;
   raceName: string;
   shareImageUrl: string;
   shareSlug: string;
+  shareUrl: string;
   scope: PredictionShareScope;
 };
 
@@ -25,10 +25,10 @@ const getClientMountState = () => true;
 const getServerMountState = () => false;
 
 export function PredictionShareModalLauncher({
-  publicUrl,
   raceName,
   shareImageUrl,
   shareSlug,
+  shareUrl,
   scope,
 }: Omit<PredictionShareModalProps, "onOpenChange" | "open">) {
   const router = useRouter();
@@ -51,11 +51,11 @@ export function PredictionShareModalLauncher({
     <PredictionShareModal
       onOpenChange={handleOpenChange}
       open={mounted && open}
-      publicUrl={publicUrl}
       raceName={raceName}
       scope={scope}
       shareImageUrl={shareImageUrl}
       shareSlug={shareSlug}
+      shareUrl={shareUrl}
     />
   );
 }
@@ -63,11 +63,11 @@ export function PredictionShareModalLauncher({
 export function PredictionShareModal({
   onOpenChange,
   open,
-  publicUrl,
   raceName,
   scope,
   shareImageUrl,
   shareSlug,
+  shareUrl,
 }: PredictionShareModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
@@ -77,6 +77,8 @@ export function PredictionShareModal({
   const shareTitle = scope === "qualification"
     ? "Прогноз на квалификацию RaceMate"
     : "Прогноз на гонку RaceMate";
+  const shareText = buildPredictionShareText(raceName, scope);
+  const shareTextWithUrl = `${shareText}\n${shareUrl}`;
 
   useEffect(() => {
     if (!open) {
@@ -101,61 +103,33 @@ export function PredictionShareModal({
     };
   }, [onOpenChange, open]);
 
-  async function copyLink() {
+  async function copyShareText() {
     try {
-      await navigator.clipboard.writeText(publicUrl);
-      setStatus("Ссылка скопирована");
+      await navigator.clipboard.writeText(shareTextWithUrl);
+      setStatus("Текст и ссылка скопированы");
       window.setTimeout(() => setStatus(null), 1800);
     } catch {
-      window.prompt("Скопируй ссылку", publicUrl);
+      window.prompt("Скопируй текст и ссылку", shareTextWithUrl);
     }
   }
 
   async function sharePrediction() {
-    const shareText = buildPredictionShareText(raceName, publicUrl, scope);
-
     if (!navigator.share) {
-      await copyLink();
+      await copyShareText();
       return;
     }
 
     try {
-      const response = await fetch(shareImageUrl);
-
-      if (!response.ok) {
-        throw new Error("Share image is unavailable");
-      }
-
-      const blob = await response.blob();
-      const file = new File([blob], fileName, {
-        type: blob.type || "image/png",
-      });
-
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          text: shareText,
-          title: shareTitle,
-          url: publicUrl,
-        });
-        return;
-      }
-    } catch {
-      // Link sharing below is a reliable fallback when file sharing is unavailable.
-    }
-
-    try {
       await navigator.share({
-        text: shareText,
+        text: shareTextWithUrl,
         title: shareTitle,
-        url: publicUrl,
       });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
 
-      await copyLink();
+      await copyShareText();
     }
   }
 
@@ -200,27 +174,28 @@ export function PredictionShareModal({
       role="dialog"
     >
       <section className="stitch-panel flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden shadow-2xl">
-        <header className="flex shrink-0 items-start justify-between gap-4 border-b stitch-divider p-5 sm:p-6">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 text-primary">
-              <Trophy aria-hidden="true" className="size-5" />
-              <span className="font-telemetry text-xs font-bold uppercase tracking-[0.1em]">
-                {scope === "qualification" ? "Квалификация" : "Гонка"}
-              </span>
-            </div>
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b stitch-divider px-4 py-1.5 sm:px-5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <Trophy aria-hidden="true" className="size-4 shrink-0 text-primary" />
             <h2
-              className="mt-3 font-display text-balance text-2xl font-extrabold tracking-[-0.03em] sm:text-4xl"
+              className="min-w-0 truncate font-display text-lg font-extrabold tracking-[-0.02em] sm:text-xl"
               id="prediction-share-title"
             >
               Прогноз сохранён
+              <span className="sr-only">
+                {scope === "qualification" ? " — квалификация" : " — гонка"}
+              </span>
             </h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {raceName}
-            </p>
+            <span
+              aria-hidden="true"
+              className="hidden shrink-0 border-l border-border pl-2.5 font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.1em] text-primary sm:inline"
+            >
+              {scope === "qualification" ? "Квалификация" : "Гонка"}
+            </span>
           </div>
           <button
             aria-label="Закрыть окно шеринга"
-            className="grid size-10 shrink-0 place-items-center rounded-md border border-border bg-background/65 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="grid size-11 shrink-0 place-items-center rounded-md border border-border bg-background/65 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => onOpenChange(false)}
             ref={closeButtonRef}
             type="button"
@@ -274,21 +249,6 @@ export function PredictionShareModal({
             </div>
 
             <aside className="grid content-start gap-3">
-              <div className="rounded-md border border-border bg-background/35 p-4">
-                <div className="flex items-center gap-2 text-primary">
-                  <ImageIcon aria-hidden="true" className="size-5" />
-                  <p className="font-display text-lg font-bold">Карточка готова</p>
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Поделись карточкой и позови друзей сравнить прогнозы.
-                </p>
-                {status ? (
-                  <p className="mt-3 rounded-sm border border-success/35 bg-success/10 px-3 py-2 text-sm text-success">
-                    {status}
-                  </p>
-                ) : null}
-              </div>
-
               <Button className="h-12 w-full justify-center" onClick={sharePrediction} type="button">
                 <Share2 aria-hidden="true" data-icon="inline-start" />
                 Поделиться
@@ -297,6 +257,11 @@ export function PredictionShareModal({
                 <Download aria-hidden="true" data-icon="inline-start" />
                 Скачать PNG
               </Button>
+              {status ? (
+                <p className="rounded-sm border border-success/35 bg-success/10 px-3 py-2 text-sm text-success" role="status">
+                  {status}
+                </p>
+              ) : null}
             </aside>
           </div>
         </div>
@@ -314,10 +279,9 @@ function buildPredictionShareFileName(scope: PredictionShareScope, shareSlug: st
 
 function buildPredictionShareText(
   raceName: string,
-  publicUrl: string,
   scope: PredictionShareScope,
 ) {
   return scope === "qualification"
-    ? `Вот мой выбор на поул: ${raceName}. А кого выберешь ты? ${publicUrl}`
-    : `Вот мой прогноз на ${raceName}. Сможешь точнее? ${publicUrl}`;
+    ? `Я сделал прогноз на поул в ${raceName}. Теперь твоя очередь.`
+    : `Я сделал прогноз на ${raceName}. Теперь твоя очередь.`;
 }

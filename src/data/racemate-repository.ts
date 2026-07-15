@@ -6,6 +6,7 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { getPredictionLocksForRace } from "@/lib/prediction-locks";
 import { getSiteUrl } from "@/lib/env";
+import { getOrCreatePredictionShareUrl } from "@/lib/share-links";
 import {
   adminJobs,
   adminSignals,
@@ -586,16 +587,18 @@ type SourceDbRow = {
 };
 
 type DriverOptionRow = {
+  code: string | null;
   id: string;
   full_name: string;
-  teams: { name: string } | { name: string }[] | null;
+  slug: string | null;
+  teams: { code: string | null; name: string } | { code: string | null; name: string }[] | null;
 };
 
 type FantasyStandingOptionRow = {
   position: number | null;
   drivers:
-    | { id: string; full_name: string; teams: { name: string } | { name: string }[] | null }
-    | { id: string; full_name: string; teams: { name: string } | { name: string }[] | null }[]
+    | { code: string | null; id: string; full_name: string; slug: string | null; teams: { code: string | null; name: string } | { code: string | null; name: string }[] | null }
+    | { code: string | null; id: string; full_name: string; slug: string | null; teams: { code: string | null; name: string } | { code: string | null; name: string }[] | null }[]
     | null;
   teams: { id: string; name: string; code: string | null } | { id: string; name: string; code: string | null }[] | null;
 };
@@ -2991,7 +2994,7 @@ export async function getCurrentSeasonPredictionOptions(
   if (latest) {
     let standingsQuery = client
       .from("driver_standings")
-      .select("position, drivers(id, full_name, teams:current_team_id(name)), teams(id, name, code)")
+      .select("position, drivers(id, full_name, slug, code, teams:current_team_id(name, code)), teams(id, name, code)")
       .eq("season_year", latest.season_year)
       .order("position", { ascending: true, nullsFirst: false });
 
@@ -3022,12 +3025,15 @@ export async function getCurrentSeasonPredictionOptions(
           }
 
           return {
+            code: driver.code,
             id: driver.id,
             name: driver.full_name,
+            slug: driver.slug,
             team: team?.name ?? getRelationName(driver.teams, "Команда уточняется"),
+            teamCode: team?.code ?? getRelationObject(driver.teams)?.code ?? null,
           };
         })
-        .filter((driver): driver is PredictionState["drivers"][number] => Boolean(driver));
+        .filter((driver): driver is NonNullable<typeof driver> => driver !== null);
 
       if (drivers.length) {
         return {
@@ -3041,7 +3047,7 @@ export async function getCurrentSeasonPredictionOptions(
   const [driversResult, teamsResult] = await Promise.all([
     client
       .from("drivers")
-      .select("id, full_name, teams:current_team_id(name)")
+      .select("id, full_name, slug, code, teams:current_team_id(name, code)")
       .eq("is_active", true)
       .order("full_name"),
     client
@@ -3053,9 +3059,12 @@ export async function getCurrentSeasonPredictionOptions(
 
   return {
     drivers: ((driversResult.data ?? []) as unknown as DriverOptionRow[]).map((driver) => ({
+      code: driver.code,
       id: driver.id,
       name: driver.full_name,
+      slug: driver.slug,
       team: getRelationName(driver.teams, "Команда уточняется"),
+      teamCode: getRelationObject(driver.teams)?.code ?? null,
     })),
     teams: ((teamsResult.data ?? []) as TeamOptionRow[]).map((team) => ({
       id: team.id,
@@ -3257,7 +3266,7 @@ export function normalizePredictionShareScope(scope?: string | null): Prediction
   return scope === "qualification" ? "qualification" : "race";
 }
 
-const PREDICTION_SHARE_IMAGE_LAYOUT_VERSION = 3;
+const PREDICTION_SHARE_IMAGE_LAYOUT_VERSION = 5;
 
 export function buildPredictionShareUrls(
   shareSlug: string,
@@ -3265,12 +3274,14 @@ export function buildPredictionShareUrls(
   version = 1,
 ) {
   const baseUrl = getSiteUrl().replace(/\/+$/, "");
-  const scopeQuery = scope === "qualification" ? "?scope=qualification" : "";
+  const publicQuery = scope === "qualification"
+    ? `?scope=qualification&preview=${PREDICTION_SHARE_IMAGE_LAYOUT_VERSION}`
+    : `?preview=${PREDICTION_SHARE_IMAGE_LAYOUT_VERSION}`;
   const imageQuery = `?scope=${scope}&v=${version}&layout=${PREDICTION_SHARE_IMAGE_LAYOUT_VERSION}`;
 
   return {
     ogImageUrl: `${baseUrl}/api/og/prediction/${shareSlug}${imageQuery}`,
-    publicUrl: `${baseUrl}/prediction/${shareSlug}${scopeQuery}`,
+    publicUrl: `${baseUrl}/prediction/${shareSlug}${publicQuery}`,
     shareImageUrl: `${baseUrl}/api/share-image/prediction/${shareSlug}${imageQuery}`,
   };
 }
@@ -3345,6 +3356,11 @@ export async function getPublicPredictionShareBySlug(
   );
   const version = prediction.share_image_version ?? 1;
   const urls = buildPredictionShareUrls(slug, scope, version);
+  const shareUrl = await getOrCreatePredictionShareUrl(
+    prediction.id,
+    scope,
+    urls.publicUrl,
+  );
   const profile = getRelationObject(prediction.profiles);
   const league = getRelationObject(prediction.prediction_leagues);
   const top10 = (prediction.top10_driver_ids ?? [])
@@ -3397,6 +3413,7 @@ export async function getPublicPredictionShareBySlug(
     scope,
     shareImageVersion: version,
     shareSlug: slug,
+    shareUrl,
     ...urls,
   };
 }

@@ -63,6 +63,16 @@ export async function generateMetadata({
       ? `Прогноз на поул: ${share.race.name}.`
       : `Топ-10 и спецпрогнозы на ${share.race.name}.`
     : `Этот прогноз на ${scope === "qualification" ? "квалификацию" : "гонку"} пока не опубликован.`;
+  const previewAlt = scope === "qualification"
+    ? `Прогноз ${share.displayName} на поул в ${share.race.name}`
+    : `Топ-10 и дополнительные прогнозы ${share.displayName} на ${share.race.name}`;
+  const previewImage = {
+    alt: previewAlt,
+    height: 630,
+    type: "image/png",
+    url: share.ogImageUrl,
+    width: 1200,
+  };
 
   return {
     description,
@@ -70,12 +80,14 @@ export async function generateMetadata({
       description,
       title,
       url: share.publicUrl,
-      ...(availability[scope] ? { images: [share.ogImageUrl] } : {}),
+      ...(availability[scope] ? { images: [previewImage] } : {}),
     },
     title,
     twitter: {
       card: "summary_large_image",
-      ...(availability[scope] ? { images: [share.ogImageUrl] } : {}),
+      description,
+      title,
+      ...(availability[scope] ? { images: [previewImage] } : {}),
     },
   };
 }

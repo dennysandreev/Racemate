@@ -245,6 +245,7 @@ function PodiumCard({
   showAvatar: boolean;
 }) {
   const tone = podiumTone[entry.position] ?? podiumTone[3];
+  const displayName = showAvatar ? formatDriverPodiumName(entry.name) : entry.name;
   const podiumBadgeSize = entry.position === 1
     ? "-top-4 size-10 text-lg sm:-top-5 sm:size-12 sm:text-xl"
     : entry.position === 2
@@ -386,10 +387,10 @@ function PodiumCard({
             href={entry.href}
             prefetch={false}
           >
-            {entry.name}
+            {displayName}
           </Link>
         ) : (
-          <p className="max-w-full truncate font-display text-sm font-extrabold leading-tight sm:text-lg">{entry.name}</p>
+          <p className="max-w-full truncate font-display text-sm font-extrabold leading-tight sm:text-lg">{displayName}</p>
         )}
         {entry.subtitle ? (
           <p className="mt-0.5 flex min-w-0 items-center justify-center gap-1.5 text-[0.65rem] font-semibold text-muted-foreground sm:text-xs">
@@ -686,6 +687,16 @@ function buildRoundMaxPoints(rounds: ChampionshipRound[], entries: StandingEntry
 
 function formatPoints(value: number) {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function formatDriverPodiumName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length < 2) {
+    return fullName;
+  }
+
+  return `${parts[0][0]}. ${parts.at(-1)}`;
 }
 
 function findMarketOddsLabel(

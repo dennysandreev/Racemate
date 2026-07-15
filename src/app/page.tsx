@@ -88,7 +88,7 @@ export default async function Home({
   });
   const [newsResult, nextSession, standings, constructorStandings, currentRace, championOdds, constructorOdds, polls, latestReport, queryReport, driverSlugByName, sessionResults] =
     await Promise.all([
-      getNewsItems({ pageSize: 5 }),
+      getNewsItems({ pageSize: 7 }),
       getNextSession(),
       getDriverStandings(),
       getConstructorStandings(),
@@ -158,21 +158,20 @@ export default async function Home({
   return (
     <AppShell>
       <section className="grid gap-5 pb-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
-        <CurrentRaceCard
-          currentRace={currentRace}
-          nextSession={nextSession}
-          sessions={sessionResults}
-        />
+        <div className="grid min-w-0 gap-5">
+          <CurrentRaceCard
+            currentRace={currentRace}
+            nextSession={nextSession}
+            sessions={sessionResults}
+          />
+          <NewsCard items={newsItems} />
+        </div>
 
-        <aside className="grid gap-5 xl:col-start-2 xl:row-span-2 xl:row-start-1">
+        <aside className="grid gap-5">
           <LatestReportCard driverSlugByName={driverSlugByName} report={latestReport} />
           <HomeStandingsCarousel slides={standingSlides} />
           <HomeSidebarCarousels marketSlides={marketSlides} polls={polls} />
         </aside>
-
-        <div className="grid min-w-0 gap-5 xl:col-start-1">
-          <NewsCard items={newsItems} />
-        </div>
       </section>
       <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
     </AppShell>
@@ -259,23 +258,47 @@ function NewsCard({ items }: { items: NewsItem[] }) {
           Свежие новости
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-3 pt-4 sm:pt-4">
-        {items.length ? items.map((item) => (
-          <Link
-            className="grid gap-3 rounded-md border border-border p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/news/${item.slug}`}
-            key={item.slug}
-            prefetch={false}
-          >
-            <NewsMeta item={item} />
-            <h2 className="text-lg font-semibold leading-6">{item.title}</h2>
-            <p className="text-sm leading-6 text-muted-foreground">
-              {item.summary}
-            </p>
-            <NewsImage alt="" src={item.imageUrl} />
-          </Link>
-        )) : (
-          <p className="rounded-md border border-border/70 p-4 text-sm text-muted-foreground">
+      <CardContent className="p-0 sm:p-0">
+        {items.length ? (
+          <div className="divide-y divide-border/70">
+            {items.map((item) => (
+              <Link
+                className="group grid min-w-0 grid-cols-[minmax(0,1fr)_6.5rem] gap-3 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_10rem] sm:gap-5 sm:p-5"
+                href={`/news/${item.slug}`}
+                key={item.slug}
+                prefetch={false}
+              >
+                <div className="min-w-0 self-center">
+                  <NewsMeta item={item} />
+                  <div className="mt-3 flex min-w-0 items-start gap-2">
+                    <h2 className="min-w-0 flex-1 text-base font-semibold leading-6 transition-colors group-hover:text-primary sm:text-lg">
+                      {item.title}
+                    </h2>
+                    <ArrowRight
+                      aria-hidden="true"
+                      className="mt-1 hidden size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary sm:block"
+                    />
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
+                    {item.summary}
+                  </p>
+                </div>
+                {item.imageUrl ? (
+                  <NewsImage
+                    alt=""
+                    className="relative aspect-[4/3] self-center overflow-hidden rounded-md bg-muted"
+                    src={item.imageUrl}
+                  />
+                ) : (
+                  <span className="grid min-h-20 place-items-center border-l border-border/70 text-muted-foreground group-hover:text-primary">
+                    <ArrowRight aria-hidden="true" className="size-5 transition-transform group-hover:translate-x-1" />
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="px-5 py-7 text-sm text-muted-foreground">
             Свежих новостей пока нет.
           </p>
         )}
