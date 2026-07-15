@@ -139,28 +139,21 @@ function WeekendHero({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-2">
             {currentRace ? (
-              <span className="grid min-w-0 justify-items-start gap-1">
+              <span className="shrink-0">
                 <RaceFlag
                   className="text-xl"
                   countryCode={currentRace.countryCode}
                   label={currentRace.country}
                   value={currentRace.countryFlag}
                 />
-                <span className="max-w-24 truncate text-[0.68rem] font-semibold text-muted-foreground sm:hidden">
-                  {currentRace.country}
-                </span>
               </span>
             ) : null}
             <Badge variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
-            {currentRace?.country ? (
-              <span className="hidden text-sm font-semibold text-muted-foreground sm:inline">{currentRace.country}</span>
-            ) : null}
           </div>
           <div className="ml-auto flex flex-col items-end gap-1.5">
             <Badge className="shrink-0" variant={weekendStatus === "Live" ? "success" : "warning"}>
               {weekendStatus}
             </Badge>
-            <TrackLocalTimeBadge timezone={currentRace?.timezone} />
           </div>
         </div>
 
@@ -201,6 +194,7 @@ function WeekendHero({
                   </Link>
                 </Button>
               )}
+              headerAction={<TrackLocalTimeBadge timezone={currentRace?.timezone} />}
               showCircuitName={false}
               stats={circuitStats}
             />

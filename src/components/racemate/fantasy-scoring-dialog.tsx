@@ -57,9 +57,16 @@ export function FantasyScoringDialog({ className }: { className?: string }) {
 
   return (
     <>
-      <Button className={cn("justify-center", className)} onClick={() => setIsOpen(true)} type="button" variant="outline">
-        <CircleHelp aria-hidden="true" data-icon="inline-start" />
-        Как считаются очки
+      <Button
+        aria-label="Как считаются очки"
+        className={cn("justify-center", className)}
+        onClick={() => setIsOpen(true)}
+        size="icon"
+        title="Как считаются очки"
+        type="button"
+        variant="outline"
+      >
+        <CircleHelp aria-hidden="true" />
       </Button>
 
       {isOpen && typeof document !== "undefined"

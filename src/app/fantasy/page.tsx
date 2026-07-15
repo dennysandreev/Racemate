@@ -281,11 +281,6 @@ function PredictionModule({
           </span>
           <div className="min-w-0">
             <h2 className="font-display text-lg font-bold leading-tight">Фэнтези-пики</h2>
-            <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-              {predictionState.race
-                ? "Делай прогноз на квалификацию и гонку"
-                : "Расписание появится после синхронизации"}
-            </p>
           </div>
         </div>
         <FantasyScoringDialog className="shrink-0" />
@@ -354,7 +349,7 @@ function PredictionModule({
               }
               eyebrow="Гонка"
               icon={Flag}
-              title="Гоночный прогноз"
+              title="Прогноз на результаты гонки"
             />
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary/50">
               <div
@@ -392,8 +387,8 @@ function PredictionModule({
                     </Badge>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-muted-foreground">
-                      Расставь десять пилотов в порядке финиша.
+                    <p className="text-xs font-semibold leading-5 text-muted-foreground">
+                      Расположи 10 пилотов в порядке финиша.
                     </p>
                     <QualifyingResultsButton qualifyingResults={predictionState.qualifyingResults} />
                   </div>

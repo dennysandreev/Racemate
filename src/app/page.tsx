@@ -201,7 +201,15 @@ function CurrentRaceCard({
               <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
                 {nextSession.status}
               </Badge>
-              <Badge className="hidden sm:inline-flex" variant="outline">Сезон 2026</Badge>
+              <span
+                aria-label="Сезон 2026"
+                className="hidden h-5 items-center gap-2 sm:inline-flex"
+              >
+                <span aria-hidden="true" className="h-4 w-px bg-primary/65" />
+                <span className="text-[0.62rem] font-semibold leading-none text-muted-foreground">Сезон</span>
+                <span aria-hidden="true" className="size-1 rounded-full bg-primary/70" />
+                <span className="font-telemetry text-xs font-extrabold leading-none text-foreground">2026</span>
+              </span>
             </div>
           </div>
           <h1 className="font-display max-w-4xl text-balance text-2xl font-extrabold leading-tight tracking-[-0.04em] sm:text-3xl lg:text-4xl">
@@ -222,7 +230,7 @@ function CurrentRaceCard({
           <div className="h-[14rem] min-w-0 max-w-full overflow-hidden sm:h-[15.5rem] lg:h-[16.5rem]">
             <TrackMap compact fill circuit={nextSession.circuit} label={nextSession.race} layout={currentRace?.layout} unframed />
           </div>
-          <div className="grid min-w-0 content-between gap-3 px-1 py-2 lg:py-3">
+          <div className="grid min-w-0 content-between justify-items-center gap-3 px-1 py-2 text-center lg:justify-items-stretch lg:py-3 lg:text-left">
             <div>
               <p className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
                 {currentRace?.country ?? "Гран-при"}
@@ -234,7 +242,7 @@ function CurrentRaceCard({
                 {nextSession.startsAt}
               </p>
             </div>
-            <Button asChild className="w-full" variant="secondary">
+            <Button asChild className="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none" variant="secondary">
               <Link href="/weekend" prefetch={false}>
                 Перейти к этапу
                 <ArrowRight aria-hidden="true" data-icon="inline-end" />

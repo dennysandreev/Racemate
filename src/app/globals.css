@@ -51,6 +51,7 @@
   --obsidian-surface: #1e1e1e;
   --racemate-logo-wordmark: #f5f4f2;
   --racemate-logo-descriptor: #bdb8b6;
+  --team-logo-surface: oklch(0.25 0.014 250);
   --racemate-css-revision: 20260618;
   --race-replay-grid: rgb(255 255 255 / 0.035);
   --race-replay-map-bg: #07110d;
@@ -89,6 +90,7 @@ html[data-theme="light"] {
   --danger: #c11a12;
   --racemate-logo-wordmark: #191313;
   --racemate-logo-descriptor: #6e5e5a;
+  --team-logo-surface: #4c4846;
   --race-replay-grid: rgb(40 28 24 / 0.07);
   --race-replay-map-bg: #f6f2ef;
   --race-replay-marker-stroke: #fffaf8;
@@ -147,6 +149,10 @@ html[data-theme="light"] .stitch-panel {
 
 html[data-theme="light"] .stitch-divider {
   border-color: rgb(53 37 33 / 0.12);
+}
+
+.team-logo-surface {
+  background-color: var(--team-logo-surface);
 }
 
 html[data-theme="light"] .race-track-surface {

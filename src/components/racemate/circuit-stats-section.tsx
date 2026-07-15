@@ -35,6 +35,7 @@ export function CircuitStatsSection({
   className,
   circuitName,
   footerAction,
+  headerAction,
   embedded = false,
   mode = "compact",
   showCircuitName = true,
@@ -43,6 +44,7 @@ export function CircuitStatsSection({
   className?: string;
   circuitName?: string;
   footerAction?: ReactNode;
+  headerAction?: ReactNode;
   embedded?: boolean;
   mode?: "compact" | "button";
   showCircuitName?: boolean;
@@ -97,8 +99,11 @@ export function CircuitStatsSection({
     return (
       <section className={cn(embedded ? "" : "pb-8", className)} id="circuit-stats">
         <div className={cn("grid gap-4", embedded ? "" : "rounded-xl border border-border bg-card/80 p-4 sm:p-5")}>
-          <div>
+          <div className="flex items-center justify-between gap-3">
             <p className="stitch-label text-primary">О трассе</p>
+            {headerAction}
+          </div>
+          <div>
             <h2 className="mt-2 font-display text-2xl font-extrabold tracking-[-0.03em]">
               {circuitName ?? "Трасса этапа"}
             </h2>
@@ -123,7 +128,12 @@ export function CircuitStatsSection({
       )}>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,hsl(var(--primary)/0.16),transparent_18rem)]" />
         <div className={cn("relative grid", embedded ? "gap-2.5" : "gap-4")}>
-          <CircuitCompactDossier dense={embedded} showCircuitName={showCircuitName} stats={stats} />
+          <CircuitCompactDossier
+            dense={embedded}
+            headerAction={headerAction}
+            showCircuitName={showCircuitName}
+            stats={stats}
+          />
           <Button
             className="w-full justify-center border-border/80 bg-secondary/70 hover:bg-accent"
             onClick={() => setOpen(true)}
@@ -200,10 +210,12 @@ function CircuitStatsDialog({
 
 function CircuitCompactDossier({
   dense = false,
+  headerAction,
   showCircuitName = true,
   stats,
 }: {
   dense?: boolean;
+  headerAction?: ReactNode;
   showCircuitName?: boolean;
   stats: CircuitStatsView;
 }) {
@@ -231,8 +243,12 @@ function CircuitCompactDossier({
         <div>
           <p className="stitch-label text-primary">О трассе</p>
         </div>
-        <div className={cn("grid shrink-0 place-items-center rounded-md bg-primary/10 text-primary", dense ? "size-8" : "size-10")}>
-          <MapPinned aria-hidden="true" className={dense ? "size-4" : "size-5"} />
+        <div className="flex shrink-0 items-center gap-2">
+          {headerAction ?? (
+            <span className={cn("grid place-items-center rounded-md bg-primary/10 text-primary", dense ? "size-8" : "size-10")}>
+              <MapPinned aria-hidden="true" className={dense ? "size-4" : "size-5"} />
+            </span>
+          )}
         </div>
       </div>
       {showCircuitName ? (

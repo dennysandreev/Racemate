@@ -22,9 +22,9 @@ export default async function TeamsPage() {
   return (
     <AppShell>
       <div className="grid gap-5 pb-6 sm:pb-8">
-        <header className="stitch-panel relative min-h-[11.5rem] overflow-hidden p-5 lg:h-40 lg:min-h-0">
+        <header className="stitch-panel relative overflow-hidden p-4 sm:p-5 lg:h-40">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgb(225_6_0_/_0.2),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.04),transparent_48%)]" />
-          <div className="relative z-10 flex min-h-[9rem] flex-col gap-5 lg:h-full lg:min-h-0">
+          <div className="relative z-10 flex flex-col gap-3 lg:h-full">
             <div className="min-w-0 lg:absolute lg:left-0 lg:top-0">
               <p className="stitch-label flex items-center gap-2 text-primary">
                 <Flag aria-hidden="true" className="size-4" />
@@ -37,7 +37,7 @@ export default async function TeamsPage() {
                 Список команд текущего сезона
               </p>
             </div>
-            <div className="mt-auto flex items-center gap-3 self-start rounded-md border border-border bg-background/35 px-4 py-3 lg:absolute lg:right-0 lg:top-1/2 lg:mt-0 lg:-translate-y-1/2">
+            <div className="mt-auto hidden items-center gap-3 self-start rounded-md border border-border bg-background/35 px-4 py-3 lg:absolute lg:right-0 lg:top-1/2 lg:flex lg:mt-0 lg:-translate-y-1/2">
               <Trophy aria-hidden="true" className="size-5 text-primary" />
               <div>
                 <p className="font-telemetry text-xl font-extrabold">{teams.length}</p>

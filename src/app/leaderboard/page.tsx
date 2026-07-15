@@ -273,7 +273,9 @@ function PodiumCard({
       {entry.titleOdds ? (
         <span
           className="absolute right-2 top-2 z-30 grid size-12 place-content-center rounded-md border border-border/80 bg-background/90 text-center shadow-sm backdrop-blur-sm sm:right-3 sm:top-3 sm:size-14"
-          title="Вероятность победы в чемпионате по данным Polymarket"
+          title={showAvatar
+            ? "Вероятность победы в чемпионате по данным Polymarket"
+            : "Вероятность победы в Кубке конструкторов по данным Polymarket"}
         >
           <span className="grid justify-items-center gap-0.5">
             <Image
@@ -289,7 +291,7 @@ function PodiumCard({
             </span>
           </span>
           <span className="mt-0.5 text-[0.45rem] font-bold uppercase leading-none text-muted-foreground sm:text-[0.5rem]">
-            Титул
+            {showAvatar ? "Титул" : "Кубок"}
           </span>
         </span>
       ) : null}
@@ -606,7 +608,7 @@ function TeamMark({ className, entry }: { className?: string; entry: StandingEnt
     <span
       aria-hidden="true"
       className={cn(
-        "inline-grid shrink-0 place-items-center overflow-hidden rounded-full border-2 bg-[#101112] p-1.5",
+        "team-logo-surface inline-grid shrink-0 place-items-center overflow-hidden rounded-full border-2 p-1.5",
         className,
       )}
       style={{ borderColor: entry.teamColor ?? "var(--border)" }}

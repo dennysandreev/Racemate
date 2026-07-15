@@ -85,7 +85,7 @@ function TeamHero({ team }: { team: TeamProfile }) {
         backgroundImage: `radial-gradient(circle at 68% 38%, color-mix(in srgb, ${team.color} 24%, transparent), transparent 42%)`,
       }}
     >
-      <div className="pointer-events-none absolute inset-x-3 top-16 h-[15rem] sm:inset-x-8 sm:top-14 sm:h-[22rem]">
+      <div className="pointer-events-none absolute inset-x-3 top-12 h-[15rem] sm:inset-x-8 sm:top-8 sm:h-[22rem]">
         <Image
           alt={`Болид ${team.shortName} сезона ${team.season}`}
           className="object-contain object-center drop-shadow-[0_16px_14px_rgb(0_0_0_/_0.3)]"
@@ -288,115 +288,103 @@ function TeamResultsTable({
   return (
     <StitchPanel className="min-w-0 overflow-hidden">
       <StitchPanelHeader icon={CalendarDays} title="Результаты по этапам" />
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
-          <thead className="border-b border-border bg-background/35">
-            <tr className="stitch-label text-muted-foreground">
-              <th className="px-4 py-3">Этап</th>
-              <th className="px-4 py-3">Гонщик</th>
-              <th className="px-4 py-3 text-center">Квалификация</th>
-              <th className="px-4 py-3 text-center">Финиш</th>
-              <th className="px-4 py-3 text-center">Старт → финиш</th>
-              <th className="px-4 py-3 text-right">Очки</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((result) => {
-              const driverRows = getTeamResultDriverRows(result, drivers);
-
-              return (
-              <tr className="border-b border-border/70 last:border-b-0 hover:bg-accent/35" key={result.round}>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <RaceFlag countryCode={result.countryCode} label={result.country || result.raceName} />
-                    <div>
-                      <p className="font-bold">{result.raceName}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">Раунд {result.round}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  {driverRows.length ? (
-                    <div className="grid min-w-[10rem] gap-1.5">
-                      {driverRows.map((driver) => (
-                        <div className="flex min-h-6 items-center" key={`${result.round}-${driver.id}`}>
-                          {driver.slug ? (
-                            <Link
-                              className="min-w-0 truncate text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
-                              href={`/drivers/${driver.slug}`}
-                              prefetch={false}
-                            >
-                              {driver.name}
-                            </Link>
-                          ) : (
-                            <span className="min-w-0 truncate text-xs font-semibold text-muted-foreground">
-                              {driver.name}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  {driverRows.length ? (
-                    <div className="grid justify-items-center gap-1.5">
-                      {driverRows.map((driver) => (
-                        <div className="flex min-h-6 items-center" key={`${result.round}-${driver.id}`}>
-                          <Badge
-                            className="min-w-10 shrink-0 justify-center"
-                            variant={getPositionBadgeVariant(driver.qualifyingPosition)}
-                          >
-                            {formatPosition(driver.qualifyingPosition)}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <Badge className="mx-auto" variant="outline">
-                      {formatPosition(result.qualifyingBest)}
-                    </Badge>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  {driverRows.length ? (
-                    <div className="grid justify-items-center gap-1.5">
-                      {driverRows.map((driver) => (
-                        <div className="flex min-h-6 items-center" key={`${result.round}-${driver.id}`}>
-                          <Badge
-                            className="min-w-10 justify-center"
-                            variant={getPositionBadgeVariant(driver.finishPosition, driver.isDnf)}
-                          >
-                            {driver.isDnf ? "Сход" : formatPosition(driver.finishPosition)}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <Badge className="mx-auto" variant="outline">
-                      {formatPosition(result.bestFinish)}
-                    </Badge>
-                  )}
-                </td>
-                <td
-                  className={cn(
-                    "px-4 py-3 text-center font-telemetry text-base font-extrabold",
-                    result.positionDelta !== null && result.positionDelta > 0 && "text-success",
-                    result.positionDelta !== null && result.positionDelta < 0 && "text-danger",
-                    result.positionDelta === 0 && "text-muted-foreground",
-                  )}
-                >
-                  {formatPositionDelta(result.positionDelta)}
-                </td>
-                <td className="px-4 py-3 text-right font-telemetry text-base font-extrabold">{formatStat(result.points)}</td>
-              </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="hidden grid-cols-[minmax(13rem,1.35fr)_minmax(10rem,1fr)_7rem_7rem_7rem_5rem] items-center gap-3 border-b border-border bg-background/35 px-5 py-3 lg:grid">
+        <span className="stitch-label text-muted-foreground">Этап</span>
+        <span className="stitch-label text-muted-foreground">Гонщик</span>
+        <span className="stitch-label text-center text-muted-foreground">Квалификация</span>
+        <span className="stitch-label text-center text-muted-foreground">Финиш</span>
+        <span className="stitch-label text-center text-muted-foreground">Старт → финиш</span>
+        <span className="stitch-label text-right text-muted-foreground">Очки</span>
       </div>
+      <ol className="divide-y divide-border/70">
+        {results.map((result) => {
+          const driverRows = getTeamResultDriverRows(result, drivers);
+
+          return (
+            <li
+              className="grid min-w-0 gap-3 p-4 transition-colors hover:bg-accent/30 lg:grid-cols-[minmax(13rem,1.35fr)_minmax(10rem,1fr)_7rem_7rem_7rem_5rem] lg:items-center lg:px-5 lg:py-3.5"
+              key={result.round}
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <RaceFlag countryCode={result.countryCode} label={result.country || result.raceName} />
+                <div className="min-w-0">
+                  <p className="truncate font-bold">{result.raceName}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Раунд {result.round}</p>
+                </div>
+              </div>
+
+              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_4.75rem_4.75rem] gap-2 rounded-md border border-border/70 bg-secondary/20 p-3 lg:contents">
+                <div className="grid min-w-0 content-start gap-1.5">
+                  <span className="stitch-label mb-1 text-[0.55rem] text-muted-foreground lg:hidden">Гонщик</span>
+                  {driverRows.map((driver) => (
+                    <div className="flex min-h-7 min-w-0 items-center" key={`${result.round}-${driver.id}`}>
+                      {driver.slug ? (
+                        <Link
+                          className="min-w-0 truncate text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
+                          href={`/drivers/${driver.slug}`}
+                          prefetch={false}
+                        >
+                          {driver.name}
+                        </Link>
+                      ) : (
+                        <span className="min-w-0 truncate text-xs font-semibold text-muted-foreground">
+                          {driver.name}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="grid content-start justify-items-center gap-1.5">
+                  <span className="stitch-label mb-1 text-[0.55rem] text-muted-foreground lg:hidden">Квала</span>
+                  {driverRows.map((driver) => (
+                    <div className="flex min-h-7 items-center" key={`${result.round}-${driver.id}`}>
+                      <Badge
+                        className="min-w-10 shrink-0 justify-center"
+                        variant={getPositionBadgeVariant(driver.qualifyingPosition)}
+                      >
+                        {formatPosition(driver.qualifyingPosition)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid content-start justify-items-center gap-1.5">
+                  <span className="stitch-label mb-1 text-[0.55rem] text-muted-foreground lg:hidden">Финиш</span>
+                  {driverRows.map((driver) => (
+                    <div className="flex min-h-7 items-center" key={`${result.round}-${driver.id}`}>
+                      <Badge
+                        className="min-w-10 justify-center"
+                        variant={getPositionBadgeVariant(driver.finishPosition, driver.isDnf)}
+                      >
+                        {driver.isDnf ? "Сход" : formatPosition(driver.finishPosition)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border lg:contents">
+                <div className="bg-card p-3 text-center lg:bg-transparent lg:p-0">
+                  <p className="stitch-label text-[0.55rem] text-muted-foreground lg:hidden">Старт → финиш</p>
+                  <p
+                    className={cn(
+                      "mt-1 font-telemetry text-base font-extrabold lg:mt-0",
+                      result.positionDelta !== null && result.positionDelta > 0 && "text-success",
+                      result.positionDelta !== null && result.positionDelta < 0 && "text-danger",
+                      result.positionDelta === 0 && "text-muted-foreground",
+                    )}
+                  >
+                    {formatPositionDelta(result.positionDelta)}
+                  </p>
+                </div>
+                <div className="bg-card p-3 text-center lg:bg-transparent lg:p-0 lg:text-right">
+                  <p className="stitch-label text-[0.55rem] text-muted-foreground lg:hidden">Очки</p>
+                  <p className="mt-1 font-telemetry text-base font-extrabold lg:mt-0">{formatStat(result.points)}</p>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
     </StitchPanel>
   );
 }

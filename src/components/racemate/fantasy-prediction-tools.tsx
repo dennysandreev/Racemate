@@ -21,6 +21,7 @@ export function QualifyingResultsButton({
   return (
     <>
       <Button
+        className="min-h-11 w-full justify-center px-4 sm:w-auto"
         onClick={() => {
           if (qualifyingResults) {
             setSelected(qualifyingResults);
@@ -29,7 +30,6 @@ export function QualifyingResultsButton({
 
           setEmptyOpen(true);
         }}
-        size="sm"
         type="button"
         variant="secondary"
       >

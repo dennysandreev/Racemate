@@ -56,7 +56,7 @@ export function SiteFooter() {
 
         <div className="relative flex flex-col gap-1 border-t border-border/60 bg-background/40 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <p className="text-[0.68rem] leading-4 text-muted-foreground/85">
-            © 2026 RaceMate · Информация носит справочный и развлекательный характер
+            © 2026 RaceMate · Новости, аналитика и статистика мира автоспорта
           </p>
           <p className="text-[0.68rem] leading-4 text-muted-foreground/60">
             Проект не связан с Formula 1, FIA, командами, пилотами или правообладателями
