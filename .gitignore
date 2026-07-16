@@ -4,10 +4,13 @@ out
 dist
 coverage
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
 .env
 .env*.local
 !.env.example
 .DS_Store
 output/playwright
+output/circuit-map-review
 .playwright-mcp
 racemate-*.png

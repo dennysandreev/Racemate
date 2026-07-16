@@ -1,0 +1,1122 @@
+{
+  "schemaVersion": 1,
+  "season": 2026,
+  "promptVersion": "driver-avatar-seasonal-v1",
+  "helmetReferencePolicy": "Exact visual reference for the driver's regular primary helmet in this season; one-off designs are not accepted.",
+  "generatedAt": "2026-07-15T22:12:23.986Z",
+  "source": {
+    "provider": "Jolpica F1",
+    "resultsUrl": "https://api.jolpi.ca/ergast/f1/2026/results.json",
+    "standingsUrl": "https://api.jolpi.ca/ergast/f1/2026/driverstandings.json?limit=100",
+    "fetchedAt": "2026-07-15T22:12:23.986Z"
+  },
+  "complete": true,
+  "stats": {
+    "drivers": 22,
+    "raceResultRows": 198,
+    "ready": 22,
+    "pending": 0
+  },
+  "drivers": [
+    {
+      "externalId": "albon",
+      "slug": "alexander-albon",
+      "fullName": "Alexander Albon",
+      "givenName": "Alexander",
+      "familyName": "Albon",
+      "code": "ALB",
+      "permanentNumber": "23",
+      "nationality": "Thai",
+      "season": 2026,
+      "team": {
+        "externalId": "williams",
+        "name": "Williams",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing"
+      },
+      "starts": 8,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "williams",
+          "name": "Williams",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing",
+          "appearances": 9,
+          "starts": 8,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/alexander-albon.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/alexander-albon.png",
+        "sha256": "a0dd06888648ffd7485d8ee5f5f30e2e7591a14fc0891b5abbc3e25d633a5c6a"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Alexander_Albon",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Alexander Albon, Formula 1 driver for Williams in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Williams. The helmet must match the real regular-season 2026 design and Williams identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "95b8df9ea9f4b59561e2e20214ad9435207efbb925ab3a5f551c425f97c3a1d2",
+      "bytes": 245928,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "antonelli",
+      "slug": "andrea-kimi-antonelli",
+      "fullName": "Andrea Kimi Antonelli",
+      "givenName": "Andrea Kimi",
+      "familyName": "Antonelli",
+      "code": "ANT",
+      "permanentNumber": "12",
+      "nationality": "Italian",
+      "season": 2026,
+      "team": {
+        "externalId": "mercedes",
+        "name": "Mercedes",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mercedes",
+          "name": "Mercedes",
+          "nationality": "German",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/andrea-kimi-antonelli.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/andrea-kimi-antonelli.png",
+        "sha256": "5c09905edc4f56bc593b978038bfd2840be31605ab4d3f5fe31b21c37141d871"
+      },
+      "identityReferenceUrl": "https://en.wikipedia.org/wiki/Andrea_Kimi_Antonelli",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Andrea Kimi Antonelli, Formula 1 driver for Mercedes in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Mercedes. The helmet must match the real regular-season 2026 design and Mercedes identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "5b989203152d0e91a24cb690a364fa2ccaef231e57ed160bd38382ffbcd85967",
+      "bytes": 342000,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "arvid_lindblad",
+      "slug": "arvid-lindblad",
+      "fullName": "Arvid Lindblad",
+      "givenName": "Arvid",
+      "familyName": "Lindblad",
+      "code": "LIN",
+      "permanentNumber": "41",
+      "nationality": "British",
+      "season": 2026,
+      "team": {
+        "externalId": "rb",
+        "name": "RB F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Bulls"
+      },
+      "starts": 8,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "rb",
+          "name": "RB F1 Team",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Bulls",
+          "appearances": 9,
+          "starts": 8,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/arvid-lindblad.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/arvid-lindblad.png",
+        "sha256": "80c2b52f4975d12749240dfa17df0955dae1174ed386f032c30ff8ed1e771e98"
+      },
+      "identityReferenceUrl": "https://en.wikipedia.org/wiki/Arvid_Lindblad",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Arvid Lindblad, Formula 1 driver for RB F1 Team in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with RB F1 Team. The helmet must match the real regular-season 2026 design and RB F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "15550ec106fb225d22d0fc535391555b1d12c49a6cf0d9c53cacdc5f5d0fdd4d",
+      "bytes": 278064,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "sainz",
+      "slug": "carlos-sainz",
+      "fullName": "Carlos Sainz",
+      "givenName": "Carlos",
+      "familyName": "Sainz",
+      "code": "SAI",
+      "permanentNumber": "55",
+      "nationality": "Spanish",
+      "season": 2026,
+      "team": {
+        "externalId": "williams",
+        "name": "Williams",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "williams",
+          "name": "Williams",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/carlos-sainz.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/carlos-sainz.png",
+        "sha256": "f4b04e8b2a69264cdc3f679ab138e2745de2c710db0c6cf0782039d600945749"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Carlos_Sainz_Jr.",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Carlos Sainz, Formula 1 driver for Williams in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Williams. The helmet must match the real regular-season 2026 design and Williams identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "7341c9e5dda1ca6f8301797d6c0cf78d3ef4dc14075a3a22f268248ba9495eb7",
+      "bytes": 304302,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "leclerc",
+      "slug": "charles-leclerc",
+      "fullName": "Charles Leclerc",
+      "givenName": "Charles",
+      "familyName": "Leclerc",
+      "code": "LEC",
+      "permanentNumber": "16",
+      "nationality": "Monegasque",
+      "season": 2026,
+      "team": {
+        "externalId": "ferrari",
+        "name": "Ferrari",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "ferrari",
+          "name": "Ferrari",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/charles-leclerc.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/charles-leclerc.png",
+        "sha256": "311d32a33508e10035e7f378667752631785963681a3f06ab486004181795c0d"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Charles_Leclerc",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Charles Leclerc, Formula 1 driver for Ferrari in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Ferrari. The helmet must match the real regular-season 2026 design and Ferrari identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "91c6e7446be680341b8ad8896c16a210cd8ab6c04c74bfb765bf0fc37cf4d8ad",
+      "bytes": 356304,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "ocon",
+      "slug": "esteban-ocon",
+      "fullName": "Esteban Ocon",
+      "givenName": "Esteban",
+      "familyName": "Ocon",
+      "code": "OCO",
+      "permanentNumber": "31",
+      "nationality": "French",
+      "season": 2026,
+      "team": {
+        "externalId": "haas",
+        "name": "Haas F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "haas",
+          "name": "Haas F1 Team",
+          "nationality": "American",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/esteban-ocon.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/esteban-ocon.png",
+        "sha256": "7081e7d8fd1030057aba8085bd5110834c982306f74d7cb6d10de47600d854c6"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Esteban_Ocon",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Esteban Ocon, Formula 1 driver for Haas F1 Team in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Haas F1 Team. The helmet must match the real regular-season 2026 design and Haas F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "410e25e5217964af4aa752aa2fd26f3d5f791c20a8a95875ffc28eff01f535e0",
+      "bytes": 326126,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "alonso",
+      "slug": "fernando-alonso",
+      "fullName": "Fernando Alonso",
+      "givenName": "Fernando",
+      "familyName": "Alonso",
+      "code": "ALO",
+      "permanentNumber": "14",
+      "nationality": "Spanish",
+      "season": 2026,
+      "team": {
+        "externalId": "aston_martin",
+        "name": "Aston Martin",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "aston_martin",
+          "name": "Aston Martin",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/fernando-alonso.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/fernando-alonso.png",
+        "sha256": "b45a90ea596f1140bb96e41ff6a400d6220eebb2f4d083926227fbf6b02589a7"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Fernando_Alonso",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Fernando Alonso, Formula 1 driver for Aston Martin in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Aston Martin. The helmet must match the real regular-season 2026 design and Aston Martin identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "545e55e0e5060e87a00d0af22ffce874ecc43f81f8dbf41575993fbe58ed68cb",
+      "bytes": 354350,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "colapinto",
+      "slug": "franco-colapinto",
+      "fullName": "Franco Colapinto",
+      "givenName": "Franco",
+      "familyName": "Colapinto",
+      "code": "COL",
+      "permanentNumber": "43",
+      "nationality": "Argentine",
+      "season": 2026,
+      "team": {
+        "externalId": "alpine",
+        "name": "Alpine F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "alpine",
+          "name": "Alpine F1 Team",
+          "nationality": "French",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/franco-colapinto.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/franco-colapinto.png",
+        "sha256": "d66df29122209687868cabfeca1d4a9cb45ac8d9200db83101cdb4a86e1fd624"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Franco_Colapinto",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Franco Colapinto, Formula 1 driver for Alpine F1 Team in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Alpine F1 Team. The helmet must match the real regular-season 2026 design and Alpine F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "429a71989b92250098bedcb16f8e3702d21c62adf695497e6a3cf57b1f52382c",
+      "bytes": 298410,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "bortoleto",
+      "slug": "gabriel-bortoleto",
+      "fullName": "Gabriel Bortoleto",
+      "givenName": "Gabriel",
+      "familyName": "Bortoleto",
+      "code": "BOR",
+      "permanentNumber": "5",
+      "nationality": "Brazilian",
+      "season": 2026,
+      "team": {
+        "externalId": "audi",
+        "name": "Audi",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Audi_in_Formula_One"
+      },
+      "starts": 8,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "audi",
+          "name": "Audi",
+          "nationality": "German",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Audi_in_Formula_One",
+          "appearances": 9,
+          "starts": 8,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/gabriel-bortoleto.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/gabriel-bortoleto.png",
+        "sha256": "f5d4d2ab4c9e3823a7a13f62313e3bb77eaf7374a49ee9381200622b852bc1cd"
+      },
+      "identityReferenceUrl": "https://en.wikipedia.org/wiki/Gabriel_Bortoleto",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Gabriel Bortoleto, Formula 1 driver for Audi in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Audi. The helmet must match the real regular-season 2026 design and Audi identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "b97a0e7ace93f0907546656d0c73b931a000b28763477f3c3d8d928dd2728169",
+      "bytes": 330810,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "russell",
+      "slug": "george-russell",
+      "fullName": "George Russell",
+      "givenName": "George",
+      "familyName": "Russell",
+      "code": "RUS",
+      "permanentNumber": "63",
+      "nationality": "British",
+      "season": 2026,
+      "team": {
+        "externalId": "mercedes",
+        "name": "Mercedes",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mercedes",
+          "name": "Mercedes",
+          "nationality": "German",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/george-russell.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/george-russell.png",
+        "sha256": "734370ea4f58b8063411ef6437a3a37cceee31159878220b15b80117b196ff47"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/George_Russell_(racing_driver)",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of George Russell, Formula 1 driver for Mercedes in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Mercedes. The helmet must match the real regular-season 2026 design and Mercedes identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "d26a13f5cd2ba6d5a3655cc9ee4867a6ffd25ec90c4db3824b4beead2377b919",
+      "bytes": 248142,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "hadjar",
+      "slug": "isack-hadjar",
+      "fullName": "Isack Hadjar",
+      "givenName": "Isack",
+      "familyName": "Hadjar",
+      "code": "HAD",
+      "permanentNumber": "6",
+      "nationality": "French",
+      "season": 2026,
+      "team": {
+        "externalId": "red_bull",
+        "name": "Red Bull",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "red_bull",
+          "name": "Red Bull",
+          "nationality": "Austrian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/isack-hadjar.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/isack-hadjar.png",
+        "sha256": "1047a92265a227a393c2e677369beea53cf3a6693241903b5d52b9a4514b5fed"
+      },
+      "identityReferenceUrl": "https://en.wikipedia.org/wiki/Isack_Hadjar",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Isack Hadjar, Formula 1 driver for Red Bull in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Red Bull. The helmet must match the real regular-season 2026 design and Red Bull identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "e85eba42cebd13cae19b0b00ad7bef961fe7815552703db4ea71e262f2490289",
+      "bytes": 288736,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "stroll",
+      "slug": "lance-stroll",
+      "fullName": "Lance Stroll",
+      "givenName": "Lance",
+      "familyName": "Stroll",
+      "code": "STR",
+      "permanentNumber": "18",
+      "nationality": "Canadian",
+      "season": 2026,
+      "team": {
+        "externalId": "aston_martin",
+        "name": "Aston Martin",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "aston_martin",
+          "name": "Aston Martin",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/lance-stroll.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/lance-stroll.png",
+        "sha256": "4d73534cdf7a1867f95a8952d878dc163e43c1f70ae6d732686319a0781ea900"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Lance_Stroll",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Lance Stroll, Formula 1 driver for Aston Martin in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Aston Martin. The helmet must match the real regular-season 2026 design and Aston Martin identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "eb8f90c8aff009e2ab8ac87ca034566cb299ed090abe54331b9088619f30816d",
+      "bytes": 259858,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "norris",
+      "slug": "lando-norris",
+      "fullName": "Lando Norris",
+      "givenName": "Lando",
+      "familyName": "Norris",
+      "code": "NOR",
+      "permanentNumber": "1",
+      "nationality": "British",
+      "season": 2026,
+      "team": {
+        "externalId": "mclaren",
+        "name": "McLaren",
+        "referenceUrl": "https://en.wikipedia.org/wiki/McLaren"
+      },
+      "starts": 8,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mclaren",
+          "name": "McLaren",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/McLaren",
+          "appearances": 9,
+          "starts": 8,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/lando-norris.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/lando-norris.png",
+        "sha256": "0d7ea815c722addaf17a8277a6cdb51f1804543c1314c2dc616ee32ef0670494"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Lando_Norris",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Lando Norris, Formula 1 driver for McLaren in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with McLaren. The helmet must match the real regular-season 2026 design and McLaren identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "e7a5bb5b0e013a0fc41fda6d518efe829f9a6813cc5ac11c8273be61d71efebf",
+      "bytes": 279366,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "hamilton",
+      "slug": "lewis-hamilton",
+      "fullName": "Lewis Hamilton",
+      "givenName": "Lewis",
+      "familyName": "Hamilton",
+      "code": "HAM",
+      "permanentNumber": "44",
+      "nationality": "British",
+      "season": 2026,
+      "team": {
+        "externalId": "ferrari",
+        "name": "Ferrari",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "ferrari",
+          "name": "Ferrari",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/lewis-hamilton.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/lewis-hamilton.png",
+        "sha256": "24c773efb21a93a4642e81d2df54505d9a9a5a980238d5eafab1174e46d0e342"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Lewis_Hamilton",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Lewis Hamilton, Formula 1 driver for Ferrari in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Ferrari. The helmet must match the real regular-season 2026 design and Ferrari identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "877c45a725eeaa3fa5be0642dddccef1a3b7b640dc000d4b3da90878df144e0a",
+      "bytes": 310778,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "lawson",
+      "slug": "liam-lawson",
+      "fullName": "Liam Lawson",
+      "givenName": "Liam",
+      "familyName": "Lawson",
+      "code": "LAW",
+      "permanentNumber": "30",
+      "nationality": "New Zealander",
+      "season": 2026,
+      "team": {
+        "externalId": "rb",
+        "name": "RB F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Bulls"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "rb",
+          "name": "RB F1 Team",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Bulls",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/liam-lawson.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/liam-lawson.png",
+        "sha256": "917117d8d67597c112a176260561715486f00ed64ffa4b5160c5da5186b472f7"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Liam_Lawson",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Liam Lawson, Formula 1 driver for RB F1 Team in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with RB F1 Team. The helmet must match the real regular-season 2026 design and RB F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "f8058fc4f3405bfb90f9930ba45a140d3a5364956b86829f8cff064857ab9d30",
+      "bytes": 299340,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "max_verstappen",
+      "slug": "max-verstappen",
+      "fullName": "Max Verstappen",
+      "givenName": "Max",
+      "familyName": "Verstappen",
+      "code": "VER",
+      "permanentNumber": "3",
+      "nationality": "Dutch",
+      "season": 2026,
+      "team": {
+        "externalId": "red_bull",
+        "name": "Red Bull",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "red_bull",
+          "name": "Red Bull",
+          "nationality": "Austrian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/max-verstappen.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/max-verstappen.png",
+        "sha256": "11cee529704fd4627042e2f7fa2c48fe43f39fd180a503f7c8db123ca3d3f765"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Max_Verstappen",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Max Verstappen, Formula 1 driver for Red Bull in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Red Bull. The helmet must match the real regular-season 2026 design and Red Bull identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "9ec32d9e60b565b3b0ff06bf373933c930930399c5968545db87625fcdfee384",
+      "bytes": 332278,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "hulkenberg",
+      "slug": "nico-hulkenberg",
+      "fullName": "Nico Hülkenberg",
+      "givenName": "Nico",
+      "familyName": "Hülkenberg",
+      "code": "HUL",
+      "permanentNumber": "27",
+      "nationality": "German",
+      "season": 2026,
+      "team": {
+        "externalId": "audi",
+        "name": "Audi",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Audi_in_Formula_One"
+      },
+      "starts": 8,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "audi",
+          "name": "Audi",
+          "nationality": "German",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Audi_in_Formula_One",
+          "appearances": 9,
+          "starts": 8,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/nico-hulkenberg.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/nico-hulkenberg.png",
+        "sha256": "46b88c33ee5c1ee700cd4e6ac012b822ae56b808d9614db288b3e42d4560815f"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Nico_H%C3%BClkenberg",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Nico Hülkenberg, Formula 1 driver for Audi in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Audi. The helmet must match the real regular-season 2026 design and Audi identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "476b4d66500a88830b94b55c48c0e3f769f973cbb8064ef2424c5b52ea9792f4",
+      "bytes": 374842,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "bearman",
+      "slug": "oliver-bearman",
+      "fullName": "Oliver Bearman",
+      "givenName": "Oliver",
+      "familyName": "Bearman",
+      "code": "BEA",
+      "permanentNumber": "87",
+      "nationality": "British",
+      "season": 2026,
+      "team": {
+        "externalId": "haas",
+        "name": "Haas F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "haas",
+          "name": "Haas F1 Team",
+          "nationality": "American",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/oliver-bearman.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/oliver-bearman.png",
+        "sha256": "bc01579a8e25630e6c34d0196a24ef760834dd5edf0c3eecdd9984311906a610"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Oliver_Bearman",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Oliver Bearman, Formula 1 driver for Haas F1 Team in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Haas F1 Team. The helmet must match the real regular-season 2026 design and Haas F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "7f72680fd3ba85169369b2c0009ef8ffb023d42934836b358c0440219536f0de",
+      "bytes": 266150,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "piastri",
+      "slug": "oscar-piastri",
+      "fullName": "Oscar Piastri",
+      "givenName": "Oscar",
+      "familyName": "Piastri",
+      "code": "PIA",
+      "permanentNumber": "81",
+      "nationality": "Australian",
+      "season": 2026,
+      "team": {
+        "externalId": "mclaren",
+        "name": "McLaren",
+        "referenceUrl": "https://en.wikipedia.org/wiki/McLaren"
+      },
+      "starts": 7,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mclaren",
+          "name": "McLaren",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/McLaren",
+          "appearances": 9,
+          "starts": 7,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/oscar-piastri.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/oscar-piastri.png",
+        "sha256": "bdd6e6762957816c0e7058a44391d6dd48bab97d4e5afc80a27ede689c0337af"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Oscar_Piastri",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Oscar Piastri, Formula 1 driver for McLaren in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with McLaren. The helmet must match the real regular-season 2026 design and McLaren identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "c8fe0a7228cdbf70bb9207849c99f49df7e38e4542f8e0b7daa77725ecdc9738",
+      "bytes": 247230,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "gasly",
+      "slug": "pierre-gasly",
+      "fullName": "Pierre Gasly",
+      "givenName": "Pierre",
+      "familyName": "Gasly",
+      "code": "GAS",
+      "permanentNumber": "10",
+      "nationality": "French",
+      "season": 2026,
+      "team": {
+        "externalId": "alpine",
+        "name": "Alpine F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "alpine",
+          "name": "Alpine F1 Team",
+          "nationality": "French",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/pierre-gasly.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/pierre-gasly.png",
+        "sha256": "c2ea1fc00ce72ca2957613c22346959fa0d534847576297d9c742782e7d4fcba"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Pierre_Gasly",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Pierre Gasly, Formula 1 driver for Alpine F1 Team in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Alpine F1 Team. The helmet must match the real regular-season 2026 design and Alpine F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "827a99c85faec224fafb8fce8a193e9db81be41182d3a14936e4f4f77e66e792",
+      "bytes": 253546,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "perez",
+      "slug": "sergio-perez",
+      "fullName": "Sergio Pérez",
+      "givenName": "Sergio",
+      "familyName": "Pérez",
+      "code": "PER",
+      "permanentNumber": "11",
+      "nationality": "Mexican",
+      "season": 2026,
+      "team": {
+        "externalId": "cadillac",
+        "name": "Cadillac F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Cadillac_in_Formula_One"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "cadillac",
+          "name": "Cadillac F1 Team",
+          "nationality": "American",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Cadillac_in_Formula_One",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/sergio-perez.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/sergio-perez.png",
+        "sha256": "adfe8a9f97df5286ce5d1f8d07e86cbd923aa3945b56496431556e13b8fe9fa6"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Sergio Pérez, Formula 1 driver for Cadillac F1 Team in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Cadillac F1 Team. The helmet must match the real regular-season 2026 design and Cadillac F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "e47f6ffb339ae6cc28c3a10a0370261db8ea801338d8d250d9848879e8cb71ea",
+      "bytes": 254680,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    },
+    {
+      "externalId": "bottas",
+      "slug": "valtteri-bottas",
+      "fullName": "Valtteri Bottas",
+      "givenName": "Valtteri",
+      "familyName": "Bottas",
+      "code": "BOT",
+      "permanentNumber": "77",
+      "nationality": "Finnish",
+      "season": 2026,
+      "team": {
+        "externalId": "cadillac",
+        "name": "Cadillac F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Cadillac_in_Formula_One"
+      },
+      "starts": 9,
+      "appearances": 9,
+      "lastStartRound": 9,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "cadillac",
+          "name": "Cadillac F1 Team",
+          "nationality": "American",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Cadillac_in_Formula_One",
+          "appearances": 9,
+          "starts": 9,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 9,
+          "lastStartRound": 9
+        }
+      ],
+      "file": "/drivers/avatars/2026/valtteri-bottas.webp",
+      "source": {
+        "kind": "legacy-current",
+        "sourceFile": "/drivers/avatars/valtteri-bottas.png",
+        "sha256": "2832f5378ce232b1fd0e35884529b651e651e46dbb5e455c516de5ace59bf444"
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Valtteri_Bottas",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Valtteri Bottas, Formula 1 driver for Cadillac F1 Team in the 2026 Formula 1 season, wearing the driver's regular primary 2026 Formula 1 racing helmet used with Cadillac F1 Team. The helmet must match the real regular-season 2026 design and Cadillac F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": "0e812fbdfce50e160a3110ccc77765f2da267fd4b4984575735695d277deeff0",
+      "bytes": 243614,
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:37:43.620Z",
+        "note": "Imported from the accepted RaceMate 2026 production avatar set."
+      }
+    }
+  ]
+}

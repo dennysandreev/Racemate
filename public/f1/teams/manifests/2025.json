@@ -1,0 +1,316 @@
+{
+  "season": 2025,
+  "downloadedAt": "2026-07-15T21:48:21.274Z",
+  "sourcePolicy": "Official Formula1.com season team assets only; no cross-season fallback.",
+  "rightsReviewRequired": true,
+  "rightsReview": {
+    "status": "cleared",
+    "reviewedAt": "2026-07-16T11:41:14Z",
+    "note": "Cleared by the product owner for public release."
+  },
+  "visualReviewRecordedAt": "2026-07-15T21:48:21.274Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2025,
+      "constructorId": "mclaren",
+      "name": "McLaren",
+      "car": {
+        "file": "/f1/teams/cars/2025/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/mclaren/2025mclarencarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/mclaren/2025mclarencarright.webp",
+        "sha256": "b7561f74a9107e810c1e21670eb418adae96390ccca41a6f5c4c396bb58f3eb9",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 836,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/mclaren/2025mclarenlogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/mclaren/2025mclarenlogowhite.webp",
+        "sha256": "b609f829f6f7f8f56eb92cb627abfd1bb707e693d739e194ef35eccbfa10986d",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#FF8000"
+    },
+    {
+      "season": 2025,
+      "constructorId": "mercedes",
+      "name": "Mercedes",
+      "car": {
+        "file": "/f1/teams/cars/2025/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/mercedes/2025mercedescarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/mercedes/2025mercedescarright.webp",
+        "sha256": "9e677ff7f2bfee26c9691b173e1fd5546f1fe59f0d9755192170c3efb086fa5e",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 787,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/mercedes/2025mercedeslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/mercedes/2025mercedeslogowhite.webp",
+        "sha256": "1a8d79b46caf2738963ad2566129cc433ac53adf129c44d279a0907145240c78",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#27F4D2"
+    },
+    {
+      "season": 2025,
+      "constructorId": "red_bull",
+      "name": "Red Bull",
+      "car": {
+        "file": "/f1/teams/cars/2025/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/redbullracing/2025redbullracingcarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/redbullracing/2025redbullracingcarright.webp",
+        "sha256": "7bbcb9486846cbf61ffe7a263640dd4219fefb0748dd8d77232b40b966f731b8",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 756,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/redbullracing/2025redbullracinglogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/redbullracing/2025redbullracinglogowhite.webp",
+        "sha256": "6ffca9d381d86bb24f01bfa4c1d969bd0db1fddbf60c2cf742ef11960fce0530",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#3671C6"
+    },
+    {
+      "season": 2025,
+      "constructorId": "ferrari",
+      "name": "Ferrari",
+      "car": {
+        "file": "/f1/teams/cars/2025/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/ferrari/2025ferraricarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/ferrari/2025ferraricarright.webp",
+        "sha256": "ff035627b83081c95e081d995bb2564ab12191e32d0a08a0be9692891b1bc004",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 769,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/ferrari/2025ferrarilogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/ferrari/2025ferrarilogowhite.webp",
+        "sha256": "b32ee2d84b4f7c94e9a172fa246ad65ff6f4057fd6c670e5babd4941718025d8",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#E8002D"
+    },
+    {
+      "season": 2025,
+      "constructorId": "williams",
+      "name": "Williams",
+      "car": {
+        "file": "/f1/teams/cars/2025/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/williams/2025williamscarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/williams/2025williamscarright.webp",
+        "sha256": "12493e1f6f02228249ba7c11d625171a8d9903b0d710e5ae7f08a24e59980dba",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 752,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/williams/2025williamslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/williams/2025williamslogowhite.webp",
+        "sha256": "a8da3a4e61e7cb08ce1b0283569cd1c7b97b3f314dc36b1eccc1fcfb5ec9cf32",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#64C4FF"
+    },
+    {
+      "season": 2025,
+      "constructorId": "rb",
+      "name": "RB F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2025/rb.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/racingbulls/2025racingbullscarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/racingbulls/2025racingbullscarright.webp",
+        "sha256": "eeb1eb60031092fecf5ff58421fce1a78058745e364e98f83e8146f4128a7799",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 768,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/rb.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/racingbulls/2025racingbullslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/racingbulls/2025racingbullslogowhite.webp",
+        "sha256": "c1be9b10b81215944df9ce2cc7cdf2b0125eef9f696759104ab23d7278f137a8",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#6692FF"
+    },
+    {
+      "season": 2025,
+      "constructorId": "aston_martin",
+      "name": "Aston Martin",
+      "car": {
+        "file": "/f1/teams/cars/2025/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/astonmartin/2025astonmartincarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/astonmartin/2025astonmartincarright.webp",
+        "sha256": "f7f5cc7514095d0a9e1592d053f25e56824bfb8516f0e6b0f9dca8637e630f23",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 757,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/astonmartin/2025astonmartinlogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/astonmartin/2025astonmartinlogowhite.webp",
+        "sha256": "d20df7cab9354b4019530207cd0aeb77fa284def54b53dce383d44361febe8ea",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#229971"
+    },
+    {
+      "season": 2025,
+      "constructorId": "haas",
+      "name": "Haas F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2025/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/haas/2025haascarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/haas/2025haascarright.webp",
+        "sha256": "3f2ac89525e6f8e4dc49ebe6e6e50bc33dd8ad5ebf5d81d8a78e9dc26b297554",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 783,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/haas/2025haaslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/haas/2025haaslogowhite.webp",
+        "sha256": "afac70c4eca258c8099c9c347e098803306d732eb7d7ade7dff3f1942f1fcbc6",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#B6BABD"
+    },
+    {
+      "season": 2025,
+      "constructorId": "sauber",
+      "name": "Sauber",
+      "car": {
+        "file": "/f1/teams/cars/2025/sauber.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/kicksauber/2025kicksaubercarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/kicksauber/2025kicksaubercarright.webp",
+        "sha256": "73f939e6d49565c40b380524f2a0b18eaf812cac3bd46e0886fcc743ead399a9",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 806,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/sauber.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/kicksauber/2025kicksauberlogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/kicksauber/2025kicksauberlogowhite.webp",
+        "sha256": "aa2de57e06f6a0e488b5cf64615546bf50aabd9380a58e8727a1118f1b1eff7a",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#52E252"
+    },
+    {
+      "season": 2025,
+      "constructorId": "alpine",
+      "name": "Alpine F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2025/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/alpine/2025alpinecarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/alpine/2025alpinecarright.webp",
+        "sha256": "e3313ce2fd019da13e0147ade46617f62d14a9320c960048ad51b198505f699b",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 775,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2025/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2025/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2025/alpine/2025alpinelogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/alpine/2025alpinelogowhite.webp",
+        "sha256": "21cfa3b31b7969832961e15b87b2c17620ac898e500e363f6bd04fb8ca59c255",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#0093CC"
+    }
+  ]
+}

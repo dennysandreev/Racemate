@@ -1,0 +1,517 @@
+{
+  "season": 2024,
+  "downloadedAt": "2026-07-15T21:53:32.525Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2024,
+      "round": 1,
+      "raceName": "Bahrain Grand Prix",
+      "circuitId": "bahrain",
+      "layoutSlug": "bahrain",
+      "file": "/f1/circuits/2024/01-bahrain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Bahrain%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Sakhir%20Event%20-%20Circuit%20Map%20Sakhir%202024_0.pdf",
+      "sourceTitle": "Circuit Map Sakhir 2024",
+      "sourceDocumentSha256": "83e4d37e4e25ba350468dcb3e97fdbe395829ed3df706d6e678091b0c715408c",
+      "renderedPage": 2,
+      "sha256": "096035e77029bdc8a13fd52faa99479ea3d40ac3613e84e6b44b0a1f4bfab72e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 2,
+      "raceName": "Saudi Arabian Grand Prix",
+      "circuitId": "jeddah",
+      "layoutSlug": "saudi-arabia",
+      "file": "/f1/circuits/2024/02-saudi-arabia.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Saudi%20Arabian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Jeddah%20Event%20-%20Circuit%20Map%20-%20Jeddah%202024.pdf",
+      "sourceTitle": "Circuit Map - Jeddah 2024",
+      "sourceDocumentSha256": "ee85b084a38a5f85de5d5836871f9de77f63a3634cc005ba29927370475fa384",
+      "renderedPage": 2,
+      "sha256": "af003eebc2b043f850f237e0446c59f55959951414da22c5f1489ff96bbcc4c3",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 3,
+      "raceName": "Australian Grand Prix",
+      "circuitId": "albert_park",
+      "layoutSlug": "australia",
+      "file": "/f1/circuits/2024/03-australia.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Australian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Melbourne%20Event%20-%20Circuit%20Map%20-%20Melbourne%202024.pdf",
+      "sourceTitle": "Circuit Map - Melbourne 2024",
+      "sourceDocumentSha256": "038427aabe45f31b232117545c8a2eda8fa3497d79c53d61b110e8bcbfca34ed",
+      "renderedPage": 2,
+      "sha256": "a463f52c80f6447b195f87180a51c63ee46cf3d232ed6b459c2fe30a5447df80",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 4,
+      "raceName": "Japanese Grand Prix",
+      "circuitId": "suzuka",
+      "layoutSlug": "japan",
+      "file": "/f1/circuits/2024/04-japan.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Japanese%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Japanese%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Event Notes - Circuit Map",
+      "sourceDocumentSha256": "146c23c1279f5239ad07c5129683507ca735b029934f366eba60acf6bafaa899",
+      "renderedPage": 2,
+      "sha256": "78773bc4c56d096167c40c46f4b5c57c20f79f9d0727b08c9e5af74e8a4e4444",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 5,
+      "raceName": "Chinese Grand Prix",
+      "circuitId": "shanghai",
+      "layoutSlug": "china",
+      "file": "/f1/circuits/2024/05-china.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Chinese%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Chinese%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zone",
+      "sourceDocumentSha256": "f9ae35833345273ff6a7b45b6cbccce478bc7b109f9948fb93b2caf780f8072d",
+      "renderedPage": 2,
+      "sha256": "df7f25795057cac765bbed978b731ce7e77a0c031f718598a3ae9aba5cc3acdd",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 6,
+      "raceName": "Miami Grand Prix",
+      "circuitId": "miami",
+      "layoutSlug": "miami",
+      "file": "/f1/circuits/2024/06-miami.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Miami%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Miami%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zone",
+      "sourceDocumentSha256": "6f154ee8fb6d24d4a5163bba9389a9b079cb5eb4b1f24f423ec90e77f484007d",
+      "renderedPage": 2,
+      "sha256": "4ea9e8d0b9219a5e0cd72dc11d91ed3dbfd021623c51fbc7747624d8f81c871f",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 7,
+      "raceName": "Emilia Romagna Grand Prix",
+      "circuitId": "imola",
+      "layoutSlug": "emiliaromagna",
+      "file": "/f1/circuits/2024/07-emiliaromagna.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Emilia%20Romagna%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Imola%20Event%20-%20Circuit%20Map%20Imola%202024.pdf",
+      "sourceTitle": "Circuit Map Imola 2024",
+      "sourceDocumentSha256": "84d73c0454ac723d968bbfec9160c259550b733aa8495a9b07655eb18b4f9fe6",
+      "renderedPage": 2,
+      "sha256": "2a35583a50027c263e402a4da865f806ea40f1369f1f4a8c9c596aafd886cf9a",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 8,
+      "raceName": "Monaco Grand Prix",
+      "circuitId": "monaco",
+      "layoutSlug": "monaco",
+      "file": "/f1/circuits/2024/08-monaco.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Monaco%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Monaco%20Event%20-%20Circuit%20Map%20-%20Monaco%202024.pdf",
+      "sourceTitle": "Circuit Map - Monaco 2024",
+      "sourceDocumentSha256": "969f2fdc231033c96271b40bfaf3256cb7b51727c939a521efc6ed0ac394d409",
+      "renderedPage": 2,
+      "sha256": "6999737d4d2b386dcf2419fcc815b0477a4210149c8ec50c9f4c2b43ca614525",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 9,
+      "raceName": "Canadian Grand Prix",
+      "circuitId": "villeneuve",
+      "layoutSlug": "canada",
+      "file": "/f1/circuits/2024/09-canada.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Canadian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Canadian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zones.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zones",
+      "sourceDocumentSha256": "99f08cc1c8769af9aa3d3ea2399f18f87f35aaeaacc687d50eac51ae8198a3bd",
+      "renderedPage": 2,
+      "sha256": "f40a5e9e55f1fa343dc812d650d5187700a513dd4e6855665e7c3c7a888621b7",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 10,
+      "raceName": "Spanish Grand Prix",
+      "circuitId": "catalunya",
+      "layoutSlug": "spain",
+      "file": "/f1/circuits/2024/10-spain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Spanish%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Barcelona%20Event%20-%20Circuit%20Map%20Barcelona%202024%20-%20Updated.pdf",
+      "sourceTitle": "Doc 6 - Circuit Map Barcelona 2024 - Updated",
+      "sourceDocumentSha256": "ee572819230eee5de1abfea54a86325eac24ef06408f37571e0c93bec9956452",
+      "renderedPage": 2,
+      "sha256": "386e534545df7a640af4137d37e5975a0326e2c5179cffcd31d5b5c65ce827d1",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 11,
+      "raceName": "Austrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "austria",
+      "file": "/f1/circuits/2024/11-austria.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Austrian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Spielberg%20Event%20-%20Circuit%20Map%20Spielberg%202024.pdf",
+      "sourceTitle": "Doc 2 - Circuit Map Spielberg 2024",
+      "sourceDocumentSha256": "0bee2ccc5e6af970b434deb43b6447d53fac31490ed0e7450424db70714ce044",
+      "renderedPage": 2,
+      "sha256": "5b35ce4cee614f243939aefce04289d28baecc2d3f4c347de347813c30209763",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 12,
+      "raceName": "British Grand Prix",
+      "circuitId": "silverstone",
+      "layoutSlug": "great-britain",
+      "file": "/f1/circuits/2024/12-great-britain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/British%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Silverstone%20Event%20-%20Circuit%20Map%20Silverstone%202024.pdf",
+      "sourceTitle": "Doc 1 - Circuit Map Silverstone 2024",
+      "sourceDocumentSha256": "98052c83b11c34ec68dae9a2295d2e57c4656a99825fe6ff0483ff2cbb3f8cc0",
+      "renderedPage": 2,
+      "sha256": "20ed5b5f7dd420312ecabebf93c789d1b17ff2f6e39db5c512d97f5f2107069e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 13,
+      "raceName": "Hungarian Grand Prix",
+      "circuitId": "hungaroring",
+      "layoutSlug": "hungary",
+      "file": "/f1/circuits/2024/13-hungary.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Hungarian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Budapest%20Event%20-%20Circuit%20Map%20Budapest%202024.pdf",
+      "sourceTitle": "Doc 2 - Circuit Map Budapest 2024",
+      "sourceDocumentSha256": "3b3c8297a39f75bf14a7e4027a80d52e67b106494005551c88f520bc0faa5f6b",
+      "renderedPage": 2,
+      "sha256": "5dae1b36027fde750bf9214a348377e0df5cb118f3add5b4c868f1de1899b87b",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 14,
+      "raceName": "Belgian Grand Prix",
+      "circuitId": "spa",
+      "layoutSlug": "belgium",
+      "file": "/f1/circuits/2024/14-belgium.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Belgian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Spa%20Francorchamps%20Event%20-%20Circuit%20Map%20Spa%202024.pdf",
+      "sourceTitle": "Doc 2 - Circuit Map Spa 2024",
+      "sourceDocumentSha256": "34a3763791cb9ac7f321f2c29c86af1762b6f43a9ace7eb64f6caa26aea97ba0",
+      "renderedPage": 2,
+      "sha256": "41056977db6e8c32fccad4cf9bed23f24fce21f532310417fd1fec537ab7177b",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 15,
+      "raceName": "Dutch Grand Prix",
+      "circuitId": "zandvoort",
+      "layoutSlug": "netherlands",
+      "file": "/f1/circuits/2024/15-netherlands.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Dutch%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Dutch%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zones.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane Drawing and Red Zones",
+      "sourceDocumentSha256": "71de7a63ba4f68bb837b2cdfdf9a03db9d7c13d14e46b3921ddda0730c2f527d",
+      "renderedPage": 2,
+      "sha256": "6dd84758e7c2bd4899a470bc90eabe641213a908517817e7e9db4c6ec0f45950",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 16,
+      "raceName": "Italian Grand Prix",
+      "circuitId": "monza",
+      "layoutSlug": "italian",
+      "file": "/f1/circuits/2024/16-italian.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Italian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Italian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%2C%20Pit%20Lane%20Drawing%20and%20Red%20Zones.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zones",
+      "sourceDocumentSha256": "0140e225b4c242e1f68ea68cfa14ce6d75673af49259b41a494317789ba64dd5",
+      "renderedPage": 2,
+      "sha256": "25b7552ff8a94a8ca6bd74205c0f95f3b9b4529b087b09dddb38e55e1dc46a8e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 17,
+      "raceName": "Azerbaijan Grand Prix",
+      "circuitId": "baku",
+      "layoutSlug": "azerbaijan",
+      "file": "/f1/circuits/2024/17-azerbaijan.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Azerbaijan%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Azerbaijan%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%2C%20Pit%20Lane%20Drawing%20and%20Red%20Zones%20V2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zones V2",
+      "sourceDocumentSha256": "8d16e1f2e4e1d6d778f572c4f28ac4efe92a54315546fc0adaf2221f544a44f0",
+      "renderedPage": 2,
+      "sha256": "3de69346092a8fba77e7a7d428dc6f2d07f6c759b3cb161113e21d698362342a",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 18,
+      "raceName": "Singapore Grand Prix",
+      "circuitId": "marina_bay",
+      "layoutSlug": "singapore",
+      "file": "/f1/circuits/2024/18-singapore.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Singapore%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Singapore%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zones.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane Drawing and Red Zones",
+      "sourceDocumentSha256": "20ead22663c0fb6b413926ad13a39c0e31def2e48bdcb98cf1b10a96c7649995",
+      "renderedPage": 2,
+      "sha256": "4738d71f1ef99d4d8f96efd545f1556c2495a94d6d7b5cc526857c99a66c6572",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 19,
+      "raceName": "United States Grand Prix",
+      "circuitId": "americas",
+      "layoutSlug": "united-states",
+      "file": "/f1/circuits/2024/19-united-states.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/United%20States%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20United%20States%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zones.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane Drawing and Red Zones",
+      "sourceDocumentSha256": "a482a96bc9a8b5d8fd493a6546c3bd18207745fc1434c5bdc73f80887bfe9f9f",
+      "renderedPage": 2,
+      "sha256": "01f70c5307563db4dcb2c04d9c7621671baf2cd177583ef52c542a4f23c55cc0",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 20,
+      "raceName": "Mexico City Grand Prix",
+      "circuitId": "rodriguez",
+      "layoutSlug": "mexico",
+      "file": "/f1/circuits/2024/20-mexico.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Mexico%20City%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Mexico%20City%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zones.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane Drawing and Red Zones",
+      "sourceDocumentSha256": "f03e9f8c54cfc384040e8a21079676ad1d4c16ec8fc2d70a73bcfb8d28e96a21",
+      "renderedPage": 2,
+      "sha256": "cd8a76a84cd64f63e64930f27c534e8410a3fe3c2c0a1d2dbdecec5fa8d33704",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 21,
+      "raceName": "São Paulo Grand Prix",
+      "circuitId": "interlagos",
+      "layoutSlug": "brazil",
+      "file": "/f1/circuits/2024/21-brazil.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/S%C3%A3o%20Paulo%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20S%C3%A3o%20Paulo%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zones.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane Drawing and Red Zones",
+      "sourceDocumentSha256": "5aeb7e77e68f671a9010b7b8360f8b43bb9aadf8692f804777ef6ac84ca1bd9f",
+      "renderedPage": 2,
+      "sha256": "c52fa15579f2bd58c0708b4ac54e4297f0733003581399eab29a62fdce7e9f9a",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 22,
+      "raceName": "Las Vegas Grand Prix",
+      "circuitId": "vegas",
+      "layoutSlug": "las-vegas",
+      "file": "/f1/circuits/2024/22-las-vegas.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Las%20Vegas%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Las%20Vegas%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20and%20Red%20Zones.pdf",
+      "sourceTitle": "Doc 9 - Event Notes - Circuit Map and Red Zones",
+      "sourceDocumentSha256": "893fd78f8f9944b980411506032c659370a3231f3740bb4feb97e71dde9d9406",
+      "renderedPage": 2,
+      "sha256": "6e5edd71911ce298d8511f7008499ac9e9d3b1f021dcf3add85b6b20a58ac17e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 23,
+      "raceName": "Qatar Grand Prix",
+      "circuitId": "losail",
+      "layoutSlug": "qatar",
+      "file": "/f1/circuits/2024/23-qatar.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Qatar%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Qatar%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "d6988bb22d24480a4988b3b6a0aa30727fc093cdf520d6291b56001f36e651b7",
+      "renderedPage": 2,
+      "sha256": "b964bf89e2197b8cf272c9bd3b8f93d6dc415693faea3292492026997b917f19",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2024,
+      "round": 24,
+      "raceName": "Abu Dhabi Grand Prix",
+      "circuitId": "yas_marina",
+      "layoutSlug": "abu-dhabi",
+      "file": "/f1/circuits/2024/24-abu-dhabi.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2024-2043/event/Abu%20Dhabi%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Abu%20Dhabi%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%2C%20Pit%20Lane%20and%20Red%20Zones.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zones",
+      "sourceDocumentSha256": "7a8239673e286d353d29552279ade649951c2b7cf4c470e69a6dcf860463845b",
+      "renderedPage": 2,
+      "sha256": "d314d80ad8bff700b8f359612537fa41792305b9b14174b54a8131451b2f1994",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.457749Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    }
+  ],
+  "manualReview": {
+    "status": "approved",
+    "reviewedAt": "2026-07-15T21:59:24.457749Z",
+    "reviewer": "RaceMate visual QA"
+  }
+}

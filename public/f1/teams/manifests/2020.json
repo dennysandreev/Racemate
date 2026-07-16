@@ -1,0 +1,316 @@
+{
+  "season": 2020,
+  "downloadedAt": "2026-07-15T21:37:00.919Z",
+  "sourcePolicy": "Official Formula1.com season team assets only; no cross-season fallback.",
+  "rightsReviewRequired": true,
+  "rightsReview": {
+    "status": "cleared",
+    "reviewedAt": "2026-07-16T11:41:14Z",
+    "note": "Cleared by the product owner for public release."
+  },
+  "visualReviewRecordedAt": "2026-07-15T21:37:00.919Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2020,
+      "constructorId": "mercedes",
+      "name": "Mercedes",
+      "car": {
+        "file": "/f1/teams/cars/2020/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/mercedes.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/mercedes.png.transform/6col-retina/image.png",
+        "sha256": "c00b6fe2e05a964178c9b289615d657c17b215c41a5b21dee86651352cf55913",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/mercedes-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/mercedes-logo.png.transform/2col-retina/image.png",
+        "sha256": "d89df008ae47a15d11c5bd7e080827f4ba8e9b7e2e772b72a388d41077677849",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#27F4D2"
+    },
+    {
+      "season": 2020,
+      "constructorId": "red_bull",
+      "name": "Red Bull",
+      "car": {
+        "file": "/f1/teams/cars/2020/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/red-bull-racing.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/red-bull-racing.png.transform/6col-retina/image.png",
+        "sha256": "675e24deddb90551f93296c0809806c5e33ab4fa6afa5823cb3fe37ce9812db1",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/red-bull-racing-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/red-bull-racing-logo.png.transform/2col-retina/image.png",
+        "sha256": "619e4ee34bdf98ffc388af65d1c5e1dedf9a55b908f738e55b526091e049139e",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#3671C6"
+    },
+    {
+      "season": 2020,
+      "constructorId": "mclaren",
+      "name": "McLaren",
+      "car": {
+        "file": "/f1/teams/cars/2020/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/mclaren.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/mclaren.png.transform/6col-retina/image.png",
+        "sha256": "1f1bdf10fb3de102c2c68de151c0e62ea887b5fba28e43448e03372c21679a13",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/mclaren-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/mclaren-logo.png.transform/2col-retina/image.png",
+        "sha256": "f896c732fa1c050c8515aa5db85dd4954dea4800627d5f9530a751d31dc7dfc7",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#FF8000"
+    },
+    {
+      "season": 2020,
+      "constructorId": "racing_point",
+      "name": "Racing Point",
+      "car": {
+        "file": "/f1/teams/cars/2020/racing-point.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/racing-point.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/racing-point.png.transform/6col-retina/image.png",
+        "sha256": "be656b0b3b0075c8dafad64886b6af30a813d99c004bc51057e894b320516fd5",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/racing-point.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/racing-point-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/racing-point-logo.png.transform/2col-retina/image.png",
+        "sha256": "504a0ef2fb7326ec922ac810c0e2b905a9c43dd2efabf9c59a8289d7d6453433",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#F596C8"
+    },
+    {
+      "season": 2020,
+      "constructorId": "renault",
+      "name": "Renault",
+      "car": {
+        "file": "/f1/teams/cars/2020/renault.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/renault.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/renault.png.transform/6col-retina/image.png",
+        "sha256": "143d96acd1b5b2176a6b4ca915f2868c4f1999d57173c97b4dff9fdd3ff557e7",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/renault.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/renault-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/renault-logo.png.transform/2col-retina/image.png",
+        "sha256": "abf12b7c1dfdae70621ad7b6731b872faafad243b027652d790248d12e737b81",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#FFF500"
+    },
+    {
+      "season": 2020,
+      "constructorId": "ferrari",
+      "name": "Ferrari",
+      "car": {
+        "file": "/f1/teams/cars/2020/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/ferrari.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/ferrari.png.transform/6col-retina/image.png",
+        "sha256": "5fcd8937613026b0f03b2ee584275d0b7dda0f0c704418bf647271fcffe09c10",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/ferrari-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/ferrari-logo.png.transform/2col-retina/image.png",
+        "sha256": "01da5c0d5c7384c2ac93771228f95060d40565d37c7832c818a507c2ce98012f",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#E8002D"
+    },
+    {
+      "season": 2020,
+      "constructorId": "alphatauri",
+      "name": "AlphaTauri",
+      "car": {
+        "file": "/f1/teams/cars/2020/alphatauri.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/alphatauri.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/alphatauri.png.transform/6col-retina/image.png",
+        "sha256": "89f7f6e9a237ce64bb572988cb9e0a10e0ce1fd27d209b7facd79da1e860e769",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/alphatauri.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/alphatauri-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/alphatauri-logo.png.transform/2col-retina/image.png",
+        "sha256": "3456521794d10a0644475c23a0e724465d172d98e1b255de833daff317ca3162",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#2B4562"
+    },
+    {
+      "season": 2020,
+      "constructorId": "alfa",
+      "name": "Alfa Romeo",
+      "car": {
+        "file": "/f1/teams/cars/2020/alfa.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/alfa-romeo-racing.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/alfa-romeo-racing.png.transform/6col-retina/image.png",
+        "sha256": "e32c958333daa5335cb482197db0a99426a400f5237b98027ca5a4dedcaab7ce",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/alfa.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+        "sha256": "40697f7fc281058d15fc5ace08c8da228c02f819edd419f7061fa27e4c37dcb0",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#C92D4B"
+    },
+    {
+      "season": 2020,
+      "constructorId": "haas",
+      "name": "Haas F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2020/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/haas-f1-team.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/haas-f1-team.png.transform/6col-retina/image.png",
+        "sha256": "b5eee73c4cff1f1111dce7e103c85bdf93de00f616f55bd11901efecbedfb169",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/haas-f1-team-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/haas-f1-team-logo.png.transform/2col-retina/image.png",
+        "sha256": "6544285b6004b490fb3d47bd591b9236e532bef86e10d5b6dcfbbe37eba5aa44",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#B6BABD"
+    },
+    {
+      "season": 2020,
+      "constructorId": "williams",
+      "name": "Williams",
+      "car": {
+        "file": "/f1/teams/cars/2020/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/williams.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/williams.png.transform/6col-retina/image.png",
+        "sha256": "38992b76973fe76d6ffa137d6b39232da7307609a7e7751714bc7fb2c6c14785",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2020/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2020/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2020/williams-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/williams-logo.png.transform/2col-retina/image.png",
+        "sha256": "ffc3a67c06aee5ff10a13dcad3e4355426077f7e879f245f872b61f9aca9f7e0",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#64C4FF"
+    }
+  ]
+}

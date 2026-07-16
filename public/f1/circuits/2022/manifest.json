@@ -1,0 +1,475 @@
+{
+  "season": 2022,
+  "downloadedAt": "2026-07-15T21:45:10.822Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2022,
+      "round": 1,
+      "raceName": "Bahrain Grand Prix",
+      "circuitId": "bahrain",
+      "layoutSlug": "bahrain",
+      "file": "/f1/circuits/2022/01-bahrain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Bahrain%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Bahrain%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "f5eec3594dde918b7171e8247b6234c4a9b099b4b84ff7c8b727f04a8324b911",
+      "renderedPage": 2,
+      "sha256": "42715cb58a9726abdb22ebd0220f723e8a26b36edc281d19a833617e48a39967",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 2,
+      "raceName": "Saudi Arabian Grand Prix",
+      "circuitId": "jeddah",
+      "layoutSlug": "saudi-arabia",
+      "file": "/f1/circuits/2022/02-saudi-arabia.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Saudi%20Arabian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Saudi%20Arabian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "2a163aa824bf7151b14cd693dc1d71b9f20bd717172701c689b2dc533e45e816",
+      "renderedPage": 2,
+      "sha256": "27ead8b486d1b4142a5d75e3298b84de0202bd58d4689736a2e7493d061677b1",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 3,
+      "raceName": "Australian Grand Prix",
+      "circuitId": "albert_park",
+      "layoutSlug": "australia",
+      "file": "/f1/circuits/2022/03-australia.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Australian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Australian%20Grand%20Prix%20-%20Race%20Director's%20Note%20-%20Circuit%20Map%20V2.pdf",
+      "sourceTitle": "Race Director's Note - Circuit Map V2",
+      "sourceDocumentSha256": "4d79fc414d2b3c103bbfba171f6d1b358d55221e4bbac1c6aa7c18291869950a",
+      "renderedPage": 2,
+      "sha256": "079c5a43684a9e7c39cb30d6190932b1d076aa65cb834e422951582b76fe3465",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 4,
+      "raceName": "Emilia Romagna Grand Prix",
+      "circuitId": "imola",
+      "layoutSlug": "emiliaromagna",
+      "file": "/f1/circuits/2022/04-emiliaromagna.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Emilia%20Romagna%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Emilia%20Romagna%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "4fd5025d4e6781075a283ea1b32c646b9daa256cc9b71487813fcc6d540477e5",
+      "renderedPage": 2,
+      "sha256": "48481c10f710c14d5fe9b2920df046645ddcb70b7b89695b3545f97835c69919",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 5,
+      "raceName": "Miami Grand Prix",
+      "circuitId": "miami",
+      "layoutSlug": "miami",
+      "file": "/f1/circuits/2022/05-miami.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Miami%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Miami%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v4.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v4",
+      "sourceDocumentSha256": "e070f8f9cb7cafa85da4457d2d93c4e610bab0490816356f9b577b68ad6b64a5",
+      "renderedPage": 2,
+      "sha256": "8acb5481f95fba3444549c39dbf66b7e48f9b4afaa3e746d94eb1789b2992e84",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 6,
+      "raceName": "Spanish Grand Prix",
+      "circuitId": "catalunya",
+      "layoutSlug": "spain",
+      "file": "/f1/circuits/2022/06-spain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Spanish%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Spanish%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "c74d014a6f687a75c0904d0f7911de49deae297586225196eff1197d1546c255",
+      "renderedPage": 2,
+      "sha256": "5b1934d12e6c3e7b702a93a9dd11137da86228629725f149f1a5c294db57b4bd",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 7,
+      "raceName": "Monaco Grand Prix",
+      "circuitId": "monaco",
+      "layoutSlug": "monaco",
+      "file": "/f1/circuits/2022/07-monaco.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Monaco%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Monaco%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Event Notes - Circuit Map",
+      "sourceDocumentSha256": "e3faf67321ff5aa389bf11de5446f175fe7b27eb3bf3a3bc005086dbcd2078fc",
+      "renderedPage": 2,
+      "sha256": "336ad03ea01fd58374f774a6b61117c90069627ec38532538359ab1502bffd95",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 8,
+      "raceName": "Azerbaijan Grand Prix",
+      "circuitId": "baku",
+      "layoutSlug": "azerbaijan",
+      "file": "/f1/circuits/2022/08-azerbaijan.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Azerbaijan%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Azerbaijan%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "f4530b0e8c5565497c57f1b4cc08e60cd9fce49e09231d07000bb7094c7cc3d3",
+      "renderedPage": 2,
+      "sha256": "90fd2c909bc618eb55ec17b3b42f4a865a644962d72e0c7b0cb9b802516c2a49",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 9,
+      "raceName": "Canadian Grand Prix",
+      "circuitId": "villeneuve",
+      "layoutSlug": "canada",
+      "file": "/f1/circuits/2022/09-canada.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Canadian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Canadian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "2a39fee90ea7127294ebbcc194bcfab31f6a4000288f58f113a6bf9aaff3aeec",
+      "renderedPage": 2,
+      "sha256": "db275933a7aaf5cb9062f3708a3228a1c68d9f4edd149ab408154fb397d0143f",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 10,
+      "raceName": "British Grand Prix",
+      "circuitId": "silverstone",
+      "layoutSlug": "great-britain",
+      "file": "/f1/circuits/2022/10-great-britain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/British%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20British%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "a6adcfb74eac5c990a820428e45f3fc16bb073671b3e9a3efe87b98f8c7d750c",
+      "renderedPage": 2,
+      "sha256": "d952846e78c156deb6ea285a4bed0c7bc70020c323ac6ab6ea1eda9002502823",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 11,
+      "raceName": "Austrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "austria",
+      "file": "/f1/circuits/2022/11-austria.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Austrian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Austrian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "2d523c5f5f59147449bed91e496b1fded0dfd0ffa1f753cca74a9407438d39ca",
+      "renderedPage": 2,
+      "sha256": "6eeff969f88439913e0a88756db9750ea2af02af5604a5c744b0039591cf27af",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 12,
+      "raceName": "French Grand Prix",
+      "circuitId": "ricard",
+      "layoutSlug": "france",
+      "file": "/f1/circuits/2022/12-france.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/French%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20French%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "87f2a4bc9d7e122a04d9a59e4f35a0d1df66de7beb8ab7fe61d33774df327f93",
+      "renderedPage": 2,
+      "sha256": "bc4ffa1c6f974d5f2810c05d187596c0ef570770f46c67fac68b2a7b635b1673",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 13,
+      "raceName": "Hungarian Grand Prix",
+      "circuitId": "hungaroring",
+      "layoutSlug": "hungary",
+      "file": "/f1/circuits/2022/13-hungary.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Hungarian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Hungarian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Event Notes - Circuit Map",
+      "sourceDocumentSha256": "7d9535bbc2a4c7fcc3213232a12648e970c131d657e748f4240b12afaf97a072",
+      "renderedPage": 2,
+      "sha256": "84b44bf38911a77b6715741f85171b7c17fd766758b1b554d07f8ed4443aaf85",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 14,
+      "raceName": "Belgian Grand Prix",
+      "circuitId": "spa",
+      "layoutSlug": "belgium",
+      "file": "/f1/circuits/2022/14-belgium.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Belgian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Belgian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Event Notes - Circuit Map",
+      "sourceDocumentSha256": "32b9b6dd67b61f0caa4799f137a69de9a5c58a3e2d76b54f83a5a6c63f7aa4d9",
+      "renderedPage": 2,
+      "sha256": "2769557fa7bbf982c37776f305ab9d0cf791d855a9a33769dbbc3bcc9f598cb4",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 15,
+      "raceName": "Dutch Grand Prix",
+      "circuitId": "zandvoort",
+      "layoutSlug": "netherlands",
+      "file": "/f1/circuits/2022/15-netherlands.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Dutch%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Dutch%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "c597a7c6bb10af83300ea1c59ae154c017332f18f790633b8c6649160efff6eb",
+      "renderedPage": 2,
+      "sha256": "557671b9eac426feecf1d5c98407aff68491724b902e14187d9cd9d4f4b062e5",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 16,
+      "raceName": "Italian Grand Prix",
+      "circuitId": "monza",
+      "layoutSlug": "italy",
+      "file": "/f1/circuits/2022/16-italy.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Italian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Italian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "b55dbc9755353f1d0cc897ebc2f8567992d419577fc56572e71c2a273fb0af71",
+      "renderedPage": 2,
+      "sha256": "c29a4d810f859937a452abc9130e225635eafed9a9b69633a7dddb90f26866b8",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 17,
+      "raceName": "Singapore Grand Prix",
+      "circuitId": "marina_bay",
+      "layoutSlug": "singapore",
+      "file": "/f1/circuits/2022/17-singapore.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Singapore%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Singapore%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "7f90506fa1f613876a193250f059612d0c9fa4072a26b27767b1d31376e1a312",
+      "renderedPage": 2,
+      "sha256": "b26fb49d98f8f53a56cf7cb911612a5bf297237afd6ad0d25e4aa512d54c1b38",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 18,
+      "raceName": "Japanese Grand Prix",
+      "circuitId": "suzuka",
+      "layoutSlug": "japan",
+      "file": "/f1/circuits/2022/18-japan.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Japanese%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Japanese%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "9ba5c3720cb49f1f0239f00af1001e8b177aca41d2d1bb1bebf0a7d946a7863a",
+      "renderedPage": 2,
+      "sha256": "47331086727f8a7883eec11b0c4dd5fcab3642a8dda970ca462a5ada3e5b9d55",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 19,
+      "raceName": "United States Grand Prix",
+      "circuitId": "americas",
+      "layoutSlug": "united-states",
+      "file": "/f1/circuits/2022/19-united-states.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/United%20States%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20United%20States%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2",
+      "sourceDocumentSha256": "1c1d5f58afc271851fe5e586ae6b7e65f86cfcce03831be054a732b3728e3907",
+      "renderedPage": 2,
+      "sha256": "c7171fe77573976dad20af0b57d8b96599105fa66c1c653eafd16b88be0408d4",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 20,
+      "raceName": "Mexico City Grand Prix",
+      "circuitId": "rodriguez",
+      "layoutSlug": "mexico",
+      "file": "/f1/circuits/2022/20-mexico.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Mexican%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Mexican%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zone",
+      "sourceDocumentSha256": "f9f0ddd461daeb1f7177e6e1f1baee42e47862170605097132b2a0e990e3ba13",
+      "renderedPage": 2,
+      "sha256": "b71828bcabcd2ed7c07e3513c14986029f5bb5410d2dd78103c05058a9af01c4",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 21,
+      "raceName": "São Paulo Grand Prix",
+      "circuitId": "interlagos",
+      "layoutSlug": "brazil",
+      "file": "/f1/circuits/2022/21-brazil.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Brazilian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Brazilian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zone",
+      "sourceDocumentSha256": "185623efb183f2b6e6e3c834c8d497cf438fbc40843acd633c2f642242449041",
+      "renderedPage": 2,
+      "sha256": "4467ae11f4d573fa701fc404f7b16345674844f49cac39fb7c7d7a2258c50dae",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2022,
+      "round": 22,
+      "raceName": "Abu Dhabi Grand Prix",
+      "circuitId": "yas_marina",
+      "layoutSlug": "united-arab-emirates",
+      "file": "/f1/circuits/2022/22-united-arab-emirates.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2022-2005/event/Abu%20Dhabi%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2022%20Abu%20Dhabi%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zone",
+      "sourceDocumentSha256": "4a7b6897c0eb111c8d884fed8bac5601c98ffab4d016e376208b69605afd292f",
+      "renderedPage": 2,
+      "sha256": "95b56192fa638aae081aa7c240f19ef5afc3cbd199f06ddfc36b1e242209a10c",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.555377Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    }
+  ],
+  "manualReview": {
+    "status": "approved",
+    "reviewedAt": "2026-07-15T21:59:23.555377Z",
+    "reviewer": "RaceMate visual QA"
+  }
+}

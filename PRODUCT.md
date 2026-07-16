@@ -21,6 +21,7 @@ RaceMate is a premium motorsport companion for the F1 season. It combines cached
 Success means a user can:
 - understand what matters in F1 today in under a minute;
 - see what happens next in the season or current race weekend;
+- move between the published 2020-2026 sporting archives without losing the selected season;
 - follow favorite drivers and teams;
 - make and compare predictions without friction;
 - trust that news, standings, schedules, and results are sourced and current.
@@ -78,6 +79,7 @@ Required:
 
 Included in V1:
 - public news, AI summaries, digests, calendar, race hub, results, standings, teams, drivers, circuits;
+- published Formula 1 season archives from 2020 onward: calendar, session results, standings, season-specific driver/team profiles, cars, logos, and race-specific track maps;
 - email OTP/passwordless auth;
 - onboarding, favorites, personal feed;
 - predictions, mini-leagues, leaderboards, polls, reactions;
@@ -91,3 +93,13 @@ Deferred from V1:
 - live timing and live telemetry;
 - YouTube/video;
 - native mobile apps.
+
+## Historical seasons
+
+- The newest published season opens by default. A selected archive year is stored in `?season=YYYY` on the calendar, championship, team list, and driver/team profiles.
+- Unknown, malformed, and unpublished years return 404. Historical seasons are published only as one complete 2020-2025 batch after the launch gate passes.
+- Historical race pages are a sporting archive: schedule, classifications, statistics, and the verified map for that exact race. Race Replay, AI reports, current news, weather, odds, and notifications remain current-season features.
+- Driver and team profiles show only published years in which that driver or team lineage participated. Renault/Alpine, Racing Point/Aston Martin, AlphaTauri/RB/Racing Bulls, and Alfa Romeo/Sauber/Audi share stable lineage pages while retaining their season names and identity.
+- A historical season never falls back to current-season cars, logos, driver portraits, or track maps. Verified seasonal cars, logos, and race maps remain required for publication.
+- Historical driver portraits are optional and do not block publication. Until a seasonal portrait is added, the interface uses the driver's number or initials without substituting a 2026 image.
+- Official car, logo, and map images require source records, checksums, attribution, manual visual review, and a separate rights review before publication. A generated portrait follows the same seasonal review process when it is added later.

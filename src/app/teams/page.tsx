@@ -1,26 +1,40 @@
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ChevronRight, Flag, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageTitle } from "@/components/racemate/page-title";
 import { RaceFlag } from "@/components/racemate/race-flag";
+import { SeasonSwitcher } from "@/components/racemate/season-switcher";
 import { TeamLogo } from "@/components/racemate/team-logo";
-import { getTeamProfiles } from "@/data/racemate-repository";
+import { getPublishedSeasons, getTeamProfiles } from "@/data/racemate-repository";
+import { resolvePublishedSeason, type SeasonSearchParams } from "@/lib/season-navigation";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Команды · RaceMate",
-  description: "Команды текущего сезона: составы, положение в чемпионате, очки и результаты.",
+  description: "Команды Формулы-1 по сезонам: составы, положение в чемпионате, очки и результаты.",
 };
 
-export default async function TeamsPage() {
-  const teams = await getTeamProfiles();
-  const season = teams[0]?.season ?? new Date().getUTCFullYear();
+export default async function TeamsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SeasonSearchParams>;
+}) {
+  const query = await searchParams;
+  const publishedSeasons = await getPublishedSeasons();
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+
+  if (!season) {
+    notFound();
+  }
+
+  const teams = await getTeamProfiles(season);
 
   return (
-    <AppShell>
+    <AppShell season={season}>
       <div className="grid gap-5 pb-6 sm:pb-8">
         <header className="stitch-panel relative overflow-hidden p-4 sm:p-5 lg:h-40">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgb(225_6_0_/_0.2),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.04),transparent_48%)]" />
@@ -34,10 +48,17 @@ export default async function TeamsPage() {
                 Команды чемпионата
               </PageTitle>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Список команд текущего сезона
+                Составы и результаты команд в выбранном сезоне
               </p>
             </div>
-            <div className="mt-auto hidden items-center gap-3 self-start rounded-md border border-border bg-background/35 px-4 py-3 lg:absolute lg:right-0 lg:top-1/2 lg:flex lg:mt-0 lg:-translate-y-1/2">
+            <SeasonSwitcher
+              activeSeason={season}
+              className="self-start lg:absolute lg:right-0 lg:top-0"
+              pathname="/teams"
+              query={query}
+              seasons={publishedSeasons}
+            />
+            <div className="mt-auto hidden items-center gap-3 self-start rounded-md border border-border bg-background/35 px-4 py-2 lg:absolute lg:bottom-0 lg:right-0 lg:flex lg:mt-0">
               <Trophy aria-hidden="true" className="size-5 text-primary" />
               <div>
                 <p className="font-telemetry text-xl font-extrabold">{teams.length}</p>
@@ -52,20 +73,26 @@ export default async function TeamsPage() {
             {teams.map((team) => (
               <Link
                 className="group relative min-h-[15rem] overflow-hidden rounded-lg border border-border bg-card transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                href={`/teams/${team.slug}`}
+                href={`/teams/${team.slug}?season=${season}`}
                 key={team.id}
                 prefetch={false}
                 style={{
                   backgroundImage: `radial-gradient(circle at 58% 35%, color-mix(in srgb, ${team.color} 22%, transparent), transparent 56%)`,
                 }}
               >
-                <Image
-                  alt={`Болид ${team.shortName} сезона ${team.season}`}
-                  className="object-contain object-[center_42%] p-3 pb-20 pt-8 drop-shadow-[0_10px_10px_rgb(0_0_0_/_0.28)] transition-transform duration-300 group-hover:scale-[1.02] sm:p-4 sm:pb-20 sm:pt-8"
-                  fill
-                  sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-                  src={team.carImageUrl}
-                />
+                {team.carImageUrl ? (
+                  <Image
+                    alt={`Болид ${team.shortName} сезона ${team.season}`}
+                    className="object-contain object-[center_42%] p-3 pb-20 pt-8 drop-shadow-[0_10px_10px_rgb(0_0_0_/_0.28)] transition-transform duration-300 group-hover:scale-[1.02] sm:p-4 sm:pb-20 sm:pt-8"
+                    fill
+                    sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                    src={team.carImageUrl}
+                  />
+                ) : (
+                  <div className="absolute inset-x-4 top-16 grid h-20 place-items-center rounded-md border border-border/70 bg-background/35 text-center font-telemetry text-[0.65rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+                    Болид проходит проверку
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/10 to-background" />
                 <div
                   aria-hidden="true"

@@ -280,7 +280,64 @@ export type Database = {
       }>;
       seasons: TableDefinition<{
         year: number;
+        is_published: boolean;
+        published_at: string | null;
         created_at: string;
+      }>;
+      team_lineages: TableDefinition<{
+        id: string;
+        slug: string;
+        display_name: string;
+        created_at: string;
+        updated_at: string;
+      }>;
+      team_season_profiles: TableDefinition<{
+        id: string;
+        season_year: number;
+        team_id: string;
+        lineage_id: string;
+        display_name: string;
+        short_name: string | null;
+        code: string | null;
+        country: string | null;
+        color_hex: string | null;
+        logo_image_url: string | null;
+        car_image_url: string | null;
+        source_urls: Json;
+        assets_verified_at: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      driver_season_profiles: TableDefinition<{
+        id: string;
+        season_year: number;
+        driver_id: string;
+        primary_team_id: string | null;
+        code: string | null;
+        permanent_number: number | null;
+        starts: number;
+        avatar_image_url: string | null;
+        avatar_prompt: string | null;
+        avatar_reference_url: string | null;
+        avatar_review_status: string;
+        source_urls: Json;
+        assets_verified_at: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      race_track_assets: TableDefinition<{
+        id: string;
+        race_id: string;
+        circuit_id: string | null;
+        layout_slug: string;
+        image_url: string | null;
+        source_url: string | null;
+        source_manifest: Json;
+        checksum_sha256: string | null;
+        is_verified: boolean;
+        verified_at: string | null;
+        created_at: string;
+        updated_at: string;
       }>;
       news_sources: TableDefinition<{
         id: string;

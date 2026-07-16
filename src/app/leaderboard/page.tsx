@@ -1,11 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ChevronRight, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
 import { PageTitle } from "@/components/racemate/page-title";
 import { SeasonProgress } from "@/components/racemate/season-progress";
+import { SeasonSwitcher } from "@/components/racemate/season-switcher";
 import { getTeamProfileAsset } from "@/data/f1-assets";
 import { cn } from "@/lib/utils";
 import {
@@ -13,9 +15,14 @@ import {
   getConstructorChampionOdds,
   getConstructorChampionshipMatrix,
   getDriverChampionshipMatrix,
+  getPublishedSeasons,
   getSeasonChampionOdds,
-  getStandingsMeta,
 } from "@/data/racemate-repository";
+import {
+  CURRENT_F1_SEASON,
+  resolvePublishedSeason,
+  type SeasonSearchParams,
+} from "@/lib/season-navigation";
 import type { ChampionshipRound } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +33,7 @@ type StandingEntry = {
   href?: string;
   driverSlug?: string;
   driverNumber?: number;
+  avatarUrl?: string | null;
   subtitle?: string;
   teamName: string;
   teamCode?: string;
@@ -51,28 +59,40 @@ const podiumTone: Record<number, { badge: string; label: string }> = {
 export default async function LeaderboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ table?: string }>;
+  searchParams: Promise<SeasonSearchParams>;
 }) {
-  const { table } = await searchParams;
+  const query = await searchParams;
+  const table = Array.isArray(query.table) ? query.table[0] : query.table;
   const activeTable = table === "constructors" ? "constructors" : "drivers";
-  const [drivers, constructors, driverMeta, calendar, driverOdds, constructorOdds] = await Promise.all([
-    getDriverChampionshipMatrix(),
-    getConstructorChampionshipMatrix(),
-    getStandingsMeta("driver_standings"),
-    getCalendarEvents(),
-    getSeasonChampionOdds(),
-    getConstructorChampionOdds(),
+  const publishedSeasons = await getPublishedSeasons();
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+
+  if (!season) {
+    notFound();
+  }
+
+  const isCurrentSeason = season === CURRENT_F1_SEASON;
+  const [drivers, constructors, calendar, driverOdds, constructorOdds] = await Promise.all([
+    getDriverChampionshipMatrix(season),
+    getConstructorChampionshipMatrix(season),
+    getCalendarEvents(season),
+    isCurrentSeason ? getSeasonChampionOdds() : Promise.resolve(null),
+    isCurrentSeason ? getConstructorChampionOdds() : Promise.resolve(null),
   ]);
 
   const rounds = activeTable === "drivers" ? drivers.rounds : constructors.rounds;
   const entries = activeTable === "drivers"
     ? drivers.rows.map((row): StandingEntry => {
-        const profileAsset = getTeamProfileAsset(row.teamCode) ?? getTeamProfileAsset(row.team);
+        const profileAsset = isCurrentSeason
+          ? getTeamProfileAsset(row.teamCode) ?? getTeamProfileAsset(row.team)
+          : null;
+        const teamSlug = row.teamSlug ?? profileAsset?.slug;
 
         return {
+          avatarUrl: row.avatarUrl,
           driverSlug: row.driverSlug,
           driverNumber: row.driverNumber,
-          href: row.driverSlug ? `/drivers/${row.driverSlug}` : undefined,
+          href: row.driverSlug ? `/drivers/${row.driverSlug}?season=${season}` : undefined,
           name: row.driver,
           podiumByRound: row.podiumByRound,
           podiums: Object.keys(row.podiumByRound).length,
@@ -84,24 +104,27 @@ export default async function LeaderboardPage({
           titleOdds: findMarketOddsLabel(row.driver, driverOdds?.outcomes),
           teamCode: row.teamCode,
           teamColor: row.teamColor,
-          teamHref: profileAsset ? `/teams/${profileAsset.slug}` : undefined,
+          teamHref: teamSlug ? `/teams/${teamSlug}?season=${season}` : undefined,
           teamLogo: row.teamLogo,
           teamName: row.team,
           wins: Object.values(row.podiumByRound).filter((finish) => finish === "winner").length,
         };
       })
     : constructors.rows.map((row): StandingEntry => {
-        const profileAsset = getTeamProfileAsset(row.teamCode) ?? getTeamProfileAsset(row.team);
+        const profileAsset = isCurrentSeason
+          ? getTeamProfileAsset(row.teamCode) ?? getTeamProfileAsset(row.team)
+          : null;
+        const teamSlug = row.teamSlug ?? profileAsset?.slug;
 
         return {
-          href: profileAsset ? `/teams/${profileAsset.slug}` : undefined,
+          href: teamSlug ? `/teams/${teamSlug}?season=${season}` : undefined,
           name: row.team,
           podiums: 0,
           points: row.points,
           pointsByRound: row.pointsByRound ?? {},
           position: row.position,
           teamCode: row.teamCode,
-          teamCarImage: profileAsset?.carImageUrl,
+          teamCarImage: row.carImageUrl ?? profileAsset?.carImageUrl,
           teamColor: row.teamColor,
           teamLogo: row.teamLogo,
           teamName: row.team,
@@ -113,14 +136,13 @@ export default async function LeaderboardPage({
   const leaderPoints = Math.max(entries[0]?.points ?? 0, 1);
   const roundMaxPoints = buildRoundMaxPoints(rounds, entries);
   const podium = entries.filter((entry) => entry.position >= 1 && entry.position <= 3);
-  const season = driverMeta?.season ?? new Date().getUTCFullYear();
-  const seasonRaces = calendar.filter((event) => event.season === season);
+  const seasonRaces = calendar;
   const totalRounds = seasonRaces.length;
   const completedRounds = seasonRaces.filter((event) => event.status === "Завершен").length;
   const nextRace = seasonRaces.find((event) => event.status !== "Завершен") ?? null;
 
   return (
-    <AppShell>
+    <AppShell leaderboardTable={activeTable} season={season}>
       <section className="grid gap-4 pb-6 sm:gap-5 sm:pb-8">
         <section className="stitch-panel relative min-h-[13rem] overflow-hidden p-0 lg:h-40 lg:min-h-0">
           <Image
@@ -145,12 +167,20 @@ export default async function LeaderboardPage({
               </PageTitle>
             </div>
 
+            <SeasonSwitcher
+              activeSeason={season}
+              className="mt-3 self-start lg:absolute lg:right-5 lg:top-5 lg:mt-0"
+              pathname="/leaderboard"
+              query={query}
+              seasons={publishedSeasons}
+            />
+
             <div className="mt-auto grid gap-4 pt-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
               <nav aria-label="Тип зачета" className="grid grid-cols-2 gap-1 self-end rounded-md border border-border/70 bg-background/55 p-1 backdrop-blur-sm sm:inline-flex sm:justify-self-start lg:translate-y-2">
-                <TableTab active={activeTable === "drivers"} href="/leaderboard">
+                <TableTab active={activeTable === "drivers"} href={`/leaderboard?season=${season}`}>
                   Пилоты
                 </TableTab>
-                <TableTab active={activeTable === "constructors"} href="/leaderboard?table=constructors">
+                <TableTab active={activeTable === "constructors"} href={`/leaderboard?season=${season}&table=constructors`}>
                   Конструкторы
                 </TableTab>
               </nav>
@@ -171,6 +201,7 @@ export default async function LeaderboardPage({
                 entry={entry}
                 isChampionLeader={entry.position === 1}
                 key={entry.position}
+                season={season}
                 showAvatar={activeTable === "drivers"}
               />
             ))}
@@ -238,10 +269,12 @@ function TableTab({ active, children, href }: { active: boolean; children: React
 function PodiumCard({
   entry,
   isChampionLeader,
+  season,
   showAvatar,
 }: {
   entry: StandingEntry;
   isChampionLeader: boolean;
+  season: number;
   showAvatar: boolean;
 }) {
   const tone = podiumTone[entry.position] ?? podiumTone[3];
@@ -341,18 +374,26 @@ function PodiumCard({
               <DriverAvatarBadge
                 className="size-full"
                 color={entry.teamColor}
+                fallbackClassName="font-telemetry text-3xl text-foreground sm:text-5xl"
+                fallbackLabel={entry.driverNumber}
                 name={entry.name}
+                season={season}
                 sizes="(min-width: 640px) 9rem, 6rem"
                 slug={entry.driverSlug}
+                src={entry.avatarUrl}
               />
             </Link>
           ) : (
             <DriverAvatarBadge
               className="size-full"
               color={entry.teamColor}
+              fallbackClassName="font-telemetry text-3xl text-foreground sm:text-5xl"
+              fallbackLabel={entry.driverNumber}
               name={entry.name}
+              season={season}
               sizes="(min-width: 640px) 9rem, 6rem"
               slug={entry.driverSlug}
+              src={entry.avatarUrl}
             />
           )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 grid justify-items-center rounded-md border border-border/80 bg-background/90 px-1.5 py-1 shadow-sm backdrop-blur-sm">
@@ -449,9 +490,13 @@ function StandingRow({
           <DriverAvatarBadge
             className="size-10"
             color={entry.teamColor}
+            fallbackClassName="font-telemetry text-sm text-foreground"
+            fallbackLabel={entry.driverNumber}
             name={entry.name}
+            season={season}
             sizes="2.5rem"
             slug={entry.driverSlug}
+            src={entry.avatarUrl}
           />
         </VisualProfileLink>
       ) : (

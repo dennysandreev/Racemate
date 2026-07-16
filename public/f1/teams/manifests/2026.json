@@ -1,0 +1,345 @@
+{
+  "season": 2026,
+  "downloadedAt": "2026-07-15T21:48:24.113Z",
+  "sourcePolicy": "Official Formula1.com season team assets only; no cross-season fallback.",
+  "rightsReviewRequired": true,
+  "rightsReview": {
+    "status": "pending",
+    "note": "External legal/licensing review is required before publication."
+  },
+  "visualReviewRecordedAt": "2026-07-15T21:48:24.113Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2026,
+      "constructorId": "mercedes",
+      "name": "Mercedes",
+      "car": {
+        "file": "/f1/teams/cars/2026/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/mercedes/2026mercedescarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/mercedes/2026mercedescarright.webp",
+        "sha256": "3e26920e6c56c07158e68f84a0ef0d8656782c0089dfdcc4ab76952d7a564d3f",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 746,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/mercedes/2026mercedeslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/mercedes/2026mercedeslogowhite.webp",
+        "sha256": "a817304669f02bbbefd72db46d791d6f207720ad0a7633135ac9eb2618daf11f",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#27F4D2"
+    },
+    {
+      "season": 2026,
+      "constructorId": "ferrari",
+      "name": "Ferrari",
+      "car": {
+        "file": "/f1/teams/cars/2026/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/ferrari/2026ferraricarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/ferrari/2026ferraricarright.webp",
+        "sha256": "1e0eddeccde8b627009745090b355e3fea9671b2e04c9a25ffcc3fdded052385",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 746,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/ferrari/2026ferrarilogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/ferrari/2026ferrarilogowhite.webp",
+        "sha256": "cfdc8c702a42c8b858845eb5c2a106785c94f27ac0ad9c86eab54517717d77d6",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#E8002D"
+    },
+    {
+      "season": 2026,
+      "constructorId": "mclaren",
+      "name": "McLaren",
+      "car": {
+        "file": "/f1/teams/cars/2026/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/mclaren/2026mclarencarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/mclaren/2026mclarencarright.webp",
+        "sha256": "62f9b3f804847333b2b0bffe0875ebc59374be423204aa33915f2a6e2f6ddfc7",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 746,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/mclaren/2026mclarenlogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/mclaren/2026mclarenlogowhite.webp",
+        "sha256": "b609f829f6f7f8f56eb92cb627abfd1bb707e693d739e194ef35eccbfa10986d",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#FF8000"
+    },
+    {
+      "season": 2026,
+      "constructorId": "red_bull",
+      "name": "Red Bull",
+      "car": {
+        "file": "/f1/teams/cars/2026/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/redbullracing/2026redbullracingcarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/redbullracing/2026redbullracingcarright.webp",
+        "sha256": "d90ab41ea91dcefa19cc8cfa44c63f486055fc4ee6c378551c582dfec7ce57b9",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 746,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/redbullracing/2026redbullracinglogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/redbullracing/2026redbullracinglogowhite.webp",
+        "sha256": "6ffca9d381d86bb24f01bfa4c1d969bd0db1fddbf60c2cf742ef11960fce0530",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#3671C6"
+    },
+    {
+      "season": 2026,
+      "constructorId": "alpine",
+      "name": "Alpine F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2026/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/alpine/2026alpinecarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/alpine/2026alpinecarright.webp",
+        "sha256": "92a2e6b9947a0dbf67d6494b792701a2f57064361b3379b994f049cab41e4ec4",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 746,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/alpine/2026alpinelogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/alpine/2026alpinelogowhite.webp",
+        "sha256": "21cfa3b31b7969832961e15b87b2c17620ac898e500e363f6bd04fb8ca59c255",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#0093CC"
+    },
+    {
+      "season": 2026,
+      "constructorId": "rb",
+      "name": "RB F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2026/rb.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/racingbulls/2026racingbullscarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/racingbulls/2026racingbullscarright.webp",
+        "sha256": "7a9177284cd0f26f20b1a2d69da9b5388e3fc0b60e5812bde3d3909f838b3056",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 747,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/rb.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/racingbulls/2026racingbullslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/racingbulls/2026racingbullslogowhite.webp",
+        "sha256": "c1be9b10b81215944df9ce2cc7cdf2b0125eef9f696759104ab23d7278f137a8",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#6692FF"
+    },
+    {
+      "season": 2026,
+      "constructorId": "haas",
+      "name": "Haas F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2026/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/haas/2026haascarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/haas/2026haascarright.webp",
+        "sha256": "b844c52935c756c80facc844345df47d4791991ecb6f484fceebaa4da9e7e484",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 783,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/haas/2026haaslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/haas/2026haaslogowhite.webp",
+        "sha256": "afac70c4eca258c8099c9c347e098803306d732eb7d7ade7dff3f1942f1fcbc6",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#B6BABD"
+    },
+    {
+      "season": 2026,
+      "constructorId": "williams",
+      "name": "Williams",
+      "car": {
+        "file": "/f1/teams/cars/2026/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/williams/2026williamscarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/williams/2026williamscarright.webp",
+        "sha256": "54c1ac1549a2e33ff53d2bd0bb8fa819acd96833c939d8010251ebc3696d9a40",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 747,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/williams/2026williamslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/williams/2026williamslogowhite.webp",
+        "sha256": "b14c5e1b1e827c54392794cab9a85f0120e977b3eae2a2dfe5f4140aa77fc38d",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#64C4FF"
+    },
+    {
+      "season": 2026,
+      "constructorId": "audi",
+      "name": "Audi",
+      "car": {
+        "file": "/f1/teams/cars/2026/audi.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/audi/2026audicarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/audi/2026audicarright.webp",
+        "sha256": "76255538a15624a2ea48115ed76e75a3fa2abab35729a95f5b0e677907e0a78c",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 746,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/audi.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/audi/2026audilogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/audi/2026audilogowhite.webp",
+        "sha256": "8abfca97caf2bf37ccb86c75165a0650fa1f3cfdae85834a092334b4640f602b",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#D71920"
+    },
+    {
+      "season": 2026,
+      "constructorId": "aston_martin",
+      "name": "Aston Martin",
+      "car": {
+        "file": "/f1/teams/cars/2026/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/astonmartin/2026astonmartincarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/astonmartin/2026astonmartincarright.webp",
+        "sha256": "d2cf7550e565aae5740504fd480e96cf92ed0a036e59eb384072b7feb54478ca",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 746,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/astonmartin/2026astonmartinlogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/astonmartin/2026astonmartinlogowhite.webp",
+        "sha256": "d20df7cab9354b4019530207cd0aeb77fa284def54b53dce383d44361febe8ea",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#229971"
+    },
+    {
+      "season": 2026,
+      "constructorId": "cadillac",
+      "name": "Cadillac F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2026/cadillac.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/cadillac/2026cadillaccarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/cadillac/2026cadillaccarright.webp",
+        "sha256": "587971686cb6936870b64acf9279c675c31f0087d6f30339a822dd26a1d09838",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 746,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2026/cadillac.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2026/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2026/cadillac/2026cadillaclogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/cadillac/2026cadillaclogowhite.webp",
+        "sha256": "3596a5e21ad0f3455b6881b047f05fb9d316355bb56f67f65e661440fbb2743d",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#B98B2F"
+    }
+  ]
+}

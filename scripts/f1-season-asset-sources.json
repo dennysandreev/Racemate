@@ -1,0 +1,371 @@
+{
+  "2020": {
+    "mercedes": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/mercedes.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/mercedes-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#27F4D2"
+    },
+    "red_bull": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/red-bull-racing.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/red-bull-racing-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#3671C6"
+    },
+    "mclaren": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/mclaren.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/mclaren-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#FF8000"
+    },
+    "racing_point": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/racing-point.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/racing-point-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#F596C8"
+    },
+    "renault": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/renault.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/renault-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#FFF500"
+    },
+    "ferrari": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/ferrari.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/ferrari-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#E8002D"
+    },
+    "alphatauri": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/alphatauri.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/alphatauri-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#2B4562"
+    },
+    "alfa": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/alfa-romeo-racing.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#C92D4B"
+    },
+    "haas": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/haas-f1-team.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/haas-f1-team-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#B6BABD"
+    },
+    "williams": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/williams.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2020/williams-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#64C4FF"
+    }
+  },
+  "2021": {
+    "mercedes": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/mercedes.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/mercedes-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#27F4D2"
+    },
+    "red_bull": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/red-bull-racing.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/red-bull-racing-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#3671C6"
+    },
+    "ferrari": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/ferrari.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/ferrari-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#E8002D"
+    },
+    "mclaren": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/mclaren.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/mclaren-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#FF8000"
+    },
+    "alpine": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alpine.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alpine-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#0093CC"
+    },
+    "alphatauri": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alphatauri.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alphatauri-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#2B4562"
+    },
+    "aston_martin": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/aston-martin.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/aston-martin-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#229971"
+    },
+    "williams": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/williams.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/williams-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#64C4FF"
+    },
+    "alfa": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alfa-romeo-racing.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#C92D4B"
+    },
+    "haas": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/haas-f1-team.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/haas-f1-team-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#B6BABD"
+    }
+  },
+  "2022": {
+    "red_bull": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/red-bull-racing.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/red-bull-racing-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#3671C6"
+    },
+    "ferrari": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/ferrari.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/ferrari-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#E8002D"
+    },
+    "mercedes": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/mercedes.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/mercedes-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#27F4D2"
+    },
+    "alpine": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/alpine.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/alpine-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#0093CC"
+    },
+    "mclaren": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/mclaren.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/mclaren-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#FF8000"
+    },
+    "alfa": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/alfa-romeo-racing.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#C92D4B"
+    },
+    "aston_martin": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/aston-martin.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/aston-martin-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#229971"
+    },
+    "haas": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/haas-f1-team.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/haas-f1-team-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#B6BABD"
+    },
+    "alphatauri": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/alphatauri.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/alphatauri-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#2B4562"
+    },
+    "williams": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/williams.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2022/williams-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#64C4FF"
+    }
+  },
+  "2023": {
+    "red_bull": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/red-bull-racing.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/red-bull-racing-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#3671C6"
+    },
+    "mercedes": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/mercedes.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/mercedes-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#27F4D2"
+    },
+    "ferrari": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/ferrari.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/ferrari-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#E8002D"
+    },
+    "mclaren": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/mclaren.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/mclaren-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#FF8000"
+    },
+    "aston_martin": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/aston-martin.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/aston-martin-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#229971"
+    },
+    "alpine": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alpine.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alpine-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#0093CC"
+    },
+    "williams": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/williams.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/williams-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#64C4FF"
+    },
+    "alphatauri": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alphatauri.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alphatauri-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#2B4562"
+    },
+    "alfa": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alfa-romeo-racing.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#C92D4B"
+    },
+    "haas": {
+      "car": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/haas-f1-team.png.transform/6col-retina/image.png",
+      "logo": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/haas-f1-team-logo.png.transform/2col-retina/image.png",
+      "colorHex": "#B6BABD"
+    }
+  },
+  "2024": {
+    "mclaren": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/mclaren/2024mclarencarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/mclaren/2024mclarenlogowhite.webp",
+      "colorHex": "#FF8000"
+    },
+    "ferrari": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/ferrari/2024ferraricarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/ferrari/2024ferrarilogowhite.webp",
+      "colorHex": "#E8002D"
+    },
+    "red_bull": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/redbullracing/2024redbullracingcarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/redbullracing/2024redbullracinglogowhite.webp",
+      "colorHex": "#3671C6"
+    },
+    "mercedes": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/mercedes/2024mercedescarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/mercedes/2024mercedeslogowhite.webp",
+      "colorHex": "#27F4D2"
+    },
+    "aston_martin": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/astonmartin/2024astonmartincarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/astonmartin/2024astonmartinlogowhite.webp",
+      "colorHex": "#229971"
+    },
+    "alpine": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/alpine/2024alpinecarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/alpine/2024alpinelogowhite.webp",
+      "colorHex": "#0093CC"
+    },
+    "haas": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/haas/2024haascarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/haas/2024haaslogowhite.webp",
+      "colorHex": "#B6BABD"
+    },
+    "rb": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/rb/2024rbcarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/rb/2024rblogowhite.webp",
+      "colorHex": "#6692FF"
+    },
+    "williams": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/williams/2024williamscarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/williams/2024williamslogowhite.webp",
+      "colorHex": "#64C4FF"
+    },
+    "sauber": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/kicksauber/2024kicksaubercarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/kicksauber/2024kicksauberlogowhite.webp",
+      "colorHex": "#52E252"
+    }
+  },
+  "2025": {
+    "mclaren": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/mclaren/2025mclarencarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/mclaren/2025mclarenlogowhite.webp",
+      "colorHex": "#FF8000"
+    },
+    "mercedes": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/mercedes/2025mercedescarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/mercedes/2025mercedeslogowhite.webp",
+      "colorHex": "#27F4D2"
+    },
+    "red_bull": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/redbullracing/2025redbullracingcarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/redbullracing/2025redbullracinglogowhite.webp",
+      "colorHex": "#3671C6"
+    },
+    "ferrari": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/ferrari/2025ferraricarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/ferrari/2025ferrarilogowhite.webp",
+      "colorHex": "#E8002D"
+    },
+    "williams": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/williams/2025williamscarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/williams/2025williamslogowhite.webp",
+      "colorHex": "#64C4FF"
+    },
+    "rb": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/racingbulls/2025racingbullscarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/racingbulls/2025racingbullslogowhite.webp",
+      "colorHex": "#6692FF"
+    },
+    "aston_martin": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/astonmartin/2025astonmartincarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/astonmartin/2025astonmartinlogowhite.webp",
+      "colorHex": "#229971"
+    },
+    "haas": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/haas/2025haascarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/haas/2025haaslogowhite.webp",
+      "colorHex": "#B6BABD"
+    },
+    "sauber": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/kicksauber/2025kicksaubercarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/kicksauber/2025kicksauberlogowhite.webp",
+      "colorHex": "#52E252"
+    },
+    "alpine": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2025/alpine/2025alpinecarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2025/alpine/2025alpinelogowhite.webp",
+      "colorHex": "#0093CC"
+    }
+  },
+  "2026": {
+    "mercedes": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/mercedes/2026mercedescarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/mercedes/2026mercedeslogowhite.webp",
+      "colorHex": "#27F4D2"
+    },
+    "ferrari": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/ferrari/2026ferraricarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/ferrari/2026ferrarilogowhite.webp",
+      "colorHex": "#E8002D"
+    },
+    "mclaren": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/mclaren/2026mclarencarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/mclaren/2026mclarenlogowhite.webp",
+      "colorHex": "#FF8000"
+    },
+    "red_bull": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/redbullracing/2026redbullracingcarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/redbullracing/2026redbullracinglogowhite.webp",
+      "colorHex": "#3671C6"
+    },
+    "alpine": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/alpine/2026alpinecarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/alpine/2026alpinelogowhite.webp",
+      "colorHex": "#0093CC"
+    },
+    "rb": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/racingbulls/2026racingbullscarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/racingbulls/2026racingbullslogowhite.webp",
+      "colorHex": "#6692FF"
+    },
+    "haas": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/haas/2026haascarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/haas/2026haaslogowhite.webp",
+      "colorHex": "#B6BABD"
+    },
+    "williams": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/williams/2026williamscarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/williams/2026williamslogowhite.webp",
+      "colorHex": "#64C4FF"
+    },
+    "audi": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/audi/2026audicarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/audi/2026audilogowhite.webp",
+      "colorHex": "#D71920"
+    },
+    "aston_martin": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/astonmartin/2026astonmartincarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/astonmartin/2026astonmartinlogowhite.webp",
+      "colorHex": "#229971"
+    },
+    "cadillac": {
+      "car": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2026/cadillac/2026cadillaccarright.webp",
+      "logo": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2026/cadillac/2026cadillaclogowhite.webp",
+      "colorHex": "#B98B2F"
+    }
+  }
+}

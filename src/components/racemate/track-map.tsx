@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { TrackLayout } from "@/types/racemate";
 
 type TrackMapProps = {
+  assetSrc?: string | null;
   circuit: string;
   compact?: boolean;
   fill?: boolean;
@@ -13,8 +14,9 @@ type TrackMapProps = {
   unframed?: boolean;
 };
 
-export function TrackMap({ circuit, compact, fill = false, unframed = false }: TrackMapProps) {
-  const asset = getCircuitAsset(circuit);
+export function TrackMap({ assetSrc, circuit, compact, fill = false, unframed = false }: TrackMapProps) {
+  const legacyAsset = assetSrc === undefined ? getCircuitAsset(circuit) : null;
+  const imageSrc = assetSrc ?? legacyAsset?.src ?? null;
 
   return (
     <div
@@ -27,7 +29,7 @@ export function TrackMap({ circuit, compact, fill = false, unframed = false }: T
       {!fill && !unframed ? (
         <div className="race-track-overlay absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgb(225_6_0_/_0.16),transparent_15rem)]" />
       ) : null}
-      {asset ? (
+      {imageSrc ? (
         <div
           className={cn(
             "race-track-image-stage relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded",
@@ -41,7 +43,7 @@ export function TrackMap({ circuit, compact, fill = false, unframed = false }: T
             fill
             priority
             sizes={compact ? "(max-width: 640px) 360px, (max-width: 1024px) 720px, 56rem" : "(max-width: 640px) 360px, 48rem"}
-            src={asset.src}
+            src={imageSrc}
           />
         </div>
       ) : (

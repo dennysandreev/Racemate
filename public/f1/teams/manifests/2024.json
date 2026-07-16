@@ -1,0 +1,316 @@
+{
+  "season": 2024,
+  "downloadedAt": "2026-07-15T21:48:18.389Z",
+  "sourcePolicy": "Official Formula1.com season team assets only; no cross-season fallback.",
+  "rightsReviewRequired": true,
+  "rightsReview": {
+    "status": "cleared",
+    "reviewedAt": "2026-07-16T11:41:14Z",
+    "note": "Cleared by the product owner for public release."
+  },
+  "visualReviewRecordedAt": "2026-07-15T21:48:18.390Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2024,
+      "constructorId": "mclaren",
+      "name": "McLaren",
+      "car": {
+        "file": "/f1/teams/cars/2024/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/mclaren/2024mclarencarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/mclaren/2024mclarencarright.webp",
+        "sha256": "91155af41eef72d8b0bd78ba3018a24d55f15ae4972184b09550293b7d998387",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/mclaren/2024mclarenlogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/mclaren/2024mclarenlogowhite.webp",
+        "sha256": "b609f829f6f7f8f56eb92cb627abfd1bb707e693d739e194ef35eccbfa10986d",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#FF8000"
+    },
+    {
+      "season": 2024,
+      "constructorId": "ferrari",
+      "name": "Ferrari",
+      "car": {
+        "file": "/f1/teams/cars/2024/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/ferrari/2024ferraricarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/ferrari/2024ferraricarright.webp",
+        "sha256": "93f2d6c9cd780338a9ecdca2be2155f1c18696025a72027c1916d81cc95594fd",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/ferrari/2024ferrarilogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/ferrari/2024ferrarilogowhite.webp",
+        "sha256": "b32ee2d84b4f7c94e9a172fa246ad65ff6f4057fd6c670e5babd4941718025d8",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#E8002D"
+    },
+    {
+      "season": 2024,
+      "constructorId": "red_bull",
+      "name": "Red Bull",
+      "car": {
+        "file": "/f1/teams/cars/2024/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/redbullracing/2024redbullracingcarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/redbullracing/2024redbullracingcarright.webp",
+        "sha256": "65e2155a29d80046b132b5380714dce440f33dacd66cc4645131d29e2a36fa4a",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/redbullracing/2024redbullracinglogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/redbullracing/2024redbullracinglogowhite.webp",
+        "sha256": "6ffca9d381d86bb24f01bfa4c1d969bd0db1fddbf60c2cf742ef11960fce0530",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#3671C6"
+    },
+    {
+      "season": 2024,
+      "constructorId": "mercedes",
+      "name": "Mercedes",
+      "car": {
+        "file": "/f1/teams/cars/2024/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/mercedes/2024mercedescarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/mercedes/2024mercedescarright.webp",
+        "sha256": "78a536f5de6a408c951645f1fe9679f431b776f92e32f344a05edd27273489d0",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/mercedes/2024mercedeslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/mercedes/2024mercedeslogowhite.webp",
+        "sha256": "a817304669f02bbbefd72db46d791d6f207720ad0a7633135ac9eb2618daf11f",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#27F4D2"
+    },
+    {
+      "season": 2024,
+      "constructorId": "aston_martin",
+      "name": "Aston Martin",
+      "car": {
+        "file": "/f1/teams/cars/2024/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/astonmartin/2024astonmartincarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/astonmartin/2024astonmartincarright.webp",
+        "sha256": "6fdcfa41f66420c2387f9c3b2c6163c75742b4139613965614a1bba422c4c9cb",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/astonmartin/2024astonmartinlogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/astonmartin/2024astonmartinlogowhite.webp",
+        "sha256": "d20df7cab9354b4019530207cd0aeb77fa284def54b53dce383d44361febe8ea",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#229971"
+    },
+    {
+      "season": 2024,
+      "constructorId": "alpine",
+      "name": "Alpine F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2024/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/alpine/2024alpinecarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/alpine/2024alpinecarright.webp",
+        "sha256": "4365a36b26a445dcf3a3523a3f9b4cb2103f1ebbc724c7585e159c379e6be25f",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/alpine/2024alpinelogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/alpine/2024alpinelogowhite.webp",
+        "sha256": "21cfa3b31b7969832961e15b87b2c17620ac898e500e363f6bd04fb8ca59c255",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#0093CC"
+    },
+    {
+      "season": 2024,
+      "constructorId": "haas",
+      "name": "Haas F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2024/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/haas/2024haascarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/haas/2024haascarright.webp",
+        "sha256": "3b8143588215be6d6be9d83d0e167c296ba093f1ba5452c9dacc1258eca51482",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/haas/2024haaslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/haas/2024haaslogowhite.webp",
+        "sha256": "afac70c4eca258c8099c9c347e098803306d732eb7d7ade7dff3f1942f1fcbc6",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#B6BABD"
+    },
+    {
+      "season": 2024,
+      "constructorId": "rb",
+      "name": "RB F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2024/rb.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/rb/2024rbcarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/rb/2024rbcarright.webp",
+        "sha256": "fdc3ad36d523a220e238c115798aec64347cec6b5a39feb562bb851d86095b09",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/rb.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/rb/2024rblogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/rb/2024rblogowhite.webp",
+        "sha256": "f9cc432134a0c163b0eb4b2f9f1ceb0e5d6b21d61c9bad02118fcba8ae31a9e3",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#6692FF"
+    },
+    {
+      "season": 2024,
+      "constructorId": "williams",
+      "name": "Williams",
+      "car": {
+        "file": "/f1/teams/cars/2024/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/williams/2024williamscarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/williams/2024williamscarright.webp",
+        "sha256": "b0ca76bebdf049c6c6e5e4717c7613df696331eefec5df7e730b746bfdf686f3",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/williams/2024williamslogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/williams/2024williamslogowhite.webp",
+        "sha256": "a8da3a4e61e7cb08ce1b0283569cd1c7b97b3f314dc36b1eccc1fcfb5ec9cf32",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#64C4FF"
+    },
+    {
+      "season": 2024,
+      "constructorId": "sauber",
+      "name": "Sauber",
+      "car": {
+        "file": "/f1/teams/cars/2024/sauber.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/kicksauber/2024kicksaubercarright.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/common/f1/2024/kicksauber/2024kicksaubercarright.webp",
+        "sha256": "0c0105e3176de33e9d1bae11eea92982e68fb3ac60e627ed2b57d0773686c8fa",
+        "contentType": "image/webp",
+        "width": 3392,
+        "height": 709,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2024/sauber.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2024/team",
+        "archiveUrl": "https://media.formula1.com/image/upload/v1740000001/common/f1/2024/kicksauber/2024kicksauberlogowhite.webp",
+        "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_412/q_auto/v1740000001/common/f1/2024/kicksauber/2024kicksauberlogowhite.webp",
+        "sha256": "31739518f76fba33b5454cd5f7c161e2c496529c969e77e98518ff000e53e163",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#52E252"
+    }
+  ]
+}

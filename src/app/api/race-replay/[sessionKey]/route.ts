@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getRaceReplayBySessionKey } from "@/data/racemate-repository";
 import { consumeIpRateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
+import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 
 type RouteContext = {
   params: Promise<{ sessionKey: string }>;
@@ -24,7 +25,7 @@ export async function GET(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Некорректный повтор гонки." }, { status: 400 });
   }
 
-  const replay = await getRaceReplayBySessionKey(numericSessionKey);
+  const replay = await getRaceReplayBySessionKey(numericSessionKey, CURRENT_F1_SEASON);
 
   if (!replay) {
     return NextResponse.json({ error: "Повтор гонки пока не готов." }, { status: 404 });

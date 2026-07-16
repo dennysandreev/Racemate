@@ -1,0 +1,1183 @@
+{
+  "schemaVersion": 1,
+  "season": 2020,
+  "promptVersion": "driver-avatar-seasonal-v1",
+  "helmetReferencePolicy": "Exact visual reference for the driver's regular primary helmet in this season; one-off designs are not accepted.",
+  "generatedAt": "2026-07-15T22:12:16.237Z",
+  "source": {
+    "provider": "Jolpica F1",
+    "resultsUrl": "https://api.jolpi.ca/ergast/f1/2020/results.json",
+    "standingsUrl": "https://api.jolpi.ca/ergast/f1/2020/driverstandings.json?limit=100",
+    "fetchedAt": "2026-07-15T22:12:16.237Z"
+  },
+  "complete": false,
+  "stats": {
+    "drivers": 23,
+    "raceResultRows": 340,
+    "ready": 0,
+    "pending": 23
+  },
+  "drivers": [
+    {
+      "externalId": "albon",
+      "slug": "alexander-albon",
+      "fullName": "Alexander Albon",
+      "givenName": "Alexander",
+      "familyName": "Albon",
+      "code": "ALB",
+      "permanentNumber": "23",
+      "nationality": "Thai",
+      "season": 2020,
+      "team": {
+        "externalId": "red_bull",
+        "name": "Red Bull",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "red_bull",
+          "name": "Red Bull",
+          "nationality": "Austrian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/alexander-albon.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Alexander_Albon",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Alexander Albon, Formula 1 driver for Red Bull in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Red Bull. The helmet must match the real regular-season 2020 design and Red Bull identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "giovinazzi",
+      "slug": "antonio-giovinazzi",
+      "fullName": "Antonio Giovinazzi",
+      "givenName": "Antonio",
+      "familyName": "Giovinazzi",
+      "code": "GIO",
+      "permanentNumber": "99",
+      "nationality": "Italian",
+      "season": 2020,
+      "team": {
+        "externalId": "alfa",
+        "name": "Alfa Romeo",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "alfa",
+          "name": "Alfa Romeo",
+          "nationality": "Swiss",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/antonio-giovinazzi.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Antonio_Giovinazzi",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Antonio Giovinazzi, Formula 1 driver for Alfa Romeo in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Alfa Romeo. The helmet must match the real regular-season 2020 design and Alfa Romeo identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "sainz",
+      "slug": "carlos-sainz",
+      "fullName": "Carlos Sainz",
+      "givenName": "Carlos",
+      "familyName": "Sainz",
+      "code": "SAI",
+      "permanentNumber": "55",
+      "nationality": "Spanish",
+      "season": 2020,
+      "team": {
+        "externalId": "mclaren",
+        "name": "McLaren",
+        "referenceUrl": "https://en.wikipedia.org/wiki/McLaren"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mclaren",
+          "name": "McLaren",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/McLaren",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/carlos-sainz.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Carlos_Sainz_Jr.",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Carlos Sainz, Formula 1 driver for McLaren in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with McLaren. The helmet must match the real regular-season 2020 design and McLaren identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "leclerc",
+      "slug": "charles-leclerc",
+      "fullName": "Charles Leclerc",
+      "givenName": "Charles",
+      "familyName": "Leclerc",
+      "code": "LEC",
+      "permanentNumber": "16",
+      "nationality": "Monegasque",
+      "season": 2020,
+      "team": {
+        "externalId": "ferrari",
+        "name": "Ferrari",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "ferrari",
+          "name": "Ferrari",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/charles-leclerc.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Charles_Leclerc",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Charles Leclerc, Formula 1 driver for Ferrari in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Ferrari. The helmet must match the real regular-season 2020 design and Ferrari identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "ricciardo",
+      "slug": "daniel-ricciardo",
+      "fullName": "Daniel Ricciardo",
+      "givenName": "Daniel",
+      "familyName": "Ricciardo",
+      "code": "RIC",
+      "permanentNumber": "3",
+      "nationality": "Australian",
+      "season": 2020,
+      "team": {
+        "externalId": "renault",
+        "name": "Renault",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Renault_in_Formula_One"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "renault",
+          "name": "Renault",
+          "nationality": "French",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Renault_in_Formula_One",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/daniel-ricciardo.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Daniel_Ricciardo",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Daniel Ricciardo, Formula 1 driver for Renault in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Renault. The helmet must match the real regular-season 2020 design and Renault identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "kvyat",
+      "slug": "daniil-kvyat",
+      "fullName": "Daniil Kvyat",
+      "givenName": "Daniil",
+      "familyName": "Kvyat",
+      "code": "KVY",
+      "permanentNumber": "26",
+      "nationality": "Russian",
+      "season": 2020,
+      "team": {
+        "externalId": "alphatauri",
+        "name": "AlphaTauri",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_AlphaTauri"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "alphatauri",
+          "name": "AlphaTauri",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_AlphaTauri",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/daniil-kvyat.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Daniil_Kvyat",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Daniil Kvyat, Formula 1 driver for AlphaTauri in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with AlphaTauri. The helmet must match the real regular-season 2020 design and AlphaTauri identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "ocon",
+      "slug": "esteban-ocon",
+      "fullName": "Esteban Ocon",
+      "givenName": "Esteban",
+      "familyName": "Ocon",
+      "code": "OCO",
+      "permanentNumber": "31",
+      "nationality": "French",
+      "season": 2020,
+      "team": {
+        "externalId": "renault",
+        "name": "Renault",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Renault_in_Formula_One"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "renault",
+          "name": "Renault",
+          "nationality": "French",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Renault_in_Formula_One",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/esteban-ocon.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Esteban_Ocon",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Esteban Ocon, Formula 1 driver for Renault in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Renault. The helmet must match the real regular-season 2020 design and Renault identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "russell",
+      "slug": "george-russell",
+      "fullName": "George Russell",
+      "givenName": "George",
+      "familyName": "Russell",
+      "code": "RUS",
+      "permanentNumber": "63",
+      "nationality": "British",
+      "season": 2020,
+      "team": {
+        "externalId": "williams",
+        "name": "Williams",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "williams",
+          "name": "Williams",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing",
+          "appearances": 16,
+          "starts": 16,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        },
+        {
+          "externalId": "mercedes",
+          "name": "Mercedes",
+          "nationality": "German",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
+          "appearances": 1,
+          "starts": 1,
+          "firstAppearanceRound": 16,
+          "lastAppearanceRound": 16,
+          "lastStartRound": 16
+        }
+      ],
+      "file": "/drivers/avatars/2020/george-russell.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/George_Russell_(racing_driver)",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of George Russell, Formula 1 driver for Williams in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Williams. The helmet must match the real regular-season 2020 design and Williams identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "aitken",
+      "slug": "jack-aitken",
+      "fullName": "Jack Aitken",
+      "givenName": "Jack",
+      "familyName": "Aitken",
+      "code": "AIT",
+      "permanentNumber": "89",
+      "nationality": "British",
+      "season": 2020,
+      "team": {
+        "externalId": "williams",
+        "name": "Williams",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing"
+      },
+      "starts": 1,
+      "appearances": 1,
+      "lastStartRound": 16,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "williams",
+          "name": "Williams",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing",
+          "appearances": 1,
+          "starts": 1,
+          "firstAppearanceRound": 16,
+          "lastAppearanceRound": 16,
+          "lastStartRound": 16
+        }
+      ],
+      "file": "/drivers/avatars/2020/jack-aitken.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Jack_Aitken",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Jack Aitken, Formula 1 driver for Williams in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Williams. The helmet must match the real regular-season 2020 design and Williams identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "kevin_magnussen",
+      "slug": "kevin-magnussen",
+      "fullName": "Kevin Magnussen",
+      "givenName": "Kevin",
+      "familyName": "Magnussen",
+      "code": "MAG",
+      "permanentNumber": "20",
+      "nationality": "Danish",
+      "season": 2020,
+      "team": {
+        "externalId": "haas",
+        "name": "Haas F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team"
+      },
+      "starts": 16,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "haas",
+          "name": "Haas F1 Team",
+          "nationality": "American",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team",
+          "appearances": 17,
+          "starts": 16,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/kevin-magnussen.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Kevin_Magnussen",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Kevin Magnussen, Formula 1 driver for Haas F1 Team in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Haas F1 Team. The helmet must match the real regular-season 2020 design and Haas F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "raikkonen",
+      "slug": "kimi-raikkonen",
+      "fullName": "Kimi Räikkönen",
+      "givenName": "Kimi",
+      "familyName": "Räikkönen",
+      "code": "RAI",
+      "permanentNumber": "7",
+      "nationality": "Finnish",
+      "season": 2020,
+      "team": {
+        "externalId": "alfa",
+        "name": "Alfa Romeo",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "alfa",
+          "name": "Alfa Romeo",
+          "nationality": "Swiss",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/kimi-raikkonen.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Kimi_R%C3%A4ikk%C3%B6nen",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Kimi Räikkönen, Formula 1 driver for Alfa Romeo in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Alfa Romeo. The helmet must match the real regular-season 2020 design and Alfa Romeo identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "stroll",
+      "slug": "lance-stroll",
+      "fullName": "Lance Stroll",
+      "givenName": "Lance",
+      "familyName": "Stroll",
+      "code": "STR",
+      "permanentNumber": "18",
+      "nationality": "Canadian",
+      "season": 2020,
+      "team": {
+        "externalId": "racing_point",
+        "name": "Racing Point",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Point_F1_Team"
+      },
+      "starts": 16,
+      "appearances": 16,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "racing_point",
+          "name": "Racing Point",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Point_F1_Team",
+          "appearances": 16,
+          "starts": 16,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/lance-stroll.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Lance_Stroll",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Lance Stroll, Formula 1 driver for Racing Point in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Racing Point. The helmet must match the real regular-season 2020 design and Racing Point identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "norris",
+      "slug": "lando-norris",
+      "fullName": "Lando Norris",
+      "givenName": "Lando",
+      "familyName": "Norris",
+      "code": "NOR",
+      "permanentNumber": "1",
+      "nationality": "British",
+      "season": 2020,
+      "team": {
+        "externalId": "mclaren",
+        "name": "McLaren",
+        "referenceUrl": "https://en.wikipedia.org/wiki/McLaren"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mclaren",
+          "name": "McLaren",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/McLaren",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/lando-norris.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Lando_Norris",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Lando Norris, Formula 1 driver for McLaren in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with McLaren. The helmet must match the real regular-season 2020 design and McLaren identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "hamilton",
+      "slug": "lewis-hamilton",
+      "fullName": "Lewis Hamilton",
+      "givenName": "Lewis",
+      "familyName": "Hamilton",
+      "code": "HAM",
+      "permanentNumber": "44",
+      "nationality": "British",
+      "season": 2020,
+      "team": {
+        "externalId": "mercedes",
+        "name": "Mercedes",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One"
+      },
+      "starts": 16,
+      "appearances": 16,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mercedes",
+          "name": "Mercedes",
+          "nationality": "German",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
+          "appearances": 16,
+          "starts": 16,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/lewis-hamilton.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Lewis_Hamilton",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Lewis Hamilton, Formula 1 driver for Mercedes in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Mercedes. The helmet must match the real regular-season 2020 design and Mercedes identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "max_verstappen",
+      "slug": "max-verstappen",
+      "fullName": "Max Verstappen",
+      "givenName": "Max",
+      "familyName": "Verstappen",
+      "code": "VER",
+      "permanentNumber": "3",
+      "nationality": "Dutch",
+      "season": 2020,
+      "team": {
+        "externalId": "red_bull",
+        "name": "Red Bull",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "red_bull",
+          "name": "Red Bull",
+          "nationality": "Austrian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/max-verstappen.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Max_Verstappen",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Max Verstappen, Formula 1 driver for Red Bull in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Red Bull. The helmet must match the real regular-season 2020 design and Red Bull identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "latifi",
+      "slug": "nicholas-latifi",
+      "fullName": "Nicholas Latifi",
+      "givenName": "Nicholas",
+      "familyName": "Latifi",
+      "code": "LAT",
+      "permanentNumber": "6",
+      "nationality": "Canadian",
+      "season": 2020,
+      "team": {
+        "externalId": "williams",
+        "name": "Williams",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "williams",
+          "name": "Williams",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/nicholas-latifi.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Nicholas_Latifi",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Nicholas Latifi, Formula 1 driver for Williams in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Williams. The helmet must match the real regular-season 2020 design and Williams identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "hulkenberg",
+      "slug": "nico-hulkenberg",
+      "fullName": "Nico Hülkenberg",
+      "givenName": "Nico",
+      "familyName": "Hülkenberg",
+      "code": "HUL",
+      "permanentNumber": "27",
+      "nationality": "German",
+      "season": 2020,
+      "team": {
+        "externalId": "racing_point",
+        "name": "Racing Point",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Point_F1_Team"
+      },
+      "starts": 3,
+      "appearances": 3,
+      "lastStartRound": 11,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "racing_point",
+          "name": "Racing Point",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Point_F1_Team",
+          "appearances": 3,
+          "starts": 3,
+          "firstAppearanceRound": 4,
+          "lastAppearanceRound": 11,
+          "lastStartRound": 11
+        }
+      ],
+      "file": "/drivers/avatars/2020/nico-hulkenberg.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Nico_H%C3%BClkenberg",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Nico Hülkenberg, Formula 1 driver for Racing Point in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Racing Point. The helmet must match the real regular-season 2020 design and Racing Point identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "gasly",
+      "slug": "pierre-gasly",
+      "fullName": "Pierre Gasly",
+      "givenName": "Pierre",
+      "familyName": "Gasly",
+      "code": "GAS",
+      "permanentNumber": "10",
+      "nationality": "French",
+      "season": 2020,
+      "team": {
+        "externalId": "alphatauri",
+        "name": "AlphaTauri",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_AlphaTauri"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "alphatauri",
+          "name": "AlphaTauri",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_AlphaTauri",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/pierre-gasly.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Pierre_Gasly",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Pierre Gasly, Formula 1 driver for AlphaTauri in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with AlphaTauri. The helmet must match the real regular-season 2020 design and AlphaTauri identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "pietro_fittipaldi",
+      "slug": "pietro-fittipaldi",
+      "fullName": "Pietro Fittipaldi",
+      "givenName": "Pietro",
+      "familyName": "Fittipaldi",
+      "code": "FIT",
+      "permanentNumber": "51",
+      "nationality": "Brazilian",
+      "season": 2020,
+      "team": {
+        "externalId": "haas",
+        "name": "Haas F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team"
+      },
+      "starts": 2,
+      "appearances": 2,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "haas",
+          "name": "Haas F1 Team",
+          "nationality": "American",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team",
+          "appearances": 2,
+          "starts": 2,
+          "firstAppearanceRound": 16,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/pietro-fittipaldi.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Pietro_Fittipaldi",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Pietro Fittipaldi, Formula 1 driver for Haas F1 Team in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Haas F1 Team. The helmet must match the real regular-season 2020 design and Haas F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "grosjean",
+      "slug": "romain-grosjean",
+      "fullName": "Romain Grosjean",
+      "givenName": "Romain",
+      "familyName": "Grosjean",
+      "code": "GRO",
+      "permanentNumber": "8",
+      "nationality": "French",
+      "season": 2020,
+      "team": {
+        "externalId": "haas",
+        "name": "Haas F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team"
+      },
+      "starts": 15,
+      "appearances": 15,
+      "lastStartRound": 15,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "haas",
+          "name": "Haas F1 Team",
+          "nationality": "American",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team",
+          "appearances": 15,
+          "starts": 15,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 15,
+          "lastStartRound": 15
+        }
+      ],
+      "file": "/drivers/avatars/2020/romain-grosjean.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Romain_Grosjean",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Romain Grosjean, Formula 1 driver for Haas F1 Team in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Haas F1 Team. The helmet must match the real regular-season 2020 design and Haas F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "vettel",
+      "slug": "sebastian-vettel",
+      "fullName": "Sebastian Vettel",
+      "givenName": "Sebastian",
+      "familyName": "Vettel",
+      "code": "VET",
+      "permanentNumber": "5",
+      "nationality": "German",
+      "season": 2020,
+      "team": {
+        "externalId": "ferrari",
+        "name": "Ferrari",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "ferrari",
+          "name": "Ferrari",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/sebastian-vettel.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Sebastian_Vettel",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Sebastian Vettel, Formula 1 driver for Ferrari in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Ferrari. The helmet must match the real regular-season 2020 design and Ferrari identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "perez",
+      "slug": "sergio-perez",
+      "fullName": "Sergio Pérez",
+      "givenName": "Sergio",
+      "familyName": "Pérez",
+      "code": "PER",
+      "permanentNumber": "11",
+      "nationality": "Mexican",
+      "season": 2020,
+      "team": {
+        "externalId": "racing_point",
+        "name": "Racing Point",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Point_F1_Team"
+      },
+      "starts": 15,
+      "appearances": 15,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "racing_point",
+          "name": "Racing Point",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Point_F1_Team",
+          "appearances": 15,
+          "starts": 15,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/sergio-perez.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Sergio Pérez, Formula 1 driver for Racing Point in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Racing Point. The helmet must match the real regular-season 2020 design and Racing Point identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "bottas",
+      "slug": "valtteri-bottas",
+      "fullName": "Valtteri Bottas",
+      "givenName": "Valtteri",
+      "familyName": "Bottas",
+      "code": "BOT",
+      "permanentNumber": "77",
+      "nationality": "Finnish",
+      "season": 2020,
+      "team": {
+        "externalId": "mercedes",
+        "name": "Mercedes",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One"
+      },
+      "starts": 17,
+      "appearances": 17,
+      "lastStartRound": 17,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mercedes",
+          "name": "Mercedes",
+          "nationality": "German",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
+          "appearances": 17,
+          "starts": 17,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 17,
+          "lastStartRound": 17
+        }
+      ],
+      "file": "/drivers/avatars/2020/valtteri-bottas.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Valtteri_Bottas",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Valtteri Bottas, Formula 1 driver for Mercedes in the 2020 Formula 1 season, wearing the driver's regular primary 2020 Formula 1 racing helmet used with Mercedes. The helmet must match the real regular-season 2020 design and Mercedes identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    }
+  ]
+}

@@ -1,32 +1,52 @@
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { CalendarDays, Trophy, Zap } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageTitle } from "@/components/racemate/page-title";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { SeasonProgress } from "@/components/racemate/season-progress";
+import { SeasonSwitcher } from "@/components/racemate/season-switcher";
 import { StitchStatusBadge } from "@/components/racemate/stitch-primitives";
 import { Badge } from "@/components/ui/badge";
 import { getCircuitAsset } from "@/data/f1-assets";
-import { getCalendarEvents } from "@/data/racemate-repository";
+import { getCalendarEvents, getPublishedSeasons } from "@/data/racemate-repository";
+import {
+  CURRENT_F1_SEASON,
+  resolvePublishedSeason,
+  type SeasonSearchParams,
+} from "@/lib/season-navigation";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
 
-export default async function CalendarPage() {
-  const calendarEvents = await getCalendarEvents();
+export default async function CalendarPage({
+  searchParams,
+}: {
+  searchParams: Promise<SeasonSearchParams>;
+}) {
+  const query = await searchParams;
+  const publishedSeasons = await getPublishedSeasons();
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+
+  if (!season) {
+    notFound();
+  }
+
+  const calendarEvents = await getCalendarEvents(season);
   const completedCount = calendarEvents.filter((event) => event.status === "Завершен").length;
   const nextRace = calendarEvents.find((event) => event.status !== "Завершен") ?? null;
-  const season = calendarEvents[0]?.season ?? 2026;
 
   return (
-    <AppShell>
+    <AppShell season={season}>
       <section className="relative overflow-hidden rounded-xl border border-border bg-card">
         <CalendarHero
           completedCount={completedCount}
           nextRace={nextRace}
+          publishedSeasons={publishedSeasons}
+          query={query}
           season={season}
           totalCount={calendarEvents.length}
         />
@@ -46,11 +66,15 @@ export default async function CalendarPage() {
 function CalendarHero({
   completedCount,
   nextRace,
+  publishedSeasons,
+  query,
   season,
   totalCount,
 }: {
   completedCount: number;
   nextRace: CalendarEvent | null;
+  publishedSeasons: number[];
+  query: SeasonSearchParams;
   season: number;
   totalCount: number;
 }) {
@@ -77,6 +101,14 @@ function CalendarHero({
           </PageTitle>
         </div>
 
+        <SeasonSwitcher
+          activeSeason={season}
+          className="self-start lg:absolute lg:right-0 lg:top-0"
+          pathname="/calendar"
+          query={query}
+          seasons={publishedSeasons}
+        />
+
         <SeasonProgress
           className="lg:absolute lg:bottom-0 lg:right-0 lg:w-[22rem]"
           completedCount={completedCount}
@@ -89,9 +121,11 @@ function CalendarHero({
 }
 
 function CalendarRaceCard({ event }: { event: CalendarEvent }) {
-  const href = event.status === "Текущий этап" ? "/weekend" : event.href;
-  const asset = getCircuitAsset(event.circuit || event.country);
-  const isCurrent = event.status === "Текущий этап";
+  const isCurrentSeason = event.season === CURRENT_F1_SEASON;
+  const href = event.status === "Текущий этап" && isCurrentSeason ? "/weekend" : event.href;
+  const legacyAsset = isCurrentSeason ? getCircuitAsset(event.circuit || event.country) : null;
+  const assetSrc = event.trackMapUrl ?? legacyAsset?.src ?? null;
+  const isCurrent = event.status === "Текущий этап" && isCurrentSeason;
   const isCompleted = event.status === "Завершен";
 
   return (
@@ -104,20 +138,20 @@ function CalendarRaceCard({ event }: { event: CalendarEvent }) {
       prefetch={false}
     >
       <div className="relative h-32 bg-surface-muted">
-        {asset ? (
+        {assetSrc ? (
           <Image
             alt={`Схема трассы ${event.circuit}`}
             className={cn(
               "object-contain p-4 transition-all duration-500 group-hover:scale-105",
-              !isCurrent && "grayscale group-hover:grayscale-0",
+              !isCurrent && isCurrentSeason && "grayscale group-hover:grayscale-0",
             )}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 20rem"
-            src={asset.src}
+            src={assetSrc}
           />
         ) : (
           <div className="grid h-full place-items-center font-telemetry text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
-            Coming soon
+            Схема появится после проверки
           </div>
         )}
         <div className="absolute left-3 top-3 flex items-center gap-2 rounded-sm border border-border bg-background/80 px-2 py-1 backdrop-blur">

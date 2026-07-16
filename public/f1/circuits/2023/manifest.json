@@ -1,0 +1,475 @@
+{
+  "season": 2023,
+  "downloadedAt": "2026-07-15T21:46:29.415Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2023,
+      "round": 1,
+      "raceName": "Bahrain Grand Prix",
+      "circuitId": "bahrain",
+      "layoutSlug": "bahrain",
+      "file": "/f1/circuits/2023/01-bahrain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Bahrain%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Bahrain%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Event Notes - Circuit Map",
+      "sourceDocumentSha256": "5af301e33ea94186aa3e91d39496ad66d1a3af84e2897b8eef6cf7e531efe1e8",
+      "renderedPage": 2,
+      "sha256": "09f8ffd8531cdca6b34d9566af5de1ba84f915917779da7b4f3b3a0e71796b2b",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 2,
+      "raceName": "Saudi Arabian Grand Prix",
+      "circuitId": "jeddah",
+      "layoutSlug": "saudi-arabia",
+      "file": "/f1/circuits/2023/02-saudi-arabia.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Saudi%20Arabian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Saudi%20Arabian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20v2%20and%20Red%20Zone%20v2.pdf",
+      "sourceTitle": "Event Notes - Circuit Map v2 and Red Zone v2",
+      "sourceDocumentSha256": "d663b66c65ad4add5672e8674b0261675583789447a1e1312242acc7d0c74cca",
+      "renderedPage": 2,
+      "sha256": "0100853cf3ef17199cf41216e0066c4a172394ce2e185c318ed48328a3c29da8",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 3,
+      "raceName": "Australian Grand Prix",
+      "circuitId": "albert_park",
+      "layoutSlug": "australia",
+      "file": "/f1/circuits/2023/03-australia.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Australian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Australian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map and Red Zone",
+      "sourceDocumentSha256": "3d91a0cfbcb568854ea98a82356a58f26239ce1d9a06c46f32747110ef57b978",
+      "renderedPage": 2,
+      "sha256": "68c21abc367c6ea883fb028b95035427a56cebb57689b5a6eb57cdd5202ef4fe",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 4,
+      "raceName": "Azerbaijan Grand Prix",
+      "circuitId": "baku",
+      "layoutSlug": "azerbaijan",
+      "file": "/f1/circuits/2023/04-azerbaijan.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Azerbaijan%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Azerbaijan%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map and Red Zone",
+      "sourceDocumentSha256": "a625c59c1e7b815e3a30810e4658ce103fefc76c8b472708a7440c7feacbce3b",
+      "renderedPage": 2,
+      "sha256": "317ce0355b4c8a58a65666fc350cdaa95faf7985ea156d142e6458992c10c8b5",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 5,
+      "raceName": "Miami Grand Prix",
+      "circuitId": "miami",
+      "layoutSlug": "miami",
+      "file": "/f1/circuits/2023/05-miami.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Miami%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Miami%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map and Red Zone",
+      "sourceDocumentSha256": "9f35714bad31c4dd11ea7827ac46fba6511812039a872fca7a34ffbc44b5e7d7",
+      "renderedPage": 2,
+      "sha256": "998eb93e32013c3a7e6aee9ff71867de92d659fb61b18dabd9bc185d82c3156f",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 6,
+      "raceName": "Monaco Grand Prix",
+      "circuitId": "monaco",
+      "layoutSlug": "monaco",
+      "file": "/f1/circuits/2023/06-monaco.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Monaco%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Monaco%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane,%20Red%20Zone%20and%20Pirelli%20Preview.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane, Red Zone and Pirelli Preview",
+      "sourceDocumentSha256": "0aec25ba45b41c852472371d69bfa4e23ec808ca2418aedbe0648d2f58c03ba9",
+      "renderedPage": 2,
+      "sha256": "2f8ef4ba3b13ef79ea6da73a4d1cd6a49125b275917828d837c517b17ba4308e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 7,
+      "raceName": "Spanish Grand Prix",
+      "circuitId": "catalunya",
+      "layoutSlug": "spain",
+      "file": "/f1/circuits/2023/07-spain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Spanish%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Spanish%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "2f1c42afd99f95c03f1c5bcd50599a3f346f87297e8b14ed3333676d4a5bad7c",
+      "renderedPage": 2,
+      "sha256": "d92da8ba8a1f61d96d462383cd78cbb8bdbdcec5f433167b7b84bae505de1987",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 8,
+      "raceName": "Canadian Grand Prix",
+      "circuitId": "villeneuve",
+      "layoutSlug": "canada",
+      "file": "/f1/circuits/2023/08-canada.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Canadian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Canadian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "c98d5402e04ff20e5de97dc59a58a2e6f559ec913987768afd512558da2c6136",
+      "renderedPage": 2,
+      "sha256": "5c2455c0e02e35fcd2d540ccce3d8c98aa4623bb2f8c678b053d57243e944f81",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 9,
+      "raceName": "Austrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "austria",
+      "file": "/f1/circuits/2023/09-austria.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Austrian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Austrian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map and Red Zone",
+      "sourceDocumentSha256": "5640d42dd940d618d64778c84a9d6a3b549245e78efd5df829572dbcf14d630e",
+      "renderedPage": 2,
+      "sha256": "25284731e83f73a17dc42ac658a9189861799b47066dd35c5aca726b1c982b67",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 10,
+      "raceName": "British Grand Prix",
+      "circuitId": "silverstone",
+      "layoutSlug": "great-britain",
+      "file": "/f1/circuits/2023/10-great-britain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/British%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20British%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "6ac4050e1d74c733b498dd68482a198d5059994b38644420173d5691c940bbeb",
+      "renderedPage": 2,
+      "sha256": "838c377ae070acb784601e9a958a51ac9e438d56eba8024b520788fcf48c78c3",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 11,
+      "raceName": "Hungarian Grand Prix",
+      "circuitId": "hungaroring",
+      "layoutSlug": "hungary",
+      "file": "/f1/circuits/2023/11-hungary.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Hungarian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Hungarian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "bd5b513c1dda50a08a0c7030f1be7bde691b5c4784442931a5d6e3b2c7802bdd",
+      "renderedPage": 2,
+      "sha256": "1ee528a3fa14fb65b46157c21a7748d15bc5207d176bb73a6b1b0458a4e4c1a6",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 12,
+      "raceName": "Belgian Grand Prix",
+      "circuitId": "spa",
+      "layoutSlug": "belgium",
+      "file": "/f1/circuits/2023/12-belgium.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Belgian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Belgian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "4d7be5059e5f779157feea0f06ffebba935fbc857a0bb92f6bd798bce6435b9f",
+      "renderedPage": 2,
+      "sha256": "d66eb9b2724d5852edc17676f00baf246d5bbf672d1be3121334ef16f1096c1e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 13,
+      "raceName": "Dutch Grand Prix",
+      "circuitId": "zandvoort",
+      "layoutSlug": "netherlands",
+      "file": "/f1/circuits/2023/13-netherlands.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Dutch%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Dutch%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map and Red Zone",
+      "sourceDocumentSha256": "1249bde19ffd2323e1ab2eef054d87851e4bad15eb9f24400ce68755e61b9661",
+      "renderedPage": 2,
+      "sha256": "3fa82c7f5d104753eeb77869e796be923083319c657765f8ce8c3c5f3618faee",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 14,
+      "raceName": "Italian Grand Prix",
+      "circuitId": "monza",
+      "layoutSlug": "italy",
+      "file": "/f1/circuits/2023/14-italy.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Italian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Italian%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "64a4cca3871dcac6c74014bd5fd30f5d07637483b912b3b396addb92e2bc0db7",
+      "renderedPage": 2,
+      "sha256": "67bdf20bfa04f147c8134862cef0a1342789222d2904107634db45b44ff102e1",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 15,
+      "raceName": "Singapore Grand Prix",
+      "circuitId": "marina_bay",
+      "layoutSlug": "singapore",
+      "file": "/f1/circuits/2023/15-singapore.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Singapore%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Singapore%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "bff74a4d47c3351ed442d3aac736ad7f6c719e6d0c5cf0f5782470129b21017e",
+      "renderedPage": 2,
+      "sha256": "51fcc1f9592dfc213491a38c06357b7f492b611a4f2b29223c16c4b85a44cf13",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 16,
+      "raceName": "Japanese Grand Prix",
+      "circuitId": "suzuka",
+      "layoutSlug": "japan",
+      "file": "/f1/circuits/2023/16-japan.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Japanese%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Japanese%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zone",
+      "sourceDocumentSha256": "56090ad25f957ca6d4b82a9e14a6ab66bc4deb69c2ed35f24692a670b7f86057",
+      "renderedPage": 2,
+      "sha256": "0bd0198da6eb776d1f02e0dd9330d71acf43fa7316127625119be03714c7542c",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 17,
+      "raceName": "Qatar Grand Prix",
+      "circuitId": "losail",
+      "layoutSlug": "qatar",
+      "file": "/f1/circuits/2023/17-qatar.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Qatar%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Qatar%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "df427d6f1dbf4c9a529147ebb4ff545c38569585745a5f9a57fa3f0e195f377a",
+      "renderedPage": 2,
+      "sha256": "0564a162170d09901b2ee88b63332afa187280d407509c1f2120757330c8712c",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 18,
+      "raceName": "United States Grand Prix",
+      "circuitId": "americas",
+      "layoutSlug": "united-states",
+      "file": "/f1/circuits/2023/18-united-states.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/United%20States%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20United%20States%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zone",
+      "sourceDocumentSha256": "3dcf880de2805bfb5121f1bee80b134fbbf382c008b3db0f67b5165b53359479",
+      "renderedPage": 2,
+      "sha256": "ba223c7b801303a7700a1da90e43f9c9a8ae7ddb675c1e9315211939275b6cc3",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 19,
+      "raceName": "Mexico City Grand Prix",
+      "circuitId": "rodriguez",
+      "layoutSlug": "mexico",
+      "file": "/f1/circuits/2023/19-mexico.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Mexico%20City%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Mexico%20City%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Red Zone",
+      "sourceDocumentSha256": "7690ac00f37de3e6d14c4359bd61ff5f4172d89387e6e7c56faba18d0f5b0ca0",
+      "renderedPage": 2,
+      "sha256": "ea61b4967fea0a3bb7137750fecede73cb85f33b09c4ba1a48cb00cba3e3f59c",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 20,
+      "raceName": "São Paulo Grand Prix",
+      "circuitId": "interlagos",
+      "layoutSlug": "brazil",
+      "file": "/f1/circuits/2023/20-brazil.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/S%C3%83O%20PAULO%20GRAND%20PRIX",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20S%C3%A3o%20Paulo%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zone",
+      "sourceDocumentSha256": "c35ab00da2ffa9cddf3ed50106370b903bf25367e80283021a7d0bbbc659ea02",
+      "renderedPage": 2,
+      "sha256": "639c7430442cf8904430ce826bc9af428cde60e373f5238ecc7ad5f6b1a3bf47",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 21,
+      "raceName": "Las Vegas Grand Prix",
+      "circuitId": "vegas",
+      "layoutSlug": "las-vegas",
+      "file": "/f1/circuits/2023/21-las-vegas.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Las%20Vegas%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Las%20Vegas%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map and Red Zone",
+      "sourceDocumentSha256": "ac5655d45068c59c4f5388fe71073ff42a3a22566422ea902f6d775468bc5efe",
+      "renderedPage": 2,
+      "sha256": "881e5d955a544a0aea1ef2cb25755ca708df7c7747227f6d4030fc39f64d874b",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2023,
+      "round": 22,
+      "raceName": "Abu Dhabi Grand Prix",
+      "circuitId": "yas_marina",
+      "layoutSlug": "united-arab-emirates",
+      "file": "/f1/circuits/2023/22-united-arab-emirates.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2023-2042/event/Abu%20Dhabi%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2023%20Abu%20Dhabi%20Grand%20Prix%20-%20Event%20Notes%20-%20Circuit%20Map,%20Pit%20Lane%20Drawing%20and%20Red%20Zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing and Red Zone",
+      "sourceDocumentSha256": "f1c2bc0923412ae02d931287b57c04d667cdc7e87898994ef9271a36ec3845c2",
+      "renderedPage": 2,
+      "sha256": "8ed227faf5663ef1dd7418f2a9b393fe95db1649e0cebeb57ce4daa703a52397",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.996011Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    }
+  ],
+  "manualReview": {
+    "status": "approved",
+    "reviewedAt": "2026-07-15T21:59:23.996011Z",
+    "reviewer": "RaceMate visual QA"
+  }
+}

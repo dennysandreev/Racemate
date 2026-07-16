@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 
 import { createClient } from "@supabase/supabase-js";
 import { TelegramClient } from "telegram";
@@ -66,6 +68,11 @@ const commands = new Map([
   ["jolpica.repair_race_results", repairRaceResults],
   ["jolpica.repair_qualifying_results", repairQualifyingResults],
   ["jolpica.sync_standings", syncStandings],
+  ["jolpica.backfill_season", backfillHistoricalSeason],
+  ["jolpica.sync_season_assets", syncSeasonAssets],
+  ["jolpica.validate_season", validateSeasonCommand],
+  ["jolpica.prepare_history", prepareHistoricalSeasons],
+  ["jolpica.publish_history", publishHistoricalSeasons],
   ["openf1.sync_sessions", syncOpenF1Sessions],
   ["openf1.sync_laps", syncOpenF1Laps],
   ["weather.sync_weekend", syncWeekendWeather],
@@ -77,13 +84,14 @@ const commands = new Map([
 ]);
 
 const command = process.argv[2];
+const isMainModule = Boolean(process.argv[1]) && pathToFileURL(process.argv[1]).href === import.meta.url;
 
-if (!commands.has(command)) {
+if (isMainModule && !commands.has(command)) {
   console.log(`Usage: node worker/index.mjs ${Array.from(commands.keys()).join("|")}`);
   process.exit(command ? 1 : 0);
 }
 
-const supabase = createWorkerClient();
+let supabase = null;
 const openF1SessionsByYear = new Map();
 let openF1FetchQueue = Promise.resolve();
 let openF1LastFetchAt = 0;
@@ -92,10 +100,72 @@ let socialEntityContextCache = null;
 let telegramClient = null;
 let telegramClientPromise = null;
 const pollKinds = ["sport", "strategy", "fan"];
-try {
-  await runJob(command, commands.get(command));
-} finally {
-  await disconnectTelegramClient();
+const historicalSeasonRange = Object.freeze({ from: 2020, to: 2025 });
+const teamCodesByExternalId = Object.freeze({
+  alfa: "ALF",
+  alpine: "ALP",
+  alphatauri: "ATR",
+  aston_martin: "AMR",
+  audi: "AUD",
+  cadillac: "CAD",
+  ferrari: "FER",
+  haas: "HAS",
+  mclaren: "MCL",
+  mercedes: "MER",
+  racing_bulls: "RBU",
+  racing_point: "RPT",
+  rb: "VCB",
+  red_bull: "RBR",
+  renault: "RNL",
+  sauber: "SAU",
+  williams: "WIL",
+});
+const teamLineagesByExternalId = Object.freeze({
+  alfa: "audi",
+  alpine: "alpine",
+  alphatauri: "racing-bulls",
+  aston_martin: "aston-martin",
+  audi: "audi",
+  cadillac: "cadillac",
+  ferrari: "ferrari",
+  haas: "haas",
+  mclaren: "mclaren",
+  mercedes: "mercedes",
+  racing_bulls: "racing-bulls",
+  racing_point: "aston-martin",
+  rb: "racing-bulls",
+  red_bull: "red-bull",
+  renault: "alpine",
+  sauber: "audi",
+  williams: "williams",
+});
+const teamSeasonColorsByExternalId = Object.freeze({
+  alfa: "#C92D4B",
+  alpine: "#0093CC",
+  alphatauri: "#2B4562",
+  aston_martin: "#229971",
+  audi: "#D71920",
+  cadillac: "#B98B2F",
+  ferrari: "#E8002D",
+  haas: "#B6BABD",
+  mclaren: "#FF8000",
+  mercedes: "#27F4D2",
+  racing_bulls: "#6692FF",
+  racing_point: "#F596C8",
+  rb: "#6692FF",
+  red_bull: "#3671C6",
+  renault: "#FFF500",
+  sauber: "#52E252",
+  williams: "#64C4FF",
+});
+if (isMainModule) {
+  supabase = createWorkerClient();
+
+  try {
+    await runJob(command, commands.get(command));
+  } finally {
+    await disconnectTelegramClient();
+  }
 }
 
 function loadEnvFiles(paths) {
@@ -2481,6 +2551,93 @@ function getCliOption(name) {
   return inline ? inline.slice(prefixed.length + 1) : null;
 }
 
+function getCurrentF1Season() {
+  const configured = Number(process.env.F1_CURRENT_SEASON ?? 2026);
+
+  if (!Number.isInteger(configured) || configured < 2020) {
+    throw new Error("F1_CURRENT_SEASON must be an integer greater than or equal to 2020");
+  }
+
+  return configured;
+}
+
+function resolveSyncSeason(explicitSeason) {
+  const value = explicitSeason ?? getCliOption("season") ?? process.env.F1_SEASON ?? getCurrentF1Season();
+  const season = Number(value);
+
+  if (!Number.isInteger(season) || season < 2020 || season > getCurrentF1Season()) {
+    throw new Error(`F1 season must be between 2020 and ${getCurrentF1Season()}`);
+  }
+
+  return season;
+}
+
+function isHistoricalSeason(season) {
+  return Number(season) < getCurrentF1Season();
+}
+
+export function requireHistoricalSeason(value) {
+  const season = Number(value);
+
+  if (
+    !Number.isInteger(season) ||
+    season < historicalSeasonRange.from ||
+    season > historicalSeasonRange.to
+  ) {
+    throw new Error(
+      `Pass an explicit --season between ${historicalSeasonRange.from} and ${historicalSeasonRange.to}`,
+    );
+  }
+
+  return season;
+}
+
+function requireManagedSeason(value) {
+  const season = Number(value);
+
+  if (!Number.isInteger(season) || season < historicalSeasonRange.from || season > getCurrentF1Season()) {
+    throw new Error(
+      `Pass an explicit --season between ${historicalSeasonRange.from} and ${getCurrentF1Season()}`,
+    );
+  }
+
+  return season;
+}
+
+export function resolveTeamLineageSlug(externalId) {
+  const normalized = String(externalId ?? "").toLowerCase();
+  const lineage = teamLineagesByExternalId[normalized];
+
+  if (!lineage) {
+    throw new Error(`No team lineage configured for constructor ${externalId}`);
+  }
+
+  return lineage;
+}
+
+export function getSeasonTeamColor(season, externalId, manifestColor = null, fallbackColor = null) {
+  if (/^#[0-9a-f]{6}$/i.test(String(manifestColor ?? ""))) {
+    return String(manifestColor).toUpperCase();
+  }
+
+  const normalized = String(externalId ?? "").toLowerCase();
+  const historicalColor = teamSeasonColorsByExternalId[normalized];
+
+  if (historicalColor) {
+    return historicalColor;
+  }
+
+  if (Number(season) <= historicalSeasonRange.to) {
+    throw new Error(`No historical season color configured for ${season}/${externalId}`);
+  }
+
+  if (/^#[0-9a-f]{6}$/i.test(String(fallbackColor ?? ""))) {
+    return String(fallbackColor).toUpperCase();
+  }
+
+  throw new Error(`No season color configured for ${season}/${externalId}`);
+}
+
 function getRelationObject(value) {
   if (Array.isArray(value)) {
     return value[0] ?? null;
@@ -4173,6 +4330,10 @@ async function fetchJolpicaPaginatedRaces(url, resultKey) {
     }
   }
 
+  if (total !== null && offset < total) {
+    throw new Error(`Jolpica pagination stopped at ${offset} of ${total}: ${url}`);
+  }
+
   return [...racesByKey.values()].sort((left, right) => {
     const seasonDelta = Number(left.season ?? 0) - Number(right.season ?? 0);
 
@@ -4187,6 +4348,15 @@ async function fetchJolpicaPaginatedRaces(url, resultKey) {
 function mergeJolpicaRacePage(racesByKey, race, resultKey) {
   const key = `${race.season}-${race.round}`;
   const current = racesByKey.get(key);
+
+  if (!resultKey) {
+    if (!current) {
+      racesByKey.set(key, race);
+    }
+
+    return;
+  }
+
   const results = Array.isArray(race[resultKey]) ? race[resultKey] : [];
 
   if (!current) {
@@ -5323,20 +5493,23 @@ function averageNumber(values) {
   return roundNumber(numbers.reduce((sum, value) => sum + value, 0) / numbers.length, 2);
 }
 
-async function syncCalendar() {
+async function syncCalendar(options = {}) {
   const baseUrl = process.env.JOLPICA_BASE_URL ?? "https://api.jolpi.ca/ergast/f1";
-  const season = new Date().getUTCFullYear();
-  const response = await fetch(`${baseUrl}/${season}.json`);
-  const payload = await response.json();
-  const races = payload.MRData?.RaceTable?.Races ?? [];
+  const season = resolveSyncSeason(options.season);
+  const historical = options.historical ?? isHistoricalSeason(season);
+  const races = await fetchJolpicaPaginatedRaces(`${baseUrl}/${season}.json`, null);
 
-  await supabase.from("seasons").upsert({ year: season });
+  const { error: seasonError } = await supabase.from("seasons").upsert({ year: season });
+
+  if (seasonError) {
+    throw seasonError;
+  }
 
   let itemsProcessed = 0;
 
   for (const race of races) {
     const circuit = race.Circuit;
-    const { data: circuitRow } = await supabase
+    const { data: circuitRow, error: circuitError } = await supabase
       .from("circuits")
       .upsert(
         {
@@ -5352,8 +5525,12 @@ async function syncCalendar() {
       .select("id")
       .single();
 
+    if (circuitError) {
+      throw circuitError;
+    }
+
     const raceStartAt = race.date ? `${race.date}T${race.time ?? "00:00:00Z"}` : null;
-    const { data: raceRow } = await supabase.from("races").upsert(
+    const { data: raceRow, error: raceError } = await supabase.from("races").upsert(
       {
         season_year: season,
         round: Number(race.round),
@@ -5366,27 +5543,42 @@ async function syncCalendar() {
     )
       .select("id")
       .single();
-    await upsertScheduleSessions(raceRow?.id, race);
+
+    if (raceError) {
+      throw raceError;
+    }
+
+    if (raceRow?.id) {
+      const { error: assetError } = await supabase.from("race_track_assets").upsert(
+        {
+          race_id: raceRow.id,
+          circuit_id: circuitRow?.id ?? null,
+          layout_slug: slugify(race.raceName ?? circuit.circuitId),
+        },
+        { onConflict: "race_id" },
+      );
+
+      if (assetError) {
+        throw assetError;
+      }
+    }
+
+    await upsertScheduleSessions(raceRow?.id, race, { suppressNotifications: historical });
     itemsProcessed += 1;
   }
 
-  return { itemsProcessed, metadata: { season } };
+  return { itemsProcessed, metadata: { season, historical } };
 }
 
-async function syncResults() {
+async function syncResults(options = {}) {
   const baseUrl = process.env.JOLPICA_BASE_URL ?? "https://api.jolpi.ca/ergast/f1";
-  const season = Number(process.env.F1_SEASON ?? new Date().getUTCFullYear());
-  const [raceResponse, qualifyingResponse, sprintResponse] = await Promise.all([
-    fetch(`${baseUrl}/${season}/results.json?limit=1000`),
-    fetch(`${baseUrl}/${season}/qualifying.json?limit=1000`),
-    fetch(`${baseUrl}/${season}/sprint.json?limit=1000`),
+  const season = resolveSyncSeason(options.season);
+  const historical = options.historical ?? isHistoricalSeason(season);
+  let [raceRows, qualifyingRows, sprintRows] = await Promise.all([
+    fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/results.json`, "Results"),
+    fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/qualifying.json`, "QualifyingResults"),
+    fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/sprint.json`, "SprintResults"),
   ]);
-  const racePayload = await raceResponse.json();
-  const qualifyingPayload = await qualifyingResponse.json();
-  const sprintPayload = await sprintResponse.json();
-  let raceRows = racePayload.MRData?.RaceTable?.Races ?? [];
-  let qualifyingRows = qualifyingPayload.MRData?.RaceTable?.Races ?? [];
-  let sprintRows = sprintPayload.MRData?.RaceTable?.Races ?? [];
 
   raceRows = await addPerRoundJolpicaRowsForCompletedRaces({
     baseUrl,
@@ -5429,18 +5621,18 @@ async function syncResults() {
       .eq("id", raceId);
 
     for (const result of race.Results ?? []) {
-      const team = await upsertTeamFromJolpica(result.Constructor);
-      const driver = await upsertDriverFromJolpica(result.Driver, team?.id);
+      const team = await upsertTeamFromJolpica(result.Constructor, { historical });
+      const driver = await upsertDriverFromJolpica(result.Driver, team?.id, { historical });
 
       if (!driver?.id) {
         continue;
       }
 
-      await supabase.from("session_results").upsert(
+      const { error: resultError } = await supabase.from("session_results").upsert(
         {
           session_id: sessionId,
           driver_id: driver.id,
-          team_id: team?.id ?? driver.current_team_id,
+          team_id: getSeasonResultTeamId(team, driver, historical),
           position: numberOrNull(result.position),
           classified_position: result.positionText ?? null,
           grid: numberOrNull(result.grid),
@@ -5452,6 +5644,11 @@ async function syncResults() {
         },
         { onConflict: "session_id,driver_id" },
       );
+
+      if (resultError) {
+        throw resultError;
+      }
+
       itemsProcessed += 1;
     }
   }
@@ -5475,18 +5672,18 @@ async function syncResults() {
       .in("status", ["Лучший круг", "Лучшее время"]);
 
     for (const result of race.QualifyingResults ?? []) {
-      const team = await upsertTeamFromJolpica(result.Constructor);
-      const driver = await upsertDriverFromJolpica(result.Driver, team?.id);
+      const team = await upsertTeamFromJolpica(result.Constructor, { historical });
+      const driver = await upsertDriverFromJolpica(result.Driver, team?.id, { historical });
 
       if (!driver?.id) {
         continue;
       }
 
-      await supabase.from("session_results").upsert(
+      const { error: qualifyingError } = await supabase.from("session_results").upsert(
         {
           session_id: sessionId,
           driver_id: driver.id,
-          team_id: team?.id ?? driver.current_team_id,
+          team_id: getSeasonResultTeamId(team, driver, historical),
           position: numberOrNull(result.position),
           classified_position: result.position ?? null,
           time_text: getBestQualifyingTime(result),
@@ -5495,6 +5692,11 @@ async function syncResults() {
         },
         { onConflict: "session_id,driver_id" },
       );
+
+      if (qualifyingError) {
+        throw qualifyingError;
+      }
+
       itemsProcessed += 1;
     }
   }
@@ -5510,18 +5712,18 @@ async function syncResults() {
     }
 
     for (const result of race.SprintResults ?? []) {
-      const team = await upsertTeamFromJolpica(result.Constructor);
-      const driver = await upsertDriverFromJolpica(result.Driver, team?.id);
+      const team = await upsertTeamFromJolpica(result.Constructor, { historical });
+      const driver = await upsertDriverFromJolpica(result.Driver, team?.id, { historical });
 
       if (!driver?.id) {
         continue;
       }
 
-      await supabase.from("session_results").upsert(
+      const { error: sprintError } = await supabase.from("session_results").upsert(
         {
           session_id: sessionId,
           driver_id: driver.id,
-          team_id: team?.id ?? driver.current_team_id,
+          team_id: getSeasonResultTeamId(team, driver, historical),
           position: numberOrNull(result.position),
           classified_position: result.positionText ?? null,
           grid: numberOrNull(result.grid),
@@ -5533,11 +5735,25 @@ async function syncResults() {
         },
         { onConflict: "session_id,driver_id" },
       );
+
+      if (sprintError) {
+        throw sprintError;
+      }
+
       itemsProcessed += 1;
     }
   }
 
-  return { itemsProcessed, metadata: { season } };
+  return {
+    itemsProcessed,
+    metadata: {
+      season,
+      historical,
+      races: raceRows.length,
+      qualifying: qualifyingRows.length,
+      sprints: sprintRows.length,
+    },
+  };
 }
 
 async function repairRaceResults() {
@@ -5649,15 +5865,41 @@ async function addPerRoundJolpicaRowsForCompletedRaces({ baseUrl, endpoint, resu
   return [...byRound.values()].sort((a, b) => Number(a.round) - Number(b.round));
 }
 
+export function shouldRetryJolpicaResponse(status, payload, attempt) {
+  const invalidPayload = !payload || typeof payload !== "object" || Array.isArray(payload);
+  const attemptLimit = status === 429 ? 7 : 4;
+
+  return attempt < attemptLimit && (status === 429 || status >= 500 || invalidPayload);
+}
+
+export function shouldRetryJolpicaNetworkError(attempt) {
+  return attempt < 5;
+}
+
 async function fetchJolpicaJsonObject(url, attempt = 1) {
-  const response = await fetch(url, {
-    headers: { "user-agent": "RaceMate/0.1 (+https://racemate.local)" },
-    signal: AbortSignal.timeout(Number(process.env.JOLPICA_FETCH_TIMEOUT_MS ?? 15000)),
-  });
+  let response;
+
+  try {
+    response = await fetch(url, {
+      headers: { "user-agent": "RaceMate/0.1 (+https://racemate.local)" },
+      signal: AbortSignal.timeout(Number(process.env.JOLPICA_FETCH_TIMEOUT_MS ?? 15000)),
+    });
+  } catch (error) {
+    if (!shouldRetryJolpicaNetworkError(attempt)) {
+      throw error;
+    }
+
+    await sleep(Math.min(30_000, 2_500 * (2 ** (attempt - 1))));
+    return fetchJolpicaJsonObject(url, attempt + 1);
+  }
+
   const payload = await readJsonResponse(response);
 
-  if ((response.status === 429 || !payload || typeof payload !== "object" || Array.isArray(payload)) && attempt < 4) {
-    await sleep(2500 * attempt);
+  if (shouldRetryJolpicaResponse(response.status, payload, attempt)) {
+    const retryDelayMs = response.status === 429
+      ? Math.min(60_000, 5_000 * (2 ** (attempt - 1)))
+      : 2_500 * attempt;
+    await sleep(retryDelayMs);
     return fetchJolpicaJsonObject(url, attempt + 1);
   }
 
@@ -5795,6 +6037,7 @@ function hasRaceResultProbeWindowElapsed(raceStartAt) {
 }
 
 async function repairJolpicaClassificationSession({ race, season, sessionType, sessionName, results }) {
+  const historical = isHistoricalSeason(season);
   const raceId = await findRaceId(season, Number(race.round));
   const sessionId = raceId
     ? await findOrCreateSession(raceId, sessionType, sessionName, race.date, race.time)
@@ -5817,8 +6060,8 @@ async function repairJolpicaClassificationSession({ race, season, sessionType, s
   let itemsProcessed = 0;
 
   for (const result of results) {
-    const team = await upsertTeamFromJolpica(result.Constructor);
-    const driver = await upsertDriverFromJolpica(result.Driver, team?.id);
+    const team = await upsertTeamFromJolpica(result.Constructor, { historical });
+    const driver = await upsertDriverFromJolpica(result.Driver, team?.id, { historical });
 
     if (!driver?.id) {
       continue;
@@ -5828,7 +6071,7 @@ async function repairJolpicaClassificationSession({ race, season, sessionType, s
       {
         session_id: sessionId,
         driver_id: driver.id,
-        team_id: team?.id ?? driver.current_team_id,
+        team_id: getSeasonResultTeamId(team, driver, historical),
         position: numberOrNull(result.position),
         classified_position: result.positionText ?? null,
         grid: numberOrNull(result.grid),
@@ -5847,6 +6090,7 @@ async function repairJolpicaClassificationSession({ race, season, sessionType, s
 }
 
 async function repairJolpicaQualifyingSession({ race, season, results }) {
+  const historical = isHistoricalSeason(season);
   const raceId = await findRaceId(season, Number(race.round));
   const sessionId = raceId
     ? await findOrCreateSession(raceId, "qualifying", "Квалификация", race.date, race.time)
@@ -5865,8 +6109,8 @@ async function repairJolpicaQualifyingSession({ race, season, results }) {
   let itemsProcessed = 0;
 
   for (const result of results) {
-    const team = await upsertTeamFromJolpica(result.Constructor);
-    const driver = await upsertDriverFromJolpica(result.Driver, team?.id);
+    const team = await upsertTeamFromJolpica(result.Constructor, { historical });
+    const driver = await upsertDriverFromJolpica(result.Driver, team?.id, { historical });
 
     if (!driver?.id) {
       continue;
@@ -5876,7 +6120,7 @@ async function repairJolpicaQualifyingSession({ race, season, results }) {
       {
         session_id: sessionId,
         driver_id: driver.id,
-        team_id: team?.id ?? driver.current_team_id,
+        team_id: getSeasonResultTeamId(team, driver, historical),
         position: numberOrNull(result.position),
         classified_position: result.position ?? null,
         time_text: getBestQualifyingTime(result),
@@ -5891,21 +6135,141 @@ async function repairJolpicaQualifyingSession({ race, season, results }) {
   return itemsProcessed;
 }
 
-async function syncStandings() {
+async function getSeasonRounds(season) {
+  const { data, error } = await supabase
+    .from("races")
+    .select("round")
+    .eq("season_year", season)
+    .order("round", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? [])
+    .map((race) => numberOrNull(race.round))
+    .filter((round) => round && round > 0);
+}
+
+async function fetchJolpicaSeasonStandings({ baseUrl, endpoint, entityKey, rounds, season }) {
+  const listsByRound = new Map();
+
+  for (const round of rounds) {
+    const roundPath = round ? `/${round}` : "";
+    const lists = await fetchJolpicaPaginatedStandingsLists(
+      `${baseUrl}/${season}${roundPath}/${endpoint}.json`,
+      entityKey,
+    );
+
+    for (const list of lists) {
+      const listRound = numberOrNull(list.round);
+
+      if (listRound) {
+        listsByRound.set(listRound, list);
+      }
+    }
+  }
+
+  return [...listsByRound.values()].sort((left, right) => Number(left.round) - Number(right.round));
+}
+
+async function fetchJolpicaPaginatedStandingsLists(url, entityKey) {
+  const maxLimit = Math.max(1, Math.min(Number(process.env.JOLPICA_PAGE_LIMIT ?? 100), 100));
+  const maxPages = Math.max(1, Number(process.env.JOLPICA_MAX_PAGES ?? 80));
+  const listsByRound = new Map();
+  let offset = 0;
+  let total = null;
+  let pages = 0;
+
+  while (pages < maxPages && (total === null || offset < total)) {
+    const separator = url.includes("?") ? "&" : "?";
+    const payload = await fetchJolpicaJsonObject(`${url}${separator}limit=${maxLimit}&offset=${offset}`);
+    const mrData = payload.MRData ?? {};
+    const pageLimit = Math.max(1, numberOrNull(mrData.limit) ?? maxLimit);
+    const pageTotal = numberOrNull(mrData.total);
+    const pageLists = mrData.StandingsTable?.StandingsLists ?? [];
+
+    for (const list of pageLists) {
+      const key = `${list.season}-${list.round}`;
+      const current = listsByRound.get(key);
+      const entities = Array.isArray(list[entityKey]) ? list[entityKey] : [];
+
+      if (!current) {
+        listsByRound.set(key, {
+          ...list,
+          [entityKey]: dedupeJolpicaStandingEntities(entities, entityKey),
+        });
+      } else {
+        current[entityKey] = dedupeJolpicaStandingEntities(
+          [...(current[entityKey] ?? []), ...entities],
+          entityKey,
+        );
+      }
+    }
+
+    pages += 1;
+    total = pageTotal ?? offset + pageLimit;
+    offset += pageLimit;
+
+    if (!pageLists.length) {
+      break;
+    }
+  }
+
+  if (total !== null && offset < total) {
+    throw new Error(`Jolpica standings pagination stopped at ${offset} of ${total}: ${url}`);
+  }
+
+  return [...listsByRound.values()];
+}
+
+function dedupeJolpicaStandingEntities(entities, entityKey) {
+  const seen = new Set();
+
+  return (entities ?? []).filter((entity) => {
+    const id = entityKey === "DriverStandings"
+      ? entity.Driver?.driverId
+      : entity.Constructor?.constructorId;
+
+    if (!id || seen.has(id)) {
+      return false;
+    }
+
+    seen.add(id);
+    return true;
+  });
+}
+
+async function syncStandings(options = {}) {
   const baseUrl = process.env.JOLPICA_BASE_URL ?? "https://api.jolpi.ca/ergast/f1";
-  const season = Number(process.env.F1_SEASON ?? new Date().getUTCFullYear());
-  const [driversResponse, constructorsResponse] = await Promise.all([
-    fetch(`${baseUrl}/${season}/driverstandings.json`),
-    fetch(`${baseUrl}/${season}/constructorstandings.json`),
+  const season = resolveSyncSeason(options.season);
+  const historical = options.historical ?? isHistoricalSeason(season);
+  const everyRound = options.everyRound ?? false;
+  const rounds = everyRound ? await getSeasonRounds(season) : [null];
+  const [driverLists, constructorLists] = await Promise.all([
+    fetchJolpicaSeasonStandings({
+      baseUrl,
+      endpoint: "driverstandings",
+      entityKey: "DriverStandings",
+      rounds,
+      season,
+    }),
+    fetchJolpicaSeasonStandings({
+      baseUrl,
+      endpoint: "constructorstandings",
+      entityKey: "ConstructorStandings",
+      rounds,
+      season,
+    }),
   ]);
-  const driversPayload = await driversResponse.json();
-  const constructorsPayload = await constructorsResponse.json();
-  const driverLists = driversPayload.MRData?.StandingsTable?.StandingsLists ?? [];
-  const constructorLists = constructorsPayload.MRData?.StandingsTable?.StandingsLists ?? [];
   const completedStandingRounds = new Set();
   let itemsProcessed = 0;
 
-  await supabase.from("seasons").upsert({ year: season });
+  const { error: seasonError } = await supabase.from("seasons").upsert({ year: season });
+
+  if (seasonError) {
+    throw seasonError;
+  }
 
   for (const list of driverLists) {
     const round = numberOrNull(list.round);
@@ -5917,19 +6281,19 @@ async function syncStandings() {
 
     for (const standing of driverStandings) {
       const constructor = standing.Constructors?.[0];
-      const team = await upsertTeamFromJolpica(constructor);
-      const driver = await upsertDriverFromJolpica(standing.Driver, team?.id);
+      const team = await upsertTeamFromJolpica(constructor, { historical });
+      const driver = await upsertDriverFromJolpica(standing.Driver, team?.id, { historical });
 
       if (!driver?.id) {
         continue;
       }
 
-      await supabase.from("driver_standings").upsert(
+      const { error: driverStandingError } = await supabase.from("driver_standings").upsert(
         {
           season_year: season,
           round,
           driver_id: driver.id,
-          team_id: team?.id ?? driver.current_team_id,
+          team_id: getSeasonResultTeamId(team, driver, historical),
           position: numberOrNull(standing.position),
           points: numberOrNull(standing.points) ?? 0,
           wins: numberOrNull(standing.wins) ?? 0,
@@ -5937,6 +6301,11 @@ async function syncStandings() {
         },
         { onConflict: "season_year,round,driver_id" },
       );
+
+      if (driverStandingError) {
+        throw driverStandingError;
+      }
+
       itemsProcessed += 1;
     }
   }
@@ -5950,13 +6319,13 @@ async function syncStandings() {
     }
 
     for (const standing of constructorStandings) {
-      const team = await upsertTeamFromJolpica(standing.Constructor);
+      const team = await upsertTeamFromJolpica(standing.Constructor, { historical });
 
       if (!team?.id) {
         continue;
       }
 
-      await supabase.from("constructor_standings").upsert(
+      const { error: constructorStandingError } = await supabase.from("constructor_standings").upsert(
         {
           season_year: season,
           round,
@@ -5968,6 +6337,11 @@ async function syncStandings() {
         },
         { onConflict: "season_year,round,team_id" },
       );
+
+      if (constructorStandingError) {
+        throw constructorStandingError;
+      }
+
       itemsProcessed += 1;
     }
   }
@@ -5978,11 +6352,1450 @@ async function syncStandings() {
     itemsProcessed,
     metadata: {
       season,
+      historical,
+      everyRound,
       standingsRounds: [...completedStandingRounds].sort((a, b) => a - b),
       completedRaceRounds: completedRaces.map((race) => race.round).sort((a, b) => a - b),
       completedRacesMarked: completedRaces.length,
     },
   };
+}
+
+async function backfillHistoricalSeason() {
+  return backfillHistoricalSeasonByYear(getCliOption("season"));
+}
+
+async function backfillHistoricalSeasonByYear(value, { validateAfter = true } = {}) {
+  const season = requireHistoricalSeason(value);
+  const calendar = await syncCalendar({ season, historical: true });
+  const results = await syncResults({ season, historical: true });
+  const standings = await syncStandings({ season, historical: true, everyRound: true });
+  const profiles = await rebuildSeasonProfiles(season);
+  const validation = validateAfter ? await validateSeasonReadiness(season) : null;
+
+  return {
+    itemsProcessed:
+      calendar.itemsProcessed +
+      results.itemsProcessed +
+      standings.itemsProcessed +
+      profiles.itemsProcessed,
+    metadata: {
+      season,
+      calendar: calendar.metadata,
+      results: results.metadata,
+      standings: standings.metadata,
+      profiles: profiles.metadata,
+      validation,
+    },
+  };
+}
+
+async function syncSeasonAssets() {
+  const season = requireManagedSeason(getCliOption("season"));
+
+  return syncSeasonAssetsForSeason(season);
+}
+
+async function syncSeasonAssetsForSeason(
+  season,
+  { strict = false, validateAfter = true } = {},
+) {
+  const manifestPaths = {
+    circuits: `public/f1/circuits/${season}/manifest.json`,
+    teams: `public/f1/teams/manifests/${season}.json`,
+    drivers: `public/drivers/avatars/${season}/manifest.json`,
+  };
+  const circuitManifest = readLocalAssetManifest(manifestPaths.circuits, season);
+  const teamManifest = readLocalAssetManifest(manifestPaths.teams, season);
+  const driverManifest = readLocalAssetManifest(manifestPaths.drivers, season);
+  const integrityIssues = [];
+  const [circuitAssets, teamAssets, driverAssets] = await Promise.all([
+    prepareCircuitAssetRows({ integrityIssues, manifest: circuitManifest, manifestPath: manifestPaths.circuits, season }),
+    prepareTeamAssetRows({ integrityIssues, manifest: teamManifest, manifestPath: manifestPaths.teams, season }),
+    prepareDriverAssetRows({ integrityIssues, manifest: driverManifest, manifestPath: manifestPaths.drivers, season }),
+  ]);
+
+  if (integrityIssues.length) {
+    throw new Error(`Season ${season} asset integrity check failed: ${integrityIssues.join("; ")}`);
+  }
+
+  if (strict) {
+    await assertStrictSeasonAssetCompleteness({
+      circuitAssets,
+      circuitManifest,
+      driverAssets,
+      driverManifest,
+      season,
+      teamAssets,
+      teamManifest,
+    });
+  }
+
+  const writes = [];
+
+  if (circuitAssets.rows.length) {
+    writes.push(
+      supabase
+        .from("race_track_assets")
+        .upsert(circuitAssets.rows, { onConflict: "race_id" }),
+    );
+  }
+
+  if (teamAssets.rows.length) {
+    writes.push(
+      supabase
+        .from("team_season_profiles")
+        .upsert(teamAssets.rows, { onConflict: "season_year,team_id" }),
+    );
+  }
+
+  if (driverAssets.rows.length) {
+    writes.push(
+      supabase
+        .from("driver_season_profiles")
+        .upsert(driverAssets.rows, { onConflict: "season_year,driver_id" }),
+    );
+  }
+
+  const writeResults = await Promise.all(writes);
+
+  for (const result of writeResults) {
+    if (result.error) {
+      throw result.error;
+    }
+  }
+
+  const validation = validateAfter ? await validateSeasonReadiness(season) : null;
+
+  return {
+    itemsProcessed: circuitAssets.rows.length + teamAssets.rows.length + driverAssets.rows.length,
+    metadata: {
+      season,
+      circuits: circuitAssets.metadata,
+      teams: teamAssets.metadata,
+      drivers: driverAssets.metadata,
+      validation,
+    },
+  };
+}
+
+function readLocalAssetManifest(relativePath, expectedSeason) {
+  const absolutePath = resolve(process.cwd(), relativePath);
+  const workspaceRoot = `${resolve(process.cwd())}/`;
+
+  if (!absolutePath.startsWith(workspaceRoot) || !existsSync(absolutePath)) {
+    throw new Error(`Asset manifest is missing: ${relativePath}`);
+  }
+
+  let manifest;
+
+  try {
+    manifest = JSON.parse(readFileSync(absolutePath, "utf8"));
+  } catch (error) {
+    throw new Error(`Cannot parse ${relativePath}: ${getSafeErrorMessage(error)}`);
+  }
+
+  if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) {
+    throw new Error(`Asset manifest must be a JSON object: ${relativePath}`);
+  }
+
+  if (Number(manifest.season) !== Number(expectedSeason)) {
+    throw new Error(`Asset manifest season mismatch in ${relativePath}`);
+  }
+
+  return manifest;
+}
+
+async function prepareCircuitAssetRows({ integrityIssues, manifest, manifestPath, season }) {
+  const { data: races, error } = await supabase
+    .from("races")
+    .select("id, round, circuit_id")
+    .eq("season_year", season)
+    .order("round", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  const sourcesByRound = new Map(
+    (Array.isArray(manifest.sources) ? manifest.sources : [])
+      .map((source) => [Number(source.round), source])
+      .filter(([round]) => Number.isInteger(round) && round > 0),
+  );
+  const rows = [];
+  const missingRounds = [];
+
+  for (const race of races ?? []) {
+    const source = sourcesByRound.get(Number(race.round));
+
+    if (!source) {
+      missingRounds.push(Number(race.round));
+      continue;
+    }
+
+    const label = `circuit ${season}/${race.round}`;
+    const fileValid = verifyLocalAssetFile({
+      asset: source,
+      expectedPrefix: `/f1/circuits/${season}/`,
+      integrityIssues,
+      label,
+      requireFile: true,
+    });
+
+    if (!source.pageUrl || !source.sourceUrl) {
+      integrityIssues.push(`${label} has no official page/source URL`);
+    }
+
+    if (!fileValid) {
+      continue;
+    }
+
+    const reviewStatus = getManualReviewStatus(source.manualReview);
+    const approved = reviewStatus === "approved";
+
+    rows.push({
+      race_id: race.id,
+      circuit_id: race.circuit_id,
+      layout_slug: source.layoutSlug ?? slugify(source.raceName ?? `round-${race.round}`),
+      image_url: source.file,
+      source_url: source.pageUrl,
+      source_manifest: {
+        downloadedAt: manifest.downloadedAt ?? null,
+        manifestPath,
+        ...source,
+      },
+      checksum_sha256: String(source.sha256).toLowerCase(),
+      is_verified: approved,
+      verified_at: approved
+        ? (source.manualReview?.reviewedAt ?? new Date().toISOString())
+        : null,
+    });
+  }
+
+  return {
+    rows,
+    metadata: {
+      manifest: manifestPath,
+      manifestComplete: manifest.complete ?? missingRounds.length === 0,
+      manifestRounds: [...sourcesByRound.keys()].sort((left, right) => left - right),
+      missingRounds,
+      verified: rows.filter((row) => row.is_verified).length,
+    },
+  };
+}
+
+async function prepareTeamAssetRows({ integrityIssues, manifest, manifestPath, season }) {
+  const sources = Array.isArray(manifest.sources) ? manifest.sources : [];
+  const constructorIds = [...new Set(sources.map((source) => source.constructorId).filter(Boolean))];
+  const [teamsResult, lineagesResult] = await Promise.all([
+    constructorIds.length
+      ? supabase
+        .from("teams")
+        .select("id, external_id, code, name, short_name, country, color_hex")
+        .in("external_id", constructorIds)
+      : Promise.resolve({ data: [], error: null }),
+    supabase.from("team_lineages").select("id, slug"),
+  ]);
+
+  if (teamsResult.error) {
+    throw teamsResult.error;
+  }
+
+  if (lineagesResult.error) {
+    throw lineagesResult.error;
+  }
+
+  const teamsByExternalId = new Map((teamsResult.data ?? []).map((team) => [team.external_id, team]));
+  const lineagesBySlug = new Map((lineagesResult.data ?? []).map((lineage) => [lineage.slug, lineage]));
+  const rightsReviewStatus = getRightsReviewStatus(manifest);
+  const rightsApproved = !manifest.rightsReviewRequired || ["approved", "cleared"].includes(rightsReviewStatus);
+  const rows = [];
+  const pending = [];
+
+  for (const source of sources) {
+    const constructorId = source.constructorId;
+    const label = `team ${season}/${constructorId ?? "unknown"}`;
+    const team = teamsByExternalId.get(constructorId);
+
+    if (!team?.id) {
+      integrityIssues.push(`${label} does not match a Jolpica constructor identity`);
+      continue;
+    }
+
+    let lineageSlug;
+
+    try {
+      lineageSlug = resolveTeamLineageSlug(constructorId);
+    } catch (error) {
+      integrityIssues.push(getSafeErrorMessage(error));
+      continue;
+    }
+
+    const lineage = lineagesBySlug.get(lineageSlug);
+
+    if (!lineage?.id) {
+      integrityIssues.push(`${label} has no seeded lineage ${lineageSlug}`);
+      continue;
+    }
+
+    const carValid = verifyLocalAssetFile({
+      asset: source.car,
+      expectedPrefix: `/f1/teams/cars/${season}/`,
+      integrityIssues,
+      label: `${label} car`,
+      requireFile: true,
+    });
+    const logoValid = verifyLocalAssetFile({
+      asset: source.logo,
+      expectedPrefix: `/f1/teams/logos/${season}/`,
+      integrityIssues,
+      label: `${label} logo`,
+      requireFile: true,
+    });
+
+    if (!carValid || !logoValid) {
+      continue;
+    }
+
+    const carReview = getManualReviewStatus(source.car);
+    const logoReview = getManualReviewStatus(source.logo);
+    const approved = carReview === "approved" && logoReview === "approved" && rightsApproved;
+
+    if (!approved) {
+      pending.push(constructorId);
+    }
+
+    rows.push({
+      season_year: season,
+      team_id: team.id,
+      lineage_id: lineage.id,
+      display_name: source.name ?? team.name,
+      short_name: team.short_name,
+      code: team.code,
+      country: team.country,
+      color_hex: getSeasonTeamColor(season, constructorId, source.colorHex, team.color_hex),
+      logo_image_url: source.logo.file,
+      car_image_url: source.car.file,
+      source_urls: [
+        {
+          kind: "team-season-assets",
+          manifestPath,
+          sourcePolicy: manifest.sourcePolicy ?? null,
+          rightsReviewRequired: Boolean(manifest.rightsReviewRequired),
+          rightsReviewStatus,
+          colorHex: source.colorHex ?? null,
+          car: source.car,
+          logo: source.logo,
+        },
+      ],
+      assets_verified_at: approved ? new Date().toISOString() : null,
+    });
+  }
+
+  return {
+    rows,
+    metadata: {
+      complete: Boolean(manifest.complete),
+      constructorIds,
+      manifest: manifestPath,
+      missing: Array.isArray(manifest.missing) ? manifest.missing : [],
+      pending,
+      rightsReviewRequired: Boolean(manifest.rightsReviewRequired),
+      rightsReviewStatus,
+      verified: rows.length - pending.length,
+    },
+  };
+}
+
+async function prepareDriverAssetRows({ integrityIssues, manifest, manifestPath, season }) {
+  const entries = Array.isArray(manifest.drivers) ? manifest.drivers : [];
+  const driverExternalIds = [...new Set(entries.map((entry) => entry.externalId).filter(Boolean))];
+  const teamExternalIds = [
+    ...new Set(entries.map((entry) => entry.team?.externalId).filter(Boolean)),
+  ];
+  const [driversResult, teamsResult] = await Promise.all([
+    driverExternalIds.length
+      ? supabase
+        .from("drivers")
+        .select("id, external_id, code, permanent_number")
+        .in("external_id", driverExternalIds)
+      : Promise.resolve({ data: [], error: null }),
+    teamExternalIds.length
+      ? supabase
+        .from("teams")
+        .select("id, external_id")
+        .in("external_id", teamExternalIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (driversResult.error) {
+    throw driversResult.error;
+  }
+
+  if (teamsResult.error) {
+    throw teamsResult.error;
+  }
+
+  const driversByExternalId = new Map((driversResult.data ?? []).map((driver) => [driver.external_id, driver]));
+  const teamsByExternalId = new Map((teamsResult.data ?? []).map((team) => [team.external_id, team]));
+  const driverIds = (driversResult.data ?? []).map((driver) => driver.id);
+  const { data: existingProfiles, error: profileError } = driverIds.length
+    ? await supabase
+      .from("driver_season_profiles")
+      .select("driver_id, primary_team_id, starts")
+      .eq("season_year", season)
+      .in("driver_id", driverIds)
+    : { data: [], error: null };
+
+  if (profileError) {
+    throw profileError;
+  }
+
+  const profilesByDriverId = new Map((existingProfiles ?? []).map((profile) => [profile.driver_id, profile]));
+  const rows = [];
+  const pending = [];
+
+  for (const entry of entries) {
+    const label = `driver ${season}/${entry.externalId ?? "unknown"}`;
+    const driver = driversByExternalId.get(entry.externalId);
+    const team = teamsByExternalId.get(entry.team?.externalId);
+
+    if (!driver?.id) {
+      integrityIssues.push(`${label} does not match a Jolpica driver identity`);
+      continue;
+    }
+
+    if (!team?.id) {
+      integrityIssues.push(`${label} does not match constructor ${entry.team?.externalId ?? "missing"}`);
+      continue;
+    }
+
+    const reviewStatus = getManualReviewStatus(entry.manualReview);
+    const hasAssetMetadata = Boolean(entry.file || entry.sha256);
+    const fileValid = hasAssetMetadata
+      ? verifyLocalAssetFile({
+        asset: entry,
+        expectedPrefix: `/drivers/avatars/${season}/`,
+        integrityIssues,
+        label,
+        requireFile: reviewStatus === "approved",
+      })
+      : false;
+
+    if (reviewStatus === "approved" && !fileValid) {
+      integrityIssues.push(`${label} cannot be approved without a verified local file`);
+      continue;
+    }
+
+    const helmetReferenceValid = isHelmetVisualReference(entry.helmetReferenceUrl);
+
+    if (isHistoricalSeason(season) && reviewStatus === "approved" && !helmetReferenceValid) {
+      integrityIssues.push(`${label} cannot be approved without an exact seasonal helmet reference`);
+      continue;
+    }
+
+    const existing = profilesByDriverId.get(driver.id);
+
+    if (existing?.primary_team_id && existing.primary_team_id !== team.id) {
+      integrityIssues.push(`${label} team does not match the starts-derived primary team`);
+      continue;
+    }
+
+    const approved = reviewStatus === "approved" && fileValid;
+
+    if (!approved) {
+      pending.push(entry.externalId);
+    }
+
+    rows.push({
+      season_year: season,
+      driver_id: driver.id,
+      primary_team_id: existing?.primary_team_id ?? team.id,
+      code: driver.code,
+      permanent_number: driver.permanent_number,
+      starts: existing?.starts ?? numberOrNull(entry.starts) ?? 0,
+      avatar_image_url: fileValid ? entry.file : null,
+      avatar_prompt: entry.prompt ?? null,
+      avatar_reference_url: helmetReferenceValid ? entry.helmetReferenceUrl : null,
+      avatar_review_status: reviewStatus,
+      source_urls: [
+        {
+          kind: "driver-season-avatar",
+          season,
+          manifestPath,
+          promptVersion: entry.promptVersion ?? manifest.promptVersion ?? null,
+          helmetReferencePolicy: manifest.helmetReferencePolicy ?? null,
+          identityReferenceUrl: entry.identityReferenceUrl ?? null,
+          helmetReferenceUrl: helmetReferenceValid ? entry.helmetReferenceUrl : null,
+          sha256: entry.sha256 ?? null,
+          source: entry.source ?? null,
+          team: entry.team ?? null,
+          manualReview: entry.manualReview ?? null,
+        },
+      ],
+      assets_verified_at: approved
+        ? (entry.manualReview?.reviewedAt ?? new Date().toISOString())
+        : null,
+    });
+  }
+
+  return {
+    rows,
+    metadata: {
+      complete: Boolean(manifest.complete),
+      externalIds: driverExternalIds,
+      manifest: manifestPath,
+      pending,
+      promptVersion: manifest.promptVersion ?? null,
+      verified: rows.length - pending.length,
+    },
+  };
+}
+
+export function verifyLocalAssetFile({ asset, expectedPrefix, integrityIssues, label, requireFile }) {
+  const file = asset?.file;
+  const checksum = asset?.sha256;
+
+  if (!file || !checksum) {
+    if (requireFile) {
+      integrityIssues.push(`${label} has no file or sha256`);
+    }
+
+    return false;
+  }
+
+  if (!String(file).startsWith(expectedPrefix) || !/^[0-9a-f]{64}$/i.test(String(checksum))) {
+    integrityIssues.push(`${label} has an invalid local URL or sha256`);
+    return false;
+  }
+
+  const publicRoot = resolve(process.cwd(), "public");
+  const absolutePath = resolve(publicRoot, String(file).replace(/^\/+/, ""));
+
+  if (!absolutePath.startsWith(`${publicRoot}/`) || !existsSync(absolutePath)) {
+    integrityIssues.push(`${label} local file is missing: ${file}`);
+    return false;
+  }
+
+  const actualChecksum = createHash("sha256").update(readFileSync(absolutePath)).digest("hex");
+
+  if (actualChecksum !== String(checksum).toLowerCase()) {
+    integrityIssues.push(`${label} sha256 does not match ${file}`);
+    return false;
+  }
+
+  return true;
+}
+
+function getManualReviewStatus(value) {
+  const status = String(value?.status ?? value?.manualReviewStatus ?? value ?? "missing").toLowerCase();
+
+  return ["pending", "approved", "rejected"].includes(status) ? status : "missing";
+}
+
+function getRightsReviewStatus(manifest) {
+  const status = String(
+    manifest.rightsReview?.status ??
+    manifest.rightsReviewStatus ??
+    (manifest.rightsReviewRequired ? "pending" : "not-required"),
+  ).toLowerCase();
+
+  return status;
+}
+
+async function assertStrictSeasonAssetCompleteness({
+  circuitAssets,
+  circuitManifest,
+  driverAssets,
+  driverManifest,
+  season,
+  teamAssets,
+  teamManifest,
+}) {
+  const participantIds = await getSeasonRaceParticipantExternalIds(season);
+  const driverAvatarsRequired = requiresDriverAvatarAssets(season);
+  const issues = [];
+
+  if (circuitManifest.complete !== true) {
+    issues.push("circuit manifest is not explicitly complete");
+  }
+
+  if (teamManifest.complete !== true || teamAssets.metadata.missing.length) {
+    issues.push("team manifest is incomplete");
+  }
+
+  if (driverAvatarsRequired && driverManifest.complete !== true) {
+    issues.push("driver manifest is not explicitly complete");
+  }
+
+  appendExactSetIssue(
+    issues,
+    "circuit rounds",
+    participantIds.rounds,
+    circuitAssets.metadata.manifestRounds,
+  );
+  appendExactSetIssue(
+    issues,
+    "constructors",
+    participantIds.constructorIds,
+    teamAssets.metadata.constructorIds,
+  );
+  appendExactSetIssue(
+    issues,
+    "drivers",
+    participantIds.driverIds,
+    driverAssets.metadata.externalIds,
+  );
+
+  if ((circuitManifest.sources ?? []).length !== circuitAssets.metadata.manifestRounds.length) {
+    issues.push("circuit manifest contains duplicate or invalid rounds");
+  }
+
+  if ((teamManifest.sources ?? []).length !== teamAssets.metadata.constructorIds.length) {
+    issues.push("team manifest contains duplicate or invalid constructor identities");
+  }
+
+  if ((driverManifest.drivers ?? []).length !== driverAssets.metadata.externalIds.length) {
+    issues.push("driver manifest contains duplicate or invalid driver identities");
+  }
+
+  if (
+    circuitAssets.rows.length !== participantIds.rounds.size ||
+    circuitAssets.rows.some((row) => !hasApprovedCircuitAssetManifest(row.source_manifest))
+  ) {
+    issues.push("circuit assets are not all manually approved");
+  }
+
+  if (
+    teamAssets.metadata.pending.length ||
+    teamAssets.rows.length !== participantIds.constructorIds.size ||
+    teamAssets.rows.some((row) => !hasApprovedTeamAssetManifest(row.source_urls))
+  ) {
+    issues.push("team assets or usage rights are not all approved");
+  }
+
+  if (
+    driverAvatarsRequired &&
+    (
+      driverAssets.metadata.pending.length ||
+      driverAssets.rows.length !== participantIds.driverIds.size ||
+      driverAssets.rows.some((row) => !hasApprovedDriverAssetManifest(row.source_urls))
+    )
+  ) {
+    issues.push("driver avatars are not all manually approved");
+  }
+
+  if (issues.length) {
+    throw new Error(`Season ${season} strict asset gate failed: ${issues.join("; ")}`);
+  }
+}
+
+async function getSeasonRaceParticipantExternalIds(season) {
+  const sportingData = await getSeasonSportingData(season);
+  const raceIdsBySessionId = new Map(
+    sportingData.sessions
+      .filter((session) => session.session_type === "race")
+      .map((session) => [session.id, session.race_id]),
+  );
+  const raceResults = sportingData.results.filter((result) => raceIdsBySessionId.has(result.session_id));
+  const driverIds = [...new Set(raceResults.map((result) => result.driver_id).filter(Boolean))];
+  const teamIds = [...new Set(raceResults.map((result) => result.team_id).filter(Boolean))];
+  const [driversResult, teamsResult] = await Promise.all([
+    driverIds.length
+      ? supabase.from("drivers").select("id, external_id").in("id", driverIds)
+      : Promise.resolve({ data: [], error: null }),
+    teamIds.length
+      ? supabase.from("teams").select("id, external_id").in("id", teamIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (driversResult.error) {
+    throw driversResult.error;
+  }
+
+  if (teamsResult.error) {
+    throw teamsResult.error;
+  }
+
+  if ((driversResult.data ?? []).length !== driverIds.length) {
+    throw new Error(`Season ${season} has race results with an unknown driver identity`);
+  }
+
+  if ((teamsResult.data ?? []).length !== teamIds.length) {
+    throw new Error(`Season ${season} has race results with an unknown constructor identity`);
+  }
+
+  return {
+    constructorIds: new Set((teamsResult.data ?? []).map((team) => team.external_id).filter(Boolean)),
+    driverIds: new Set((driversResult.data ?? []).map((driver) => driver.external_id).filter(Boolean)),
+    rounds: new Set(sportingData.races.map((race) => Number(race.round))),
+  };
+}
+
+function appendExactSetIssue(issues, label, expectedValues, actualValues) {
+  const expected = new Set(expectedValues ?? []);
+  const actual = new Set(actualValues ?? []);
+  const missing = [...expected].filter((value) => !actual.has(value));
+  const extra = [...actual].filter((value) => !expected.has(value));
+
+  if (missing.length || extra.length) {
+    issues.push(
+      `${label} differ (missing: ${missing.join(", ") || "none"}; extra: ${extra.join(", ") || "none"})`,
+    );
+  }
+}
+
+async function validateSeasonCommand() {
+  const season = requireHistoricalSeason(getCliOption("season"));
+  const validation = await validateSeasonReadiness(season);
+
+  return {
+    itemsProcessed: validation.counts.races,
+    metadata: validation,
+  };
+}
+
+export function getHistoricalSeasonYears(value) {
+  if (value !== undefined && value !== null && String(value).trim() !== "") {
+    return [requireHistoricalSeason(value)];
+  }
+
+  const years = [];
+
+  for (let season = historicalSeasonRange.from; season <= historicalSeasonRange.to; season += 1) {
+    years.push(season);
+  }
+
+  return years;
+}
+
+async function prepareHistoricalSeasons() {
+  const preparedSeasons = [];
+  let itemsProcessed = 0;
+
+  for (const season of getHistoricalSeasonYears(getCliOption("season"))) {
+    const backfill = await backfillHistoricalSeasonByYear(season, { validateAfter: false });
+    const assets = await syncSeasonAssetsForSeason(season, {
+      strict: false,
+      validateAfter: false,
+    });
+    const validation = await validateSeasonReadiness(season);
+
+    itemsProcessed += backfill.itemsProcessed + assets.itemsProcessed;
+    preparedSeasons.push({
+      season,
+      backfill: backfill.metadata,
+      assets: assets.metadata,
+      validation,
+    });
+  }
+
+  return {
+    itemsProcessed,
+    metadata: {
+      mode: "preview",
+      publicationChanged: false,
+      ready: preparedSeasons.every((entry) => entry.validation.ready),
+      seasons: preparedSeasons,
+    },
+  };
+}
+
+async function publishHistoricalSeasons() {
+  const years = getHistoricalSeasonYears();
+
+  const validations = [];
+
+  for (const season of years) {
+    await syncSeasonAssetsForSeason(season, { strict: true, validateAfter: false });
+    validations.push(await validateSeasonReadiness(season));
+  }
+
+  const blocked = validations.filter((validation) => !validation.ready);
+
+  if (blocked.length) {
+    const summary = blocked
+      .map((validation) => `${validation.season}: ${validation.issues.join(", ")}`)
+      .join("; ");
+    throw new Error(`Historical seasons are not ready for publication: ${summary}`);
+  }
+
+  const publishedAt = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("seasons")
+    .update({ is_published: true, published_at: publishedAt })
+    .in("year", years)
+    .select("year");
+
+  if (error) {
+    throw error;
+  }
+
+  if ((data ?? []).length !== years.length) {
+    throw new Error(`Expected to publish ${years.length} seasons, published ${(data ?? []).length}`);
+  }
+
+  return {
+    itemsProcessed: data.length,
+    metadata: {
+      publishedAt,
+      seasons: data.map((season) => season.year).sort((left, right) => left - right),
+      validations,
+    },
+  };
+}
+
+async function rebuildSeasonProfiles(season) {
+  const sportingData = await getSeasonSportingData(season);
+  const raceRoundById = new Map(sportingData.races.map((race) => [race.id, Number(race.round)]));
+  const sessionById = new Map(sportingData.sessions.map((session) => [session.id, session]));
+  const raceEntries = sportingData.results
+    .filter((result) => sessionById.get(result.session_id)?.session_type === "race")
+    .map((result) => {
+      const session = sessionById.get(result.session_id);
+
+      return {
+        driverId: result.driver_id,
+        teamId: result.team_id,
+        round: raceRoundById.get(session?.race_id) ?? 0,
+        started: !isJolpicaNonStartStatus(result.status),
+      };
+    })
+    .filter((entry) => entry.driverId && entry.teamId);
+  const assignments = selectPrimaryTeamsByStarts(raceEntries);
+  const driverIds = [...new Set(assignments.map((assignment) => assignment.driverId))];
+  const teamIds = [...new Set(raceEntries.map((entry) => entry.teamId))];
+
+  if (!driverIds.length || !teamIds.length) {
+    throw new Error(`No race participants found for season ${season}`);
+  }
+
+  const [driverResult, teamResult, lineageResult] = await Promise.all([
+    supabase
+      .from("drivers")
+      .select("id, code, permanent_number")
+      .in("id", driverIds),
+    supabase
+      .from("teams")
+      .select("id, external_id, code, name, short_name, country, color_hex")
+      .in("id", teamIds),
+    supabase
+      .from("team_lineages")
+      .select("id, slug"),
+  ]);
+
+  for (const result of [driverResult, teamResult, lineageResult]) {
+    if (result.error) {
+      throw result.error;
+    }
+  }
+
+  const driversById = new Map((driverResult.data ?? []).map((driver) => [driver.id, driver]));
+  const lineagesBySlug = new Map((lineageResult.data ?? []).map((lineage) => [lineage.slug, lineage]));
+  const teamProfiles = (teamResult.data ?? []).map((team) => {
+    const lineageSlug = resolveTeamLineageSlug(team.external_id);
+    const lineage = lineagesBySlug.get(lineageSlug);
+
+    if (!lineage?.id) {
+      throw new Error(`Missing team lineage ${lineageSlug} for constructor ${team.external_id}`);
+    }
+
+    return {
+      season_year: season,
+      team_id: team.id,
+      lineage_id: lineage.id,
+      display_name: team.name,
+      short_name: team.short_name,
+      code: team.code,
+      country: team.country,
+      color_hex: getSeasonTeamColor(season, team.external_id, null, team.color_hex),
+    };
+  });
+  const driverProfiles = assignments.map((assignment) => {
+    const driver = driversById.get(assignment.driverId);
+
+    if (!driver) {
+      throw new Error(`Missing driver identity ${assignment.driverId} for season ${season}`);
+    }
+
+    return {
+      season_year: season,
+      driver_id: assignment.driverId,
+      primary_team_id: assignment.primaryTeamId,
+      code: driver.code,
+      permanent_number: driver.permanent_number,
+      starts: assignment.starts,
+    };
+  });
+  const [teamProfileResult, driverProfileResult] = await Promise.all([
+    supabase
+      .from("team_season_profiles")
+      .upsert(teamProfiles, { onConflict: "season_year,team_id" }),
+    supabase
+      .from("driver_season_profiles")
+      .upsert(driverProfiles, { onConflict: "season_year,driver_id" }),
+  ]);
+
+  if (teamProfileResult.error) {
+    throw teamProfileResult.error;
+  }
+
+  if (driverProfileResult.error) {
+    throw driverProfileResult.error;
+  }
+
+  return {
+    itemsProcessed: teamProfiles.length + driverProfiles.length,
+    metadata: {
+      season,
+      drivers: driverProfiles.length,
+      teams: teamProfiles.length,
+    },
+  };
+}
+
+export function selectPrimaryTeamsByStarts(entries) {
+  const drivers = new Map();
+
+  for (const entry of entries ?? []) {
+    const driverId = entry?.driverId;
+    const teamId = entry?.teamId;
+    const round = Number(entry?.round ?? 0);
+
+    if (!driverId || !teamId) {
+      continue;
+    }
+
+    const driver = drivers.get(driverId) ?? { starts: 0, teams: new Map() };
+    const team = driver.teams.get(teamId) ?? { starts: 0, latestRound: 0 };
+
+    if (entry.started !== false) {
+      driver.starts += 1;
+      team.starts += 1;
+      team.latestRound = Math.max(team.latestRound, Number.isFinite(round) ? round : 0);
+    }
+
+    driver.teams.set(teamId, team);
+    drivers.set(driverId, driver);
+  }
+
+  return [...drivers.entries()]
+    .map(([driverId, driver]) => {
+      const [primaryTeam] = [...driver.teams.entries()].sort((left, right) =>
+        right[1].starts - left[1].starts ||
+        right[1].latestRound - left[1].latestRound ||
+        String(left[0]).localeCompare(String(right[0])),
+      );
+
+      return {
+        driverId,
+        primaryTeamId: primaryTeam?.[0] ?? null,
+        starts: driver.starts,
+      };
+    })
+    .sort((left, right) => String(left.driverId).localeCompare(String(right.driverId)));
+}
+
+async function getSeasonSportingData(season) {
+  const { data: races, error: racesError } = await supabase
+    .from("races")
+    .select("id, round")
+    .eq("season_year", season)
+    .order("round", { ascending: true });
+
+  if (racesError) {
+    throw racesError;
+  }
+
+  const raceIds = (races ?? []).map((race) => race.id);
+
+  if (!raceIds.length) {
+    return { races: [], sessions: [], results: [] };
+  }
+
+  const { data: sessions, error: sessionsError } = await supabase
+    .from("sessions")
+    .select("id, race_id, session_type")
+    .in("race_id", raceIds);
+
+  if (sessionsError) {
+    throw sessionsError;
+  }
+
+  const sessionIds = (sessions ?? []).map((session) => session.id);
+  const results = sessionIds.length
+    ? await fetchSessionResultRows(sessionIds)
+    : [];
+
+  return { races: races ?? [], sessions: sessions ?? [], results };
+}
+
+async function fetchSessionResultRows(sessionIds) {
+  const rows = [];
+  const pageSize = 1000;
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("session_results")
+      .select("session_id, driver_id, team_id, status")
+      .in("session_id", sessionIds)
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      throw error;
+    }
+
+    rows.push(...(data ?? []));
+
+    if ((data ?? []).length < pageSize) {
+      break;
+    }
+  }
+
+  return rows;
+}
+
+async function fetchSeasonStandingRows(table, season, columns) {
+  const rows = [];
+  const pageSize = 1000;
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from(table)
+      .select(columns)
+      .eq("season_year", season)
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      throw error;
+    }
+
+    rows.push(...(data ?? []));
+
+    if ((data ?? []).length < pageSize) {
+      break;
+    }
+  }
+
+  return rows;
+}
+
+async function fetchJolpicaSeasonExpectations(season) {
+  const baseUrl = process.env.JOLPICA_BASE_URL ?? "https://api.jolpi.ca/ergast/f1";
+  const calendar = await fetchJolpicaPaginatedRaces(`${baseUrl}/${season}.json`, null);
+  const rounds = calendar
+    .map((race) => numberOrNull(race.round))
+    .filter((round) => round && round > 0);
+
+  if (!rounds.length || new Set(rounds).size !== calendar.length) {
+    throw new Error(`Jolpica returned an invalid calendar for season ${season}`);
+  }
+
+  const [raceRows, qualifyingRows, sprintRows, driverLists, constructorLists] = await Promise.all([
+    fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/results.json`, "Results"),
+    fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/qualifying.json`, "QualifyingResults"),
+    fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/sprint.json`, "SprintResults"),
+    fetchJolpicaSeasonStandings({
+      baseUrl,
+      endpoint: "driverstandings",
+      entityKey: "DriverStandings",
+      rounds,
+      season,
+    }),
+    fetchJolpicaSeasonStandings({
+      baseUrl,
+      endpoint: "constructorstandings",
+      entityKey: "ConstructorStandings",
+      rounds,
+      season,
+    }),
+  ]);
+
+  const calendarRounds = new Set(rounds);
+  const constructorStandingCounts = countJolpicaRowsByRound(
+    constructorLists,
+    "ConstructorStandings",
+  );
+  const driverStandingCounts = countJolpicaRowsByRound(driverLists, "DriverStandings");
+  const qualifyingResultCounts = countJolpicaRowsByRound(qualifyingRows, "QualifyingResults");
+  const raceResultCounts = countJolpicaRowsByRound(raceRows, "Results");
+  const sprintResultCounts = countJolpicaRowsByRound(sprintRows, "SprintResults");
+
+  for (const [label, counts] of [
+    ["race results", raceResultCounts],
+    ["qualifying results", qualifyingResultCounts],
+    ["driver standings", driverStandingCounts],
+    ["constructor standings", constructorStandingCounts],
+  ]) {
+    if (
+      !hasExactSet(calendarRounds, new Set(counts.keys())) ||
+      [...counts.values()].some((count) => count <= 0)
+    ) {
+      throw new Error(`Jolpica returned incomplete ${label} for season ${season}`);
+    }
+  }
+
+  if (
+    [...sprintResultCounts.keys()].some((round) => !calendarRounds.has(round)) ||
+    [...sprintResultCounts.values()].some((count) => count <= 0)
+  ) {
+    throw new Error(`Jolpica returned incomplete sprint results for season ${season}`);
+  }
+
+  return {
+    calendarRounds,
+    constructorStandingCounts,
+    driverStandingCounts,
+    qualifyingResultCounts,
+    raceResultCounts,
+    sprintResultCounts,
+  };
+}
+
+function countJolpicaRowsByRound(rows, resultKey) {
+  const counts = new Map();
+
+  for (const row of rows ?? []) {
+    const round = numberOrNull(row.round);
+
+    if (round) {
+      counts.set(round, Array.isArray(row[resultKey]) ? row[resultKey].length : 0);
+    }
+  }
+
+  return counts;
+}
+
+function getLocalSeasonResultCounts(sportingData) {
+  const roundByRaceId = new Map(
+    sportingData.races.map((race) => [race.id, Number(race.round)]),
+  );
+  const sessionById = new Map(sportingData.sessions.map((session) => [session.id, session]));
+  const sessionRounds = new Map();
+  const resultCounts = new Map();
+
+  for (const session of sportingData.sessions) {
+    const round = roundByRaceId.get(session.race_id);
+    const type = session.session_type;
+
+    if (!round || !["race", "qualifying", "sprint"].includes(type)) {
+      continue;
+    }
+
+    sessionRounds.set(type, sessionRounds.get(type) ?? new Map());
+    const rounds = sessionRounds.get(type);
+    rounds.set(round, (rounds.get(round) ?? 0) + 1);
+  }
+
+  for (const result of sportingData.results) {
+    const session = sessionById.get(result.session_id);
+    const round = roundByRaceId.get(session?.race_id);
+    const type = session?.session_type;
+
+    if (!round || !["race", "qualifying", "sprint"].includes(type)) {
+      continue;
+    }
+
+    resultCounts.set(type, resultCounts.get(type) ?? new Map());
+    const rounds = resultCounts.get(type);
+    rounds.set(round, (rounds.get(round) ?? 0) + 1);
+  }
+
+  return { resultCounts, sessionRounds };
+}
+
+export function hasExactRoundCounts(expected, actual) {
+  const expectedCounts = expected ?? new Map();
+  const actualCounts = actual ?? new Map();
+
+  return (
+    expectedCounts.size === actualCounts.size &&
+    [...expectedCounts].every(([round, count]) => actualCounts.get(round) === count)
+  );
+}
+
+function hasOneSessionForEveryExpectedRound(expectedCounts, sessionRounds) {
+  const expected = new Map([...expectedCounts].map(([round]) => [round, 1]));
+
+  return hasExactRoundCounts(expected, sessionRounds);
+}
+
+function hasExactSet(expectedValues, actualValues) {
+  const expected = expectedValues ?? new Set();
+  const actual = actualValues ?? new Set();
+
+  return expected.size === actual.size && [...expected].every((value) => actual.has(value));
+}
+
+function sumMapValues(values) {
+  return [...(values ?? new Map()).values()].reduce((total, value) => total + value, 0);
+}
+
+async function validateSeasonReadiness(season) {
+  const [sportingData, jolpica] = await Promise.all([
+    getSeasonSportingData(season),
+    fetchJolpicaSeasonExpectations(season),
+  ]);
+  const trackAssetsQuery = sportingData.races.length
+    ? supabase
+      .from("race_track_assets")
+      .select("race_id, image_url, source_url, source_manifest, checksum_sha256, is_verified, verified_at")
+      .in("race_id", sportingData.races.map((race) => race.id))
+    : Promise.resolve({ data: [], error: null });
+  const [driverStandings, constructorStandings, teamProfilesResult, driverProfilesResult, trackAssetsResult] =
+    await Promise.all([
+      fetchSeasonStandingRows("driver_standings", season, "round, driver_id"),
+      fetchSeasonStandingRows("constructor_standings", season, "round, team_id"),
+      supabase
+        .from("team_season_profiles")
+        .select("team_id, logo_image_url, car_image_url, source_urls, assets_verified_at")
+        .eq("season_year", season),
+      supabase
+        .from("driver_season_profiles")
+        .select("driver_id, avatar_image_url, avatar_prompt, avatar_reference_url, avatar_review_status, source_urls, assets_verified_at")
+        .eq("season_year", season),
+      trackAssetsQuery,
+    ]);
+
+  for (const result of [teamProfilesResult, driverProfilesResult, trackAssetsResult]) {
+    if (result.error) {
+      throw result.error;
+    }
+  }
+
+  const localRoundCounts = countRowsByRound(sportingData.races);
+  const localRounds = new Set(localRoundCounts.keys());
+  const localResults = getLocalSeasonResultCounts(sportingData);
+  const driverStandingCounts = countRowsByRound(driverStandings);
+  const constructorStandingCounts = countRowsByRound(constructorStandings);
+  const raceSessionIds = new Set(
+    sportingData.sessions
+      .filter((session) => session.session_type === "race")
+      .map((session) => session.id),
+  );
+  const raceResults = sportingData.results.filter((result) =>
+    raceSessionIds.has(result.session_id),
+  );
+  const expectedDriverIds = new Set(raceResults.map((result) => result.driver_id).filter(Boolean));
+  const expectedTeamIds = new Set(raceResults.map((result) => result.team_id).filter(Boolean));
+  const teamProfiles = teamProfilesResult.data ?? [];
+  const driverProfiles = driverProfilesResult.data ?? [];
+  const trackAssets = trackAssetsResult.data ?? [];
+  const teamProfileIds = new Set(teamProfiles.map((profile) => profile.team_id));
+  const driverProfileIds = new Set(driverProfiles.map((profile) => profile.driver_id));
+  const verifiedTrackRaceIds = new Set(
+    trackAssets
+      .filter((asset) =>
+        asset.image_url &&
+        asset.source_url &&
+        hasApprovedCircuitAssetManifest(asset.source_manifest) &&
+        /^[0-9a-f]{64}$/i.test(String(asset.checksum_sha256 ?? "")) &&
+        asset.is_verified &&
+        asset.verified_at,
+      )
+      .map((asset) => asset.race_id),
+  );
+  const issues = [];
+
+  if (
+    !sportingData.races.length ||
+    !hasExactSet(jolpica.calendarRounds, localRounds) ||
+    [...localRoundCounts.values()].some((count) => count !== 1)
+  ) {
+    issues.push("calendar_incomplete");
+  }
+
+  if (
+    !hasExactRoundCounts(jolpica.raceResultCounts, localResults.resultCounts.get("race")) ||
+    !hasOneSessionForEveryExpectedRound(
+      jolpica.raceResultCounts,
+      localResults.sessionRounds.get("race"),
+    )
+  ) {
+    issues.push("race_results_incomplete");
+  }
+
+  if (
+    !hasExactRoundCounts(
+      jolpica.qualifyingResultCounts,
+      localResults.resultCounts.get("qualifying"),
+    ) ||
+    !hasOneSessionForEveryExpectedRound(
+      jolpica.qualifyingResultCounts,
+      localResults.sessionRounds.get("qualifying"),
+    )
+  ) {
+    issues.push("qualifying_results_incomplete");
+  }
+
+  if (
+    !hasExactRoundCounts(jolpica.sprintResultCounts, localResults.resultCounts.get("sprint")) ||
+    !hasOneSessionForEveryExpectedRound(
+      jolpica.sprintResultCounts,
+      localResults.sessionRounds.get("sprint"),
+    )
+  ) {
+    issues.push("sprint_results_incomplete");
+  }
+
+  if (
+    !hasExactRoundCounts(jolpica.driverStandingCounts, driverStandingCounts) ||
+    driverStandings.some((standing) => !jolpica.calendarRounds.has(numberOrNull(standing.round)))
+  ) {
+    issues.push("driver_standings_incomplete");
+  }
+
+  if (
+    !hasExactRoundCounts(jolpica.constructorStandingCounts, constructorStandingCounts) ||
+    constructorStandings.some((standing) => !jolpica.calendarRounds.has(numberOrNull(standing.round)))
+  ) {
+    issues.push("constructor_standings_incomplete");
+  }
+
+  if (!hasExactSet(expectedTeamIds, teamProfileIds)) {
+    issues.push("team_profiles_incomplete");
+  }
+
+  if (!hasExactSet(expectedDriverIds, driverProfileIds)) {
+    issues.push("driver_profiles_incomplete");
+  }
+
+  if (
+    teamProfiles.some((profile) =>
+      !profile.logo_image_url ||
+      !profile.car_image_url ||
+      !profile.assets_verified_at ||
+      !hasApprovedTeamAssetManifest(profile.source_urls),
+    )
+  ) {
+    issues.push("team_assets_unverified");
+  }
+
+  if (
+    requiresDriverAvatarAssets(season) &&
+    driverProfiles.some((profile) =>
+      !profile.avatar_image_url ||
+      !profile.avatar_prompt ||
+      !profile.avatar_reference_url ||
+      profile.avatar_review_status !== "approved" ||
+      !profile.assets_verified_at ||
+      !hasApprovedDriverAssetManifest(profile.source_urls),
+    )
+  ) {
+    issues.push("driver_avatars_unverified");
+  }
+
+  if (sportingData.races.some((race) => !verifiedTrackRaceIds.has(race.id))) {
+    issues.push("track_assets_unverified");
+  }
+
+  return {
+    season,
+    ready: issues.length === 0,
+    issues,
+    counts: {
+      expectedRaces: jolpica.calendarRounds.size,
+      races: sportingData.races.length,
+      raceSessions: sumMapValues(localResults.sessionRounds.get("race")),
+      qualifyingSessions: sumMapValues(localResults.sessionRounds.get("qualifying")),
+      sprintSessions: sumMapValues(localResults.sessionRounds.get("sprint")),
+      raceResultDrivers: expectedDriverIds.size,
+      raceResultTeams: expectedTeamIds.size,
+      driverStandingRounds: driverStandingCounts.size,
+      constructorStandingRounds: constructorStandingCounts.size,
+      driverProfiles: driverProfiles.length,
+      teamProfiles: teamProfiles.length,
+      verifiedTrackAssets: verifiedTrackRaceIds.size,
+    },
+  };
+}
+
+export function hasApprovedTeamAssetManifest(sourceUrls) {
+  const source = Array.isArray(sourceUrls)
+    ? sourceUrls.find((item) => item?.kind === "team-season-assets")
+    : null;
+
+  if (!source) {
+    return false;
+  }
+
+  const carReview = getManualReviewStatus(source.car);
+  const logoReview = getManualReviewStatus(source.logo);
+  const rightsApproved = !source.rightsReviewRequired ||
+    ["approved", "cleared"].includes(String(source.rightsReviewStatus ?? "").toLowerCase());
+
+  return (
+    carReview === "approved" &&
+    logoReview === "approved" &&
+    rightsApproved &&
+    /^[0-9a-f]{64}$/i.test(String(source.car?.sha256 ?? "")) &&
+    /^[0-9a-f]{64}$/i.test(String(source.logo?.sha256 ?? ""))
+  );
+}
+
+export function hasApprovedCircuitAssetManifest(sourceManifest) {
+  return (
+    sourceManifest?.manualReview?.status === "approved" &&
+    /^[0-9a-f]{64}$/i.test(String(sourceManifest?.sha256 ?? "")) &&
+    sourceManifest?.authority === "FIA"
+  );
+}
+
+export function requiresDriverAvatarAssets(season) {
+  return !isHistoricalSeason(season);
+}
+
+export function hasApprovedDriverAssetManifest(sourceUrls) {
+  const source = Array.isArray(sourceUrls)
+    ? sourceUrls.find((item) => item?.kind === "driver-season-avatar")
+    : null;
+
+  const season = Number(source?.season);
+  const requiresHelmetReference = Number.isInteger(season) && isHistoricalSeason(season);
+
+  return (
+    Number.isInteger(season) &&
+    source?.manualReview?.status === "approved" &&
+    /^[0-9a-f]{64}$/i.test(String(source.sha256 ?? "")) &&
+    (!requiresHelmetReference || isHelmetVisualReference(source.helmetReferenceUrl))
+  );
+}
+
+function isHelmetVisualReference(value) {
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase();
+
+    return (
+      ["http:", "https:"].includes(url.protocol) &&
+      !hostname.includes("wikipedia.org") &&
+      !hostname.includes("jolpi.ca")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function countRowsByRound(rows) {
+  const counts = new Map();
+
+  for (const row of rows ?? []) {
+    const round = numberOrNull(row.round);
+
+    if (round) {
+      counts.set(round, (counts.get(round) ?? 0) + 1);
+    }
+  }
+
+  return counts;
+}
+
+function isJolpicaNonStartStatus(status) {
+  const normalized = String(status ?? "").toLowerCase();
+
+  return ["did not start", "did not qualify", "did not prequalify", "withdrawn"].some((value) =>
+    normalized.includes(value),
+  );
 }
 
 async function markRacesCompletedFromStandings(season, rounds) {
@@ -9158,7 +10971,7 @@ async function findOrCreateSession(raceId, sessionType, name, date, time) {
   return data?.id ?? null;
 }
 
-async function upsertScheduleSessions(raceId, race) {
+async function upsertScheduleSessions(raceId, race, options = {}) {
   if (!raceId) {
     return;
   }
@@ -9199,7 +11012,12 @@ async function upsertScheduleSessions(raceId, race) {
       { onConflict: "race_id,session_type" },
     ).select("id").single();
 
-    if (previous?.start_at && previous.start_at !== startAt && saved?.id) {
+    if (
+      !options.suppressNotifications &&
+      previous?.start_at &&
+      previous.start_at !== startAt &&
+      saved?.id
+    ) {
       await enqueueScheduleChangeNotifications({
         sessionId: saved.id,
         sessionName: name,
@@ -10059,35 +11877,68 @@ function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-async function upsertTeamFromJolpica(constructor) {
+async function upsertTeamFromJolpica(constructor, options = {}) {
   if (!constructor?.constructorId) {
     return null;
   }
 
-  const code = makeTeamCode(constructor.constructorId);
+  const historical = options.historical ?? false;
   const knownColor = getKnownTeamColor(constructor.name ?? constructor.constructorId);
-  const { data } = await supabase
+  const { data: existing, error: selectError } = await supabase
     .from("teams")
-    .upsert(
-      {
-        external_id: constructor.constructorId,
-        code,
-        name: constructor.name ?? constructor.constructorId,
-        short_name: constructor.name ?? constructor.constructorId,
-        country: constructor.nationality ?? null,
-        is_active: true,
-      },
-      { onConflict: "external_id" },
-    )
-    .select("id")
+    .select("id, color_hex, is_active")
+    .eq("external_id", constructor.constructorId)
+    .maybeSingle();
+
+  if (selectError) {
+    throw selectError;
+  }
+
+  if (existing?.id) {
+    const update = {
+      name: constructor.name ?? constructor.constructorId,
+      short_name: constructor.name ?? constructor.constructorId,
+      country: constructor.nationality ?? null,
+    };
+
+    if (!historical) {
+      update.is_active = true;
+    }
+
+    if (knownColor && !existing.color_hex) {
+      update.color_hex = knownColor;
+    }
+
+    const { data, error } = await supabase
+      .from("teams")
+      .update(update)
+      .eq("id", existing.id)
+      .select("id, color_hex, is_active")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? existing;
+  }
+
+  const { data, error } = await supabase
+    .from("teams")
+    .insert({
+      external_id: constructor.constructorId,
+      code: makeTeamCode(constructor.constructorId),
+      name: constructor.name ?? constructor.constructorId,
+      short_name: constructor.name ?? constructor.constructorId,
+      country: constructor.nationality ?? null,
+      color_hex: knownColor,
+      is_active: !historical,
+    })
+    .select("id, color_hex, is_active")
     .single();
 
-  if (data?.id && knownColor) {
-    await supabase
-      .from("teams")
-      .update({ color_hex: knownColor })
-      .eq("id", data.id)
-      .is("color_hex", null);
+  if (error) {
+    throw error;
   }
 
   return data ?? null;
@@ -10123,44 +11974,89 @@ function normalizeTeamKey(value) {
     .trim();
 }
 
-async function upsertDriverFromJolpica(driver, teamId) {
+async function upsertDriverFromJolpica(driver, teamId, options = {}) {
   if (!driver?.driverId) {
     return null;
   }
 
+  const historical = options.historical ?? false;
   const firstName = driver.givenName ?? driver.given_name ?? "Пилот";
   const lastName = driver.familyName ?? driver.family_name ?? driver.driverId;
   const fullName = `${firstName} ${lastName}`.trim();
-
-  const { data } = await supabase
+  const { data: existing, error: selectError } = await supabase
     .from("drivers")
-    .upsert(
-      {
-        external_id: driver.driverId,
-        code: driver.code ?? driver.driverId.slice(0, 3).toUpperCase(),
-        permanent_number: numberOrNull(driver.permanentNumber),
-        first_name: firstName,
-        last_name: lastName,
-        full_name: fullName,
-        slug: slugify(fullName),
-        country: driver.nationality ?? null,
-        current_team_id: teamId ?? null,
-        is_active: true,
-      },
-      { onConflict: "external_id" },
-    )
+    .select("id, current_team_id, is_active")
+    .eq("external_id", driver.driverId)
+    .maybeSingle();
+
+  if (selectError) {
+    throw selectError;
+  }
+
+  const profile = {
+    code: driver.code ?? driver.driverId.slice(0, 3).toUpperCase(),
+    permanent_number: numberOrNull(driver.permanentNumber),
+    first_name: firstName,
+    last_name: lastName,
+    full_name: fullName,
+    country: driver.nationality ?? null,
+  };
+
+  if (existing?.id) {
+    if (!historical) {
+      profile.current_team_id = teamId ?? null;
+      profile.is_active = true;
+    }
+
+    const { data, error } = await supabase
+      .from("drivers")
+      .update(profile)
+      .eq("id", existing.id)
+      .select("id, current_team_id")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? existing;
+  }
+
+  const { data, error } = await supabase
+    .from("drivers")
+    .insert({
+      ...profile,
+      external_id: driver.driverId,
+      slug: slugify(fullName),
+      current_team_id: historical ? null : (teamId ?? null),
+      is_active: !historical,
+    })
     .select("id, current_team_id")
     .single();
+
+  if (error) {
+    throw error;
+  }
 
   return data ?? null;
 }
 
-function makeTeamCode(externalId) {
-  return externalId
-    .replace(/[^a-z0-9]/gi, "")
-    .slice(0, 3)
-    .toUpperCase()
-    .padEnd(3, "X");
+export function makeTeamCode(externalId) {
+  const normalized = String(externalId ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "");
+
+  if (teamCodesByExternalId[normalized]) {
+    return teamCodesByExternalId[normalized];
+  }
+
+  const stableKey = normalized.replace(/_/g, "").toUpperCase();
+
+  return stableKey ? `F1_${stableKey}` : "F1_TEAM";
+}
+
+function getSeasonResultTeamId(team, driver, historical) {
+  return team?.id ?? (historical ? null : driver?.current_team_id ?? null);
 }
 
 function numberOrNull(value) {

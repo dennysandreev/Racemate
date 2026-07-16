@@ -50,6 +50,8 @@ export type ConstructorStandingRow = {
   teamCode?: string;
   teamLogo?: string;
   teamColor?: string;
+  teamSlug?: string;
+  carImageUrl?: string | null;
   points: number;
   wins: number;
   pointsByRound?: Record<number, number>;
@@ -66,10 +68,12 @@ export type DriverChampionshipRow = {
   driver: string;
   driverSlug?: string;
   driverNumber?: number;
+  avatarUrl?: string | null;
   team: string;
   teamCode?: string;
   teamLogo?: string;
   teamColor?: string;
+  teamSlug?: string;
   total: number;
   pointsByRound: Record<number, number>;
   positionByRound: Record<number, number>;
@@ -94,6 +98,7 @@ export type DriverProfileTeam = {
   code?: string;
   logo?: string;
   color?: string;
+  slug?: string;
 };
 
 export type DriverSeasonStats = {
@@ -206,6 +211,7 @@ export type DriverProfile = {
   avatarPlaceholderStyle?: string | null;
   team: DriverProfileTeam;
   season: number;
+  availableSeasons: number[];
   stats: DriverSeasonStats;
   results: DriverRaceResultRow[];
   charts: {
@@ -308,6 +314,7 @@ export type TeamCumulativePointsSeries = {
 };
 
 export type TeamProfile = TeamProfileSummary & {
+  availableSeasons: number[];
   drivers: TeamProfileDriver[];
   stats: TeamProfileStats;
   results: TeamRaceResultRow[];
@@ -360,6 +367,7 @@ export type CalendarEvent = {
   hasSprint?: boolean;
   winner?: string;
   href: string;
+  trackMapUrl?: string | null;
 };
 
 export type RaceDetail = {
@@ -377,6 +385,7 @@ export type RaceDetail = {
   status: string;
   timezone?: string | null;
   layout?: TrackLayout | null;
+  trackMapUrl?: string | null;
 };
 
 export type CircuitStatsView = {

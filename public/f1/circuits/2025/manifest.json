@@ -1,0 +1,517 @@
+{
+  "season": 2025,
+  "downloadedAt": "2026-07-15T21:59:08.223Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2025,
+      "round": 1,
+      "raceName": "Australian Grand Prix",
+      "circuitId": "albert_park",
+      "layoutSlug": "australian",
+      "file": "/f1/circuits/2025/01-australian.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Australian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_australian_grand_prix_-_event_notes_-_circuit_map_pit_lane_and_quarantine_zone.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane and Quarantine Zone",
+      "sourceDocumentSha256": "1440ed0d9e825ec74855c14f9dcf941813e910bbfc773b18455bc2fbf33c92e3",
+      "renderedPage": 2,
+      "sha256": "ec2865da68328dafff5d88f21235fa0ab99ab51e0574333840fb2c0b16321925",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 2,
+      "raceName": "Chinese Grand Prix",
+      "circuitId": "shanghai",
+      "layoutSlug": "china",
+      "file": "/f1/circuits/2025/02-china.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Chinese%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_chinese_grand_prix_-_event_notes_-_circuit_map_pit_lane_and_quarantine_zone.pdf",
+      "sourceTitle": "Doc 8 - Event Notes - Circuit Map, Pit Lane and Quarantine Zone",
+      "sourceDocumentSha256": "f52bb6941843f45927c22ea2ecf32df6697c9d34ef4c7f2b645082bf128272cd",
+      "renderedPage": 2,
+      "sha256": "ca4660f5338df0fd36729570a564a63b26a20ca60dd3bfc9f0b0e7673446a8fe",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 3,
+      "raceName": "Japanese Grand Prix",
+      "circuitId": "suzuka",
+      "layoutSlug": "japan",
+      "file": "/f1/circuits/2025/03-japan.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Japanese%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_japanese_grand_prix_-_event_notes_-_circuit_map_pit_lane_quarantine_and_red_zone.pdf",
+      "sourceTitle": "Doc 5 - Event Notes - Circuit Map, Pit Lane, Quarantine and Red Zone",
+      "sourceDocumentSha256": "aff1230361e3581b426717f0d8fb5265301218d0b6fb0faada5b2460c9c3fc79",
+      "renderedPage": 2,
+      "sha256": "e1972ddd849e14d9ced89219e821df7fce9e6937c920d40e5ff0750fc0a3f53f",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 4,
+      "raceName": "Bahrain Grand Prix",
+      "circuitId": "bahrain",
+      "layoutSlug": "bahrain",
+      "file": "/f1/circuits/2025/04-bahrain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Bahrain%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_bahrain_grand_prix_-_event_notes_-_circuit_map_pit_lane_quarantine_zone_and_red_zones.pdf",
+      "sourceTitle": "Doc 5 - Event Notes - Circuit Map, Pit Lane, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "efd18c6ff527d5055d746739c490c346c5ce458eec850f82764abe5a64c78a11",
+      "renderedPage": 2,
+      "sha256": "398f7b8cc168c7fa72250501a674a880c342cc70a997f1097eb8ccddc3746814",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 5,
+      "raceName": "Saudi Arabian Grand Prix",
+      "circuitId": "jeddah",
+      "layoutSlug": "saudi-arabia",
+      "file": "/f1/circuits/2025/05-saudi-arabia.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Saudi%20Arabian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_saudi_arabian_grand_prix_-_event_notes_-_circuit_map_pit_lane_and_quarantine_zone.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane and Quarantine Zone",
+      "sourceDocumentSha256": "fdbd4a72211efad4089aadb2efe261f75acfac67cbf8aa9dcd187e0fcbcfb7d0",
+      "renderedPage": 2,
+      "sha256": "602626168b8d62b91b6f48f06e43b7563006321e19d8e3949783f716d3b3197d",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 6,
+      "raceName": "Miami Grand Prix",
+      "circuitId": "miami",
+      "layoutSlug": "miami",
+      "file": "/f1/circuits/2025/06-miami.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Miami%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_miami_grand_prix_-_event_notes_-_circuit_map_pit_lane_quarantine_zone_emergency_exits_and_red_zones_.pdf",
+      "sourceTitle": "Doc 5 - Event Notes - Circuit Map, Pit Lane, Quarantine Zone, Emergency Exits and Red Zones",
+      "sourceDocumentSha256": "d6cad02032de20ce1eb797482480432ae0fc9d476fb436bb7206d5867968dcb4",
+      "renderedPage": 2,
+      "sha256": "9805c58ce68f03063be13ef1b6d8dda6ad7267d721860b094a98497e141e858d",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 7,
+      "raceName": "Emilia Romagna Grand Prix",
+      "circuitId": "imola",
+      "layoutSlug": "emiliaromagna",
+      "file": "/f1/circuits/2025/07-emiliaromagna.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Emilia%20Romagna%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_emilia_romagna_grand_prix_-_race_director_event_notes_-_circuit_map_pit_lane_emergency_exits_quarantine_zone_and_red_zones.pdf",
+      "sourceTitle": "Doc 5 - Race Director Event Notes - Circuit Map, Pit Lane, Emergency Exits, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "16e91058e4c86d5719dcabe9548fdc40ca6da1530d98765bda2d1daff3642e46",
+      "renderedPage": 2,
+      "sha256": "56b970a280aeed82c741c2bc80519b392942a585fdac9d8b326287b29dd15a72",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 8,
+      "raceName": "Monaco Grand Prix",
+      "circuitId": "monaco",
+      "layoutSlug": "monaco",
+      "file": "/f1/circuits/2025/08-monaco.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Monaco%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_monaco_grand_prix_-_race_directors_event_notes_-_circuit_map_pit_lane_map_ers_battery_containment_area_red_zones.pdf",
+      "sourceTitle": "Doc 7 - Race Director's Event Notes - Circuit Map, Pit Lane Map, ERS Battery Containment Area, Red Zones",
+      "sourceDocumentSha256": "ecd84d520bcee78e723395b5ebb40bbc305375dce419c111f996b889d89e1f6d",
+      "renderedPage": 2,
+      "sha256": "cac806bda4427e16ad74ec713fcedda7f02107bcc0ef1e3d297ffb080d0dd415",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 9,
+      "raceName": "Spanish Grand Prix",
+      "circuitId": "catalunya",
+      "layoutSlug": "spain",
+      "file": "/f1/circuits/2025/09-spain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Spanish%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_spanish_grand_prix_-_race_director_event_notes_-_circuit_map_pit_lane_quarantine_zone_and_red_zones.pdf",
+      "sourceTitle": "Doc 3 - Race Director Event Notes - Circuit Map, Pit Lane, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "61257ccbaa6aaf4db9eb8223f0f06e7e9e84f10b5f20dc0ea4768bb140c67811",
+      "renderedPage": 3,
+      "sha256": "bc39422e0a6e2894ac707c585fe200ca5479569d853da44b765b79207843ad0b",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 10,
+      "raceName": "Canadian Grand Prix",
+      "circuitId": "villeneuve",
+      "layoutSlug": "canada",
+      "file": "/f1/circuits/2025/10-canada.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Canadian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_canadian_grand_prix_-_event_notes_-_circuit_map_pit_lane_emergency_exits_map_ers_battery_containment_area_red_zones.pdf",
+      "sourceTitle": "Doc 5 - Event Notes - Circuit Map, Pit Lane, Emergency Exits Map, ERS Battery Containment Area, Red Zones",
+      "sourceDocumentSha256": "573b99039d5f6557158b752a09603f7890b7ba87198000585588676433e18f68",
+      "renderedPage": 3,
+      "sha256": "542818aaa433d6a5d82d95ae89d44b810ba9fed9d5286cafbf7394a0836e5552",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 11,
+      "raceName": "Austrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "austria",
+      "file": "/f1/circuits/2025/11-austria.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Austrian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_austrian_grand_prix_-_event_notes_-_circuit_map_pit_lane_emergency_exit_map_quarantine_zone_red_zones.pdf",
+      "sourceTitle": "Doc 6 - Event Notes - Circuit Map, Pit Lane, Emergency Exit Map, Quarantine Zone, Red Zones",
+      "sourceDocumentSha256": "63b6081b553684272b7eda418a64db43d8ad3e5b6e5d3b3e5367c3e4950d44a0",
+      "renderedPage": 2,
+      "sha256": "20f7966d73aa0d8b7f36a0bd8dd034f78ab476f296926694692f88bdcaacdb76",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 12,
+      "raceName": "British Grand Prix",
+      "circuitId": "silverstone",
+      "layoutSlug": "great-britain",
+      "file": "/f1/circuits/2025/12-great-britain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/British%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_british_grand_prix_-_event_notes_-_circuit_map_pit_lane_emergency_exits_quarantine_zone_and_red_zones_.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane, Emergency Exits, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "e243941bc873fe63ce89a03e79481475d8eb0bb8fd4761cd29930a9243bd642a",
+      "renderedPage": 2,
+      "sha256": "23ef36db8fd2b6b5057c7261ea171ff15f7da7de651cbe57af7e7785c67a4f95",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 13,
+      "raceName": "Belgian Grand Prix",
+      "circuitId": "spa",
+      "layoutSlug": "belgium",
+      "file": "/f1/circuits/2025/13-belgium.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Belgian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_belgian_grand_prix_-_event_notes_-_circuit_map_pit_lane_emergency_exits_quarantine_zone_and_red_zones.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane, Emergency Exits, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "eeaf14a91e8e020fcfe6849d3ff21e189cce292fabf68ec3528d0928d2542c82",
+      "renderedPage": 2,
+      "sha256": "b06b5e9322ad87d71e07bd6c7c2371e149a699dc8b173dd8bc098142a09e0346",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 14,
+      "raceName": "Hungarian Grand Prix",
+      "circuitId": "hungaroring",
+      "layoutSlug": "hungary",
+      "file": "/f1/circuits/2025/14-hungary.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Hungarian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_hungarian_grand_prix_-_event_notes_-_circuit_map_pit_lane_emergency_exits_map_quarantine_zone_and_red_zones.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane, Emergency Exits Map, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "2c76642ef36cad71c0eadd8903173cb6bfc7e2c47d0bf9fc0264379139962120",
+      "renderedPage": 2,
+      "sha256": "750d58c2dd9b7d3cab3a5b19f8b00ded5294814a86de36d4b53e5d151b5ab976",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 15,
+      "raceName": "Dutch Grand Prix",
+      "circuitId": "zandvoort",
+      "layoutSlug": "netherlands",
+      "file": "/f1/circuits/2025/15-netherlands.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Dutch%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_dutch_grand_prix_-_event_notes_-_circuit_map_pit_lane_map_emergency_exit_map_quarantine_zone_and_red_zones_.pdf",
+      "sourceTitle": "Doc 3 - Event Notes - Circuit Map, Pit Lane Map, Emergency Exit Map, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "c0d7f1fc5d761cdce94580d181aee108c0e2c01506c345ece5bbc21150f4cb1f",
+      "renderedPage": 2,
+      "sha256": "2d4aaf5771b6702cf318f12d7243b743e759833b73de3c9099f6e2292bcdfe93",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 16,
+      "raceName": "Italian Grand Prix",
+      "circuitId": "monza",
+      "layoutSlug": "italy",
+      "file": "/f1/circuits/2025/16-italy.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Italian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_italian_grand_prix_-_event_notes_-_circuit_map_pit_lane_emergency_exit_map_quarantine_zone_and_red_zones.pdf",
+      "sourceTitle": "Doc 5 - Event Notes - Circuit Map, Pit Lane, Emergency Exit Map, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "2c1cd6cbf26e1b0b597fea1ee290fd2aa55d85c807169012973a431c8fc282fc",
+      "renderedPage": 2,
+      "sha256": "0cc32e2db088c0d81cf98071a0a56a842759cc5ed255acf9fcb4ef5d5c4bc888",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 17,
+      "raceName": "Azerbaijan Grand Prix",
+      "circuitId": "baku",
+      "layoutSlug": "azerbaijan",
+      "file": "/f1/circuits/2025/17-azerbaijan.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Azerbaijan%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_azerbaijan_grand_prix_-_event_notes_-_circuit_map_pit_lane_quarantine_zone_and_red_zone.pdf",
+      "sourceTitle": "Doc 5 - Event Notes - Circuit Map, Pit Lane, Quarantine Zone and Red Zone",
+      "sourceDocumentSha256": "48b475a35de6b0f9b42b0900764fe8a06e2f2278fba8ae48e6d127696ce47855",
+      "renderedPage": 3,
+      "sha256": "c308ad03d854c62cba000dd5e60edf51c74f4d453fc6875d4389e4a1efce5236",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 18,
+      "raceName": "Singapore Grand Prix",
+      "circuitId": "marina_bay",
+      "layoutSlug": "singapore",
+      "file": "/f1/circuits/2025/18-singapore.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Singapore%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_singapore_grand_prix_-_event_notes_-_circuit_map_pit_lane_emergency_exits_map_and_quarantine_zone.pdf",
+      "sourceTitle": "Doc 7 - Event Notes - Circuit Map, Pit Lane, Emergency Exits Map and Quarantine Zone",
+      "sourceDocumentSha256": "d36769fe74365d21594000c0bf4e9be4fccb4c30822678e166e89bdbad0a7625",
+      "renderedPage": 4,
+      "sha256": "1e1177f60adcb94aefe373a0530bf46e19b8dcdf83d2f01aaf393a5c8472c7f4",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 19,
+      "raceName": "United States Grand Prix",
+      "circuitId": "americas",
+      "layoutSlug": "united-states",
+      "file": "/f1/circuits/2025/19-united-states.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/United%20States%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_united_states_grand_prix_-_event_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_quarantine_zone_map_red_zones_map.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map, Pit Lane Drawing, Emergency exits map, Quarantine Zone Map, Red Zones Map",
+      "sourceDocumentSha256": "7b7d350cb5ef5846e11127653eff51e5551d59a72a762745f07d960a42fc2bac",
+      "renderedPage": 2,
+      "sha256": "489b9d0722dad2f52a6d81b0137f38ea43cc80077e9088fd58e0a5b0f0d7f76f",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 20,
+      "raceName": "Mexico City Grand Prix",
+      "circuitId": "rodriguez",
+      "layoutSlug": "mexico",
+      "file": "/f1/circuits/2025/20-mexico.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Mexico%20City%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_mexico_city_grand_prix_-_event_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_and_quarantine_zone_area.pdf",
+      "sourceTitle": "Doc 3 - Event Notes - Circuit Map, Pit Lane Drawing, Emergency Exits Map and Quarantine Zone Area",
+      "sourceDocumentSha256": "e81d4deff487a8b8b142dff6ca97209013d0089634401670788e7960234db6f1",
+      "renderedPage": 2,
+      "sha256": "73f8940d979ab2b2b413dba4ba857bab8bca7154cd200b1ba81e03bb1d7dbd9f",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 21,
+      "raceName": "São Paulo Grand Prix",
+      "circuitId": "interlagos",
+      "layoutSlug": "brazil",
+      "file": "/f1/circuits/2025/21-brazil.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/S%C3%A3o%20Paulo%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_sao_paulo_grand_prix_-_event_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_quarantine_zone_and_red_zones_map.pdf",
+      "sourceTitle": "Doc 5 - Event Notes - Circuit Map, Pit Lane Drawing, Emergency Exits Map, Quarantine Zone and Red Zones Map",
+      "sourceDocumentSha256": "596191c397c17d82c4d52668c9603d7c5eaded90b57e32bb2d94fd8b25b284ff",
+      "renderedPage": 2,
+      "sha256": "28f77fdaf7ee43c3b90a70ea014179a077c8f1bc2ff04982b4e10b4a09158352",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 22,
+      "raceName": "Las Vegas Grand Prix",
+      "circuitId": "vegas",
+      "layoutSlug": "las-vegas",
+      "file": "/f1/circuits/2025/22-las-vegas.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Las%20Vegas%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_las_vegas_grand_prix_-_event_notes_-_circuit_map_v2_pit_lane_drawing_emergency_map_exits_quarantine_zone_and_red_zones.pdf",
+      "sourceTitle": "Doc 2 - Event Notes - Circuit Map V2, Pit Lane Drawing, Emergency Map Exits, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "5725f5e2c9085a0d593ffea2c67c15f71f8943353b974fc379c58070df8ab9b4",
+      "renderedPage": 2,
+      "sha256": "45403825600b88cf9528d1e5778e91ba9214189952ae20a3356f46a685e92d5c",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 23,
+      "raceName": "Qatar Grand Prix",
+      "circuitId": "losail",
+      "layoutSlug": "qatar",
+      "file": "/f1/circuits/2025/23-qatar.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Qatar%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_qatar_grand_prix_-_event_notes_-_circuit_map._pit_lane_drawing_emergency_exits_map_ers_battery_containment_area_red_zones_map.pdf",
+      "sourceTitle": "Doc 4 - Event Notes - Circuit Map. Pit Lane Drawing, Emergency Exits Map, ERS Battery Containment Area, Red Zones Map",
+      "sourceDocumentSha256": "97cf896ba89c89c707357c948ccfb4b77e02a2347d5d7483febd75bb3ae418d7",
+      "renderedPage": 2,
+      "sha256": "21d6899bc5aaf0c6a94b64411bf05acd71295793724e731ee03ff9e7db6f2b19",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2025,
+      "round": 24,
+      "raceName": "Abu Dhabi Grand Prix",
+      "circuitId": "yas_marina",
+      "layoutSlug": "abu-dhabi",
+      "file": "/f1/circuits/2025/24-abu-dhabi.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2025-2071/event/Abu%20Dhabi%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/system/files/decision-document/2025_abu_dhabi_grand_prix_-_event_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_quarantine_zone_and_red_zones.pdf",
+      "sourceTitle": "Event Notes - Circuit Map, Pit Lane Drawing, Emergency Exits Map, Quarantine Zone and Red Zones",
+      "sourceDocumentSha256": "5d7fe92297123c0db9d430652755cdbf95d1af5d6d6aeaa628903e6bcb7f8aeb",
+      "renderedPage": 2,
+      "sha256": "122e1af7005448e63cb9a5beb5c4870a0bc97b9455a17b40d71a6b0215b182f9",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:24.905313Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    }
+  ],
+  "manualReview": {
+    "status": "approved",
+    "reviewedAt": "2026-07-15T21:59:24.905313Z",
+    "reviewer": "RaceMate visual QA"
+  }
+}

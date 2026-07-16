@@ -32,6 +32,7 @@ import {
   getPredictionState,
 } from "@/data/racemate-repository";
 import { ensureProfile } from "@/lib/auth";
+import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -96,8 +97,8 @@ export default async function AccountPage() {
   const [overview, predictionState, driversMatrix, constructorsMatrix, leaderboard, extras] = await Promise.all([
     getAccountOverview(profile?.id ?? null),
     getPredictionState(profile?.id ?? null),
-    getDriverChampionshipMatrix(),
-    getConstructorChampionshipMatrix(),
+    getDriverChampionshipMatrix(CURRENT_F1_SEASON),
+    getConstructorChampionshipMatrix(CURRENT_F1_SEASON),
     getGlobalFantasyLeaderboard(),
     getAccountExtras(profile?.id ?? null),
   ]);

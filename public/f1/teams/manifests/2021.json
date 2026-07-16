@@ -1,0 +1,316 @@
+{
+  "season": 2021,
+  "downloadedAt": "2026-07-15T21:37:02.337Z",
+  "sourcePolicy": "Official Formula1.com season team assets only; no cross-season fallback.",
+  "rightsReviewRequired": true,
+  "rightsReview": {
+    "status": "cleared",
+    "reviewedAt": "2026-07-16T11:41:14Z",
+    "note": "Cleared by the product owner for public release."
+  },
+  "visualReviewRecordedAt": "2026-07-15T21:37:02.337Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2021,
+      "constructorId": "mercedes",
+      "name": "Mercedes",
+      "car": {
+        "file": "/f1/teams/cars/2021/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/mercedes.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/mercedes.png.transform/6col-retina/image.png",
+        "sha256": "bc9b949d6b05ed410e4274304bb823743e942a8fd0daeaf749ddf2ec8c097156",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/mercedes-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/mercedes-logo.png.transform/2col-retina/image.png",
+        "sha256": "d89df008ae47a15d11c5bd7e080827f4ba8e9b7e2e772b72a388d41077677849",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#27F4D2"
+    },
+    {
+      "season": 2021,
+      "constructorId": "red_bull",
+      "name": "Red Bull",
+      "car": {
+        "file": "/f1/teams/cars/2021/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/red-bull-racing.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/red-bull-racing.png.transform/6col-retina/image.png",
+        "sha256": "3249a8c65b2c91e849c4dbec3c00079a6d05d43ce2afb72769d08b33423fa0de",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/red-bull-racing-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/red-bull-racing-logo.png.transform/2col-retina/image.png",
+        "sha256": "619e4ee34bdf98ffc388af65d1c5e1dedf9a55b908f738e55b526091e049139e",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#3671C6"
+    },
+    {
+      "season": 2021,
+      "constructorId": "ferrari",
+      "name": "Ferrari",
+      "car": {
+        "file": "/f1/teams/cars/2021/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/ferrari.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/ferrari.png.transform/6col-retina/image.png",
+        "sha256": "57540c39223f650cb06eca2bec3738085a18cf82bc29740885c071c600a22ae0",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/ferrari-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/ferrari-logo.png.transform/2col-retina/image.png",
+        "sha256": "01da5c0d5c7384c2ac93771228f95060d40565d37c7832c818a507c2ce98012f",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#E8002D"
+    },
+    {
+      "season": 2021,
+      "constructorId": "mclaren",
+      "name": "McLaren",
+      "car": {
+        "file": "/f1/teams/cars/2021/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/mclaren.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/mclaren.png.transform/6col-retina/image.png",
+        "sha256": "1f1bdf10fb3de102c2c68de151c0e62ea887b5fba28e43448e03372c21679a13",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/mclaren-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/mclaren-logo.png.transform/2col-retina/image.png",
+        "sha256": "f896c732fa1c050c8515aa5db85dd4954dea4800627d5f9530a751d31dc7dfc7",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#FF8000"
+    },
+    {
+      "season": 2021,
+      "constructorId": "alpine",
+      "name": "Alpine F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2021/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/alpine.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alpine.png.transform/6col-retina/image.png",
+        "sha256": "87e0e15f868e271b868f395d74104fd482d0bb65e6e4045f2dc002333ea53e32",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/alpine-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alpine-logo.png.transform/2col-retina/image.png",
+        "sha256": "23a3e9446be185268834a3e1beaf1d687b1218d75b59803cea7c3b1800b8edf2",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#0093CC"
+    },
+    {
+      "season": 2021,
+      "constructorId": "alphatauri",
+      "name": "AlphaTauri",
+      "car": {
+        "file": "/f1/teams/cars/2021/alphatauri.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/alphatauri.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alphatauri.png.transform/6col-retina/image.png",
+        "sha256": "f1c81b6d155fe17cc94e3b0392e6039330f7d29ec54fc28e6ab5b4fc8a8bcd7d",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/alphatauri.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/alphatauri-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alphatauri-logo.png.transform/2col-retina/image.png",
+        "sha256": "3456521794d10a0644475c23a0e724465d172d98e1b255de833daff317ca3162",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#2B4562"
+    },
+    {
+      "season": 2021,
+      "constructorId": "aston_martin",
+      "name": "Aston Martin",
+      "car": {
+        "file": "/f1/teams/cars/2021/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/aston-martin.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/aston-martin.png.transform/6col-retina/image.png",
+        "sha256": "d07dd363985a5a63281fe86868cbdf34597fb663adbfab0be8e1335004d20ef8",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/aston-martin-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/aston-martin-logo.png.transform/2col-retina/image.png",
+        "sha256": "657eb2489dc681f907a71416b221470be476a1c9d70ab1191a48b9f1aa59b524",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#229971"
+    },
+    {
+      "season": 2021,
+      "constructorId": "williams",
+      "name": "Williams",
+      "car": {
+        "file": "/f1/teams/cars/2021/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/williams.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/williams.png.transform/6col-retina/image.png",
+        "sha256": "9a3a54bed9015dce3c277e75da4f19e1c552c6dc9ca421782b62696d5c71d00c",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/williams-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/williams-logo.png.transform/2col-retina/image.png",
+        "sha256": "ffc3a67c06aee5ff10a13dcad3e4355426077f7e879f245f872b61f9aca9f7e0",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#64C4FF"
+    },
+    {
+      "season": 2021,
+      "constructorId": "alfa",
+      "name": "Alfa Romeo",
+      "car": {
+        "file": "/f1/teams/cars/2021/alfa.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/alfa-romeo-racing.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alfa-romeo-racing.png.transform/6col-retina/image.png",
+        "sha256": "a4ac70df6d87072380e66b1e122d0cb55677fb280ff665392bf093125cee6895",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/alfa.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+        "sha256": "40697f7fc281058d15fc5ace08c8da228c02f819edd419f7061fa27e4c37dcb0",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#C92D4B"
+    },
+    {
+      "season": 2021,
+      "constructorId": "haas",
+      "name": "Haas F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2021/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/haas-f1-team.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/haas-f1-team.png.transform/6col-retina/image.png",
+        "sha256": "dab92942612ee13e9e19b3f86ad580906c96772ec3617e53f41241f6c4cb5560",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2021/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2021/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2021/haas-f1-team-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2021/haas-f1-team-logo.png.transform/2col-retina/image.png",
+        "sha256": "6544285b6004b490fb3d47bd591b9236e532bef86e10d5b6dcfbbe37eba5aa44",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#B6BABD"
+    }
+  ]
+}

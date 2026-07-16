@@ -1,0 +1,248 @@
+{
+  "season": 2026,
+  "downloadedAt": "2026-07-15T21:24:02.365Z",
+  "sources": [
+    {
+      "season": 2026,
+      "round": 1,
+      "raceName": "Australian Grand Prix",
+      "circuitId": "albert_park",
+      "layoutSlug": "australia",
+      "file": "/f1/circuits/2026/01-australia.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/australia",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmelbournedetailed.webp",
+      "sha256": "48d6f44c791c199b4d4f03ec8b114fb93a4f19ef129d92485e56325a3a291863"
+    },
+    {
+      "season": 2026,
+      "round": 2,
+      "raceName": "Chinese Grand Prix",
+      "circuitId": "shanghai",
+      "layoutSlug": "china",
+      "file": "/f1/circuits/2026/02-china.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/china",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackshanghaidetailed.webp",
+      "sha256": "7e094ed2cb3491694eaf36614529029a457f06d8037cca920fedecf03a735240"
+    },
+    {
+      "season": 2026,
+      "round": 3,
+      "raceName": "Japanese Grand Prix",
+      "circuitId": "suzuka",
+      "layoutSlug": "japan",
+      "file": "/f1/circuits/2026/03-japan.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/japan",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracksuzukadetailed.webp",
+      "sha256": "ba014c39a604cb580f38841f973e73aba9d10ef6e845930edceec750e3b89a94"
+    },
+    {
+      "season": 2026,
+      "round": 4,
+      "raceName": "Miami Grand Prix",
+      "circuitId": "miami",
+      "layoutSlug": "miami",
+      "file": "/f1/circuits/2026/04-miami.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/miami",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmiamidetailed.webp",
+      "sha256": "90a92e62b3c2f9d2f01d2d718667925eadb7880f5253ae0a2ccf7157d07f3846"
+    },
+    {
+      "season": 2026,
+      "round": 5,
+      "raceName": "Canadian Grand Prix",
+      "circuitId": "villeneuve",
+      "layoutSlug": "canada",
+      "file": "/f1/circuits/2026/05-canada.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/canada",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmontrealdetailed.webp",
+      "sha256": "972af926ac1367f683d4356532b0b02172ff4060b44bcf30ae1973eb05cb1da7"
+    },
+    {
+      "season": 2026,
+      "round": 6,
+      "raceName": "Monaco Grand Prix",
+      "circuitId": "monaco",
+      "layoutSlug": "monaco",
+      "file": "/f1/circuits/2026/06-monaco.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/monaco",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmontecarlodetailed.webp",
+      "sha256": "fc3953be38805357b22519f5d83af8c6864e446e3d5f762397d643e4a31239f7"
+    },
+    {
+      "season": 2026,
+      "round": 7,
+      "raceName": "Barcelona Grand Prix",
+      "circuitId": "catalunya",
+      "layoutSlug": "barcelona-catalunya",
+      "file": "/f1/circuits/2026/07-barcelona-catalunya.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/barcelona-catalunya",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackcatalunyadetailed.webp",
+      "sha256": "eb4d4f1cc93f541d8d8350fba2d3aad617212f6e020f00fbd1e88e3decad86d7"
+    },
+    {
+      "season": 2026,
+      "round": 8,
+      "raceName": "Austrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "austria",
+      "file": "/f1/circuits/2026/08-austria.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/austria",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackspielbergdetailed.webp",
+      "sha256": "97b1614b0b5328f4c9bd9e9c12b523d158c6e9f09ec1d39333eeafd0e1aa2c8e"
+    },
+    {
+      "season": 2026,
+      "round": 9,
+      "raceName": "British Grand Prix",
+      "circuitId": "silverstone",
+      "layoutSlug": "great-britain",
+      "file": "/f1/circuits/2026/09-great-britain.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/great-britain",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracksilverstonedetailed.webp",
+      "sha256": "1378b033fd8a6f92b1445a9be19c8ca34bccee480871a4c574a8ab75fe91948b"
+    },
+    {
+      "season": 2026,
+      "round": 10,
+      "raceName": "Belgian Grand Prix",
+      "circuitId": "spa",
+      "layoutSlug": "belgium",
+      "file": "/f1/circuits/2026/10-belgium.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/belgium",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackspafrancorchampsdetailed.webp",
+      "sha256": "25bc175e7072ec880ce17d9cb6f28c72c235ed112fd453e2f91e30012a47338e"
+    },
+    {
+      "season": 2026,
+      "round": 11,
+      "raceName": "Hungarian Grand Prix",
+      "circuitId": "hungaroring",
+      "layoutSlug": "hungary",
+      "file": "/f1/circuits/2026/11-hungary.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/hungary",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackhungaroringdetailed.webp",
+      "sha256": "b873109d3909f25204817798172e39a3492adc84725e4cd7bf5305dd1c46604c"
+    },
+    {
+      "season": 2026,
+      "round": 12,
+      "raceName": "Dutch Grand Prix",
+      "circuitId": "zandvoort",
+      "layoutSlug": "netherlands",
+      "file": "/f1/circuits/2026/12-netherlands.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/netherlands",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackzandvoortdetailed.webp",
+      "sha256": "95d8939126bb2f7dc9590e3979a6a4396f51eec082f145a8c10f5e8baec449f6"
+    },
+    {
+      "season": 2026,
+      "round": 13,
+      "raceName": "Italian Grand Prix",
+      "circuitId": "monza",
+      "layoutSlug": "italy",
+      "file": "/f1/circuits/2026/13-italy.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/italy",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmonzadetailed.webp",
+      "sha256": "6ba106627f613a6c170f3e93c3a96b4a956e5adf7db12da14d37aaf6e6755096"
+    },
+    {
+      "season": 2026,
+      "round": 14,
+      "raceName": "Spanish Grand Prix",
+      "circuitId": "madring",
+      "layoutSlug": "spain",
+      "file": "/f1/circuits/2026/14-spain.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/spain",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmadringdetailed.webp",
+      "sha256": "9c75535776aba0b8ea33778a520a013fa810367e4a6a00d58aceb64d0c03744f"
+    },
+    {
+      "season": 2026,
+      "round": 15,
+      "raceName": "Azerbaijan Grand Prix",
+      "circuitId": "baku",
+      "layoutSlug": "azerbaijan",
+      "file": "/f1/circuits/2026/15-azerbaijan.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/azerbaijan",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackbakudetailed.webp",
+      "sha256": "7bca2a5e72a4c7135bb017c19f38ceaa10282d706d89ca9d7ea3daab07acea5c"
+    },
+    {
+      "season": 2026,
+      "round": 16,
+      "raceName": "Singapore Grand Prix",
+      "circuitId": "marina_bay",
+      "layoutSlug": "singapore",
+      "file": "/f1/circuits/2026/16-singapore.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/singapore",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracksingaporedetailed.webp",
+      "sha256": "d78aaf15eea9d95eee9980f11bfb9332d6c6d24b96fb7d8936d2bc34350c8237"
+    },
+    {
+      "season": 2026,
+      "round": 17,
+      "raceName": "United States Grand Prix",
+      "circuitId": "americas",
+      "layoutSlug": "united-states",
+      "file": "/f1/circuits/2026/17-united-states.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/united-states",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackaustindetailed.webp",
+      "sha256": "c8bfc295cc3b0de3ad0182fe9b1e2c07ccb4000b6be2036d044c1519ba588e69"
+    },
+    {
+      "season": 2026,
+      "round": 18,
+      "raceName": "Mexico City Grand Prix",
+      "circuitId": "rodriguez",
+      "layoutSlug": "mexico",
+      "file": "/f1/circuits/2026/18-mexico.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/mexico",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmexicocitydetailed.webp",
+      "sha256": "93900a37c2bfa9592f3b74c1bf403c61c4ee72b7826cbf91c7d3f579bae63fcf"
+    },
+    {
+      "season": 2026,
+      "round": 19,
+      "raceName": "Brazilian Grand Prix",
+      "circuitId": "interlagos",
+      "layoutSlug": "brazil",
+      "file": "/f1/circuits/2026/19-brazil.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/brazil",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackinterlagosdetailed.webp",
+      "sha256": "a82be8f44bc122f872c0b9adeca50018fc69d6c59fb826c5e54736e69af1e04b"
+    },
+    {
+      "season": 2026,
+      "round": 20,
+      "raceName": "Las Vegas Grand Prix",
+      "circuitId": "vegas",
+      "layoutSlug": "las-vegas",
+      "file": "/f1/circuits/2026/20-las-vegas.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/las-vegas",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracklasvegasdetailed.webp",
+      "sha256": "d0c54879fb9f44f79543a4a3f4e39f9147689fb22eb490b795954a5df51a7cb3"
+    },
+    {
+      "season": 2026,
+      "round": 21,
+      "raceName": "Qatar Grand Prix",
+      "circuitId": "losail",
+      "layoutSlug": "qatar",
+      "file": "/f1/circuits/2026/21-qatar.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/qatar",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracklusaildetailed.webp",
+      "sha256": "2cd4ccffe51f63acdeb1a902b9c4179fee76fae0a76f99a86a8806046be40050"
+    },
+    {
+      "season": 2026,
+      "round": 22,
+      "raceName": "Abu Dhabi Grand Prix",
+      "circuitId": "yas_marina",
+      "layoutSlug": "united-arab-emirates",
+      "file": "/f1/circuits/2026/22-united-arab-emirates.webp",
+      "pageUrl": "https://www.formula1.com/en/racing/2026/united-arab-emirates",
+      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackyasmarinacircuitdetailed.webp",
+      "sha256": "c2ed54391799103bd8a708c9062f143470b74c6911153c32add994a15058dbb1"
+    }
+  ]
+}

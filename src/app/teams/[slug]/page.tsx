@@ -16,12 +16,18 @@ import {
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
 import { RaceFlag } from "@/components/racemate/race-flag";
+import { SeasonSwitcher } from "@/components/racemate/season-switcher";
 import { TeamCumulativePointsChart } from "@/components/racemate/team-cumulative-points-chart";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import { StitchPanel, StitchPanelHeader } from "@/components/racemate/stitch-primitives";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getTeamProfileBySlug } from "@/data/racemate-repository";
+import { getPublishedSeasons, getTeamProfileBySlug } from "@/data/racemate-repository";
+import {
+  CURRENT_F1_SEASON,
+  resolvePublishedSeason,
+  type SeasonSearchParams,
+} from "@/lib/season-navigation";
 import { cn } from "@/lib/utils";
 import type { TeamProfile, TeamRaceResultRow } from "@/types/racemate";
 
@@ -29,11 +35,17 @@ export const dynamic = "force-dynamic";
 
 type TeamPageProps = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<SeasonSearchParams>;
 };
 
-export async function generateMetadata({ params }: TeamPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const team = await getTeamProfileBySlug(slug);
+export async function generateMetadata({ params, searchParams }: TeamPageProps): Promise<Metadata> {
+  const [{ slug }, query, publishedSeasons] = await Promise.all([
+    params,
+    searchParams,
+    getPublishedSeasons(),
+  ]);
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+  const team = season ? await getTeamProfileBySlug(slug, season) : null;
 
   if (!team) {
     return { title: "Команда не найдена · RaceMate" };
@@ -41,22 +53,36 @@ export async function generateMetadata({ params }: TeamPageProps): Promise<Metad
 
   return {
     title: `${team.shortName} · RaceMate`,
-    description: `${team.shortName}: состав, статистика сезона ${team.season}, результаты по этапам и новости команды.`,
+    description: `${team.shortName}: состав, статистика сезона ${team.season} и результаты по этапам.`,
   };
 }
 
-export default async function TeamProfilePage({ params }: TeamPageProps) {
-  const { slug } = await params;
-  const team = await getTeamProfileBySlug(slug);
+export default async function TeamProfilePage({ params, searchParams }: TeamPageProps) {
+  const [{ slug }, query, publishedSeasons] = await Promise.all([
+    params,
+    searchParams,
+    getPublishedSeasons(),
+  ]);
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+
+  if (!season) {
+    notFound();
+  }
+
+  const team = await getTeamProfileBySlug(slug, season);
 
   if (!team) {
     notFound();
   }
 
+  const availableSeasons = [...new Set([team.season, ...(team.availableSeasons ?? [])])]
+    .filter((item) => publishedSeasons.includes(item));
+  const isCurrentSeason = team.season === CURRENT_F1_SEASON;
+
   return (
-    <AppShell>
+    <AppShell season={team.season}>
       <div className="grid min-w-0 gap-5 pb-6 sm:gap-6 sm:pb-8">
-        <TeamHero team={team} />
+        <TeamHero availableSeasons={availableSeasons} query={query} team={team} />
 
         <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_23rem]">
           <DriverLineup team={team} />
@@ -67,17 +93,27 @@ export default async function TeamProfilePage({ params }: TeamPageProps) {
           <TeamCumulativePointsChart team={team} />
           <TeamSeasonStats team={team} />
         </section>
-        <TeamResultsTable drivers={team.drivers} results={team.results} />
-        <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
-          <TeamNews team={team} />
-          <TeamSocial team={team} />
-        </section>
+        <TeamResultsTable drivers={team.drivers} results={team.results} season={team.season} />
+        {isCurrentSeason ? (
+          <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
+            <TeamNews team={team} />
+            <TeamSocial team={team} />
+          </section>
+        ) : null}
       </div>
     </AppShell>
   );
 }
 
-function TeamHero({ team }: { team: TeamProfile }) {
+function TeamHero({
+  availableSeasons,
+  query,
+  team,
+}: {
+  availableSeasons: number[];
+  query: SeasonSearchParams;
+  team: TeamProfile;
+}) {
   return (
     <section
       className="relative min-h-[31rem] overflow-hidden rounded-xl border border-border bg-card sm:min-h-[35rem]"
@@ -85,15 +121,21 @@ function TeamHero({ team }: { team: TeamProfile }) {
         backgroundImage: `radial-gradient(circle at 68% 38%, color-mix(in srgb, ${team.color} 24%, transparent), transparent 42%)`,
       }}
     >
-      <div className="pointer-events-none absolute inset-x-3 top-12 h-[15rem] sm:inset-x-8 sm:top-8 sm:h-[22rem]">
-        <Image
-          alt={`Болид ${team.shortName} сезона ${team.season}`}
-          className="object-contain object-center drop-shadow-[0_16px_14px_rgb(0_0_0_/_0.3)]"
-          fill
-          priority
-          sizes="(min-width: 1280px) 75rem, 100vw"
-          src={team.carImageUrl}
-        />
+      <div className="pointer-events-none absolute inset-x-3 top-24 h-[15rem] sm:inset-x-8 sm:top-8 sm:h-[22rem]">
+        {team.carImageUrl ? (
+          <Image
+            alt={`Болид ${team.shortName} сезона ${team.season}`}
+            className="object-contain object-center drop-shadow-[0_16px_14px_rgb(0_0_0_/_0.3)]"
+            fill
+            priority
+            sizes="(min-width: 1280px) 75rem, 100vw"
+            src={team.carImageUrl}
+          />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center rounded-md border border-border/70 bg-background/30 text-center font-telemetry text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">
+            Болид проходит проверку
+          </div>
+        )}
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-transparent" />
       <div
@@ -105,14 +147,18 @@ function TeamHero({ team }: { team: TeamProfile }) {
       <div className="relative flex min-h-[31rem] flex-col justify-between p-5 text-foreground sm:min-h-[35rem] sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Button asChild size="sm" variant="secondary">
-            <Link href="/teams" prefetch={false}>
+            <Link href={`/teams?season=${team.season}`} prefetch={false}>
               <ArrowLeft aria-hidden="true" data-icon="inline-start" />
               Все команды
             </Link>
           </Button>
-          <Badge className="border-border bg-background/75 text-foreground backdrop-blur-sm" variant="outline">
-            Сезон {team.season}
-          </Badge>
+          <SeasonSwitcher
+            activeSeason={team.season}
+            className="w-full sm:w-auto"
+            pathname={`/teams/${team.slug}`}
+            query={query}
+            seasons={availableSeasons}
+          />
         </div>
 
         <div className="max-w-2xl">
@@ -163,16 +209,22 @@ function DriverLineup({ team }: { team: TeamProfile }) {
         {team.drivers.map((driver) => (
           <Link
             className="group grid min-h-[14rem] min-w-0 grid-cols-[6rem_minmax(0,1fr)_auto] content-start gap-x-4 gap-y-4 rounded-md border border-border bg-background/35 p-4 transition-colors hover:border-foreground/25 hover:bg-accent/55 sm:p-5"
-            href={driver.slug ? `/drivers/${driver.slug}` : "/leaderboard"}
+            href={driver.slug
+              ? `/drivers/${driver.slug}?season=${team.season}`
+              : `/leaderboard?season=${team.season}`}
             key={driver.id}
             prefetch={false}
           >
             <DriverAvatarBadge
               className="size-24"
               color={team.color}
+              fallbackClassName="font-telemetry text-3xl text-foreground"
+              fallbackLabel={driver.number ?? driver.code}
               name={driver.fullName}
+              season={team.season}
               sizes="6rem"
               slug={driver.slug}
+              src={driver.avatarUrl}
             />
             <div className="min-w-0 self-center">
               <p className="text-balance font-display text-lg font-extrabold leading-tight group-hover:text-primary">{driver.fullName}</p>
@@ -281,9 +333,11 @@ function TeamSeasonStats({ team }: { team: TeamProfile }) {
 function TeamResultsTable({
   drivers,
   results,
+  season,
 }: {
   drivers: TeamProfile["drivers"];
   results: TeamRaceResultRow[];
+  season: number;
 }) {
   return (
     <StitchPanel className="min-w-0 overflow-hidden">
@@ -321,7 +375,7 @@ function TeamResultsTable({
                       {driver.slug ? (
                         <Link
                           className="min-w-0 truncate text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
-                          href={`/drivers/${driver.slug}`}
+                          href={`/drivers/${driver.slug}?season=${season}`}
                           prefetch={false}
                         >
                           {driver.name}

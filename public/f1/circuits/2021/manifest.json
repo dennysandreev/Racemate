@@ -1,0 +1,475 @@
+{
+  "season": 2021,
+  "downloadedAt": "2026-07-15T21:55:41.308Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2021,
+      "round": 1,
+      "raceName": "Bahrain Grand Prix",
+      "circuitId": "bahrain",
+      "layoutSlug": "bahrain",
+      "file": "/f1/circuits/2021/01-bahrain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Bahrain%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Bahrain%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "f34e7d8811f6307f0a6451257258b13d0cb9b4f0eb6c1091f22e3795f1213e71",
+      "renderedPage": 2,
+      "sha256": "2ffcf85ecbe0d27dcb79fc1a3bb81383b5ddddddaf46820a94555c4969941bc2",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 2,
+      "raceName": "Emilia Romagna Grand Prix",
+      "circuitId": "imola",
+      "layoutSlug": "emiliaromagna",
+      "file": "/f1/circuits/2021/02-emiliaromagna.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Emilia%20Romagna%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Emilia%20Romagna%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "3f0cc862a15e4b39380d3d3c07c308c1ebeeb52fbc56946b2463bfe433dd44d3",
+      "renderedPage": 2,
+      "sha256": "2b688779a986109a07671f13fe6b193334273768ebe282378bfd975c3ba3b0c8",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 3,
+      "raceName": "Portuguese Grand Prix",
+      "circuitId": "portimao",
+      "layoutSlug": "portugal",
+      "file": "/f1/circuits/2021/03-portugal.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Portuguese%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Portuguese%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "f9cd060266c222c9e6f00fa0d824dce6e8fb26e99a88bb7426842870787e5a9e",
+      "renderedPage": 2,
+      "sha256": "691f245637b4c1418e87a21ad98481033721044298afb037bceca4a9c86999b7",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 4,
+      "raceName": "Spanish Grand Prix",
+      "circuitId": "catalunya",
+      "layoutSlug": "spain",
+      "file": "/f1/circuits/2021/04-spain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Spanish%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Spanish%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "b8faa5b8bd48df05142b3ff968701d877dcde8c3e1be90bfa12a61d3c3ebde93",
+      "renderedPage": 2,
+      "sha256": "d9ce0f704ab03de931fb713d588aa48aece07b3b3890acdbdfd7678505281faa",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 5,
+      "raceName": "Monaco Grand Prix",
+      "circuitId": "monaco",
+      "layoutSlug": "monaco",
+      "file": "/f1/circuits/2021/05-monaco.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Monaco%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Monaco%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "01a9dbda94ddc6a387f8c90159cbce7422899aff70da5d97e008d555c71126e6",
+      "renderedPage": 2,
+      "sha256": "21e93dd72f5f60cd10141787e7f718428bff29a709f3e1390b6bba0f764c6d4e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 6,
+      "raceName": "Azerbaijan Grand Prix",
+      "circuitId": "baku",
+      "layoutSlug": "azerbaijan",
+      "file": "/f1/circuits/2021/06-azerbaijan.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Azerbaijan%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Azerbaijan%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "0a5bad40fb2bf263b1318838c6161e16c7e69c1a4f14d5979207eeebb0156562",
+      "renderedPage": 2,
+      "sha256": "06d086a88399fe611dc7b9f42678c0863aa9893898cfdc37d9d313390945fbe7",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 7,
+      "raceName": "French Grand Prix",
+      "circuitId": "ricard",
+      "layoutSlug": "france",
+      "file": "/f1/circuits/2021/07-france.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/French%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20French%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "c45a9bb409ffa5fd76bed5c3ebef9cc47bf90521e8985a28e600a5a7800e4dee",
+      "renderedPage": 2,
+      "sha256": "0a16222ce783fab8ba7d0a8bb233618713523c3168bf2d6227f27dad80a8fcb1",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 8,
+      "raceName": "Styrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "styria",
+      "file": "/f1/circuits/2021/08-styria.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Styrian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Styrian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "6b10c3cafaaafc3fddbf78776261efb9d0cb13b2d6fcd92bfdd8cff90343d1e9",
+      "renderedPage": 2,
+      "sha256": "d2f1c49f1d92a55794451722bb3567d0605c80948db8cb0532d73f101890aeb9",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 9,
+      "raceName": "Austrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "austria",
+      "file": "/f1/circuits/2021/09-austria.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Austrian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Austrian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "91098f09fe5e0ffce9d45233ea00f4cc7b24016ddb30003e8ab942c20c691d12",
+      "renderedPage": 2,
+      "sha256": "dee00113dd5b22a5fef54668b8b6926b8a62dea74d415f4fcc1df66eb18e0ae1",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 10,
+      "raceName": "British Grand Prix",
+      "circuitId": "silverstone",
+      "layoutSlug": "great-britain",
+      "file": "/f1/circuits/2021/10-great-britain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/British%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20British%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "c872c432e8b54b135767c1ff83e6ea0d0bf252868323f877c747e0e4bd0ff2b9",
+      "renderedPage": 2,
+      "sha256": "ac438fbe7389f0f2b274a42f9595bbd287b45b9bef21e232a0779256cb100afb",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 11,
+      "raceName": "Hungarian Grand Prix",
+      "circuitId": "hungaroring",
+      "layoutSlug": "hungary",
+      "file": "/f1/circuits/2021/11-hungary.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Hungarian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Hungarian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "0964924832538f5c51c6423ef5bb7f572985f0d570256180aef39ed2b652a170",
+      "renderedPage": 2,
+      "sha256": "98e46d82964059343847100afa2fb714dc783321ed6d2c6700ccf6a6d5625e0d",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 12,
+      "raceName": "Belgian Grand Prix",
+      "circuitId": "spa",
+      "layoutSlug": "belgium",
+      "file": "/f1/circuits/2021/12-belgium.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Belgian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Belgian%20Grand%20Prix%20-%20Circuit%20Map__0.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "bd87504e8d4abf8334fb99baa8ce19d3046af694de48edd25f7fc756d85eae00",
+      "renderedPage": 2,
+      "sha256": "b73404f2867d9b07a623b59ddb990ad1cb4abaf593a44846b6c10bbc9ebd9b88",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 13,
+      "raceName": "Dutch Grand Prix",
+      "circuitId": "zandvoort",
+      "layoutSlug": "netherlands",
+      "file": "/f1/circuits/2021/13-netherlands.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Dutch%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Dutch%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "8ce54c3b21165319f244634dd30a11439c31c3e7f10022ee422dc25bcb7b95af",
+      "renderedPage": 2,
+      "sha256": "04cd4531e909cccdf55e41fcfc46655568261df351a5f7ad072dc5b31d78bdab",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 14,
+      "raceName": "Italian Grand Prix",
+      "circuitId": "monza",
+      "layoutSlug": "italy",
+      "file": "/f1/circuits/2021/14-italy.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Italian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Italian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "3e7a1b86b748ebfe347328b4d98e2b69bb85cc010e9a1342036d6920994bbefc",
+      "renderedPage": 2,
+      "sha256": "c8f6240d2a15c0e5e1442e2fe80110cbdf642c086484c00b53fa06a388caaeb7",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 15,
+      "raceName": "Russian Grand Prix",
+      "circuitId": "sochi",
+      "layoutSlug": "russia",
+      "file": "/f1/circuits/2021/15-russia.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Russian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Russian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "b7eb69fc8376f5aeacf371b17b4158ff67f7660d73f7d028008f095943ef75b9",
+      "renderedPage": 2,
+      "sha256": "11c23997e7383e2f89a4c03f8c6aece9f294adeb1972c679a6c7e1ca3399b41f",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 16,
+      "raceName": "Turkish Grand Prix",
+      "circuitId": "istanbul",
+      "layoutSlug": "turkish",
+      "file": "/f1/circuits/2021/16-turkish.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Turkish%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/doc_1_-_2021_turkish_grand_prix_-_circuit_map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "d475f8ddce6f9ec24c484f697977f686c68335a8d281f4e5d5ebca5227b6056f",
+      "renderedPage": 2,
+      "sha256": "67f3a03bb7f1caa48963fbcd7f3ecdd315bffadc67270bb3126e22c57106375d",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 17,
+      "raceName": "United States Grand Prix",
+      "circuitId": "americas",
+      "layoutSlug": "united-states",
+      "file": "/f1/circuits/2021/17-united-states.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/United%20States%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20United%20States%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "dc39e929f553ee7bf86fb24ed03cea9c4bd19b644ee7c3abfcf4b05e4b62a7ce",
+      "renderedPage": 2,
+      "sha256": "6c96a6116b2a8689f799023b57f3c07f496d1b2f5cae62cba26f9f34d99467f6",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 18,
+      "raceName": "Mexico City Grand Prix",
+      "circuitId": "rodriguez",
+      "layoutSlug": "mexico",
+      "file": "/f1/circuits/2021/18-mexico.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Mexican%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Mexican%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "06c85899210a36db3faff6fa1bd6f042af483fb5b086b5ccdf941372f365dfc0",
+      "renderedPage": 2,
+      "sha256": "7d9f25ce3c68a2d92b992c73a286e61616e578de5f48634ef9da32083497c0df",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 19,
+      "raceName": "São Paulo Grand Prix",
+      "circuitId": "interlagos",
+      "layoutSlug": "brazil",
+      "file": "/f1/circuits/2021/19-brazil.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Brazilian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Brazilian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "d5c03c9dac7699611d17f64a8c845f933d14ab0d0aaff19480ea9f7524d6e7ce",
+      "renderedPage": 2,
+      "sha256": "4112dd9a0284346993f799d1eb2563eb15c2b831e499effd544980f8768a8e3a",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 20,
+      "raceName": "Qatar Grand Prix",
+      "circuitId": "losail",
+      "layoutSlug": "qatar",
+      "file": "/f1/circuits/2021/20-qatar.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Qatar%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Qatar%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "2bf8a35b3390b65d1952d0bab748b5c4d835a90ce19de22819abadbf0c776fb9",
+      "renderedPage": 2,
+      "sha256": "43ea61aefbb74524831a50fc9a46ed072b5847c6c7f3fc79127fca4a5bf1b727",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 21,
+      "raceName": "Saudi Arabian Grand Prix",
+      "circuitId": "jeddah",
+      "layoutSlug": "saudi-arabian",
+      "file": "/f1/circuits/2021/21-saudi-arabian.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Saudi%20Arabian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/doc_1_-_2021_saudi_arabian_grand_prix_-_circuit_map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "4ab8e292fc183479e225bf00a50428ad443a1e8d8317ce7b126d981c07189d2a",
+      "renderedPage": 2,
+      "sha256": "794305a34ab328c7cc74d5c27d1e4c4576e0226d8bb342fe6594f1c1d60b96f4",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2021,
+      "round": 22,
+      "raceName": "Abu Dhabi Grand Prix",
+      "circuitId": "yas_marina",
+      "layoutSlug": "united-arab-emirates",
+      "file": "/f1/circuits/2021/22-united-arab-emirates.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2021-1108/event/Abu%20Dhabi%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2021%20Abu%20Dhabi%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "8eef9a792b067a86751deb1035ef5637c8590ba1ff898ee2f93919d2aa417c6a",
+      "renderedPage": 2,
+      "sha256": "1e2bd79a30125c97932c68c7e61159aca4f721e856b8ecdaded8a84f3dc19666",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:23.144073Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    }
+  ],
+  "manualReview": {
+    "status": "approved",
+    "reviewedAt": "2026-07-15T21:59:23.144073Z",
+    "reviewer": "RaceMate visual QA"
+  }
+}

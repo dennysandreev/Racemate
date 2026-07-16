@@ -1,0 +1,1094 @@
+{
+  "schemaVersion": 1,
+  "season": 2025,
+  "promptVersion": "driver-avatar-seasonal-v1",
+  "helmetReferencePolicy": "Exact visual reference for the driver's regular primary helmet in this season; one-off designs are not accepted.",
+  "generatedAt": "2026-07-15T22:12:23.581Z",
+  "source": {
+    "provider": "Jolpica F1",
+    "resultsUrl": "https://api.jolpi.ca/ergast/f1/2025/results.json",
+    "standingsUrl": "https://api.jolpi.ca/ergast/f1/2025/driverstandings.json?limit=100",
+    "fetchedAt": "2026-07-15T22:12:23.581Z"
+  },
+  "complete": false,
+  "stats": {
+    "drivers": 21,
+    "raceResultRows": 479,
+    "ready": 0,
+    "pending": 21
+  },
+  "drivers": [
+    {
+      "externalId": "albon",
+      "slug": "alexander-albon",
+      "fullName": "Alexander Albon",
+      "givenName": "Alexander",
+      "familyName": "Albon",
+      "code": "ALB",
+      "permanentNumber": "23",
+      "nationality": "Thai",
+      "season": 2025,
+      "team": {
+        "externalId": "williams",
+        "name": "Williams",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "williams",
+          "name": "Williams",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/alexander-albon.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Alexander_Albon",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Alexander Albon, Formula 1 driver for Williams in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Williams. The helmet must match the real regular-season 2025 design and Williams identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "antonelli",
+      "slug": "andrea-kimi-antonelli",
+      "fullName": "Andrea Kimi Antonelli",
+      "givenName": "Andrea Kimi",
+      "familyName": "Antonelli",
+      "code": "ANT",
+      "permanentNumber": "12",
+      "nationality": "Italian",
+      "season": 2025,
+      "team": {
+        "externalId": "mercedes",
+        "name": "Mercedes",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mercedes",
+          "name": "Mercedes",
+          "nationality": "German",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/andrea-kimi-antonelli.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "https://en.wikipedia.org/wiki/Andrea_Kimi_Antonelli",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Andrea Kimi Antonelli, Formula 1 driver for Mercedes in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Mercedes. The helmet must match the real regular-season 2025 design and Mercedes identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "sainz",
+      "slug": "carlos-sainz",
+      "fullName": "Carlos Sainz",
+      "givenName": "Carlos",
+      "familyName": "Sainz",
+      "code": "SAI",
+      "permanentNumber": "55",
+      "nationality": "Spanish",
+      "season": 2025,
+      "team": {
+        "externalId": "williams",
+        "name": "Williams",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing"
+      },
+      "starts": 23,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "williams",
+          "name": "Williams",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Williams_Racing",
+          "appearances": 24,
+          "starts": 23,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/carlos-sainz.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Carlos_Sainz_Jr.",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Carlos Sainz, Formula 1 driver for Williams in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Williams. The helmet must match the real regular-season 2025 design and Williams identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "leclerc",
+      "slug": "charles-leclerc",
+      "fullName": "Charles Leclerc",
+      "givenName": "Charles",
+      "familyName": "Leclerc",
+      "code": "LEC",
+      "permanentNumber": "16",
+      "nationality": "Monegasque",
+      "season": 2025,
+      "team": {
+        "externalId": "ferrari",
+        "name": "Ferrari",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "ferrari",
+          "name": "Ferrari",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/charles-leclerc.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Charles_Leclerc",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Charles Leclerc, Formula 1 driver for Ferrari in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Ferrari. The helmet must match the real regular-season 2025 design and Ferrari identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "ocon",
+      "slug": "esteban-ocon",
+      "fullName": "Esteban Ocon",
+      "givenName": "Esteban",
+      "familyName": "Ocon",
+      "code": "OCO",
+      "permanentNumber": "31",
+      "nationality": "French",
+      "season": 2025,
+      "team": {
+        "externalId": "haas",
+        "name": "Haas F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "haas",
+          "name": "Haas F1 Team",
+          "nationality": "American",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/esteban-ocon.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Esteban_Ocon",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Esteban Ocon, Formula 1 driver for Haas F1 Team in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Haas F1 Team. The helmet must match the real regular-season 2025 design and Haas F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "alonso",
+      "slug": "fernando-alonso",
+      "fullName": "Fernando Alonso",
+      "givenName": "Fernando",
+      "familyName": "Alonso",
+      "code": "ALO",
+      "permanentNumber": "14",
+      "nationality": "Spanish",
+      "season": 2025,
+      "team": {
+        "externalId": "aston_martin",
+        "name": "Aston Martin",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "aston_martin",
+          "name": "Aston Martin",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/fernando-alonso.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Fernando_Alonso",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Fernando Alonso, Formula 1 driver for Aston Martin in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Aston Martin. The helmet must match the real regular-season 2025 design and Aston Martin identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "colapinto",
+      "slug": "franco-colapinto",
+      "fullName": "Franco Colapinto",
+      "givenName": "Franco",
+      "familyName": "Colapinto",
+      "code": "COL",
+      "permanentNumber": "43",
+      "nationality": "Argentine",
+      "season": 2025,
+      "team": {
+        "externalId": "alpine",
+        "name": "Alpine F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team"
+      },
+      "starts": 17,
+      "appearances": 18,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "alpine",
+          "name": "Alpine F1 Team",
+          "nationality": "French",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team",
+          "appearances": 18,
+          "starts": 17,
+          "firstAppearanceRound": 7,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/franco-colapinto.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Franco_Colapinto",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Franco Colapinto, Formula 1 driver for Alpine F1 Team in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Alpine F1 Team. The helmet must match the real regular-season 2025 design and Alpine F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "bortoleto",
+      "slug": "gabriel-bortoleto",
+      "fullName": "Gabriel Bortoleto",
+      "givenName": "Gabriel",
+      "familyName": "Bortoleto",
+      "code": "BOR",
+      "permanentNumber": "5",
+      "nationality": "Brazilian",
+      "season": 2025,
+      "team": {
+        "externalId": "sauber",
+        "name": "Sauber",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Sauber_Motorsport"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "sauber",
+          "name": "Sauber",
+          "nationality": "Swiss",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Sauber_Motorsport",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/gabriel-bortoleto.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "https://en.wikipedia.org/wiki/Gabriel_Bortoleto",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Gabriel Bortoleto, Formula 1 driver for Sauber in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Sauber. The helmet must match the real regular-season 2025 design and Sauber identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "russell",
+      "slug": "george-russell",
+      "fullName": "George Russell",
+      "givenName": "George",
+      "familyName": "Russell",
+      "code": "RUS",
+      "permanentNumber": "63",
+      "nationality": "British",
+      "season": 2025,
+      "team": {
+        "externalId": "mercedes",
+        "name": "Mercedes",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mercedes",
+          "name": "Mercedes",
+          "nationality": "German",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/george-russell.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/George_Russell_(racing_driver)",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of George Russell, Formula 1 driver for Mercedes in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Mercedes. The helmet must match the real regular-season 2025 design and Mercedes identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "hadjar",
+      "slug": "isack-hadjar",
+      "fullName": "Isack Hadjar",
+      "givenName": "Isack",
+      "familyName": "Hadjar",
+      "code": "HAD",
+      "permanentNumber": "6",
+      "nationality": "French",
+      "season": 2025,
+      "team": {
+        "externalId": "rb",
+        "name": "RB F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Bulls"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "rb",
+          "name": "RB F1 Team",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Bulls",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/isack-hadjar.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "https://en.wikipedia.org/wiki/Isack_Hadjar",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Isack Hadjar, Formula 1 driver for RB F1 Team in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with RB F1 Team. The helmet must match the real regular-season 2025 design and RB F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "doohan",
+      "slug": "jack-doohan",
+      "fullName": "Jack Doohan",
+      "givenName": "Jack",
+      "familyName": "Doohan",
+      "code": "DOO",
+      "permanentNumber": "7",
+      "nationality": "Australian",
+      "season": 2025,
+      "team": {
+        "externalId": "alpine",
+        "name": "Alpine F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team"
+      },
+      "starts": 6,
+      "appearances": 6,
+      "lastStartRound": 6,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "alpine",
+          "name": "Alpine F1 Team",
+          "nationality": "French",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team",
+          "appearances": 6,
+          "starts": 6,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 6,
+          "lastStartRound": 6
+        }
+      ],
+      "file": "/drivers/avatars/2025/jack-doohan.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Jack_Doohan",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Jack Doohan, Formula 1 driver for Alpine F1 Team in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Alpine F1 Team. The helmet must match the real regular-season 2025 design and Alpine F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "stroll",
+      "slug": "lance-stroll",
+      "fullName": "Lance Stroll",
+      "givenName": "Lance",
+      "familyName": "Stroll",
+      "code": "STR",
+      "permanentNumber": "18",
+      "nationality": "Canadian",
+      "season": 2025,
+      "team": {
+        "externalId": "aston_martin",
+        "name": "Aston Martin",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One"
+      },
+      "starts": 23,
+      "appearances": 23,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "aston_martin",
+          "name": "Aston Martin",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One",
+          "appearances": 23,
+          "starts": 23,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/lance-stroll.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Lance_Stroll",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Lance Stroll, Formula 1 driver for Aston Martin in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Aston Martin. The helmet must match the real regular-season 2025 design and Aston Martin identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "norris",
+      "slug": "lando-norris",
+      "fullName": "Lando Norris",
+      "givenName": "Lando",
+      "familyName": "Norris",
+      "code": "NOR",
+      "permanentNumber": "1",
+      "nationality": "British",
+      "season": 2025,
+      "team": {
+        "externalId": "mclaren",
+        "name": "McLaren",
+        "referenceUrl": "https://en.wikipedia.org/wiki/McLaren"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mclaren",
+          "name": "McLaren",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/McLaren",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/lando-norris.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Lando_Norris",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Lando Norris, Formula 1 driver for McLaren in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with McLaren. The helmet must match the real regular-season 2025 design and McLaren identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "hamilton",
+      "slug": "lewis-hamilton",
+      "fullName": "Lewis Hamilton",
+      "givenName": "Lewis",
+      "familyName": "Hamilton",
+      "code": "HAM",
+      "permanentNumber": "44",
+      "nationality": "British",
+      "season": 2025,
+      "team": {
+        "externalId": "ferrari",
+        "name": "Ferrari",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "ferrari",
+          "name": "Ferrari",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Scuderia_Ferrari",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/lewis-hamilton.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Lewis_Hamilton",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Lewis Hamilton, Formula 1 driver for Ferrari in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Ferrari. The helmet must match the real regular-season 2025 design and Ferrari identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "lawson",
+      "slug": "liam-lawson",
+      "fullName": "Liam Lawson",
+      "givenName": "Liam",
+      "familyName": "Lawson",
+      "code": "LAW",
+      "permanentNumber": "30",
+      "nationality": "New Zealander",
+      "season": 2025,
+      "team": {
+        "externalId": "rb",
+        "name": "RB F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Bulls"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "red_bull",
+          "name": "Red Bull",
+          "nationality": "Austrian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing",
+          "appearances": 2,
+          "starts": 2,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 2,
+          "lastStartRound": 2
+        },
+        {
+          "externalId": "rb",
+          "name": "RB F1 Team",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Bulls",
+          "appearances": 22,
+          "starts": 22,
+          "firstAppearanceRound": 3,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/liam-lawson.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Liam_Lawson",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Liam Lawson, Formula 1 driver for RB F1 Team in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with RB F1 Team. The helmet must match the real regular-season 2025 design and RB F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "max_verstappen",
+      "slug": "max-verstappen",
+      "fullName": "Max Verstappen",
+      "givenName": "Max",
+      "familyName": "Verstappen",
+      "code": "VER",
+      "permanentNumber": "3",
+      "nationality": "Dutch",
+      "season": 2025,
+      "team": {
+        "externalId": "red_bull",
+        "name": "Red Bull",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "red_bull",
+          "name": "Red Bull",
+          "nationality": "Austrian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/max-verstappen.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Max_Verstappen",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Max Verstappen, Formula 1 driver for Red Bull in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Red Bull. The helmet must match the real regular-season 2025 design and Red Bull identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "hulkenberg",
+      "slug": "nico-hulkenberg",
+      "fullName": "Nico Hülkenberg",
+      "givenName": "Nico",
+      "familyName": "Hülkenberg",
+      "code": "HUL",
+      "permanentNumber": "27",
+      "nationality": "German",
+      "season": 2025,
+      "team": {
+        "externalId": "sauber",
+        "name": "Sauber",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Sauber_Motorsport"
+      },
+      "starts": 23,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "sauber",
+          "name": "Sauber",
+          "nationality": "Swiss",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Sauber_Motorsport",
+          "appearances": 24,
+          "starts": 23,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/nico-hulkenberg.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Nico_H%C3%BClkenberg",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Nico Hülkenberg, Formula 1 driver for Sauber in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Sauber. The helmet must match the real regular-season 2025 design and Sauber identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "bearman",
+      "slug": "oliver-bearman",
+      "fullName": "Oliver Bearman",
+      "givenName": "Oliver",
+      "familyName": "Bearman",
+      "code": "BEA",
+      "permanentNumber": "87",
+      "nationality": "British",
+      "season": 2025,
+      "team": {
+        "externalId": "haas",
+        "name": "Haas F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "haas",
+          "name": "Haas F1 Team",
+          "nationality": "American",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Haas_F1_Team",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/oliver-bearman.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Oliver_Bearman",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Oliver Bearman, Formula 1 driver for Haas F1 Team in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Haas F1 Team. The helmet must match the real regular-season 2025 design and Haas F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "piastri",
+      "slug": "oscar-piastri",
+      "fullName": "Oscar Piastri",
+      "givenName": "Oscar",
+      "familyName": "Piastri",
+      "code": "PIA",
+      "permanentNumber": "81",
+      "nationality": "Australian",
+      "season": 2025,
+      "team": {
+        "externalId": "mclaren",
+        "name": "McLaren",
+        "referenceUrl": "https://en.wikipedia.org/wiki/McLaren"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "mclaren",
+          "name": "McLaren",
+          "nationality": "British",
+          "referenceUrl": "https://en.wikipedia.org/wiki/McLaren",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/oscar-piastri.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Oscar_Piastri",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Oscar Piastri, Formula 1 driver for McLaren in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with McLaren. The helmet must match the real regular-season 2025 design and McLaren identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "gasly",
+      "slug": "pierre-gasly",
+      "fullName": "Pierre Gasly",
+      "givenName": "Pierre",
+      "familyName": "Gasly",
+      "code": "GAS",
+      "permanentNumber": "10",
+      "nationality": "French",
+      "season": 2025,
+      "team": {
+        "externalId": "alpine",
+        "name": "Alpine F1 Team",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "alpine",
+          "name": "Alpine F1 Team",
+          "nationality": "French",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Alpine_F1_Team",
+          "appearances": 24,
+          "starts": 24,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/pierre-gasly.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Pierre_Gasly",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Pierre Gasly, Formula 1 driver for Alpine F1 Team in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Alpine F1 Team. The helmet must match the real regular-season 2025 design and Alpine F1 Team identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    },
+    {
+      "externalId": "tsunoda",
+      "slug": "yuki-tsunoda",
+      "fullName": "Yuki Tsunoda",
+      "givenName": "Yuki",
+      "familyName": "Tsunoda",
+      "code": "TSU",
+      "permanentNumber": "22",
+      "nationality": "Japanese",
+      "season": 2025,
+      "team": {
+        "externalId": "red_bull",
+        "name": "Red Bull",
+        "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing"
+      },
+      "starts": 24,
+      "appearances": 24,
+      "lastStartRound": 24,
+      "primaryTeamRule": "most race starts; tie broken by latest race start",
+      "teamStints": [
+        {
+          "externalId": "rb",
+          "name": "RB F1 Team",
+          "nationality": "Italian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Racing_Bulls",
+          "appearances": 2,
+          "starts": 2,
+          "firstAppearanceRound": 1,
+          "lastAppearanceRound": 2,
+          "lastStartRound": 2
+        },
+        {
+          "externalId": "red_bull",
+          "name": "Red Bull",
+          "nationality": "Austrian",
+          "referenceUrl": "https://en.wikipedia.org/wiki/Red_Bull_Racing",
+          "appearances": 22,
+          "starts": 22,
+          "firstAppearanceRound": 3,
+          "lastAppearanceRound": 24,
+          "lastStartRound": 24
+        }
+      ],
+      "file": "/drivers/avatars/2025/yuki-tsunoda.webp",
+      "source": {
+        "kind": "missing",
+        "sourceFile": null,
+        "sha256": null
+      },
+      "identityReferenceUrl": "http://en.wikipedia.org/wiki/Yuki_Tsunoda",
+      "helmetReferenceUrl": null,
+      "promptVersion": "driver-avatar-seasonal-v1",
+      "prompt": "Create a clean front-facing portrait avatar of Yuki Tsunoda, Formula 1 driver for Red Bull in the 2025 Formula 1 season, wearing the driver's regular primary 2025 Formula 1 racing helmet used with Red Bull. The helmet must match the real regular-season 2025 design and Red Bull identity as closely as possible: correct team colors, driver-specific helmet pattern, number placement, sponsor-style markings, and an authentic modern Formula 1 appearance. Do not use a one-off, tribute, special-event, or testing helmet design. Exact readable sponsor logos are not required. The visor must be open so that the driver's eyes are clearly visible through the visor opening. Only the eyes and a small part of the upper face may be visible, with a realistic racing balaclava inside the helmet. Do not show the full face and do not close the visor. Composition: centered, front-facing, passport-style portrait, symmetrical angle, helmet and upper shoulders visible, no car, no track, no background elements. Style: clean, high-detail, professional motorsport portrait, suitable for a website driver profile. Isolate the subject as a clean cutout on a fully transparent background with no shadow box, backdrop, scene, or extra objects. Output: 1:1 square transparent PNG or WebP raster asset with a clean vector-style finish. Vector-style describes the visual treatment; do not output SVG.",
+      "sha256": null,
+      "bytes": null,
+      "manualReview": {
+        "status": "pending",
+        "reviewedAt": null,
+        "note": null
+      }
+    }
+  ]
+}

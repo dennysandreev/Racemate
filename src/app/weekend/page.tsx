@@ -7,6 +7,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
 import { AppShell } from "@/components/racemate/app-shell";
@@ -35,6 +36,7 @@ import {
 import { getTeamAssetForMarketOutcome } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
 import { formatSessionName } from "@/lib/session-display";
+import { CURRENT_F1_SEASON, getSearchParam } from "@/lib/season-navigation";
 import { cn } from "@/lib/utils";
 import type { PredictionState, RaceDetail, RaceWinnerOdds, StandingRow } from "@/types/racemate";
 
@@ -42,16 +44,28 @@ export const dynamic = "force-dynamic";
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
-export default async function WeekendPage() {
+export default async function WeekendPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ season?: string | string[] }>;
+}) {
+  const query = await searchParams;
+  const requestedSeason = getSearchParam(query.season);
+
+  if (requestedSeason && Number(requestedSeason) !== CURRENT_F1_SEASON) {
+    notFound();
+  }
+
   const [nextSession, weekendSessions, currentRace, user, standings] = await Promise.all([
     getNextSession(),
     getWeekendSessions(),
     getCurrentRaceDetail(),
     getSessionUser(),
-    getDriverStandings(),
+    getDriverStandings(CURRENT_F1_SEASON),
   ]);
   const sessionResultsPromise = getSessionResultsBySessionIds(
     weekendSessions.map((session) => session.id),
+    CURRENT_F1_SEASON,
   );
   const [raceNews, winnerOdds, predictionState, resultsBySession, circuitStats, raceReplay] = await Promise.all([
     currentRace ? getRaceNews(currentRace.id, 4) : [],
@@ -79,7 +93,7 @@ export default async function WeekendPage() {
         : "/news";
 
   return (
-    <AppShell>
+    <AppShell season={CURRENT_F1_SEASON}>
       <section className="grid gap-4 pb-5 sm:gap-5">
         <WeekendHero
           circuitStats={circuitStats}

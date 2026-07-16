@@ -16,6 +16,7 @@ Canonical screen mapping:
 - `/calendar` — `RaceMate Season Calendar`
 - `/calendar/[season]/[round]` and report popup — Barcelona GP results/report screens
 - `/leaderboard` — `RaceMate Championship Leaderboard Only`
+- `/teams`, `/drivers/[slug]`, and `/teams/[lineageSlug]` — season-aware sporting profiles
 - `/fantasy` — `RaceMate Fantasy League`
 - `/social` — `RaceMate Social Networks Feed`
 - `/polls` — `RaceMate Polls`
@@ -102,6 +103,14 @@ App surfaces:
 - Desktop uses the Stitch shell: fixed top navigation plus left command sidebar. Mobile collapses to a burger/drawer.
 - Cards are for repeated content, modals, and framed tools. Do not nest cards.
 - Fixed-format UI such as prediction picks, standings rows, and session cards must have stable dimensions to avoid layout jumps.
+
+Historical season surfaces:
+- Calendar, championship, teams, driver profiles, and team-lineage profiles keep the selected year in `?season=YYYY`; championship mode keeps `table=constructors` as well.
+- `SeasonSwitcher` sits in each surface hero. At `sm` and wider it is a restrained segmented row of years; below `sm` it becomes a native select. Both variants use a 44px interaction height, visible focus, keyboard-native behavior, 150-200ms feedback, and no transition under reduced motion.
+- A profile with one available season shows a quiet static season label instead of a disabled control.
+- Historical pages use the same Apex Performance hierarchy as the current season, but only show sporting information. Current-only news, social posts, odds, weather, AI race reports, and Race Replay do not appear.
+- Cars, logos, and maps must resolve from the selected season and remain part of its publication gate. Never substitute 2026 artwork for a historical asset.
+- Historical driver portraits are optional. When a season-specific portrait is absent, show a composed number or initials placeholder with the team's seasonal color, without loading or review-status copy. Existing 2026 portraits remain unchanged.
 
 Admin surfaces:
 - Quiet, high-density operational layout.

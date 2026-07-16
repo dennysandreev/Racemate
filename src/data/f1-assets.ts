@@ -15,94 +15,96 @@ type TeamProfileAsset = {
   slug: string;
 };
 
+export const LEGACY_F1_ASSET_SEASON = 2026;
+
 const circuitAssets = [
   {
     aliases: ["australia", "albert park", "melbourne"],
-    src: "/f1/circuits/australia.webp",
+    src: "/f1/circuits/2026/01-australia.webp",
   },
   {
     aliases: ["china", "shanghai"],
-    src: "/f1/circuits/china.webp",
+    src: "/f1/circuits/2026/02-china.webp",
   },
   {
     aliases: ["japan", "suzuka"],
-    src: "/f1/circuits/japan.webp",
+    src: "/f1/circuits/2026/03-japan.webp",
   },
   {
     aliases: ["miami", "miami international autodrome"],
-    src: "/f1/circuits/miami.webp",
+    src: "/f1/circuits/2026/04-miami.webp",
   },
   {
     aliases: ["canada", "gilles villeneuve", "montreal"],
-    src: "/f1/circuits/canada.webp",
+    src: "/f1/circuits/2026/05-canada.webp",
   },
   {
     aliases: ["monaco", "monte carlo"],
-    src: "/f1/circuits/monaco.webp",
+    src: "/f1/circuits/2026/06-monaco.webp",
   },
   {
     aliases: ["barcelona-catalunya", "barcelona", "catalunya", "circuit de barcelona-catalunya"],
-    src: "/f1/circuits/barcelona-catalunya.webp",
+    src: "/f1/circuits/2026/07-barcelona-catalunya.webp",
   },
   {
     aliases: ["spain", "madrid", "madring", "ifema madrid"],
-    src: "/f1/circuits/spain.webp",
+    src: "/f1/circuits/2026/14-spain.webp",
   },
   {
     aliases: ["austria", "red bull ring", "spielberg"],
-    src: "/f1/circuits/austria.webp",
+    src: "/f1/circuits/2026/08-austria.webp",
   },
   {
     aliases: ["great britain", "silverstone", "united kingdom"],
-    src: "/f1/circuits/great-britain.webp",
+    src: "/f1/circuits/2026/09-great-britain.webp",
   },
   {
     aliases: ["belgium", "spa-francorchamps", "spa"],
-    src: "/f1/circuits/belgium.webp",
+    src: "/f1/circuits/2026/10-belgium.webp",
   },
   {
     aliases: ["hungary", "hungaroring", "budapest"],
-    src: "/f1/circuits/hungary.webp",
+    src: "/f1/circuits/2026/11-hungary.webp",
   },
   {
     aliases: ["netherlands", "zandvoort"],
-    src: "/f1/circuits/netherlands.webp",
+    src: "/f1/circuits/2026/12-netherlands.webp",
   },
   {
     aliases: ["italy", "monza"],
-    src: "/f1/circuits/italy.webp",
+    src: "/f1/circuits/2026/13-italy.webp",
   },
   {
     aliases: ["azerbaijan", "baku"],
-    src: "/f1/circuits/baku.webp",
+    src: "/f1/circuits/2026/15-azerbaijan.webp",
   },
   {
     aliases: ["singapore", "marina bay"],
-    src: "/f1/circuits/singapore.webp",
+    src: "/f1/circuits/2026/16-singapore.webp",
   },
   {
     aliases: ["united states", "usa", "americas", "austin", "cota"],
-    src: "/f1/circuits/usa.webp",
+    src: "/f1/circuits/2026/17-united-states.webp",
   },
   {
     aliases: ["mexico", "hermanos rodriguez"],
-    src: "/f1/circuits/mexico.webp",
+    src: "/f1/circuits/2026/18-mexico.webp",
   },
   {
     aliases: ["brazil", "interlagos", "jose carlos pace", "sao paulo"],
-    src: "/f1/circuits/brazil.webp",
+    src: "/f1/circuits/2026/19-brazil.webp",
   },
   {
     aliases: ["las vegas", "las vegas strip"],
-    src: "/f1/circuits/las-vegas.webp",
+    src: "/f1/circuits/2026/20-las-vegas.webp",
   },
   {
     aliases: ["qatar", "losail", "lusail"],
-    src: "/f1/circuits/qatar.webp",
+    src: "/f1/circuits/2026/21-qatar.webp",
   },
   {
     aliases: ["abu dhabi", "yas marina", "united arab emirates"],
-    src: "/f1/circuits/abu-dhabi.webp",
+    src: "/f1/circuits/2026/22-united-arab-emirates.webp",
   },
 ] satisfies CircuitAsset[];
 
@@ -110,77 +112,77 @@ const teamAssets = [
   {
     name: "Alpine",
     code: "ALP",
-    logo: "/f1/teams/alpine.webp",
+    logo: "/f1/teams/logos/2026/alpine.webp",
     color: "#0093CC",
     aliases: ["alpine", "bwt alpine", "alp"],
   },
   {
     name: "Aston Martin",
     code: "AMR",
-    logo: "/f1/teams/aston-martin.svg",
+    logo: "/f1/teams/logos/2026/aston-martin.webp",
     color: "#229971",
     aliases: ["aston martin", "aston martin aramco", "aston martin aramco f1 team", "amr", "ast"],
   },
   {
     name: "Audi",
     code: "AUD",
-    logo: "/f1/teams/audi.webp",
+    logo: "/f1/teams/logos/2026/audi.webp",
     color: "#D71920",
     aliases: ["audi", "sauber", "kick sauber", "stake", "aud"],
   },
   {
     name: "Cadillac",
     code: "CAD",
-    logo: "/f1/teams/cadillac.webp",
+    logo: "/f1/teams/logos/2026/cadillac.webp",
     color: "#B98B2F",
     aliases: ["cadillac", "cad"],
   },
   {
     name: "Ferrari",
     code: "FER",
-    logo: "/f1/teams/ferrari.webp",
+    logo: "/f1/teams/logos/2026/ferrari.webp",
     color: "#E8002D",
     aliases: ["ferrari", "scuderia ferrari", "fer"],
   },
   {
     name: "Haas",
     code: "HAS",
-    logo: "/f1/teams/haas.svg",
+    logo: "/f1/teams/logos/2026/haas.webp",
     color: "#B6BABD",
     aliases: ["haas", "haas f1 team", "moneygram haas", "tgr haas", "has", "haa"],
   },
   {
     name: "McLaren",
     code: "MCL",
-    logo: "/f1/teams/mclaren.webp",
+    logo: "/f1/teams/logos/2026/mclaren.webp",
     color: "#FF8000",
     aliases: ["mclaren", "mclaren mercedes", "mcl"],
   },
   {
     name: "Mercedes",
     code: "MER",
-    logo: "/f1/teams/mercedes.webp",
+    logo: "/f1/teams/logos/2026/mercedes.webp",
     color: "#27F4D2",
     aliases: ["mercedes", "mercedes-amg", "mercedes amg", "mer"],
   },
   {
     name: "Racing Bulls",
     code: "RB",
-    logo: "/f1/teams/racing-bulls.webp",
+    logo: "/f1/teams/logos/2026/rb.webp",
     color: "#6692FF",
     aliases: ["racing bulls", "rb", "visa cash app rb", "vcarb", "racingbulls"],
   },
   {
     name: "Red Bull Racing",
     code: "RBR",
-    logo: "/f1/teams/red-bull-racing.svg",
+    logo: "/f1/teams/logos/2026/red-bull.webp",
     color: "#3671C6",
     aliases: ["red bull", "red bull racing", "oracle red bull racing", "rbr", "red"],
   },
   {
     name: "Williams",
     code: "WIL",
-    logo: "/f1/teams/williams.webp",
+    logo: "/f1/teams/logos/2026/williams.webp",
     color: "#64C4FF",
     aliases: ["williams", "atlansian williams", "williams racing", "wil"],
   },
@@ -192,7 +194,7 @@ const teamProfileAssets = [
   { aliases: ["mclaren", "mcl"], carImageUrl: "/f1/teams/cars/2026/mclaren.webp", slug: "mclaren" },
   { aliases: ["red bull", "red bull racing", "red"], carImageUrl: "/f1/teams/cars/2026/red-bull.webp", slug: "red-bull" },
   { aliases: ["alpine", "alpine f1 team", "alp"], carImageUrl: "/f1/teams/cars/2026/alpine.webp", slug: "alpine" },
-  { aliases: ["racing bulls", "rb f1 team", "rbx"], carImageUrl: "/f1/teams/cars/2026/racing-bulls.webp", slug: "racing-bulls" },
+  { aliases: ["racing bulls", "rb f1 team", "rbx"], carImageUrl: "/f1/teams/cars/2026/rb.webp", slug: "racing-bulls" },
   { aliases: ["haas", "haas f1 team", "haa"], carImageUrl: "/f1/teams/cars/2026/haas.webp", slug: "haas" },
   { aliases: ["williams", "wil"], carImageUrl: "/f1/teams/cars/2026/williams.webp", slug: "williams" },
   { aliases: ["audi", "aud"], carImageUrl: "/f1/teams/cars/2026/audi.webp", slug: "audi" },
@@ -200,8 +202,11 @@ const teamProfileAssets = [
   { aliases: ["cadillac", "cadillac f1 team", "cad"], carImageUrl: "/f1/teams/cars/2026/cadillac.webp", slug: "cadillac" },
 ] satisfies TeamProfileAsset[];
 
-export function getCircuitAsset(circuitNameOrExternalId?: string | null) {
-  if (!circuitNameOrExternalId) {
+export function getCircuitAsset(
+  circuitNameOrExternalId?: string | null,
+  season = LEGACY_F1_ASSET_SEASON,
+) {
+  if (!circuitNameOrExternalId || season !== LEGACY_F1_ASSET_SEASON) {
     return null;
   }
 
@@ -214,8 +219,11 @@ export function getCircuitAsset(circuitNameOrExternalId?: string | null) {
   );
 }
 
-export function getTeamAsset(teamNameOrCode?: string | null): TeamVisual | null {
-  if (!teamNameOrCode) {
+export function getTeamAsset(
+  teamNameOrCode?: string | null,
+  season = LEGACY_F1_ASSET_SEASON,
+): TeamVisual | null {
+  if (!teamNameOrCode || season !== LEGACY_F1_ASSET_SEASON) {
     return null;
   }
 
@@ -236,8 +244,11 @@ export function getTeamAsset(teamNameOrCode?: string | null): TeamVisual | null 
   };
 }
 
-export function getTeamProfileAsset(teamNameOrCode?: string | null) {
-  if (!teamNameOrCode) {
+export function getTeamProfileAsset(
+  teamNameOrCode?: string | null,
+  season = LEGACY_F1_ASSET_SEASON,
+) {
+  if (!teamNameOrCode || season !== LEGACY_F1_ASSET_SEASON) {
     return null;
   }
 
@@ -313,6 +324,30 @@ export function getTeamMatchNames() {
   });
 
   return [...names];
+}
+
+export function getSeasonDriverAvatarPath(season: number, driverSlug: string) {
+  return `/drivers/avatars/${season}/${toAssetSlug(driverSlug)}.webp`;
+}
+
+export function getSeasonTeamCarPath(season: number, constructorId: string) {
+  return `/f1/teams/cars/${season}/${toAssetSlug(constructorId)}.webp`;
+}
+
+export function getSeasonTeamLogoPath(season: number, constructorId: string) {
+  return `/f1/teams/logos/${season}/${toAssetSlug(constructorId)}.webp`;
+}
+
+export function getSeasonCircuitPath(
+  season: number,
+  round: number,
+  eventSlug: string,
+) {
+  return `/f1/circuits/${season}/${String(round).padStart(2, "0")}-${toAssetSlug(eventSlug)}.webp`;
+}
+
+function toAssetSlug(value: string) {
+  return normalizeAssetKey(value).replaceAll(" ", "-");
 }
 
 function normalizeAssetKey(value: string) {

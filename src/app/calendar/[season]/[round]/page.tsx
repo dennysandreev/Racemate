@@ -23,11 +23,14 @@ import {
   getDriverSlugMap,
   getRaceGrandPrixReport,
   getGrandPrixReportBySlug,
+  getPublishedSeasons,
   getRaceNews,
   getRaceReplaySummaryByRaceId,
   getRaceSessions,
   getSessionResults,
 } from "@/data/racemate-repository";
+import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
+import { cn } from "@/lib/utils";
 import { formatSessionName } from "@/lib/session-display";
 import type { GrandPrixReport, SessionResult, WeekendSession } from "@/types/racemate";
 
@@ -41,10 +44,16 @@ export default async function RaceCalendarPage({
   searchParams: Promise<{ session?: string; raceReport?: string }>;
 }) {
   const [{ season, round }, query] = await Promise.all([params, searchParams]);
+  if (!/^\d{4}$/.test(season) || !/^[1-9]\d*$/.test(round)) {
+    notFound();
+  }
+
   const seasonYear = Number(season);
   const raceRound = Number(round);
 
-  if (!Number.isFinite(seasonYear) || !Number.isFinite(raceRound)) {
+  const publishedSeasons = await getPublishedSeasons();
+
+  if (!publishedSeasons.includes(seasonYear)) {
     notFound();
   }
 
@@ -54,27 +63,34 @@ export default async function RaceCalendarPage({
     notFound();
   }
 
-  const [sessions, raceNews, raceReport, queryReport, driverSlugByName, circuitStats, raceReplay] = await Promise.all([
+  const isCurrentSeason = seasonYear === CURRENT_F1_SEASON;
+  const [sessions, driverSlugByName, circuitStats] = await Promise.all([
     getRaceSessions(seasonYear, raceRound),
-    getRaceNews(race.id, 5),
-    getRaceGrandPrixReport(seasonYear, raceRound),
-    getGrandPrixReportBySlug(query.raceReport),
-    getDriverSlugMap(),
+    isCurrentSeason ? getDriverSlugMap() : Promise.resolve({}),
     getCircuitStatsForRace(seasonYear, raceRound),
-    getRaceReplaySummaryByRaceId(race.id),
   ]);
+  const [raceNews, raceReport, queryReport, raceReplay] = isCurrentSeason
+    ? await Promise.all([
+        getRaceNews(race.id, 5),
+        getRaceGrandPrixReport(seasonYear, raceRound),
+        getGrandPrixReportBySlug(query.raceReport),
+        getRaceReplaySummaryByRaceId(race.id, CURRENT_F1_SEASON),
+      ])
+    : [[], null, null, null] as const;
   const defaultSession = race.status === "Завершен"
     ? sessions.find((session) => session.type === "race" || session.name.toLowerCase().includes("гонка")) ?? sessions[0]
     : sessions[0];
   const selectedSession = sessions.find((session) => session.id === query.session) ?? defaultSession;
-  const results = await getSessionResults(selectedSession?.id);
+  const results = await getSessionResults(selectedSession?.id, seasonYear);
   const selectedSessionStatus = results.length ? "Завершена" : selectedSession?.status;
-  const sessionStats = selectedSession ? getSessionStats(selectedSession, results) : [];
+  const sessionStats = selectedSession
+    ? getSessionStats(selectedSession, results, isCurrentSeason)
+    : [];
   const dialogReport = queryReport ?? raceReport;
   const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
 
   return (
-    <AppShell>
+    <AppShell season={seasonYear}>
       <PageHeading
         badge={`${race.season}, раунд ${race.round}`}
         description={`${race.circuit} · ${race.locality}, ${race.country}`}
@@ -83,7 +99,12 @@ export default async function RaceCalendarPage({
 
       <section className="grid gap-5 py-8 lg:grid-cols-[0.78fr_1.22fr]">
         <div className="grid min-w-0 content-start gap-5">
-          <TrackMap circuit={race.circuit} label={race.country} layout={race.layout} />
+          <TrackMap
+            assetSrc={isCurrentSeason ? race.trackMapUrl ?? undefined : race.trackMapUrl ?? null}
+            circuit={race.circuit}
+            label={race.country}
+            layout={race.layout}
+          />
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -155,7 +176,12 @@ export default async function RaceCalendarPage({
                     {selectedSessionStatus}
                   </Badge>
                 </div>
-                <div className="grid gap-3 border-b border-border/70 bg-muted/50 px-4 py-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <div
+                  className={cn(
+                    "grid gap-3 border-b border-border/70 bg-muted/50 px-4 py-3 text-sm sm:grid-cols-2",
+                    isCurrentSeason ? "lg:grid-cols-4" : "lg:grid-cols-3",
+                  )}
+                >
                   {sessionStats.map((stat) => (
                     <DataRow key={stat.label} label={stat.label} value={stat.value} />
                   ))}
@@ -192,7 +218,7 @@ export default async function RaceCalendarPage({
                               {result.driverSlug ? (
                                 <Link
                                   className="transition-colors hover:text-primary"
-                                  href={`/drivers/${result.driverSlug}`}
+                                  href={`/drivers/${result.driverSlug}?season=${seasonYear}`}
                                   prefetch={false}
                                 >
                                   {result.driver}
@@ -239,37 +265,45 @@ export default async function RaceCalendarPage({
         </Card>
       </section>
 
-      <section className="grid gap-4 pb-8">
-        <div className="flex items-center gap-2">
-          <Flag aria-hidden="true" data-icon="inline-start" />
-          <h2 className="text-xl font-semibold">Новости этапа</h2>
-        </div>
-        {raceNews.length ? (
-          <div className="grid gap-3 md:grid-cols-2">
-            {raceNews.map((item) => (
-              <Link
-                className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent"
-                href={`/news/${item.slug}`}
-                key={item.slug}
-              >
-                <Badge variant="secondary">{item.source}</Badge>
-                <h3 className="mt-3 font-semibold leading-6">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>
-              </Link>
-            ))}
+      {isCurrentSeason ? (
+        <section className="grid gap-4 pb-8">
+          <div className="flex items-center gap-2">
+            <Flag aria-hidden="true" data-icon="inline-start" />
+            <h2 className="text-xl font-semibold">Новости этапа</h2>
           </div>
-        ) : (
-          <div className="rounded-md border border-border/70 p-5 text-sm text-muted-foreground">
-            RaceMate еще не привязал свежие новости к этому этапу.
-          </div>
-        )}
-      </section>
-      <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
+          {raceNews.length ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {raceNews.map((item) => (
+                <Link
+                  className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent"
+                  href={`/news/${item.slug}`}
+                  key={item.slug}
+                >
+                  <Badge variant="secondary">{item.source}</Badge>
+                  <h3 className="mt-3 font-semibold leading-6">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-md border border-border/70 p-5 text-sm text-muted-foreground">
+              RaceMate еще не привязал свежие новости к этому этапу.
+            </div>
+          )}
+        </section>
+      ) : null}
+      {isCurrentSeason ? (
+        <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
+      ) : null}
     </AppShell>
   );
 }
 
-function getSessionStats(session: WeekendSession, results: SessionResult[]) {
+function getSessionStats(
+  session: WeekendSession,
+  results: SessionResult[],
+  includeWeather: boolean,
+) {
   const pointsTotal = results.reduce((sum, result) => sum + (result.points ?? 0), 0);
   const bestResult = results[0];
   const isRace =
@@ -289,7 +323,7 @@ function getSessionStats(session: WeekendSession, results: SessionResult[]) {
   );
 
   if (isQualifying) {
-    return [
+    const stats = [
       {
         label: "Участников",
         value: results.length ? String(results.length) : "—",
@@ -302,14 +336,18 @@ function getSessionStats(session: WeekendSession, results: SessionResult[]) {
         label: "Время",
         value: bestResult?.time ?? "—",
       },
+    ];
+
+    return includeWeather ? [
+      ...stats,
       {
         label: "Погода",
         value: weatherValue,
       },
-    ];
+    ] : stats;
   }
 
-  return [
+  const stats = [
     {
       label: "Участников",
       value: results.length ? String(results.length) : "—",
@@ -322,11 +360,15 @@ function getSessionStats(session: WeekendSession, results: SessionResult[]) {
       label: "Очки",
       value: pointsTotal > 0 ? String(pointsTotal) : "—",
     },
+  ];
+
+  return includeWeather ? [
+    ...stats,
     {
       label: "Погода",
       value: weatherValue,
     },
-  ];
+  ] : stats;
 }
 
 function RaceReportPreview({

@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { cn } from "@/lib/utils";
 
 const localDriverAvatarSlugs = new Set([
@@ -27,26 +28,36 @@ const localDriverAvatarSlugs = new Set([
   "valtteri-bottas",
 ]);
 
-export function getLocalDriverAvatarSrc(slug?: string | null) {
-  return slug && localDriverAvatarSlugs.has(slug) ? `/drivers/avatars/${slug}.png` : null;
+export function getLocalDriverAvatarSrc(slug?: string | null, season = CURRENT_F1_SEASON) {
+  return season === CURRENT_F1_SEASON && slug && localDriverAvatarSlugs.has(slug)
+    ? `/drivers/avatars/${season}/${slug}.webp`
+    : null;
 }
 
 type DriverAvatarBadgeProps = {
   className?: string;
   color?: string | null;
+  fallbackClassName?: string;
+  fallbackLabel?: string | number | null;
   name: string;
   sizes?: string;
   slug?: string | null;
+  season?: number;
+  src?: string | null;
 };
 
 export function DriverAvatarBadge({
   className,
   color,
+  fallbackClassName,
+  fallbackLabel,
   name,
   sizes = "3rem",
   slug,
+  season = CURRENT_F1_SEASON,
+  src,
 }: DriverAvatarBadgeProps) {
-  const src = getLocalDriverAvatarSrc(slug);
+  const avatarSrc = src === undefined ? getLocalDriverAvatarSrc(slug, season) : src;
 
   return (
     <span
@@ -58,18 +69,23 @@ export function DriverAvatarBadge({
       style={{ borderColor: color ?? "var(--border)" }}
       title={name}
     >
-      {src ? (
-        <Image alt="" className="object-cover object-top" fill sizes={sizes} src={src} />
+      {avatarSrc ? (
+        <Image alt="" className="object-cover object-top" fill sizes={sizes} src={avatarSrc} />
       ) : (
-        <span className="font-display text-xs font-bold text-muted-foreground">
-          {getInitials(name)}
+        <span
+          className={cn(
+            "font-display text-xs font-bold text-muted-foreground",
+            fallbackClassName,
+          )}
+        >
+          {fallbackLabel ?? getDriverInitials(name)}
         </span>
       )}
     </span>
   );
 }
 
-function getInitials(name: string) {
+export function getDriverInitials(name: string) {
   return name
     .split(/\s+/)
     .filter(Boolean)

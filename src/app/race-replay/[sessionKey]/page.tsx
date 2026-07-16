@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/racemate/app-shell";
 import { RaceReplayPlayer } from "@/features/race-replay/components/race-replay-player";
 import { getRaceReplayBySessionKey } from "@/data/racemate-repository";
+import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -19,14 +20,14 @@ export default async function RaceReplayPage({ params, searchParams }: RaceRepla
     notFound();
   }
 
-  const replay = await getRaceReplayBySessionKey(numericSessionKey);
+  const replay = await getRaceReplayBySessionKey(numericSessionKey, CURRENT_F1_SEASON);
 
   if (!replay) {
     notFound();
   }
 
   return (
-    <AppShell>
+    <AppShell season={CURRENT_F1_SEASON}>
       <main className="pb-5">
         <RaceReplayPlayer debug={query.debugTrack === "1"} replay={replay} />
       </main>

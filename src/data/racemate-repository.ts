@@ -6,7 +6,9 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { getPredictionLocksForRace } from "@/lib/prediction-locks";
 import { getSiteUrl } from "@/lib/env";
+import { getRoundResultPoints } from "@/lib/f1-points";
 import { getOrCreatePredictionShareUrl } from "@/lib/share-links";
+import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import {
   adminJobs,
   adminSignals,
@@ -307,6 +309,41 @@ type TeamProfileDriverStandingDbRow = {
     | null;
 };
 
+type TeamLineageRelation = {
+  id?: string | null;
+  slug: string;
+  display_name: string;
+};
+
+type TeamSeasonProfileDbRow = {
+  season_year: number;
+  team_id: string;
+  lineage_id: string;
+  display_name: string;
+  short_name: string | null;
+  code: string | null;
+  country: string | null;
+  color_hex: string | null;
+  logo_image_url: string | null;
+  car_image_url: string | null;
+  team_lineages: TeamLineageRelation | TeamLineageRelation[] | null;
+};
+
+type DriverSeasonProfileDbRow = {
+  season_year: number;
+  driver_id: string;
+  primary_team_id: string | null;
+  code: string | null;
+  permanent_number: number | null;
+  avatar_image_url: string | null;
+};
+
+type RaceTrackAssetDbRow = {
+  race_id: string;
+  image_url: string | null;
+  is_verified: boolean;
+};
+
 type SessionDbRow = {
   id: string;
   session_type: string;
@@ -345,6 +382,7 @@ type DriverProfileDbRow = {
   country_code: string | null;
   ai_avatar_url: string | null;
   avatar_placeholder_style: string | null;
+  is_active?: boolean;
   current_team_id: string | null;
   teams: (TeamRelationObject & { id?: string | null }) | (TeamRelationObject & { id?: string | null })[] | null;
 };
@@ -1307,7 +1345,11 @@ export async function getLatestGrandPrixReport(): Promise<GrandPrixReport | null
   }
 
   const reportSelect = "id, season_year, round, race_name, race_start_at, status, circuits(name, country)";
-  const latestStanding = await getLatestCompleteStandingRound("driver_standings", 20);
+  const latestStanding = await getLatestCompleteStandingRound(
+    "driver_standings",
+    20,
+    CURRENT_F1_SEASON,
+  );
   let race: RaceRow | null = null;
 
   if (latestStanding?.round) {
@@ -1330,6 +1372,7 @@ export async function getLatestGrandPrixReport(): Promise<GrandPrixReport | null
     const { data: completedRaceData, error: completedRaceError } = await admin
       .from("races")
       .select(reportSelect)
+      .eq("season_year", CURRENT_F1_SEASON)
       .eq("status", "completed")
       .order("race_start_at", { ascending: false, nullsFirst: false })
       .limit(8);
@@ -1366,6 +1409,10 @@ export async function getRaceGrandPrixReport(
   season: number,
   round: number,
 ): Promise<GrandPrixReport | null> {
+  if (season !== CURRENT_F1_SEASON) {
+    return null;
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -1400,6 +1447,7 @@ export async function getGrandPrixReportBySlug(
   const { data, error } = await supabase
     .from("grand_prix_reports")
     .select(GRAND_PRIX_REPORT_SELECT)
+    .eq("season", CURRENT_F1_SEASON)
     .eq("race_slug", slug)
     .eq("is_hidden", false)
     .in("status", ["ready", "partial"])
@@ -1437,28 +1485,74 @@ export const getNextSession = cache(async (): Promise<NextSession> => {
   };
 });
 
-export async function getCalendarEvents(): Promise<CalendarEvent[]> {
+export async function getPublishedSeasons(): Promise<number[]> {
+  return getPublishedSeasonsCached();
+}
+
+const getPublishedSeasonsCached = cache(async (): Promise<number[]> => {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return calendarEvents;
+    return [2026];
+  }
+
+  const { data, error } = await supabase
+    .from("seasons")
+    .select("year")
+    .order("year", { ascending: false });
+
+  if (error) {
+    // Keep the pre-history deployment usable while the publication migration is
+    // being rolled out. Historical years are never exposed through this fallback.
+    return [2026];
+  }
+
+  // Publication and preview access are deliberately enforced by RLS. Public
+  // sessions receive only published years, while an authenticated admin can
+  // inspect hidden backfilled seasons through the same cookie-aware client.
+  // Keeping this query free of an is_published filter is what makes that
+  // preview possible without exposing the service-role key to the app.
+
+  return (data ?? [])
+    .map((row) => Number(row.year))
+    .filter((year) => Number.isInteger(year));
+});
+
+async function resolvePublishedSeason(season: number): Promise<number | null> {
+  const publishedSeasons = await getPublishedSeasons();
+
+  return publishedSeasons.includes(season) ? season : null;
+}
+
+export async function getCalendarEvents(season: number): Promise<CalendarEvent[]> {
+  const selectedSeason = await resolvePublishedSeason(season);
+
+  if (selectedSeason === null) {
+    return [];
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return selectedSeason === 2026 ? calendarEvents : [];
   }
 
   const { data, error } = await supabase
     .from("races")
     .select("id, season_year, round, race_name, race_start_at, status, circuits(id, name, country, locality, external_id), sessions(session_type, name)")
-    .order("season_year", { ascending: false })
+    .eq("season_year", selectedSeason)
     .order("round", { ascending: true });
 
   if (error || !data?.length) {
-    return calendarEvents;
+    return selectedSeason === 2026 ? calendarEvents : [];
   }
 
   const races = data as unknown as RaceRow[];
-  const [currentRace, winners, latestStanding] = await Promise.all([
+  const [currentRace, winners, latestStanding, trackAssets] = await Promise.all([
     getCurrentRace("id, season_year, round, race_name, race_start_at, status"),
     getRaceWinners(races.map((race) => race.id)),
-    getLatestCompleteStandingRound("driver_standings", 20),
+    getLatestCompleteStandingRound("driver_standings", 20, selectedSeason),
+    getRaceTrackAssetsByRaceIds(races.map((race) => race.id)),
   ]);
 
   return races.map((race) =>
@@ -1467,6 +1561,7 @@ export async function getCalendarEvents(): Promise<CalendarEvent[]> {
       race.id === currentRace?.id,
       winners.get(race.id),
       isRaceCompletedByStandings(race, latestStanding),
+      trackAssets.get(race.id)?.image_url ?? (selectedSeason === 2026 ? undefined : null),
     ),
   );
 }
@@ -1475,14 +1570,14 @@ export const getWeekendSessions = cache(async (raceId?: string): Promise<Weekend
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return weekendSessions;
+    return raceId ? [] : weekendSessions;
   }
 
   const race = raceId ? null : await getCurrentRace();
   const selectedRaceId = raceId ?? race?.id;
 
   if (!selectedRaceId) {
-    return weekendSessions;
+    return raceId ? [] : weekendSessions;
   }
 
   const { data, error } = await supabase
@@ -1493,7 +1588,7 @@ export const getWeekendSessions = cache(async (raceId?: string): Promise<Weekend
     .limit(10);
 
   if (error || !data?.length) {
-    return weekendSessions;
+    return raceId ? [] : weekendSessions;
   }
 
   const sessions = (data as SessionDbRow[]).map((session) => ({
@@ -1549,22 +1644,28 @@ export async function getWeekendWeather(): Promise<WeekendWeather> {
   return mapWeatherRow(weather, "Open-Meteo");
 }
 
-export async function getDriverStandings(): Promise<StandingRow[]> {
+export async function getDriverStandings(season: number): Promise<StandingRow[]> {
+  const selectedSeason = await resolvePublishedSeason(season);
+
+  if (selectedSeason === null) {
+    return [];
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return standings;
+    return selectedSeason === 2026 ? standings : [];
   }
 
-  const latest = await getLatestCompleteStandingRound("driver_standings", 20);
+  const latest = await getLatestCompleteStandingRound("driver_standings", 20, selectedSeason);
 
   if (!latest) {
-    return standings;
+    return selectedSeason === 2026 ? standings : [];
   }
 
   let standingsQuery = supabase
     .from("driver_standings")
-    .select("position, points, drivers(full_name, slug, permanent_number), teams(name, code, color_hex)")
+    .select("driver_id, team_id, position, points, drivers(full_name, slug, permanent_number), teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
     .order("position", { ascending: true, nullsFirst: false })
     .limit(40);
@@ -1575,23 +1676,61 @@ export async function getDriverStandings(): Promise<StandingRow[]> {
   const { data, error } = await standingsQuery;
 
   if (error || !data?.length) {
-    return standings;
+    return selectedSeason === 2026 ? standings : [];
   }
 
-  return (data as unknown as StandingDbRow[]).map((row, index) => ({
-    ...getTeamVisualFields(row.teams, "Команда уточняется"),
-    position: row.position ?? index + 1,
-    driver: getRelationName(row.drivers, "Пилот уточняется"),
-    driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
-    driverNumber: getRelationObject(row.drivers)?.permanent_number ?? undefined,
-    points: Number(row.points),
-  }));
+  const standingRows = data as unknown as StandingDbRow[];
+  const [driverSeasonProfiles, teamProfiles] = await Promise.all([
+    getDriverSeasonProfilesByIds(
+      supabase,
+      selectedSeason,
+      standingRows.flatMap((row) => row.driver_id ? [row.driver_id] : []),
+    ),
+    getTeamProfiles(selectedSeason),
+  ]);
+  const teamProfileById = new Map(teamProfiles.map((profile) => [profile.id, profile]));
+  const allowCurrentFallback = selectedSeason === CURRENT_F1_SEASON;
+
+  return standingRows.map((row, index) => {
+    const currentTeam = getTeamVisualFields(row.teams, "Команда уточняется", selectedSeason);
+    const seasonalDriver = row.driver_id ? driverSeasonProfiles.get(row.driver_id) : undefined;
+    const seasonalTeamId = seasonalDriver?.primary_team_id ?? row.team_id;
+    const seasonalTeam = seasonalTeamId ? teamProfileById.get(seasonalTeamId) : undefined;
+
+    return {
+      position: row.position ?? index + 1,
+      driver: getRelationName(row.drivers, "Пилот уточняется"),
+      driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
+      driverNumber: seasonalDriver
+        ? seasonalDriver.permanent_number ?? undefined
+        : allowCurrentFallback
+          ? getRelationObject(row.drivers)?.permanent_number ?? undefined
+          : undefined,
+      team: seasonalTeam?.name ?? currentTeam.team,
+      teamCode: seasonalTeam?.code ?? (allowCurrentFallback ? currentTeam.teamCode : undefined),
+      teamLogo: seasonalTeam?.logo ?? (allowCurrentFallback ? currentTeam.teamLogo : undefined),
+      teamColor: seasonalTeam?.color ?? (allowCurrentFallback ? currentTeam.teamColor : undefined),
+      points: Number(row.points),
+    };
+  });
 }
 
-export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipMatrix> {
+export async function getDriverChampionshipMatrix(
+  season: number,
+): Promise<DriverChampionshipMatrix> {
+  const selectedSeason = await resolvePublishedSeason(season);
+
+  if (selectedSeason === null) {
+    return { rounds: [], rows: [] };
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
+    if (selectedSeason !== 2026) {
+      return { rounds: [], rows: [] };
+    }
+
     return {
       rounds: [],
       rows: standings.map((row) => ({
@@ -1606,10 +1745,10 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     };
   }
 
-  const latest = await getLatestCompleteStandingRound("driver_standings", 20);
+  const latest = await getLatestCompleteStandingRound("driver_standings", 20, selectedSeason);
 
   if (!latest?.round) {
-    const rows = await getDriverStandings();
+    const rows = await getDriverStandings(selectedSeason);
 
     return {
       rounds: [],
@@ -1649,6 +1788,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     string,
     {
       driverId: string;
+      teamId?: string;
       driver: string;
       driverSlug?: string;
       driverNumber?: number;
@@ -1667,9 +1807,10 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
       return;
     }
 
-    const teamVisual = getTeamVisualFields(row.teams, "Команда уточняется");
+    const teamVisual = getTeamVisualFields(row.teams, "Команда уточняется", selectedSeason);
     const existing = rowsByDriver.get(row.driver_id) ?? {
       driverId: row.driver_id,
+      teamId: row.team_id ?? undefined,
       driver: getRelationName(row.drivers, "Пилот уточняется"),
       driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
       driverNumber: getRelationObject(row.drivers)?.permanent_number ?? undefined,
@@ -1687,6 +1828,7 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     if (row.round === standingsLatestRound) {
       existing.latestPosition = row.position ?? existing.latestPosition;
       existing.total = Number(row.points);
+      existing.teamId = row.team_id ?? existing.teamId;
       existing.team = teamVisual.team;
       existing.teamCode = teamVisual.teamCode;
       existing.teamLogo = teamVisual.teamLogo;
@@ -1704,10 +1846,24 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
     ),
   ]);
   const roundNumbers = rounds.map((round) => round.round);
+  const [teamProfiles, driverSeasonProfiles] = await Promise.all([
+    getTeamProfiles(selectedSeason),
+    getDriverSeasonProfilesByIds(
+      supabase,
+      selectedSeason,
+      [...rowsByDriver.keys()],
+    ),
+  ]);
+  const teamProfileById = new Map(teamProfiles.map((profile) => [profile.id, profile]));
   const rows = [...rowsByDriver.values()]
     .filter((row) => row.cumulative.has(standingsLatestRound))
     .sort((a, b) => a.latestPosition - b.latestPosition)
     .map((row) => {
+      const seasonalDriver = driverSeasonProfiles.get(row.driverId);
+      const seasonalTeamId = seasonalDriver?.primary_team_id ?? row.teamId;
+      const seasonalTeam = seasonalTeamId
+        ? teamProfileById.get(seasonalTeamId)
+        : undefined;
       const pointsByRound: Record<number, number> = {};
       const positionByRound: Record<number, number> = {};
       const podiumByRound: Record<number, "winner" | "second" | "third"> = {};
@@ -1743,11 +1899,17 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
         position: row.latestPosition,
         driver: row.driver,
         driverSlug: row.driverSlug,
-        driverNumber: row.driverNumber,
-        team: row.team,
-        teamCode: row.teamCode,
-        teamLogo: row.teamLogo,
-        teamColor: row.teamColor,
+        driverNumber: seasonalDriver
+          ? seasonalDriver.permanent_number ?? undefined
+          : selectedSeason === CURRENT_F1_SEASON
+            ? row.driverNumber
+            : undefined,
+        avatarUrl: seasonalDriver?.avatar_image_url ?? undefined,
+        team: seasonalTeam?.name ?? row.team,
+        teamCode: seasonalTeam?.code ?? (selectedSeason === CURRENT_F1_SEASON ? row.teamCode : undefined),
+        teamLogo: seasonalTeam?.logo ?? (selectedSeason === CURRENT_F1_SEASON ? row.teamLogo : undefined),
+        teamColor: seasonalTeam?.color ?? (selectedSeason === CURRENT_F1_SEASON ? row.teamColor : undefined),
+        teamSlug: seasonalTeam?.slug,
         total: Math.max(row.total, totalFromResults),
         pointsByRound,
         positionByRound,
@@ -1758,10 +1920,46 @@ export async function getDriverChampionshipMatrix(): Promise<DriverChampionshipM
   return { rounds, rows };
 }
 
+async function getDriverSeasonProfilesByIds(
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  season: number,
+  driverIds: string[],
+) {
+  if (!driverIds.length) {
+    return new Map<string, DriverSeasonProfileDbRow>();
+  }
+
+  const { data, error } = await supabase
+    .from("driver_season_profiles")
+    .select(
+      "season_year, driver_id, primary_team_id, code, permanent_number, avatar_image_url",
+    )
+    .eq("season_year", season)
+    .in("driver_id", driverIds);
+
+  if (error) {
+    return new Map<string, DriverSeasonProfileDbRow>();
+  }
+
+  return new Map(
+    ((data ?? []) as unknown as DriverSeasonProfileDbRow[]).map((profile) => [
+      profile.driver_id,
+      profile,
+    ]),
+  );
+}
+
 export async function getDriverProfileBySlug(
   slug: string,
+  season: number,
   userId?: string | null,
 ): Promise<DriverProfile | null> {
+  const selectedSeason = await resolvePublishedSeason(season);
+
+  if (selectedSeason === null) {
+    return null;
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -1772,10 +1970,9 @@ export async function getDriverProfileBySlug(
   const { data: driverData, error: driverError } = await supabase
     .from("drivers")
     .select(
-      "id, slug, code, permanent_number, first_name, last_name, full_name, country, country_code, ai_avatar_url, avatar_placeholder_style, current_team_id, teams:current_team_id(id, name, code, color_hex)",
+      "id, slug, code, permanent_number, first_name, last_name, full_name, country, country_code, ai_avatar_url, avatar_placeholder_style, current_team_id, is_active, teams:current_team_id(id, name, code, color_hex)",
     )
     .eq("slug", normalizedSlug)
-    .eq("is_active", true)
     .maybeSingle();
 
   if (driverError || !driverData) {
@@ -1783,10 +1980,45 @@ export async function getDriverProfileBySlug(
   }
 
   const driver = driverData as unknown as DriverProfileDbRow;
-  const latest = await getLatestCompleteStandingRound("driver_standings", 20);
-  const season = latest?.season_year ?? new Date().getFullYear();
-  const teamVisual = getTeamVisualFields(driver.teams, "Команда уточняется");
-  const teamObject = getRelationObject(driver.teams);
+  const [seasonProfileResult, availableSeasonResult, teamProfiles, latest] = await Promise.all([
+    supabase
+      .from("driver_season_profiles")
+      .select("season_year, driver_id, primary_team_id, code, permanent_number, avatar_image_url")
+      .eq("driver_id", driver.id)
+      .eq("season_year", selectedSeason)
+      .maybeSingle(),
+    supabase
+      .from("driver_season_profiles")
+      .select("season_year")
+      .eq("driver_id", driver.id),
+    getTeamProfiles(selectedSeason),
+    getLatestCompleteStandingRound("driver_standings", 20, selectedSeason),
+  ]);
+  const seasonProfile = seasonProfileResult.data as unknown as DriverSeasonProfileDbRow | null;
+
+  if (
+    (seasonProfileResult.error && selectedSeason !== 2026) ||
+    (!seasonProfile && selectedSeason !== 2026)
+  ) {
+    return null;
+  }
+
+  if (!seasonProfile && !driver.is_active) {
+    return null;
+  }
+
+  const primaryTeamId = seasonProfile?.primary_team_id ?? driver.current_team_id;
+  const seasonalTeam = primaryTeamId
+    ? teamProfiles.find((team) => team.id === primaryTeamId)
+    : undefined;
+  const legacyTeamVisual = getTeamVisualFields(driver.teams, "Команда уточняется");
+  const legacyTeamObject = getRelationObject(driver.teams);
+  const publishedSeasons = await getPublishedSeasons();
+  const publishedSeasonSet = new Set(publishedSeasons);
+  const availableSeasons = ((availableSeasonResult.data ?? []) as { season_year: number }[])
+    .map((profile) => Number(profile.season_year))
+    .filter((year) => publishedSeasonSet.has(year))
+    .sort((left, right) => right - left);
 
   const [
     races,
@@ -1796,12 +2028,14 @@ export async function getDriverProfileBySlug(
     news,
     socialPosts,
   ] = await Promise.all([
-    getDriverProfileRaces(season),
-    getDriverStandingHistory(driver.id, season),
-    getDriverTopTenCumulativePoints(season, latest?.round ?? null, driver.id),
-    getDriverFavoriteState(driver.id, userId),
-    getDriverProfileNews(normalizedSlug),
-    getDriverSocialPosts(driver),
+    getDriverProfileRaces(selectedSeason),
+    getDriverStandingHistory(driver.id, selectedSeason),
+    getDriverTopTenCumulativePoints(selectedSeason, latest?.round ?? null, driver.id),
+    selectedSeason === CURRENT_F1_SEASON
+      ? getDriverFavoriteState(driver.id, userId)
+      : Promise.resolve({ isFavorite: false, favoriteLimitReached: false }),
+    selectedSeason === 2026 ? getDriverProfileNews(normalizedSlug) : Promise.resolve([]),
+    selectedSeason === 2026 ? getDriverSocialPosts(driver) : Promise.resolve([]),
   ]);
 
   const raceIds = races.map((race) => race.id);
@@ -1824,20 +2058,22 @@ export async function getDriverProfileBySlug(
     firstName: driver.first_name,
     lastName: driver.last_name,
     fullName: driver.full_name,
-    code: driver.code ?? undefined,
-    number: driver.permanent_number,
+    code: seasonProfile ? seasonProfile.code ?? undefined : driver.code ?? undefined,
+    number: seasonProfile ? seasonProfile.permanent_number : driver.permanent_number,
     country: driver.country,
     countryCode: driver.country_code ?? getCountryCode(driver.country ?? ""),
-    aiAvatarUrl: driver.ai_avatar_url,
+    aiAvatarUrl: seasonProfile?.avatar_image_url ?? (selectedSeason === 2026 ? driver.ai_avatar_url : null),
     avatarPlaceholderStyle: driver.avatar_placeholder_style,
     team: {
-      id: teamObject?.id ?? driver.current_team_id ?? undefined,
-      name: teamVisual.team,
-      code: teamVisual.teamCode,
-      logo: teamVisual.teamLogo,
-      color: teamVisual.teamColor,
+      id: seasonalTeam?.id ?? primaryTeamId ?? (selectedSeason === 2026 ? legacyTeamObject?.id : undefined) ?? undefined,
+      slug: seasonalTeam?.slug,
+      name: seasonalTeam?.name ?? (selectedSeason === 2026 ? legacyTeamVisual.team : "Команда уточняется"),
+      code: seasonalTeam?.code ?? (selectedSeason === 2026 ? legacyTeamVisual.teamCode : undefined),
+      logo: seasonalTeam?.logo ?? (selectedSeason === 2026 ? legacyTeamVisual.teamLogo : undefined),
+      color: seasonalTeam?.color ?? (selectedSeason === 2026 ? legacyTeamVisual.teamColor : undefined),
     },
-    season,
+    season: selectedSeason,
+    availableSeasons,
     stats: {
       ...context.stats,
       championshipPosition: latestStanding?.position ?? context.stats.championshipPosition,
@@ -2005,6 +2241,12 @@ async function getDriverTopTenCumulativePoints(
     rowsByDriver.set(row.driver_id, list);
   });
 
+  const [seasonalDrivers, seasonalTeams] = await Promise.all([
+    getDriverSeasonProfilesByIds(supabase, season, [...driverIds]),
+    getTeamProfiles(season),
+  ]);
+  const seasonalTeamById = new Map(seasonalTeams.map((team) => [team.id, team]));
+
   return [...driverIds].flatMap((driverId) => {
     const driverRows = rowsByDriver.get(driverId) ?? [];
     const latestRow = [...driverRows].reverse().find((row) => getRelationObject(row.drivers));
@@ -2034,12 +2276,18 @@ async function getDriverTopTenCumulativePoints(
       previousStandingPoints = standingPointsByRound.get(round) ?? previousStandingPoints;
       points.push({ round, raceName: `Раунд ${round}`, value: previousStandingPoints });
     });
+    const seasonalDriver = seasonalDrivers.get(driverId);
+    const seasonalTeam = seasonalDriver?.primary_team_id
+      ? seasonalTeamById.get(seasonalDriver.primary_team_id)
+      : undefined;
 
     return [{
       driverId,
       driver,
       driverSlug: getRelationObject(latestRow.drivers)?.slug ?? undefined,
-      teamColor: getTeamVisualFields(latestRow.teams, "").teamColor,
+      teamColor: seasonalTeam?.color ?? (season === 2026
+        ? getTeamVisualFields(latestRow.teams, "", season).teamColor
+        : undefined),
       points,
     }];
   });
@@ -2180,14 +2428,26 @@ async function getProfileSocialPosts({
   });
 }
 
-export async function getConstructorStandings(): Promise<ConstructorStandingRow[]> {
+export async function getConstructorStandings(
+  season: number,
+): Promise<ConstructorStandingRow[]> {
+  const selectedSeason = await resolvePublishedSeason(season);
+
+  if (selectedSeason === null) {
+    return [];
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return [];
   }
 
-  const latest = await getLatestCompleteStandingRound("constructor_standings", 10);
+  const latest = await getLatestCompleteStandingRound(
+    "constructor_standings",
+    10,
+    selectedSeason,
+  );
 
   if (!latest) {
     return [];
@@ -2195,7 +2455,7 @@ export async function getConstructorStandings(): Promise<ConstructorStandingRow[
 
   let standingsQuery = supabase
     .from("constructor_standings")
-    .select("position, points, wins, teams(name, code, color_hex)")
+    .select("team_id, position, points, wins, teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
     .order("position", { ascending: true, nullsFirst: false })
     .limit(20);
@@ -2209,25 +2469,52 @@ export async function getConstructorStandings(): Promise<ConstructorStandingRow[
     return [];
   }
 
-  return (data as unknown as ConstructorStandingDbRow[]).map((row, index) => ({
-    ...getTeamVisualFields(row.teams, "Команда уточняется"),
-    position: row.position ?? index + 1,
-    points: Number(row.points),
-    wins: row.wins ?? 0,
-  }));
+  const standingRows = data as unknown as ConstructorStandingDbRow[];
+  const teamProfiles = await getTeamProfiles(selectedSeason);
+  const teamProfileById = new Map(teamProfiles.map((profile) => [profile.id, profile]));
+  const allowCurrentFallback = selectedSeason === CURRENT_F1_SEASON;
+
+  return standingRows.map((row, index) => {
+    const currentTeam = getTeamVisualFields(row.teams, "Команда уточняется", selectedSeason);
+    const seasonalTeam = row.team_id ? teamProfileById.get(row.team_id) : undefined;
+
+    return {
+      position: row.position ?? index + 1,
+      team: seasonalTeam?.name ?? currentTeam.team,
+      teamCode: seasonalTeam?.code ?? (allowCurrentFallback ? currentTeam.teamCode : undefined),
+      teamLogo: seasonalTeam?.logo ?? (allowCurrentFallback ? currentTeam.teamLogo : undefined),
+      teamColor: seasonalTeam?.color ?? (allowCurrentFallback ? currentTeam.teamColor : undefined),
+      teamSlug: seasonalTeam?.slug,
+      carImageUrl: seasonalTeam?.carImageUrl,
+      points: Number(row.points),
+      wins: row.wins ?? 0,
+    };
+  });
 }
 
-export async function getConstructorChampionshipMatrix(): Promise<ConstructorChampionshipMatrix> {
+export async function getConstructorChampionshipMatrix(
+  season: number,
+): Promise<ConstructorChampionshipMatrix> {
+  const selectedSeason = await resolvePublishedSeason(season);
+
+  if (selectedSeason === null) {
+    return { rounds: [], rows: [] };
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return { rounds: [], rows: [] };
   }
 
-  const latest = await getLatestCompleteStandingRound("constructor_standings", 10);
+  const latest = await getLatestCompleteStandingRound(
+    "constructor_standings",
+    10,
+    selectedSeason,
+  );
 
   if (!latest?.round) {
-    const rows = await getConstructorStandings();
+    const rows = await getConstructorStandings(selectedSeason);
 
     return { rounds: [], rows };
   }
@@ -2267,7 +2554,7 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
       return;
     }
 
-    const teamVisual = getTeamVisualFields(row.teams, "Команда уточняется");
+    const teamVisual = getTeamVisualFields(row.teams, "Команда уточняется", selectedSeason);
     const existing = rowsByTeam.get(row.team_id) ?? {
       teamId: row.team_id,
       team: teamVisual.team,
@@ -2303,10 +2590,13 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
     ),
   ]);
   const roundNumbers = rounds.map((round) => round.round);
+  const teamProfiles = await getTeamProfiles(selectedSeason);
+  const teamProfileById = new Map(teamProfiles.map((profile) => [profile.id, profile]));
   const rows = [...rowsByTeam.values()]
     .filter((row) => row.cumulative.has(standingsLatestRound))
     .sort((a, b) => a.latestPosition - b.latestPosition)
     .map((row) => {
+      const seasonalTeam = teamProfileById.get(row.teamId);
       const pointsByRound: Record<number, number> = {};
       const resultPoints = roundPointTotals.constructorPoints.get(row.teamId);
       let displayedTotal = 0;
@@ -2327,10 +2617,12 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
 
       return {
         position: row.latestPosition,
-        team: row.team,
-        teamCode: row.teamCode,
-        teamLogo: row.teamLogo,
-        teamColor: row.teamColor,
+        team: seasonalTeam?.name ?? row.team,
+        teamCode: seasonalTeam?.code ?? (selectedSeason === CURRENT_F1_SEASON ? row.teamCode : undefined),
+        teamLogo: seasonalTeam?.logo ?? (selectedSeason === CURRENT_F1_SEASON ? row.teamLogo : undefined),
+        teamColor: seasonalTeam?.color ?? (selectedSeason === CURRENT_F1_SEASON ? row.teamColor : undefined),
+        teamSlug: seasonalTeam?.slug,
+        carImageUrl: seasonalTeam?.carImageUrl,
         points: Math.max(row.total, totalFromResults),
         wins: row.wins,
         pointsByRound,
@@ -2340,23 +2632,104 @@ export async function getConstructorChampionshipMatrix(): Promise<ConstructorCha
   return { rounds, rows };
 }
 
-export async function getTeamProfiles(): Promise<TeamProfileSummary[]> {
+export async function getTeamProfiles(
+  season: number,
+): Promise<TeamProfileSummary[]> {
+  const selectedSeason = await resolvePublishedSeason(season);
+
+  if (selectedSeason === null) {
+    return [];
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return [];
   }
 
-  const latest = await getLatestCompleteStandingRound("constructor_standings", 10);
+  const latest = await getLatestCompleteStandingRound(
+    "constructor_standings",
+    10,
+    selectedSeason,
+  );
 
   if (!latest) {
+    return [];
+  }
+
+  const [profileResult, standingResult] = await Promise.all([
+    supabase
+      .from("team_season_profiles")
+      .select(
+        "season_year, team_id, lineage_id, display_name, short_name, code, country, color_hex, logo_image_url, car_image_url, team_lineages(id, slug, display_name)",
+      )
+      .eq("season_year", selectedSeason),
+    (() => {
+      let query = supabase
+        .from("constructor_standings")
+        .select("team_id, position, points, wins, teams(id, name, short_name, code, country, color_hex)")
+        .eq("season_year", selectedSeason)
+        .order("position", { ascending: true, nullsFirst: false });
+
+      query = latest.round === null
+        ? query.is("round", null)
+        : query.eq("round", latest.round);
+
+      return query;
+    })(),
+  ]);
+
+  const seasonalProfiles = (profileResult.data ?? []) as unknown as TeamSeasonProfileDbRow[];
+  const standingRows = (standingResult.data ?? []) as unknown as TeamProfileStandingDbRow[];
+
+  if (!profileResult.error && seasonalProfiles.length) {
+    const standingByTeam = new Map(
+      standingRows
+        .filter((row) => row.team_id)
+        .map((row) => [row.team_id as string, row]),
+    );
+
+    return seasonalProfiles
+      .flatMap((profile) => {
+        const lineage = getRelationObject(profile.team_lineages);
+
+        if (!lineage?.slug) {
+          return [];
+        }
+
+        const standing = standingByTeam.get(profile.team_id);
+
+        return [{
+          id: profile.team_id,
+          slug: lineage.slug,
+          name: profile.display_name,
+          shortName: profile.short_name ?? profile.display_name,
+          code: profile.code ?? profile.display_name.slice(0, 3).toUpperCase(),
+          country: localizeTeamCountry(profile.country),
+          countryCode: getCountryCode(profile.country ?? ""),
+          color: profile.color_hex ?? "#E10600",
+          logo: profile.logo_image_url ?? undefined,
+          carImageUrl: profile.car_image_url ?? "",
+          season: selectedSeason,
+          championshipPosition: standing?.position ?? null,
+          points: Number(standing?.points ?? 0),
+          wins: standing?.wins ?? 0,
+        } satisfies TeamProfileSummary];
+      })
+      .sort((left, right) =>
+        (left.championshipPosition ?? Number.MAX_SAFE_INTEGER) -
+        (right.championshipPosition ?? Number.MAX_SAFE_INTEGER)
+      );
+  }
+
+  if (selectedSeason !== 2026) {
     return [];
   }
 
   let query = supabase
     .from("constructor_standings")
     .select("team_id, position, points, wins, teams(id, name, short_name, code, country, color_hex)")
-    .eq("season_year", latest.season_year)
+    .eq("season_year", selectedSeason)
     .order("position", { ascending: true, nullsFirst: false });
 
   query = latest.round === null ? query.is("round", null) : query.eq("round", latest.round);
@@ -2369,13 +2742,13 @@ export async function getTeamProfiles(): Promise<TeamProfileSummary[]> {
 
   return (data as unknown as TeamProfileStandingDbRow[]).flatMap((row) => {
     const team = getRelationObject(row.teams);
-    const profileAsset = getTeamProfileAsset(team?.code) ?? getTeamProfileAsset(team?.name);
+    const profileAsset = getTeamProfileAsset(team?.code, selectedSeason) ?? getTeamProfileAsset(team?.name, selectedSeason);
 
     if (!row.team_id || !team || !profileAsset) {
       return [];
     }
 
-    const visual = getTeamAsset(team.code) ?? getTeamAsset(team.name);
+    const visual = getTeamAsset(team.code, selectedSeason) ?? getTeamAsset(team.name, selectedSeason);
 
     return [{
       id: row.team_id,
@@ -2388,7 +2761,7 @@ export async function getTeamProfiles(): Promise<TeamProfileSummary[]> {
       color: visual?.color ?? team.color_hex ?? "#E10600",
       logo: visual?.logo,
       carImageUrl: profileAsset.carImageUrl,
-      season: latest.season_year,
+      season: selectedSeason,
       championshipPosition: row.position,
       points: Number(row.points ?? 0),
       wins: row.wins ?? 0,
@@ -2396,9 +2769,18 @@ export async function getTeamProfiles(): Promise<TeamProfileSummary[]> {
   });
 }
 
-export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | null> {
+export async function getTeamProfileBySlug(
+  slug: string,
+  season: number,
+): Promise<TeamProfile | null> {
+  const selectedSeason = await resolvePublishedSeason(season);
+
+  if (selectedSeason === null) {
+    return null;
+  }
+
   const normalizedSlug = slug.trim().toLowerCase();
-  const teams = await getTeamProfiles();
+  const teams = await getTeamProfiles(selectedSeason);
   const team = teams.find((item) => item.slug === normalizedSlug);
 
   if (!team) {
@@ -2411,34 +2793,70 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
     return null;
   }
 
-  const latest = await getLatestCompleteStandingRound("driver_standings", 20);
+  const latest = await getLatestCompleteStandingRound(
+    "driver_standings",
+    20,
+    selectedSeason,
+  );
   const latestRound = latest?.round ?? null;
-  const season = team.season;
+  const profileSeason = team.season;
+
+  const { data: lineageData, error: lineageError } = await supabase
+    .from("team_lineages")
+    .select("id")
+    .eq("slug", normalizedSlug)
+    .maybeSingle();
+
+  let availableSeasons: number[];
+
+  if (lineageError || !lineageData?.id) {
+    if (selectedSeason !== 2026) {
+      return null;
+    }
+
+    availableSeasons = [2026];
+  } else {
+    const { data: availableSeasonData, error: availableSeasonError } = await supabase
+      .from("team_season_profiles")
+      .select("season_year")
+      .eq("lineage_id", lineageData.id);
+
+    if (availableSeasonError) {
+      return null;
+    }
+
+    const publishedSeasonSet = new Set(await getPublishedSeasons());
+    availableSeasons = ((availableSeasonData ?? []) as { season_year: number }[])
+      .map((profile) => Number(profile.season_year))
+      .filter((year) => publishedSeasonSet.has(year))
+      .sort((left, right) => right - left);
+  }
 
   const [raceResult, standingHistoryResult, driverStandingResult, newsResult, socialPosts, constructorMatrix] = await Promise.all([
     supabase
       .from("races")
       .select("id, season_year, round, race_name, race_start_at, circuits(name, country, locality)")
-      .eq("season_year", season)
+      .eq("season_year", profileSeason)
       .order("round", { ascending: true }),
     supabase
       .from("constructor_standings")
       .select("team_id, round, position, points, wins, teams(name, code, color_hex)")
-      .eq("season_year", season)
+      .eq("season_year", profileSeason)
       .eq("team_id", team.id)
       .order("round", { ascending: true, nullsFirst: false }),
     latestRound
       ? supabase
           .from("driver_standings")
           .select("position, points, wins, drivers(id, full_name, slug, code, permanent_number, ai_avatar_url)")
-          .eq("season_year", season)
+          .eq("season_year", profileSeason)
           .eq("round", latestRound)
-          .eq("team_id", team.id)
           .order("position", { ascending: true, nullsFirst: false })
       : Promise.resolve({ data: [], error: null }),
-    getNewsItems({ pageSize: 6, tagSlug: `team-${team.code.toLowerCase()}` }),
-    getTeamSocialPosts(team),
-    getConstructorChampionshipMatrix(),
+    selectedSeason === 2026
+      ? getNewsItems({ pageSize: 6, tagSlug: `team-${team.code.toLowerCase()}` })
+      : Promise.resolve(emptyNewsList(1)),
+    selectedSeason === 2026 ? getTeamSocialPosts(team) : Promise.resolve([]),
+    getConstructorChampionshipMatrix(selectedSeason),
   ]);
 
   const races = (raceResult.data ?? []) as unknown as DriverRaceDbRow[];
@@ -2560,7 +2978,24 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
     }];
   });
 
-  const driverRows = (driverStandingResult.data ?? []) as unknown as TeamProfileDriverStandingDbRow[];
+  const actualDriverIds = new Set(
+    [...raceResults, ...qualifyingResults]
+      .map((result) => result.driver_id)
+      .filter((driverId): driverId is string => Boolean(driverId)),
+  );
+  const driverRows = ((driverStandingResult.data ?? []) as unknown as TeamProfileDriverStandingDbRow[])
+    .filter((row) => {
+      const driver = getRelationObject(row.drivers);
+      return Boolean(driver?.id && actualDriverIds.has(driver.id));
+    });
+  const driverSeasonProfiles = await getDriverSeasonProfilesByIds(
+    supabase,
+    selectedSeason,
+    driverRows.flatMap((row) => {
+      const driver = getRelationObject(row.drivers);
+      return driver?.id ? [driver.id] : [];
+    }),
+  );
   const drivers: TeamProfileDriver[] = driverRows.flatMap((row) => {
     const driver = getRelationObject(row.drivers);
 
@@ -2569,6 +3004,12 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
     }
 
     const driverRaceResults = raceResults.filter((result) => result.driver_id === driver.id);
+    const driverPointResults = results.filter((result) => result.driver_id === driver.id);
+    const seasonalDriver = driverSeasonProfiles.get(driver.id);
+    const teamPoints = driverPointResults.reduce(
+      (total, result) => total + Number(result.points ?? 0),
+      0,
+    );
     const classifiedPositions = driverRaceResults
       .filter((result) => !isDnfDriverResult(result))
       .map((result) => result.position)
@@ -2578,11 +3019,19 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
       id: driver.id,
       fullName: driver.full_name,
       slug: driver.slug ?? undefined,
-      code: driver.code ?? undefined,
-      number: driver.permanent_number,
-      avatarUrl: driver.ai_avatar_url,
+      code: seasonalDriver
+        ? seasonalDriver.code ?? undefined
+        : selectedSeason === CURRENT_F1_SEASON
+          ? driver.code ?? undefined
+          : undefined,
+      number: seasonalDriver
+        ? seasonalDriver.permanent_number
+        : selectedSeason === CURRENT_F1_SEASON
+          ? driver.permanent_number
+          : null,
+      avatarUrl: seasonalDriver?.avatar_image_url ?? (selectedSeason === 2026 ? driver.ai_avatar_url : null),
       championshipPosition: row.position,
-      points: Number(row.points ?? 0),
+      points: Number(teamPoints.toFixed(2)),
       wins: Math.max(row.wins ?? 0, driverRaceResults.filter((result) => result.position === 1).length),
       podiums: driverRaceResults.filter((result) => Boolean(result.position && result.position <= 3)).length,
       bestResult: classifiedPositions.length ? Math.min(...classifiedPositions) : null,
@@ -2661,6 +3110,7 @@ export async function getTeamProfileBySlug(slug: string): Promise<TeamProfile | 
 
   return {
     ...team,
+    availableSeasons,
     drivers,
     stats: {
       points: team.points,
@@ -2731,10 +3181,18 @@ function formatTeamFormResults(row: TeamRaceResultRow, drivers: TeamProfileDrive
 
 export async function getStandingsMeta(
   type: "driver_standings" | "constructor_standings",
+  season: number,
 ): Promise<StandingsMeta | null> {
+  const selectedSeason = await resolvePublishedSeason(season);
+
+  if (selectedSeason === null) {
+    return null;
+  }
+
   const latest = await getLatestCompleteStandingRound(
     type,
     type === "driver_standings" ? 20 : 10,
+    selectedSeason,
   );
 
   if (!latest) {
@@ -2989,7 +3447,11 @@ export async function getCurrentSeasonPredictionOptions(
     return { drivers: [], teams: [] };
   }
 
-  const latest = await getLatestCompleteStandingRound("driver_standings", 20);
+  const latest = await getLatestCompleteStandingRound(
+    "driver_standings",
+    20,
+    CURRENT_F1_SEASON,
+  );
 
   if (latest) {
     let standingsQuery = client
@@ -3095,7 +3557,7 @@ async function getQualifyingResultsForRace(raceId: string): Promise<PredictionSt
   }
 
   const [results, weatherBySession] = await Promise.all([
-    getSessionResults(session.id),
+    getSessionResults(session.id, CURRENT_F1_SEASON),
     getSessionWeatherByIds([session.id]),
   ]);
 
@@ -4741,6 +5203,10 @@ export async function getRaceDetail(
   season: number,
   round: number,
 ): Promise<RaceDetail | null> {
+  if ((await resolvePublishedSeason(season)) !== season) {
+    return null;
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -4760,9 +5226,10 @@ export async function getRaceDetail(
 
   const race = data as unknown as RaceRow;
   const circuit = getRelationObject(race.circuits);
-  const [layout, latestStanding] = await Promise.all([
-    circuit?.id ? getCircuitLayout(circuit.id) : null,
-    getLatestCompleteStandingRound("driver_standings", 20),
+  const [layout, latestStanding, trackAssets] = await Promise.all([
+    season === 2026 && circuit?.id ? getCircuitLayout(circuit.id) : null,
+    getLatestCompleteStandingRound("driver_standings", 20, season),
+    getRaceTrackAssetsByRaceIds([race.id]),
   ]);
 
   return {
@@ -4785,6 +5252,7 @@ export async function getRaceDetail(
     ),
     timezone: circuit?.timezone || getCircuitTimezone(circuit?.country ?? "", circuit?.name ?? ""),
     layout,
+    trackMapUrl: trackAssets.get(race.id)?.image_url ?? (season === 2026 ? undefined : null),
   };
 }
 
@@ -4792,6 +5260,10 @@ export async function getCircuitStatsForRace(
   season: number,
   round: number,
 ): Promise<CircuitStatsView | null> {
+  if ((await resolvePublishedSeason(season)) !== season) {
+    return null;
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -4847,16 +5319,38 @@ export async function getCircuitStatsForRace(
     return null;
   }
 
-  const [
-    statsResult,
-    historyResult,
-    driverStatsResult,
-    teamStatsResult,
-  ] = await Promise.all([
+  // These tables and circuit fields are current-season snapshots rather than
+  // season-versioned data, so exposing them on an archive page would mix eras.
+  const includeCurrentData = season === CURRENT_F1_SEASON;
+  const currentParticipantStats = includeCurrentData
+    ? Promise.all([
+        supabase
+          .from("circuit_driver_stats")
+          .select("*")
+          .eq("circuit_id", circuit.id)
+          .eq("season_scope", "current_active")
+          .order("wins", { ascending: false })
+          .order("podiums", { ascending: false })
+          .order("avg_finish_position", { ascending: true, nullsFirst: false })
+          .limit(5),
+        supabase
+          .from("circuit_team_stats")
+          .select("*")
+          .eq("circuit_id", circuit.id)
+          .eq("season_scope", "current_active")
+          .order("wins", { ascending: false })
+          .order("podiums", { ascending: false })
+          .order("avg_points", { ascending: false, nullsFirst: false })
+          .limit(5),
+      ])
+    : Promise.resolve([{ data: [] }, { data: [] }] as const);
+
+  const [statsResult, historyResult, [driverStatsResult, teamStatsResult]] = await Promise.all([
     supabase
       .from("circuit_stats")
       .select("*")
       .eq("circuit_id", circuit.id)
+      .lte("calculated_to_season", season)
       .order("calculated_to_season", { ascending: false, nullsFirst: false })
       .order("calculated_at", { ascending: false, nullsFirst: false })
       .limit(1)
@@ -4865,27 +5359,11 @@ export async function getCircuitStatsForRace(
       .from("circuit_grand_prix_history")
       .select("*")
       .eq("circuit_id", circuit.id)
+      .lte("season", season)
       .order("season", { ascending: false })
       .order("round", { ascending: false })
       .limit(10),
-    supabase
-      .from("circuit_driver_stats")
-      .select("*")
-      .eq("circuit_id", circuit.id)
-      .eq("season_scope", "current_active")
-      .order("wins", { ascending: false })
-      .order("podiums", { ascending: false })
-      .order("avg_finish_position", { ascending: true, nullsFirst: false })
-      .limit(5),
-    supabase
-      .from("circuit_team_stats")
-      .select("*")
-      .eq("circuit_id", circuit.id)
-      .eq("season_scope", "current_active")
-      .order("wins", { ascending: false })
-      .order("podiums", { ascending: false })
-      .order("avg_points", { ascending: false, nullsFirst: false })
-      .limit(5),
+    currentParticipantStats,
   ]);
 
   const stats = statsResult.data as unknown as CircuitStatsDbRow | null;
@@ -4909,14 +5387,15 @@ export async function getCircuitStatsForRace(
     getTeamsByIds([...new Set(teamIds)]),
   ]);
   const records = getJsonRecord(stats?.records_json);
-  const character = mapCircuitCharacterStats(records.characterSince2000, [
-    { label: "Обгоны", value: circuit.overtaking_rating ?? null, helper: "Насколько реально отыгрывать позиции в гонке." },
-    { label: "Квалификация", value: circuit.qualifying_importance_rating ?? null, helper: "Как часто стартовая позиция решает итог гонки." },
-    { label: "Износ шин", value: circuit.tyre_wear_rating ?? null, helper: "Насколько трасса нагружает резину." },
-    { label: "Safety Car", value: circuit.safety_car_rating ?? null, helper: "Вероятность нейтрализаций и остановок." },
-    { label: "Стратегия", value: circuit.strategy_variability_rating ?? null, helper: "Сколько рабочих сценариев есть у мостиков." },
+  const characterFallbackRatings: CircuitStatsView["ratings"] = [
+    { label: "Обгоны", value: includeCurrentData ? circuit.overtaking_rating ?? null : null, helper: "Насколько реально отыгрывать позиции в гонке." },
+    { label: "Квалификация", value: includeCurrentData ? circuit.qualifying_importance_rating ?? null : null, helper: "Как часто стартовая позиция решает итог гонки." },
+    { label: "Износ шин", value: includeCurrentData ? circuit.tyre_wear_rating ?? null : null, helper: "Насколько трасса нагружает резину." },
+    { label: "Safety Car", value: includeCurrentData ? circuit.safety_car_rating ?? null : null, helper: "Вероятность нейтрализаций и остановок." },
+    { label: "Стратегия", value: includeCurrentData ? circuit.strategy_variability_rating ?? null : null, helper: "Сколько рабочих сценариев есть у мостиков." },
     { label: "Хаос", value: getChaosRating(toNumberOrNull(stats?.chaos_score)), helper: "Как часто гонка уходит от спокойного сценария." },
-  ]);
+  ];
+  const character = mapCircuitCharacterStats(records.characterSince2000, characterFallbackRatings);
 
   return {
     circuit: {
@@ -4925,26 +5404,22 @@ export async function getCircuitStatsForRace(
       name: circuit.name,
       country: circuit.country ?? "Страна уточняется",
       locality: circuit.locality ?? "Город уточняется",
-      lapLengthKm: toNumberOrNull(circuit.lap_length_km),
-      raceLaps: circuit.race_laps ?? null,
-      raceDistanceKm: toNumberOrNull(circuit.race_distance_km),
-      turnsCount: circuit.turns_count ?? null,
-      direction: circuit.direction ?? null,
+      lapLengthKm: includeCurrentData ? toNumberOrNull(circuit.lap_length_km) : null,
+      raceLaps: includeCurrentData ? circuit.race_laps ?? null : null,
+      raceDistanceKm: includeCurrentData ? toNumberOrNull(circuit.race_distance_km) : null,
+      turnsCount: includeCurrentData ? circuit.turns_count ?? null : null,
+      direction: includeCurrentData ? circuit.direction ?? null : null,
       firstGrandPrixYear: circuit.first_grand_prix_year ?? null,
-      lapRecordTime: circuit.lap_record_time ?? null,
-      lapRecordDriver: circuit.lap_record_driver ?? null,
-      lapRecordYear: circuit.lap_record_year ?? null,
-      drsZonesCount: circuit.drs_zones_count ?? null,
-      trackType: circuit.track_type ?? null,
-      description: circuit.track_description ?? null,
+      lapRecordTime: includeCurrentData ? circuit.lap_record_time ?? null : null,
+      lapRecordDriver: includeCurrentData ? circuit.lap_record_driver ?? null : null,
+      lapRecordYear: includeCurrentData ? circuit.lap_record_year ?? null : null,
+      drsZonesCount: includeCurrentData ? circuit.drs_zones_count ?? null : null,
+      trackType: includeCurrentData ? circuit.track_type ?? null : null,
+      description: includeCurrentData ? circuit.track_description ?? null : null,
     },
     ratings: [
-      { label: "Обгоны", value: circuit.overtaking_rating ?? null, helper: "Насколько реально отыгрывать позиции в гонке." },
-      { label: "Квалификация", value: circuit.qualifying_importance_rating ?? null, helper: "Как часто стартовая позиция решает итог гонки." },
-      { label: "Износ шин", value: circuit.tyre_wear_rating ?? null, helper: "Насколько трасса нагружает резину." },
-      { label: "Safety Car", value: circuit.safety_car_rating ?? null, helper: "Вероятность нейтрализаций и остановок." },
-      { label: "Стратегия", value: circuit.strategy_variability_rating ?? null, helper: "Сколько рабочих сценариев есть у мостиков." },
-      { label: "Дождь", value: circuit.rain_risk_rating ?? null, helper: "Исторический и погодный риск мокрой гонки." },
+      ...characterFallbackRatings.slice(0, -1),
+      { label: "Дождь", value: includeCurrentData ? circuit.rain_risk_rating ?? null : null, helper: "Исторический и погодный риск мокрой гонки." },
     ],
     character,
     summary: {
@@ -4988,7 +5463,7 @@ export async function getCircuitStatsForRace(
       mostSuccessfulDriver: stringOrNull(records.mostSuccessfulDriver),
       mostSuccessfulTeam: stringOrNull(records.mostSuccessfulTeam),
     },
-    aiPreview: stats?.ai_preview ?? null,
+    aiPreview: includeCurrentData ? stats?.ai_preview ?? null : null,
     history: historyRows.map((row) => ({
       season: row.season,
       round: row.round,
@@ -5058,14 +5533,17 @@ export async function getCurrentRaceDetail(): Promise<RaceDetail | null> {
 export async function getCurrentRaceReplaySummary(): Promise<RaceReplaySummary | null> {
   const race = await getCurrentRace();
 
-  if (!race) {
+  if (!race || race.season_year !== CURRENT_F1_SEASON) {
     return null;
   }
 
-  return getRaceReplaySummaryByRaceId(race.id);
+  return getRaceReplaySummaryByRaceId(race.id, CURRENT_F1_SEASON);
 }
 
-export async function getRaceReplaySummaryByRaceId(raceId: string): Promise<RaceReplaySummary | null> {
+export async function getRaceReplaySummaryByRaceId(
+  raceId: string,
+  targetSeason: number,
+): Promise<RaceReplaySummary | null> {
   const supabase = createSupabaseAdminClient() ?? await createSupabaseServerClient();
 
   if (!supabase) {
@@ -5074,8 +5552,9 @@ export async function getRaceReplaySummaryByRaceId(raceId: string): Promise<Race
 
   const { data, error } = await supabase
     .from("race_replay_sessions")
-    .select("id, title, status, source_season, source_session_key")
+    .select("id, title, status, source_season, source_session_key, races!inner(season_year)")
     .eq("race_id", raceId)
+    .eq("races.season_year", targetSeason)
     .eq("status", "ready")
     .order("prepared_at", { ascending: false, nullsFirst: false })
     .limit(1)
@@ -5095,7 +5574,10 @@ export async function getRaceReplaySummaryByRaceId(raceId: string): Promise<Race
   };
 }
 
-export async function getRaceReplayBySessionKey(sessionKey: number): Promise<RaceReplaySnapshot | null> {
+export async function getRaceReplayBySessionKey(
+  sessionKey: number,
+  targetSeason: number,
+): Promise<RaceReplaySnapshot | null> {
   const supabase = createSupabaseAdminClient() ?? await createSupabaseServerClient();
 
   if (!supabase) {
@@ -5104,8 +5586,9 @@ export async function getRaceReplayBySessionKey(sessionKey: number): Promise<Rac
 
   const { data, error } = await supabase
     .from("race_replay_sessions")
-    .select("id, source_session_key, snapshot")
+    .select("id, source_session_key, snapshot, races!inner(season_year)")
     .eq("source_session_key", sessionKey)
+    .eq("races.season_year", targetSeason)
     .eq("status", "ready")
     .maybeSingle();
 
@@ -5258,7 +5741,10 @@ export async function getRaceSessions(
   }));
 }
 
-export async function getSessionResults(sessionId?: string | null): Promise<SessionResult[]> {
+export async function getSessionResults(
+  sessionId: string | null | undefined,
+  season: number,
+): Promise<SessionResult[]> {
   if (!sessionId) {
     return [];
   }
@@ -5279,11 +5765,12 @@ export async function getSessionResults(sessionId?: string | null): Promise<Sess
     return [];
   }
 
-  return mapSessionResultRows(data as unknown as SessionResultDbRow[]);
+  return mapSessionResultRows(data as unknown as SessionResultDbRow[], season);
 }
 
 export async function getSessionResultsBySessionIds(
   sessionIds: Array<string | null | undefined>,
+  season: number,
 ): Promise<Map<string, SessionResult[]>> {
   const ids = [...new Set(sessionIds.filter((sessionId): sessionId is string => Boolean(sessionId)))];
 
@@ -5316,11 +5803,11 @@ export async function getSessionResultsBySessionIds(
   });
 
   return new Map(
-    [...rowsBySession].map(([sessionId, rows]) => [sessionId, mapSessionResultRows(rows)]),
+    [...rowsBySession].map(([sessionId, rows]) => [sessionId, mapSessionResultRows(rows, season)]),
   );
 }
 
-function mapSessionResultRows(rows: SessionResultDbRow[]): SessionResult[] {
+function mapSessionResultRows(rows: SessionResultDbRow[], season: number): SessionResult[] {
   return rows
     .filter((row) => {
       const session = getRelationObject(row.sessions);
@@ -5332,7 +5819,7 @@ function mapSessionResultRows(rows: SessionResultDbRow[]): SessionResult[] {
       return !isLapOnlyResult(row);
     })
     .map((row) => ({
-      ...getTeamVisualFields(row.teams, "Команда уточняется"),
+      ...getTeamVisualFields(row.teams, "Команда уточняется", season),
       position: row.position,
       driver: getRelationName(row.drivers, "Пилот уточняется"),
       driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
@@ -6352,30 +6839,6 @@ function getCumulativeRoundPointsAfterDisplayedTotal(
   return points > 0 ? Number(points.toFixed(2)) : 0;
 }
 
-function getRoundResultPoints(
-  rawPoints: number | string | null,
-  sessionType: string,
-  position: number | null,
-) {
-  const normalizedType = sessionType.toLowerCase();
-  const points = rawPoints === null || rawPoints === undefined ? null : Number(rawPoints);
-  const maxExpectedPoints = normalizedType === "sprint" ? 8 : normalizedType === "race" ? 25 : 0;
-
-  if (points !== null && Number.isFinite(points) && points <= maxExpectedPoints) {
-    return points;
-  }
-
-  if (normalizedType === "sprint") {
-    return getSprintPointsByPosition(position);
-  }
-
-  if (normalizedType === "race") {
-    return getRacePointsByPosition(position);
-  }
-
-  return null;
-}
-
 function isLapOnlyResult(row: { status?: string | null; raw_payload?: unknown }) {
   const status = row.status?.trim().toLowerCase() ?? "";
 
@@ -6397,21 +6860,10 @@ function isLapOnlyResult(row: { status?: string | null; raw_payload?: unknown })
   );
 }
 
-function getRacePointsByPosition(position: number | null) {
-  const pointsByPosition = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
-
-  return position && position > 0 ? pointsByPosition[position - 1] ?? 0 : 0;
-}
-
-function getSprintPointsByPosition(position: number | null) {
-  const pointsByPosition = [8, 7, 6, 5, 4, 3, 2, 1];
-
-  return position && position > 0 ? pointsByPosition[position - 1] ?? 0 : 0;
-}
-
-async function getLatestCompleteStandingRound(
+export async function getLatestCompleteStandingRound(
   table: "driver_standings" | "constructor_standings",
   minimumRows: number,
+  season: number,
 ): Promise<StandingRoundRow | null> {
   const supabase = await createSupabaseServerClient();
 
@@ -6419,12 +6871,16 @@ async function getLatestCompleteStandingRound(
     return null;
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from(table)
     .select("season_year, round")
     .order("season_year", { ascending: false })
     .order("round", { ascending: false, nullsFirst: false })
     .limit(500);
+
+  query = query.eq("season_year", season);
+
+  const { data, error } = await query;
 
   if (error || !data?.length) {
     return null;
@@ -7064,13 +7520,18 @@ const getCurrentRace = cache(async (select?: string): Promise<RaceRow | null> =>
   const { data: upcoming } = await supabase
     .from("races")
     .select(fields)
+    .eq("season_year", CURRENT_F1_SEASON)
     .gte("race_start_at", currentRaceWindowIso)
     .order("race_start_at", { ascending: true, nullsFirst: false })
     .limit(4);
 
   if (upcoming?.length) {
     const candidates = upcoming as unknown as RaceRow[];
-    const latestStanding = await getLatestCompleteStandingRound("driver_standings", 20);
+    const latestStanding = await getLatestCompleteStandingRound(
+      "driver_standings",
+      20,
+      CURRENT_F1_SEASON,
+    );
     const startedCandidateIds = candidates
       .filter((race) => {
         const raceStart = getTimeMs(race.race_start_at);
@@ -7100,6 +7561,7 @@ const getCurrentRace = cache(async (select?: string): Promise<RaceRow | null> =>
   const { data: latest } = await supabase
     .from("races")
     .select(fields)
+    .eq("season_year", CURRENT_F1_SEASON)
     .order("race_start_at", { ascending: false, nullsFirst: false })
     .limit(1)
     .maybeSingle();
@@ -7138,11 +7600,44 @@ async function getRaceWinners(raceIds: string[]) {
   return winners;
 }
 
+async function getRaceTrackAssetsByRaceIds(raceIds: string[]) {
+  const assets = new Map<string, RaceTrackAssetDbRow>();
+
+  if (!raceIds.length) {
+    return assets;
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return assets;
+  }
+
+  const { data, error } = await supabase
+    .from("race_track_assets")
+    .select("race_id, image_url, is_verified")
+    .in("race_id", raceIds)
+    .eq("is_verified", true);
+
+  if (error) {
+    return assets;
+  }
+
+  ((data ?? []) as unknown as RaceTrackAssetDbRow[]).forEach((asset) => {
+    if (asset.image_url) {
+      assets.set(asset.race_id, asset);
+    }
+  });
+
+  return assets;
+}
+
 function mapCalendarRace(
   race: RaceRow,
   isCurrent: boolean,
   winner?: string,
   isCompletedByStandings = false,
+  trackMapUrl?: string | null,
 ): CalendarEvent {
   const circuit = getRelationObject(race.circuits);
   const country = circuit?.country ?? "Страна уточняется";
@@ -7170,6 +7665,7 @@ function mapCalendarRace(
     status: mapRaceStatus(race.status, race.race_start_at, isCurrent ? 0 : 1, isCompletedByStandings),
     hasSprint,
     winner,
+    trackMapUrl,
     href: `/calendar/${race.season_year}/${race.round}`,
   };
 }
@@ -7769,10 +8265,11 @@ function getRelationName(
 function getTeamVisualFields(
   relation: TeamRelationObject | TeamRelationObject[] | null,
   fallback: string,
+  season = 2026,
 ) {
   const team = getRelationObject(relation);
   const teamName = team?.name ?? fallback;
-  const asset = getTeamAsset(teamName) ?? getTeamAsset(team?.code);
+  const asset = getTeamAsset(teamName, season) ?? getTeamAsset(team?.code, season);
 
   return {
     team: teamName,

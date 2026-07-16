@@ -54,6 +54,7 @@ import type {
   StandingRow,
 } from "@/types/racemate";
 import { normalizeAuthNext } from "@/lib/auth-redirect";
+import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { formatSessionName } from "@/lib/session-display";
 
 export const dynamic = "force-dynamic";
@@ -79,6 +80,7 @@ export default async function Home({
     const visibleSessions = sessions.slice(0, 5);
     const resultsBySession = await getSessionResultsBySessionIds(
       visibleSessions.map((session) => session.id),
+      CURRENT_F1_SEASON,
     );
 
     return visibleSessions.map((session) => ({
@@ -90,8 +92,8 @@ export default async function Home({
     await Promise.all([
       getNewsItems({ pageSize: 7 }),
       getNextSession(),
-      getDriverStandings(),
-      getConstructorStandings(),
+      getDriverStandings(CURRENT_F1_SEASON),
+      getConstructorStandings(CURRENT_F1_SEASON),
       getCurrentRaceDetail(),
       getSeasonChampionOdds(),
       getConstructorChampionOdds(),

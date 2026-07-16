@@ -5,7 +5,6 @@ import type { Metadata } from "next";
 import {
   ChevronDown,
   ChevronRight,
-  CircleUserRound,
   Flag,
   Gauge,
   Heart,
@@ -20,8 +19,12 @@ import {
 import { addFavoriteDriver } from "@/app/drivers/[slug]/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverCumulativePointsChart } from "@/components/racemate/driver-cumulative-points-chart";
-import { getLocalDriverAvatarSrc } from "@/components/racemate/driver-avatar-badge";
+import {
+  getDriverInitials,
+  getLocalDriverAvatarSrc,
+} from "@/components/racemate/driver-avatar-badge";
 import { RaceFlag } from "@/components/racemate/race-flag";
+import { SeasonSwitcher } from "@/components/racemate/season-switcher";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import {
   StitchMetric,
@@ -32,9 +35,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   getDriverProfileBySlug,
+  getPublishedSeasons,
 } from "@/data/racemate-repository";
 import { getTeamProfileAsset } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
+import {
+  CURRENT_F1_SEASON,
+  resolvePublishedSeason,
+  type SeasonSearchParams,
+} from "@/lib/season-navigation";
 import { cn } from "@/lib/utils";
 import type { DriverProfile, DriverRaceResultRow } from "@/types/racemate";
 
@@ -42,11 +51,22 @@ export const dynamic = "force-dynamic";
 
 type DriverPageProps = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<SeasonSearchParams>;
 };
 
-export async function generateMetadata({ params }: DriverPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const profile = await getDriverProfileBySlug(slug);
+export async function generateMetadata({ params, searchParams }: DriverPageProps): Promise<Metadata> {
+  const [{ slug }, query, publishedSeasons] = await Promise.all([
+    params,
+    searchParams,
+    getPublishedSeasons(),
+  ]);
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+
+  if (!season) {
+    return { title: "Гонщик не найден · RaceMate" };
+  }
+
+  const profile = await getDriverProfileBySlug(slug, season);
 
   if (!profile) {
     return {
@@ -56,23 +76,42 @@ export async function generateMetadata({ params }: DriverPageProps): Promise<Met
 
   return {
     title: `${profile.fullName} · RaceMate`,
-    description: `Профиль гонщика ${profile.fullName}: сезон, результаты, форма, новости и сравнение с напарником.`,
+    description: `Профиль гонщика ${profile.fullName}: сезон ${profile.season}, результаты, форма и сравнение с напарником.`,
   };
 }
 
-export default async function DriverProfilePage({ params }: DriverPageProps) {
-  const { slug } = await params;
-  const user = await getSessionUser();
-  const profile = await getDriverProfileBySlug(slug, user?.id);
+export default async function DriverProfilePage({ params, searchParams }: DriverPageProps) {
+  const [{ slug }, query, user, publishedSeasons] = await Promise.all([
+    params,
+    searchParams,
+    getSessionUser(),
+    getPublishedSeasons(),
+  ]);
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+
+  if (!season) {
+    notFound();
+  }
+
+  const profile = await getDriverProfileBySlug(slug, season, user?.id);
 
   if (!profile) {
     notFound();
   }
 
+  const availableSeasons = [...new Set([profile.season, ...(profile.availableSeasons ?? [])])]
+    .filter((item) => publishedSeasons.includes(item));
+  const isCurrentSeason = profile.season === CURRENT_F1_SEASON;
+
   return (
-    <AppShell>
+    <AppShell season={profile.season}>
       <div className="grid gap-4 pb-6 sm:gap-5">
-        <DriverHero profile={profile} signedIn={Boolean(user)} />
+        <DriverHero
+          availableSeasons={availableSeasons}
+          profile={profile}
+          query={query}
+          signedIn={Boolean(user)}
+        />
 
         <SeasonStats profile={profile} />
 
@@ -89,19 +128,35 @@ export default async function DriverProfilePage({ params }: DriverPageProps) {
           </aside>
         </div>
 
-        <div className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem]">
-          <DriverNewsPanel profile={profile} />
-          <DriverSocialPanel profile={profile} />
-        </div>
+        {isCurrentSeason ? (
+          <div className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem]">
+            <DriverNewsPanel profile={profile} />
+            <DriverSocialPanel profile={profile} />
+          </div>
+        ) : null}
       </div>
     </AppShell>
   );
 }
 
-function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: boolean }) {
-  const teamProfile = getTeamProfileAsset(profile.team.code) ?? getTeamProfileAsset(profile.team.name);
-  const avatarUrl = profile.aiAvatarUrl || getLocalDriverAvatarSrc(profile.slug);
+function DriverHero({
+  availableSeasons,
+  profile,
+  query,
+  signedIn,
+}: {
+  availableSeasons: number[];
+  profile: DriverProfile;
+  query: SeasonSearchParams;
+  signedIn: boolean;
+}) {
+  const teamProfile = profile.season === CURRENT_F1_SEASON
+    ? getTeamProfileAsset(profile.team.code) ?? getTeamProfileAsset(profile.team.name)
+    : null;
+  const teamSlug = profile.team.slug ?? teamProfile?.slug;
+  const avatarUrl = profile.aiAvatarUrl || getLocalDriverAvatarSrc(profile.slug, profile.season);
   const teamColor = profile.team.color ?? "var(--primary)";
+  const isChampion = profile.season < CURRENT_F1_SEASON && profile.stats.championshipPosition === 1;
 
   return (
     <section className="stitch-panel relative overflow-hidden p-0">
@@ -120,10 +175,19 @@ function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: b
         {profile.number ?? profile.code ?? ""}
       </span>
 
-      <div className="relative grid gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
+      <div className="relative z-10 flex justify-end px-5 pt-5 sm:px-7 sm:pt-7">
+        <SeasonSwitcher
+          activeSeason={profile.season}
+          className="w-full sm:w-auto"
+          pathname={`/drivers/${profile.slug}`}
+          query={query}
+          seasons={availableSeasons}
+        />
+      </div>
+
+      <div className="relative grid gap-5 p-5 pt-3 sm:p-7 sm:pt-4 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
         <div className="flex min-w-0 flex-col lg:min-h-72">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">Сезон {profile.season}</Badge>
             <Badge variant="secondary">
               <RaceFlag
                 className="mr-1 align-[-0.08em]"
@@ -135,10 +199,10 @@ function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: b
             <Badge variant="outline">
               <span className="font-telemetry">№ {profile.number ?? profile.code ?? "—"}</span>
             </Badge>
-            {profile.slug === "lando-norris" ? (
+            {isChampion ? (
               <Badge className="border-[#f4c95d]/55 bg-[#f4c95d]/15 text-[#8a6500] dark:text-[#f4c95d]" variant="outline">
                 <Trophy aria-hidden="true" className="mr-1 size-3" />
-                Чемпион 2025
+                Чемпион {profile.season}
               </Badge>
             ) : null}
           </div>
@@ -156,7 +220,9 @@ function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: b
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <Link
                 className="group inline-flex min-w-0 items-center gap-2.5 rounded-md border border-border/70 bg-background/40 py-1.5 pl-1.5 pr-2.5 transition-colors hover:border-primary/40 hover:bg-accent/50"
-                href={teamProfile ? `/teams/${teamProfile.slug}` : "/leaderboard?table=constructors"}
+                href={teamSlug
+                  ? `/teams/${teamSlug}?season=${profile.season}`
+                  : `/leaderboard?season=${profile.season}&table=constructors`}
                 prefetch={false}
               >
                 <TeamLogo
@@ -195,12 +261,23 @@ function DriverHero({ profile, signedIn }: { profile: DriverProfile; signedIn: b
               />
             </div>
           ) : (
-            <div className="relative grid h-56 place-items-center overflow-hidden rounded-xl border border-border/70 bg-background/40 sm:h-64 lg:h-72">
-              <div className="grid justify-items-center gap-3 text-center">
-                <CircleUserRound aria-hidden="true" className="size-14 text-muted-foreground" />
-                <p className="font-telemetry text-4xl font-black">{profile.number ?? profile.code ?? "—"}</p>
-                <p className="px-4 text-xs text-muted-foreground">AI-аватар появится после ручной загрузки</p>
-              </div>
+            <div
+              aria-hidden="true"
+              className="relative grid h-56 place-items-center overflow-hidden rounded-xl border border-border/70 bg-background/40 sm:h-64 lg:h-72"
+            >
+              <span
+                className="absolute select-none font-display text-[8rem] font-black leading-none opacity-[0.08] sm:text-[10rem]"
+                style={{ color: teamColor }}
+              >
+                {getDriverInitials(profile.fullName)}
+              </span>
+              <span className="relative grid size-24 place-items-center rounded-full border border-border/80 bg-background/75 font-telemetry text-4xl font-black shadow-sm sm:size-28 sm:text-5xl">
+                {profile.number ?? profile.code ?? getDriverInitials(profile.fullName)}
+              </span>
+              <span
+                className="absolute inset-x-6 bottom-0 h-1 rounded-full"
+                style={{ backgroundColor: teamColor }}
+              />
             </div>
           )}
         </div>
@@ -228,10 +305,16 @@ function HeroStat({ accent, label, value }: { accent?: boolean; label: string; v
 }
 
 function FavoriteAction({ profile, signedIn }: { profile: DriverProfile; signedIn: boolean }) {
+  if (profile.season !== CURRENT_F1_SEASON) {
+    return null;
+  }
+
   if (!signedIn) {
+    const next = `/drivers/${profile.slug}?season=${profile.season}`;
+
     return (
       <Button asChild>
-        <Link href={`/auth?next=/drivers/${profile.slug}`} prefetch={false}>
+        <Link href={`/auth?next=${encodeURIComponent(next)}`} prefetch={false}>
           <Heart aria-hidden="true" data-icon="inline-start" />
           Войти и добавить
         </Link>
@@ -261,6 +344,7 @@ function FavoriteAction({ profile, signedIn }: { profile: DriverProfile; signedI
   return (
     <form action={addFavoriteDriver}>
       <input name="driverId" type="hidden" value={profile.id} />
+      <input name="season" type="hidden" value={profile.season} />
       <input name="slug" type="hidden" value={profile.slug} />
       <Button type="submit">
         <Heart aria-hidden="true" data-icon="inline-start" />

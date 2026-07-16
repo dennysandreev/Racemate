@@ -1,0 +1,370 @@
+{
+  "season": 2020,
+  "downloadedAt": "2026-07-15T21:55:09.506Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2020,
+      "round": 1,
+      "raceName": "Austrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "austrian",
+      "file": "/f1/circuits/2020/01-austrian.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Austrian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/2020_austrian_grand_prix_-_circuit_map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "f3af3850365ace96ecb92fb576d25ed924ce32f45a0b8327f23110edf5612ac9",
+      "renderedPage": 2,
+      "sha256": "484594617e44871f1457d7acd08119d67b044fd3d697c230d460f1a46a2f0ca0",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 2,
+      "raceName": "Styrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "styria",
+      "file": "/f1/circuits/2020/02-styria.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Styrian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Styrian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "b24c33ba43abea35d83fc2a478d8738a27afa4743b2e69ef082cb58dcac85daa",
+      "renderedPage": 2,
+      "sha256": "b9d56a98467e7254bc9bb43b1a9cfcf3be9648a3ef866bf759e946d1e3aead8e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 3,
+      "raceName": "Hungarian Grand Prix",
+      "circuitId": "hungaroring",
+      "layoutSlug": "hungary",
+      "file": "/f1/circuits/2020/03-hungary.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Hungarian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Hungarian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "a9985f0a11e17483806b3ebd55f15afe8cfd8718d300224fc6de4bc750ade649",
+      "renderedPage": 2,
+      "sha256": "a3d8590cb6cb034781bb346e15bb723836a6f89cf3c5b9139631db555742f3f6",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 4,
+      "raceName": "British Grand Prix",
+      "circuitId": "silverstone",
+      "layoutSlug": "great-britain",
+      "file": "/f1/circuits/2020/04-great-britain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/British%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20British%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "077a912c9d655ab004f1bf1c16b13369ecb23f7cb14b54552d5042867c6d1e7e",
+      "renderedPage": 2,
+      "sha256": "d61644b8e24ca380bddbc330e4efac99745d12a791ab1d5b7f304aeb564ead9e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 5,
+      "raceName": "70th Anniversary Grand Prix",
+      "circuitId": "silverstone",
+      "layoutSlug": "70th-anniversary",
+      "file": "/f1/circuits/2020/05-70th-anniversary.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Formula%201%2070th%20Anniversary%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/70TH%20Anniversary%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "e0f54256be993d654256bf73986f82e3109901b8b444e3092966cf5d27bc2f28",
+      "renderedPage": 2,
+      "sha256": "cb5469c447fc9e4c93ba539fe14686687f2236e28caa2e37577e2036fb36ba78",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 6,
+      "raceName": "Spanish Grand Prix",
+      "circuitId": "catalunya",
+      "layoutSlug": "spain",
+      "file": "/f1/circuits/2020/06-spain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Spanish%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Spanish%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "32c663f0456ceab9cbd0672c9cda8f6f18df57facf814b42702bc7d5322e4c57",
+      "renderedPage": 2,
+      "sha256": "c4fd4bc38a7c7e278f86b73f40085082a5cfd8ebdf650bc22babb89c6649966b",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 7,
+      "raceName": "Belgian Grand Prix",
+      "circuitId": "spa",
+      "layoutSlug": "belgium",
+      "file": "/f1/circuits/2020/07-belgium.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Belgian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Belgian%20Grand%20Prix%20-%20Circuit%20Map_0.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "cd8ffb6c3d23b53c6abf4647663470814961548d507a220a421d367e079949a9",
+      "renderedPage": 2,
+      "sha256": "5f58cc4f80dfedd438820a633d3477e527ba6eea9951ef5fdbc71a8722f38bae",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 8,
+      "raceName": "Italian Grand Prix",
+      "circuitId": "monza",
+      "layoutSlug": "italy",
+      "file": "/f1/circuits/2020/08-italy.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Italian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Italian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "89440808d0b7a6c8964e08bd115d3a2c768a5f1e3013a3d056c2d39e84918e58",
+      "renderedPage": 2,
+      "sha256": "00c9d0ea752f84993ca8efe87252025e0fa0bb8c6d58995178966768188f3489",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 9,
+      "raceName": "Tuscan Grand Prix",
+      "circuitId": "mugello",
+      "layoutSlug": "tuscany",
+      "file": "/f1/circuits/2020/09-tuscany.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Tuscan%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Tuscan%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "9d2d5297aa56c4de6a1ee4fbb30ddc8c5eb349e79154fa5de5ee7f588d1c48fd",
+      "renderedPage": 2,
+      "sha256": "c375927d4f9fabf4487b17fae6c3a06a4790e49d63b4672dd6b47aaeb1744ea1",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 10,
+      "raceName": "Russian Grand Prix",
+      "circuitId": "sochi",
+      "layoutSlug": "russia",
+      "file": "/f1/circuits/2020/10-russia.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Russian%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Russian%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "0a4165d719e9b8c208f33d5477e2c97cd40eb0ad0aa156c083036f6de6fb9b4f",
+      "renderedPage": 2,
+      "sha256": "479bba11fc4a02aa0a4614afffe2dbd145f12540959fcf27646558e7431ef945",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 11,
+      "raceName": "Eifel Grand Prix",
+      "circuitId": "nurburgring",
+      "layoutSlug": "germany",
+      "file": "/f1/circuits/2020/11-germany.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Eifel%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Eifel%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "ebf6f31086f297a39c0e39a3abe32d896a6d5ed23b148577c2bc38161a284309",
+      "renderedPage": 2,
+      "sha256": "8ce55aec1cd8f5504f7f8d83a1301f1f38b764cf90645f1cf44c9cb5af0a4820",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 12,
+      "raceName": "Portuguese Grand Prix",
+      "circuitId": "portimao",
+      "layoutSlug": "portugal",
+      "file": "/f1/circuits/2020/12-portugal.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Portuguese%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Portuguese%20Grand%20Prix%20-%20Circuit%20Map_0.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "e907151a539db6ca406dab5a0ff6f6a60475bfbcc939ba4b6749c0c0150168d4",
+      "renderedPage": 2,
+      "sha256": "2c52c6b5d814b2cd9771dedb3976e1bd337e17ba752e2a5382d50a9b14eccf8a",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 13,
+      "raceName": "Emilia Romagna Grand Prix",
+      "circuitId": "imola",
+      "layoutSlug": "emilia-romagna",
+      "file": "/f1/circuits/2020/13-emilia-romagna.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Emilia%20Romagna%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Emilia%20Romagna%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "10f2026221830cc4dc40d01330513aa5c8c25944bdd33fdd3ae08ee91c010be3",
+      "renderedPage": 2,
+      "sha256": "e4359ac1c4d734cd725f76e5cfe885a718569d2444e10e6c8bea22e20542a40a",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 14,
+      "raceName": "Turkish Grand Prix",
+      "circuitId": "istanbul",
+      "layoutSlug": "turkey",
+      "file": "/f1/circuits/2020/14-turkey.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Turkish%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Turkish%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "3615031d598eef8a5af198823c505b9c6fb7bd6e1be77ac8147f55da78bd3516",
+      "renderedPage": 2,
+      "sha256": "f1f97b3046ca4331c20992cfafe73275134281623fba33e90ce08d1640e8b13e",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 15,
+      "raceName": "Bahrain Grand Prix",
+      "circuitId": "bahrain",
+      "layoutSlug": "bahrain",
+      "file": "/f1/circuits/2020/15-bahrain.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Bahrain%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Bahrain%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "7bd27cd053108970d2210f455bc500bf4018d383324b89c8a7e8180ca943dd0f",
+      "renderedPage": 2,
+      "sha256": "74f4d16bfec173beb0691cd15621c5b9c13b4b80f421e982412526ea8c80e4d2",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 16,
+      "raceName": "Sakhir Grand Prix",
+      "circuitId": "bahrain",
+      "layoutSlug": "sakhir",
+      "file": "/f1/circuits/2020/16-sakhir.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Sakhir%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Sakhir%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "1a54640afa25f40ac959a1f95503ab38c5f5221e2dc8b747af3aeec3d53c924a",
+      "renderedPage": 2,
+      "sha256": "1925f3bde6bc6a7a83452edbffca0bf6e0171b7deb19ce555e61483208210df9",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    },
+    {
+      "season": 2020,
+      "round": 17,
+      "raceName": "Abu Dhabi Grand Prix",
+      "circuitId": "yas_marina",
+      "layoutSlug": "united-arab-emirates",
+      "file": "/f1/circuits/2020/17-united-arab-emirates.webp",
+      "authority": "FIA",
+      "pageUrl": "https://www.fia.com/documents/season/season-2020-1059/event/Abu%20Dhabi%20Grand%20Prix",
+      "sourceUrl": "https://www.fia.com/sites/default/files/decision-document/2020%20Abu%20Dhabi%20Grand%20Prix%20-%20Circuit%20Map.pdf",
+      "sourceTitle": "Circuit Map",
+      "sourceDocumentSha256": "01f0b9b4b0b38e0c86ec4bc508561a7df490564dd0af6cda6809a71bbd7e1f01",
+      "renderedPage": 2,
+      "sha256": "7ff6893aa95d06b2a15905b193013da6d3bf9c144bad1fd3418471bbe619cdb5",
+      "manualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-07-15T21:59:22.717039Z",
+        "reviewer": "RaceMate visual QA",
+        "note": "Compared on the season contact sheet with the named FIA event map."
+      }
+    }
+  ],
+  "manualReview": {
+    "status": "approved",
+    "reviewedAt": "2026-07-15T21:59:22.717039Z",
+    "reviewer": "RaceMate visual QA"
+  }
+}

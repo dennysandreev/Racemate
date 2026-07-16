@@ -1,0 +1,316 @@
+{
+  "season": 2023,
+  "downloadedAt": "2026-07-15T21:37:05.082Z",
+  "sourcePolicy": "Official Formula1.com season team assets only; no cross-season fallback.",
+  "rightsReviewRequired": true,
+  "rightsReview": {
+    "status": "cleared",
+    "reviewedAt": "2026-07-16T11:41:14Z",
+    "note": "Cleared by the product owner for public release."
+  },
+  "visualReviewRecordedAt": "2026-07-15T21:37:05.082Z",
+  "complete": true,
+  "missing": [],
+  "sources": [
+    {
+      "season": 2023,
+      "constructorId": "red_bull",
+      "name": "Red Bull",
+      "car": {
+        "file": "/f1/teams/cars/2023/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/red-bull-racing.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/red-bull-racing.png.transform/6col-retina/image.png",
+        "sha256": "94162f84a602aff18c7b754382e0340feab0390880b323293d0f601a4d5e89aa",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/red-bull.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/red-bull-racing-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/red-bull-racing-logo.png.transform/2col-retina/image.png",
+        "sha256": "619e4ee34bdf98ffc388af65d1c5e1dedf9a55b908f738e55b526091e049139e",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#3671C6"
+    },
+    {
+      "season": 2023,
+      "constructorId": "mercedes",
+      "name": "Mercedes",
+      "car": {
+        "file": "/f1/teams/cars/2023/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/mercedes.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/mercedes.png.transform/6col-retina/image.png",
+        "sha256": "0a1601ddd7eb8cd135435ffdbd4ff4c93df04d0f5e384008aec7e6118edd6584",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/mercedes.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/mercedes-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/mercedes-logo.png.transform/2col-retina/image.png",
+        "sha256": "d89df008ae47a15d11c5bd7e080827f4ba8e9b7e2e772b72a388d41077677849",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#27F4D2"
+    },
+    {
+      "season": 2023,
+      "constructorId": "ferrari",
+      "name": "Ferrari",
+      "car": {
+        "file": "/f1/teams/cars/2023/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/ferrari.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/ferrari.png.transform/6col-retina/image.png",
+        "sha256": "6b1d205719ac5deec68d7715d78995c6923281e09824fb38c48f224ca2ba5596",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/ferrari.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/ferrari-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/ferrari-logo.png.transform/2col-retina/image.png",
+        "sha256": "01da5c0d5c7384c2ac93771228f95060d40565d37c7832c818a507c2ce98012f",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#E8002D"
+    },
+    {
+      "season": 2023,
+      "constructorId": "mclaren",
+      "name": "McLaren",
+      "car": {
+        "file": "/f1/teams/cars/2023/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/mclaren.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/mclaren.png.transform/6col-retina/image.png",
+        "sha256": "d284365e49232b9b4e77fb4dfe5725a4973ac0894a6eee5732d7a7add7f28c9a",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/mclaren.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/mclaren-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/mclaren-logo.png.transform/2col-retina/image.png",
+        "sha256": "f896c732fa1c050c8515aa5db85dd4954dea4800627d5f9530a751d31dc7dfc7",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#FF8000"
+    },
+    {
+      "season": 2023,
+      "constructorId": "aston_martin",
+      "name": "Aston Martin",
+      "car": {
+        "file": "/f1/teams/cars/2023/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/aston-martin.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/aston-martin.png.transform/6col-retina/image.png",
+        "sha256": "aa26d7f16719a951bc867db28facb243591997edd830ab1dc45138e652643e9b",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/aston-martin.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/aston-martin-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/aston-martin-logo.png.transform/2col-retina/image.png",
+        "sha256": "657eb2489dc681f907a71416b221470be476a1c9d70ab1191a48b9f1aa59b524",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#229971"
+    },
+    {
+      "season": 2023,
+      "constructorId": "alpine",
+      "name": "Alpine F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2023/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/alpine.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alpine.png.transform/6col-retina/image.png",
+        "sha256": "9af011b3fd65a5c6fb4befe80a109abddeedb9d3039edd7fba9f3845da6b0133",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/alpine.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/alpine-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alpine-logo.png.transform/2col-retina/image.png",
+        "sha256": "23a3e9446be185268834a3e1beaf1d687b1218d75b59803cea7c3b1800b8edf2",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#0093CC"
+    },
+    {
+      "season": 2023,
+      "constructorId": "williams",
+      "name": "Williams",
+      "car": {
+        "file": "/f1/teams/cars/2023/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/williams.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/williams.png.transform/6col-retina/image.png",
+        "sha256": "24ab93fec433b662669447f25b079a8566c3622a453180902064355a5f9d4c59",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/williams.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/williams-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/williams-logo.png.transform/2col-retina/image.png",
+        "sha256": "ffc3a67c06aee5ff10a13dcad3e4355426077f7e879f245f872b61f9aca9f7e0",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#64C4FF"
+    },
+    {
+      "season": 2023,
+      "constructorId": "alphatauri",
+      "name": "AlphaTauri",
+      "car": {
+        "file": "/f1/teams/cars/2023/alphatauri.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/alphatauri.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alphatauri.png.transform/6col-retina/image.png",
+        "sha256": "f4d1b04c7132cdc96d635c505888ec63118b31636e78e11fa5831b54b73b6a45",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/alphatauri.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/alphatauri-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alphatauri-logo.png.transform/2col-retina/image.png",
+        "sha256": "3456521794d10a0644475c23a0e724465d172d98e1b255de833daff317ca3162",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#2B4562"
+    },
+    {
+      "season": 2023,
+      "constructorId": "alfa",
+      "name": "Alfa Romeo",
+      "car": {
+        "file": "/f1/teams/cars/2023/alfa.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/alfa-romeo-racing.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alfa-romeo-racing.png.transform/6col-retina/image.png",
+        "sha256": "0b0f91bf8113b491203f28013682917408fa641646d90890ed64ef7cc9f7792d",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/alfa.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/alfa-romeo-racing-logo.png.transform/2col-retina/image.png",
+        "sha256": "40697f7fc281058d15fc5ace08c8da228c02f819edd419f7061fa27e4c37dcb0",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#C92D4B"
+    },
+    {
+      "season": 2023,
+      "constructorId": "haas",
+      "name": "Haas F1 Team",
+      "car": {
+        "file": "/f1/teams/cars/2023/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/haas-f1-team.png.transform/6col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/haas-f1-team.png.transform/6col-retina/image.png",
+        "sha256": "8c27d9aa063f4c17ad248c849e20bcdc0f0f0c46e366ee243dd76d688689e1e8",
+        "contentType": "image/webp",
+        "width": 1316,
+        "height": 391,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "logo": {
+        "file": "/f1/teams/logos/2023/haas.webp",
+        "pageUrl": "https://www.formula1.com/en/results/2023/team",
+        "archiveUrl": "https://www.formula1.com/content/dam/fom-website/teams/2023/haas-f1-team-logo.png.transform/2col-retina/image.png",
+        "sourceUrl": "https://media.formula1.com/image/upload/f_webp/q_auto/content/dam/fom-website/teams/2023/haas-f1-team-logo.png.transform/2col-retina/image.png",
+        "sha256": "f6ba1be2bc7d7193f85809a291b2ac94220f21f259e5701100f296f0a3926bd4",
+        "contentType": "image/webp",
+        "width": 412,
+        "height": 412,
+        "verified": true,
+        "manualReviewStatus": "approved"
+      },
+      "colorHex": "#B6BABD"
+    }
+  ]
+}

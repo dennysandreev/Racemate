@@ -440,16 +440,18 @@ function CircuitStatsDetails({ stats }: { stats: CircuitStatsView }) {
         </div>
       </section>
 
-      <section className="grid py-5 xl:grid-cols-2 xl:divide-x xl:divide-border/80">
-        <div className="pb-5 xl:pb-0 xl:pr-5">
-          <CircuitSectionHeader icon={Medal} title="Пилоты на этой трассе" />
-          <DriverStatsList rows={stats.topDrivers} />
-        </div>
-        <div className="border-t border-border/80 pt-5 xl:border-t-0 xl:pl-5 xl:pt-0">
-          <CircuitSectionHeader icon={Flag} title="Команды на этой трассе" />
-          <TeamStatsList rows={stats.topTeams} />
-        </div>
-      </section>
+      {stats.topDrivers.length || stats.topTeams.length ? (
+        <section className="grid py-5 xl:grid-cols-2 xl:divide-x xl:divide-border/80">
+          <div className="pb-5 xl:pb-0 xl:pr-5">
+            <CircuitSectionHeader icon={Medal} title="Пилоты на этой трассе" />
+            <DriverStatsList rows={stats.topDrivers} />
+          </div>
+          <div className="border-t border-border/80 pt-5 xl:border-t-0 xl:pl-5 xl:pt-0">
+            <CircuitSectionHeader icon={Flag} title="Команды на этой трассе" />
+            <TeamStatsList rows={stats.topTeams} />
+          </div>
+        </section>
+      ) : null}
 
       <p className="pt-4 text-right text-xs leading-5 text-muted-foreground">
         Историческая база:{" "}
