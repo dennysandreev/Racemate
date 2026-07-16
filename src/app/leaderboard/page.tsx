@@ -144,7 +144,7 @@ export default async function LeaderboardPage({
   return (
     <AppShell leaderboardTable={activeTable} season={season}>
       <section className="grid gap-4 pb-6 sm:gap-5 sm:pb-8">
-        <section className="stitch-panel relative min-h-[13rem] overflow-hidden p-0 lg:h-40 lg:min-h-0">
+        <section className="stitch-panel relative min-h-[13rem] overflow-hidden p-0 lg:h-56 lg:min-h-0">
           <Image
             alt=""
             className="object-cover object-[center_42%] opacity-95"

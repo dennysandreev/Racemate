@@ -79,7 +79,7 @@ function CalendarHero({
   totalCount: number;
 }) {
   return (
-    <div className="relative min-h-[11.5rem] p-4 sm:p-5 lg:h-40 lg:min-h-0">
+    <div className="relative min-h-[11.5rem] p-4 sm:p-5 lg:h-56 lg:min-h-0">
       <Image
         alt=""
         className="object-cover opacity-80"
