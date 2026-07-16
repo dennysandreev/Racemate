@@ -4569,44 +4569,7 @@ async function upsertHistoricalDriverFromJolpica(driver, entityCache) {
     return cache.get(driver.driverId);
   }
 
-  const { data: existing, error: selectError } = await supabase
-    .from("drivers")
-    .select("id")
-    .eq("external_id", driver.driverId)
-    .maybeSingle();
-
-  if (selectError) {
-    throw selectError;
-  }
-
-  if (existing?.id) {
-    cache?.set(driver.driverId, existing);
-    return existing;
-  }
-
-  const firstName = driver.givenName ?? driver.given_name ?? "Пилот";
-  const lastName = driver.familyName ?? driver.family_name ?? driver.driverId;
-  const fullName = `${firstName} ${lastName}`.trim();
-
-  const { data, error } = await supabase
-    .from("drivers")
-    .insert({
-      external_id: driver.driverId,
-      code: driver.code ?? driver.driverId.slice(0, 3).toUpperCase(),
-      permanent_number: numberOrNull(driver.permanentNumber),
-      first_name: firstName,
-      last_name: lastName,
-      full_name: fullName,
-      slug: null,
-      country: driver.nationality ?? null,
-      is_active: false,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    throw error;
-  }
+  const data = await upsertDriverFromJolpica(driver, null, { historical: true });
 
   cache?.set(driver.driverId, data ?? null);
   return data ?? null;
@@ -7558,6 +7521,19 @@ function hasExactSet(expectedValues, actualValues) {
   return expected.size === actual.size && [...expected].every((value) => actual.has(value));
 }
 
+export function hasRoutableDriverProfiles(expectedDriverIds, drivers) {
+  const expected = expectedDriverIds ?? new Set();
+  const relevantDrivers = (drivers ?? []).filter((driver) => expected.has(driver.id));
+  const actualIds = new Set(relevantDrivers.map((driver) => driver.id));
+  const slugs = relevantDrivers.map((driver) => normalizeString(driver.slug)?.toLowerCase());
+
+  return (
+    hasExactSet(expected, actualIds) &&
+    slugs.every(Boolean) &&
+    new Set(slugs).size === slugs.length
+  );
+}
+
 function sumMapValues(values) {
   return [...(values ?? new Map()).values()].reduce((total, value) => total + value, 0);
 }
@@ -7609,6 +7585,18 @@ async function validateSeasonReadiness(season) {
   );
   const expectedDriverIds = new Set(raceResults.map((result) => result.driver_id).filter(Boolean));
   const expectedTeamIds = new Set(raceResults.map((result) => result.team_id).filter(Boolean));
+  const driverRecordsResult = expectedDriverIds.size
+    ? await supabase
+      .from("drivers")
+      .select("id, slug")
+      .in("id", [...expectedDriverIds])
+    : { data: [], error: null };
+
+  if (driverRecordsResult.error) {
+    throw driverRecordsResult.error;
+  }
+
+  const driverRecords = driverRecordsResult.data ?? [];
   const teamProfiles = teamProfilesResult.data ?? [];
   const driverProfiles = driverProfilesResult.data ?? [];
   const trackAssets = trackAssetsResult.data ?? [];
@@ -7689,6 +7677,10 @@ async function validateSeasonReadiness(season) {
 
   if (!hasExactSet(expectedDriverIds, driverProfileIds)) {
     issues.push("driver_profiles_incomplete");
+  }
+
+  if (!hasRoutableDriverProfiles(expectedDriverIds, driverRecords)) {
+    issues.push("driver_profiles_unroutable");
   }
 
   if (
@@ -12016,7 +12008,7 @@ async function upsertDriverFromJolpica(driver, teamId, options = {}) {
   const fullName = `${firstName} ${lastName}`.trim();
   const { data: existing, error: selectError } = await supabase
     .from("drivers")
-    .select("id, current_team_id, is_active")
+    .select("id, slug, current_team_id, is_active")
     .eq("external_id", driver.driverId)
     .maybeSingle();
 
@@ -12032,8 +12024,13 @@ async function upsertDriverFromJolpica(driver, teamId, options = {}) {
     full_name: fullName,
     country: driver.nationality ?? null,
   };
+  const slug = resolveDriverProfileSlug(existing?.slug, fullName);
 
   if (existing?.id) {
+    if (!normalizeString(existing.slug)) {
+      profile.slug = slug;
+    }
+
     if (!historical) {
       profile.current_team_id = teamId ?? null;
       profile.is_active = true;
@@ -12058,7 +12055,7 @@ async function upsertDriverFromJolpica(driver, teamId, options = {}) {
     .insert({
       ...profile,
       external_id: driver.driverId,
-      slug: slugify(fullName),
+      slug,
       current_team_id: historical ? null : (teamId ?? null),
       is_active: !historical,
     })
@@ -12070,6 +12067,10 @@ async function upsertDriverFromJolpica(driver, teamId, options = {}) {
   }
 
   return data ?? null;
+}
+
+export function resolveDriverProfileSlug(existingSlug, fullName) {
+  return normalizeString(existingSlug) ?? slugify(fullName);
 }
 
 export function makeTeamCode(externalId) {

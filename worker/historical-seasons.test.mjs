@@ -10,10 +10,12 @@ import {
   hasExactRoundCounts,
   getHistoricalSeasonYears,
   getJolpicaThrottleDelayMs,
+  hasRoutableDriverProfiles,
   makeTeamCode,
   requiresDriverAvatarAssets,
   requireHistoricalSeason,
   resolveTeamLineageSlug,
+  resolveDriverProfileSlug,
   selectPrimaryTeamsByStarts,
   shouldRetryJolpicaNetworkError,
   shouldRetryJolpicaResponse,
@@ -146,6 +148,53 @@ test("season readiness requires exact per-round result and standings counts", ()
   assert.equal(hasExactRoundCounts(expected, new Map([[1, 20]])), false);
   assert.equal(hasExactRoundCounts(expected, new Map([[1, 20], [2, 18]])), false);
   assert.equal(hasExactRoundCounts(expected, new Map([[1, 20], [2, 19], [3, 20]])), false);
+});
+
+test("published driver profiles require a unique non-empty route slug", () => {
+  const expected = new Set(["driver-a", "driver-b"]);
+
+  assert.equal(
+    hasRoutableDriverProfiles(expected, [
+      { id: "driver-a", slug: "driver-a" },
+      { id: "driver-b", slug: "driver-b" },
+    ]),
+    true,
+  );
+  assert.equal(
+    hasRoutableDriverProfiles(expected, [{ id: "driver-a", slug: "driver-a" }]),
+    false,
+  );
+  assert.equal(
+    hasRoutableDriverProfiles(expected, [
+      { id: "driver-a", slug: null },
+      { id: "driver-b", slug: "driver-b" },
+    ]),
+    false,
+  );
+  assert.equal(
+    hasRoutableDriverProfiles(expected, [
+      { id: "driver-a", slug: "   " },
+      { id: "driver-b", slug: "driver-b" },
+    ]),
+    false,
+  );
+  assert.equal(
+    hasRoutableDriverProfiles(expected, [
+      { id: "driver-a", slug: "same-driver" },
+      { id: "driver-b", slug: "same-driver" },
+    ]),
+    false,
+  );
+});
+
+test("driver imports repair only missing route slugs", () => {
+  assert.equal(resolveDriverProfileSlug(null, "Romain Grosjean"), "romain-grosjean");
+  assert.equal(resolveDriverProfileSlug("   ", "Mick Schumacher"), "mick-schumacher");
+  assert.equal(resolveDriverProfileSlug(null, "Jean-Éric Vergne"), "jean-eric-vergne");
+  assert.equal(
+    resolveDriverProfileSlug("kevin-magnussen-20", "Kevin Magnussen"),
+    "kevin-magnussen-20",
+  );
 });
 
 test("team assets require visual approval, checksums, and explicit rights clearance", () => {
