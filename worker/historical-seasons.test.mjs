@@ -9,6 +9,7 @@ import {
   getSeasonTeamColor,
   hasExactRoundCounts,
   getHistoricalSeasonYears,
+  getJolpicaThrottleDelayMs,
   makeTeamCode,
   requiresDriverAvatarAssets,
   requireHistoricalSeason,
@@ -43,6 +44,12 @@ test("Jolpica retries transient network failures with a bounded attempt count", 
   assert.equal(shouldRetryJolpicaNetworkError(1), true);
   assert.equal(shouldRetryJolpicaNetworkError(4), true);
   assert.equal(shouldRetryJolpicaNetworkError(5), false);
+});
+
+test("Jolpica requests stay below the documented burst limit", () => {
+  assert.equal(getJolpicaThrottleDelayMs(1_000, 1_100, 300), 200);
+  assert.equal(getJolpicaThrottleDelayMs(1_000, 1_400, 300), 0);
+  assert.equal(getJolpicaThrottleDelayMs(1_000, 1_100, 0), 200);
 });
 
 test("history preview prepares every bounded season without a publication update", () => {

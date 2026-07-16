@@ -92,6 +92,8 @@ if (isMainModule && !commands.has(command)) {
 }
 
 let supabase = null;
+let jolpicaFetchQueue = Promise.resolve();
+let jolpicaLastFetchAt = 0;
 const openF1SessionsByYear = new Map();
 let openF1FetchQueue = Promise.resolve();
 let openF1LastFetchAt = 0;
@@ -5876,10 +5878,39 @@ export function shouldRetryJolpicaNetworkError(attempt) {
   return attempt < 5;
 }
 
+export function getJolpicaThrottleDelayMs(lastFetchAt, now, configuredIntervalMs = 300) {
+  const parsedIntervalMs = Number(configuredIntervalMs);
+  const minIntervalMs = Number.isFinite(parsedIntervalMs)
+    ? Math.max(300, parsedIntervalMs)
+    : 300;
+
+  return Math.max(0, Number(lastFetchAt) + minIntervalMs - Number(now));
+}
+
+async function throttleJolpicaFetch() {
+  const run = jolpicaFetchQueue.then(async () => {
+    const waitMs = getJolpicaThrottleDelayMs(
+      jolpicaLastFetchAt,
+      Date.now(),
+      process.env.JOLPICA_MIN_INTERVAL_MS,
+    );
+
+    if (waitMs > 0) {
+      await sleep(waitMs);
+    }
+
+    jolpicaLastFetchAt = Date.now();
+  });
+  jolpicaFetchQueue = run.catch(() => {});
+
+  await run;
+}
+
 async function fetchJolpicaJsonObject(url, attempt = 1) {
   let response;
 
   try {
+    await throttleJolpicaFetch();
     response = await fetch(url, {
       headers: { "user-agent": "RaceMate/0.1 (+https://racemate.local)" },
       signal: AbortSignal.timeout(Number(process.env.JOLPICA_FETCH_TIMEOUT_MS ?? 15000)),
