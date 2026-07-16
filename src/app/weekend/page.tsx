@@ -93,7 +93,7 @@ export default async function WeekendPage({
         : "/news";
 
   return (
-    <AppShell season={CURRENT_F1_SEASON}>
+    <AppShell>
       <section className="grid gap-4 pb-5 sm:gap-5">
         <WeekendHero
           circuitStats={circuitStats}

@@ -156,8 +156,16 @@ export async function TelegramSettings({ userId }: { userId: string | null }) {
               >
                 <PreferenceToggle defaultChecked={preferences.fantasy_deadlines} label="Дедлайн по прогнозам" name="fantasy_deadlines" />
                 <div className="mt-3 flex flex-wrap gap-2 pl-2">
-                  <TimingBadge label="За 4 часа" />
-                  <TimingBadge label="За 15 минут" />
+                  <TimingCheckbox
+                    defaultChecked={preferences.fantasy_reminder_4h}
+                    label="За 4 часа"
+                    name="fantasy_reminder_4h"
+                  />
+                  <TimingCheckbox
+                    defaultChecked={preferences.fantasy_reminder_15m}
+                    label="За 15 минут"
+                    name="fantasy_reminder_15m"
+                  />
                   <span className="self-center text-xs text-muted-foreground">для квалификации и гонки</span>
                 </div>
               </PreferenceSection>
@@ -313,13 +321,5 @@ function TimingCheckbox({ defaultChecked, label, name }: { defaultChecked: boole
         {label}
       </span>
     </label>
-  );
-}
-
-function TimingBadge({ label }: { label: string }) {
-  return (
-    <span className="inline-flex h-7 items-center rounded-sm border border-primary/35 bg-primary/10 px-2 font-telemetry text-[0.68rem] font-bold text-primary">
-      {label}
-    </span>
   );
 }

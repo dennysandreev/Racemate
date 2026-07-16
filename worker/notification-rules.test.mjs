@@ -3,10 +3,13 @@ import test from "node:test";
 
 import {
   escapeTelegramHtml,
+  getFantasyDeadlineReminders,
   getSessionNotificationKey,
   getSessionNotificationSetting,
+  hasSessionStartChanged,
   isRacePredictionComplete,
   isReminderDue,
+  isNotificationFreshForConnection,
 } from "./notification-rules.mjs";
 
 test("maps every supported session to a preference group", () => {
@@ -60,6 +63,42 @@ test("matches reminder only inside its delivery window", () => {
   assert.equal(isReminderDue(fourHours - 9 * 60 * 1_000, fourHours), true);
   assert.equal(isReminderDue(fourHours - 11 * 60 * 1_000, fourHours), false);
   assert.equal(isReminderDue(fourHours + 1, fourHours), false);
+});
+
+test("does not treat equivalent ISO timestamps as a schedule change", () => {
+  assert.equal(
+    hasSessionStartChanged("2026-12-06T13:00:00+00:00", "2026-12-06T13:00:00Z"),
+    false,
+  );
+  assert.equal(
+    hasSessionStartChanged("2026-12-06T13:00:00Z", "2026-12-06T13:15:00Z"),
+    true,
+  );
+});
+
+test("rejects queued events created before Telegram was connected", () => {
+  assert.equal(
+    isNotificationFreshForConnection("2026-07-13T14:20:00Z", "2026-07-13T14:25:00Z"),
+    false,
+  );
+  assert.equal(
+    isNotificationFreshForConnection("2026-07-13T14:25:00Z", "2026-07-13T14:25:00Z"),
+    true,
+  );
+  assert.equal(isNotificationFreshForConnection("2026-07-13T14:25:00Z", null), true);
+});
+
+test("uses independent fantasy deadline reminder settings", () => {
+  assert.deepEqual(
+    getFantasyDeadlineReminders({
+      fantasy_reminder_4h: false,
+      fantasy_reminder_15m: true,
+    }).map(({ enabled, key }) => ({ enabled, key })),
+    [
+      { enabled: false, key: "4h" },
+      { enabled: true, key: "15m" },
+    ],
+  );
 });
 
 test("race deadline does not require a qualification pick", () => {

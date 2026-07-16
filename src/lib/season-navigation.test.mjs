@@ -7,8 +7,10 @@ import {
   resolvePublishedSeason,
 } from "./season-navigation.ts";
 
-test("the latest published season is selected when the query is absent", () => {
+test("the current season is selected when the query is absent", () => {
   assert.equal(resolvePublishedSeason(undefined, [2026, 2025, 2024]), 2026);
+  assert.equal(resolvePublishedSeason(undefined, [2024, 2026, 2025]), 2026);
+  assert.equal(resolvePublishedSeason(undefined, [2025, 2024]), null);
   assert.equal(CURRENT_F1_SEASON, 2026);
 });
 

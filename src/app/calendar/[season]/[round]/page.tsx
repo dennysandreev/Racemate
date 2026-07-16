@@ -90,7 +90,7 @@ export default async function RaceCalendarPage({
   const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
 
   return (
-    <AppShell season={seasonYear}>
+    <AppShell>
       <PageHeading
         badge={`${race.season}, раунд ${race.round}`}
         description={`${race.circuit} · ${race.locality}, ${race.country}`}

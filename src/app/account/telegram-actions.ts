@@ -109,6 +109,29 @@ export async function saveTelegramPreferences(formData: FormData) {
     redirect("/account?telegram=error#telegram");
   }
 
+  const fantasyDeadlinesEnabled = Boolean(values.fantasy_deadlines);
+  const disabledFantasyTimings = [
+    { enabled: Boolean(values.fantasy_reminder_4h), key: "4h" },
+    { enabled: Boolean(values.fantasy_reminder_15m), key: "15m" },
+  ].filter((timing) => !timing.enabled);
+
+  if (!fantasyDeadlinesEnabled) {
+    await admin
+      .from("notification_queue")
+      .update({ status: "cancelled", last_error: "Fantasy reminders disabled by user" })
+      .eq("user_id", user.id)
+      .eq("event_type", "FANTASY_DEADLINE")
+      .eq("status", "pending");
+  } else if (disabledFantasyTimings.length) {
+    await Promise.all(disabledFantasyTimings.map((timing) => admin
+      .from("notification_queue")
+      .update({ status: "cancelled", last_error: "Fantasy reminder timing disabled by user" })
+      .eq("user_id", user.id)
+      .eq("event_type", "FANTASY_DEADLINE")
+      .eq("status", "pending")
+      .like("dedupe_key", `%:${timing.key}`)));
+  }
+
   revalidatePath("/account");
   redirect("/account?telegram=saved#telegram");
 }

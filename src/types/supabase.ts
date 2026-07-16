@@ -65,6 +65,8 @@ export type Database = {
         fantasy_opened: boolean;
         fantasy_incomplete: boolean;
         fantasy_deadlines: boolean;
+        fantasy_reminder_4h: boolean;
+        fantasy_reminder_15m: boolean;
         fantasy_locked: boolean;
         fantasy_scored: boolean;
         fantasy_rank_changes: boolean;

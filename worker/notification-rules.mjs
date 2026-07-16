@@ -103,6 +103,51 @@ export function isReminderDue(millisecondsUntil, leadMs, windowMs = 10 * 60 * 1_
   return millisecondsUntil > leadMs - windowMs && millisecondsUntil <= leadMs;
 }
 
+export function hasSessionStartChanged(previousStartAt, nextStartAt) {
+  const previousTimestamp = Date.parse(previousStartAt ?? "");
+  const nextTimestamp = Date.parse(nextStartAt ?? "");
+
+  if (Number.isFinite(previousTimestamp) && Number.isFinite(nextTimestamp)) {
+    return previousTimestamp !== nextTimestamp;
+  }
+
+  return String(previousStartAt ?? "") !== String(nextStartAt ?? "");
+}
+
+export function isNotificationFreshForConnection(notificationCreatedAt, connectedAt) {
+  if (!connectedAt) {
+    return true;
+  }
+
+  const notificationTimestamp = Date.parse(notificationCreatedAt ?? "");
+  const connectedTimestamp = Date.parse(connectedAt);
+
+  if (!Number.isFinite(notificationTimestamp) || !Number.isFinite(connectedTimestamp)) {
+    return true;
+  }
+
+  return notificationTimestamp >= connectedTimestamp;
+}
+
+export function getFantasyDeadlineReminders(preference) {
+  return [
+    {
+      key: "4h",
+      enabled: readBoolean(preference?.fantasy_reminder_4h, true),
+      leadMs: 4 * 60 * 60 * 1_000,
+      label: "4 часа",
+      urgency: "⏳",
+    },
+    {
+      key: "15m",
+      enabled: readBoolean(preference?.fantasy_reminder_15m, true),
+      leadMs: 15 * 60 * 1_000,
+      label: "15 минут",
+      urgency: "🚨",
+    },
+  ];
+}
+
 export function isRacePredictionComplete(prediction) {
   return Boolean(
     prediction?.fastest_lap_driver_id &&

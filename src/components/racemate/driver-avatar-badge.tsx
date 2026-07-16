@@ -28,10 +28,16 @@ const localDriverAvatarSlugs = new Set([
   "valtteri-bottas",
 ]);
 
+const historicalFallbackAvatar = "/drivers/avatars/archive-helmet-neutral.png";
+
 export function getLocalDriverAvatarSrc(slug?: string | null, season = CURRENT_F1_SEASON) {
   return season === CURRENT_F1_SEASON && slug && localDriverAvatarSlugs.has(slug)
     ? `/drivers/avatars/${season}/${slug}.webp`
     : null;
+}
+
+export function getHistoricalDriverFallbackSrc(season: number) {
+  return season >= 2020 && season <= 2025 ? historicalFallbackAvatar : null;
 }
 
 type DriverAvatarBadgeProps = {
@@ -57,7 +63,10 @@ export function DriverAvatarBadge({
   season = CURRENT_F1_SEASON,
   src,
 }: DriverAvatarBadgeProps) {
-  const avatarSrc = src === undefined ? getLocalDriverAvatarSrc(slug, season) : src;
+  const resolvedAvatarSrc = src === undefined ? getLocalDriverAvatarSrc(slug, season) : src;
+  const historicalFallbackSrc = getHistoricalDriverFallbackSrc(season);
+  const usesHistoricalFallback = !resolvedAvatarSrc && Boolean(historicalFallbackSrc);
+  const avatarSrc = resolvedAvatarSrc ?? historicalFallbackSrc;
 
   return (
     <span
@@ -70,7 +79,13 @@ export function DriverAvatarBadge({
       title={name}
     >
       {avatarSrc ? (
-        <Image alt="" className="object-cover object-top" fill sizes={sizes} src={avatarSrc} />
+        <Image
+          alt=""
+          className={usesHistoricalFallback ? "object-contain object-center p-[6%]" : "object-cover object-top"}
+          fill
+          sizes={sizes}
+          src={avatarSrc}
+        />
       ) : (
         <span
           className={cn(

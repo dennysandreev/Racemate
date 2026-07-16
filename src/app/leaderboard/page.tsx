@@ -142,9 +142,9 @@ export default async function LeaderboardPage({
   const nextRace = seasonRaces.find((event) => event.status !== "Завершен") ?? null;
 
   return (
-    <AppShell leaderboardTable={activeTable} season={season}>
+    <AppShell leaderboardTable={activeTable}>
       <section className="grid gap-4 pb-6 sm:gap-5 sm:pb-8">
-        <section className="stitch-panel relative min-h-[13rem] overflow-hidden p-0 lg:h-56 lg:min-h-0">
+        <section className="stitch-panel relative min-h-[13rem] overflow-hidden p-0 lg:h-40 lg:min-h-0">
           <Image
             alt=""
             className="object-cover object-[center_42%] opacity-95"
@@ -156,8 +156,8 @@ export default async function LeaderboardPage({
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/76 to-background/15" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgb(225_6_0_/_0.25),transparent_22rem)]" />
 
-          <div className="relative z-10 flex min-h-[13rem] flex-col p-4 sm:p-5 lg:h-full lg:min-h-0">
-            <div className="min-w-0 lg:absolute lg:left-5 lg:top-5">
+          <div className="relative z-10 flex min-h-[13rem] flex-col p-4 sm:p-5 lg:grid lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-6">
+            <div className="min-w-0">
               <p className="stitch-label flex items-center gap-2 text-primary">
                 <Trophy aria-hidden="true" className="size-3.5" />
                 Чемпионат · сезон {season}
@@ -165,32 +165,29 @@ export default async function LeaderboardPage({
               <PageTitle className="mt-2">
                 {activeTable === "drivers" ? "Личный зачет" : "Кубок конструкторов"}
               </PageTitle>
-            </div>
-
-            <SeasonSwitcher
-              activeSeason={season}
-              className="mt-3 self-start lg:absolute lg:right-5 lg:top-5 lg:mt-0"
-              pathname="/leaderboard"
-              query={query}
-              seasons={publishedSeasons}
-            />
-
-            <div className="mt-auto grid gap-4 pt-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
-              <nav aria-label="Тип зачета" className="grid grid-cols-2 gap-1 self-end rounded-md border border-border/70 bg-background/55 p-1 backdrop-blur-sm sm:inline-flex sm:justify-self-start lg:translate-y-2">
-                <TableTab active={activeTable === "drivers"} href={`/leaderboard?season=${season}`}>
-                  Пилоты
-                </TableTab>
-                <TableTab active={activeTable === "constructors"} href={`/leaderboard?season=${season}&table=constructors`}>
-                  Конструкторы
-                </TableTab>
-              </nav>
-              <SeasonProgress
-                className="lg:w-[22rem]"
-                completedCount={completedRounds}
-                nextRace={nextRace}
-                totalCount={totalRounds}
+              <SeasonSwitcher
+                activeSeason={season}
+                className="mt-3"
+                pathname="/leaderboard"
+                query={query}
+                seasons={publishedSeasons}
               />
             </div>
+
+            <nav aria-label="Тип зачета" className="mt-auto grid grid-cols-2 gap-1 rounded-md border border-border/70 bg-background/55 p-1 backdrop-blur-sm sm:inline-flex sm:justify-self-start lg:absolute lg:left-1/2 lg:top-[37%] lg:mt-0 lg:-translate-x-1/2 lg:-translate-y-1/2">
+              <TableTab active={activeTable === "drivers"} href={`/leaderboard?season=${season}`}>
+                Пилоты
+              </TableTab>
+              <TableTab active={activeTable === "constructors"} href={`/leaderboard?season=${season}&table=constructors`}>
+                Конструкторы
+              </TableTab>
+            </nav>
+            <SeasonProgress
+              className="mt-4 lg:col-start-2 lg:mt-0 lg:w-[22rem]"
+              completedCount={completedRounds}
+              nextRace={nextRace}
+              totalCount={totalRounds}
+            />
           </div>
         </section>
 
@@ -305,7 +302,7 @@ function PodiumCard({
       </span>
       {entry.titleOdds ? (
         <span
-          className="absolute right-2 top-2 z-30 grid size-12 place-content-center rounded-md border border-border/80 bg-background/90 text-center shadow-sm backdrop-blur-sm sm:right-3 sm:top-3 sm:size-14"
+          className="absolute right-2 top-2 z-30 flex flex-col items-center gap-0.5 text-center sm:right-3 sm:top-3 sm:grid sm:size-14 sm:place-content-center sm:rounded-md sm:border sm:border-border/80 sm:bg-background/90 sm:shadow-sm sm:backdrop-blur-sm"
           title={showAvatar
             ? "Вероятность победы в чемпионате по данным Polymarket"
             : "Вероятность победы в Кубке конструкторов по данным Polymarket"}
@@ -323,7 +320,7 @@ function PodiumCard({
               {entry.titleOdds}
             </span>
           </span>
-          <span className="mt-0.5 text-[0.45rem] font-bold uppercase leading-none text-muted-foreground sm:text-[0.5rem]">
+          <span className="mt-0.5 hidden text-[0.5rem] font-bold uppercase leading-none text-muted-foreground sm:block">
             {showAvatar ? "Титул" : "Кубок"}
           </span>
         </span>
@@ -410,7 +407,7 @@ function PodiumCard({
       ) : (
         <div className={cn("relative z-10 grid place-items-center", podiumVisualSize)}>
           <VisualProfileLink className="place-items-center" entry={entry} label={`Открыть профиль команды ${entry.name}`}>
-            <TeamMark className="size-14 sm:size-20" entry={entry} />
+            <TeamMark className="size-14 sm:size-20" entry={entry} season={season} />
           </VisualProfileLink>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 grid justify-items-center rounded-md border border-border/80 bg-background/90 px-1.5 py-1 shadow-sm backdrop-blur-sm">
             <p className="font-telemetry text-base font-extrabold leading-none sm:text-xl">
@@ -501,7 +498,7 @@ function StandingRow({
         </VisualProfileLink>
       ) : (
         <VisualProfileLink entry={entry} label={`Открыть профиль команды ${entry.name}`}>
-          <TeamMark className="size-10" entry={entry} />
+          <TeamMark className="size-10" entry={entry} season={season} />
         </VisualProfileLink>
       )}
       <div className="min-w-0">
@@ -570,7 +567,7 @@ function RoundStrip({
 }) {
   return (
     <div className="max-w-full overflow-x-auto pb-1 lg:overflow-visible lg:pb-0">
-      <div className="grid w-max grid-flow-col auto-cols-[1.6rem] gap-1 lg:max-w-[42rem]">
+      <div className="grid w-max grid-flow-col auto-cols-[1.6rem] gap-1">
         {rounds.map((round) => {
           const points = entry.pointsByRound[round.round];
           const finishPosition = entry.positionByRound?.[round.round];
@@ -648,12 +645,25 @@ function RoundHeaderStrip({ rounds }: { rounds: ChampionshipRound[] }) {
   );
 }
 
-function TeamMark({ className, entry }: { className?: string; entry: StandingEntry }) {
+function TeamMark({
+  className,
+  entry,
+  season,
+}: {
+  className?: string;
+  entry: StandingEntry;
+  season: number;
+}) {
+  const usesHistoricalWhiteSurface = season >= 2020 && season <= 2023;
+
   return (
     <span
       aria-hidden="true"
       className={cn(
-        "team-logo-surface inline-grid shrink-0 place-items-center overflow-hidden rounded-full border-2 p-1.5",
+        "inline-grid shrink-0 place-items-center overflow-hidden rounded-full border-2 p-1.5",
+        usesHistoricalWhiteSurface
+          ? "border-black/10 bg-white"
+          : "team-logo-surface",
         className,
       )}
       style={{ borderColor: entry.teamColor ?? "var(--border)" }}
@@ -665,7 +675,10 @@ function TeamMark({ className, entry }: { className?: string; entry: StandingEnt
           style={{ backgroundImage: `url(${entry.teamLogo})` }}
         />
       ) : (
-        <span className="font-display text-xs font-bold text-white/70">
+        <span className={cn(
+          "font-display text-xs font-bold",
+          usesHistoricalWhiteSurface ? "text-neutral-700" : "text-white/70",
+        )}>
           {entry.teamCode ?? entry.teamName.slice(0, 3).toUpperCase()}
         </span>
       )}

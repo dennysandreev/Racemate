@@ -34,12 +34,12 @@ export default async function TeamsPage({
   const teams = await getTeamProfiles(season);
 
   return (
-    <AppShell season={season}>
+    <AppShell>
       <div className="grid gap-5 pb-6 sm:pb-8">
-        <header className="stitch-panel relative overflow-hidden p-4 sm:p-5 lg:h-40">
+        <header className="stitch-panel relative min-h-[13rem] overflow-hidden p-4 sm:p-5 lg:h-40 lg:min-h-0">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgb(225_6_0_/_0.2),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.04),transparent_48%)]" />
-          <div className="relative z-10 flex flex-col gap-3 lg:h-full">
-            <div className="min-w-0 lg:absolute lg:left-0 lg:top-0">
+          <div className="relative z-10 grid min-h-[11rem] gap-3 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+            <div className="min-w-0">
               <p className="stitch-label flex items-center gap-2 text-primary">
                 <Flag aria-hidden="true" className="size-4" />
                 Команды · сезон {season}
@@ -47,18 +47,15 @@ export default async function TeamsPage({
               <PageTitle className="mt-2">
                 Команды чемпионата
               </PageTitle>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Составы и результаты команд в выбранном сезоне
-              </p>
+              <SeasonSwitcher
+                activeSeason={season}
+                className="mt-3"
+                pathname="/teams"
+                query={query}
+                seasons={publishedSeasons}
+              />
             </div>
-            <SeasonSwitcher
-              activeSeason={season}
-              className="self-start lg:absolute lg:right-0 lg:top-0"
-              pathname="/teams"
-              query={query}
-              seasons={publishedSeasons}
-            />
-            <div className="mt-auto hidden items-center gap-3 self-start rounded-md border border-border bg-background/35 px-4 py-2 lg:absolute lg:bottom-0 lg:right-0 lg:flex lg:mt-0">
+            <div className="hidden items-center gap-3 rounded-md border border-border bg-background/35 px-4 py-2 lg:flex">
               <Trophy aria-hidden="true" className="size-5 text-primary" />
               <div>
                 <p className="font-telemetry text-xl font-extrabold">{teams.length}</p>
@@ -105,6 +102,8 @@ export default async function TeamsPage({
                     color={team.color}
                     logo={team.logo}
                     name={team.name}
+                    season={season}
+                    shape="square"
                     size="md"
                   />
                 </div>

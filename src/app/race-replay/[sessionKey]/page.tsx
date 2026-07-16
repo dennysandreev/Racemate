@@ -27,7 +27,7 @@ export default async function RaceReplayPage({ params, searchParams }: RaceRepla
   }
 
   return (
-    <AppShell season={CURRENT_F1_SEASON}>
+    <AppShell>
       <main className="pb-5">
         <RaceReplayPlayer debug={query.debugTrack === "1"} replay={replay} />
       </main>

@@ -1,12 +1,16 @@
-import Link from "next/link";
+"use client";
 
-import { SeasonSelect } from "@/components/racemate/season-select";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useId, useState } from "react";
+
 import { buildSeasonHref, type SeasonSearchParams } from "@/lib/season-navigation";
 import { cn } from "@/lib/utils";
 
 type SeasonSwitcherProps = {
   activeSeason: number;
   className?: string;
+  expandDirection?: "left" | "right";
   label?: string;
   pathname: string;
   query?: SeasonSearchParams;
@@ -16,11 +20,14 @@ type SeasonSwitcherProps = {
 export function SeasonSwitcher({
   activeSeason,
   className,
+  expandDirection = "right",
   label = "Сезон",
   pathname,
   query = {},
   seasons,
 }: SeasonSwitcherProps) {
+  const [open, setOpen] = useState(false);
+  const navId = useId();
   const normalizedSeasons = [...new Set(seasons)].sort((a, b) => b - a);
 
   if (!normalizedSeasons.length) {
@@ -31,7 +38,7 @@ export function SeasonSwitcher({
     return (
       <div
         className={cn(
-          "font-telemetry inline-flex h-11 items-center rounded-md border border-border/80 bg-background/70 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted-foreground backdrop-blur-sm",
+          "font-telemetry inline-flex h-11 items-center rounded-md border border-border/80 bg-background/70 px-3 text-[0.68rem] font-extrabold uppercase text-muted-foreground backdrop-blur-sm",
           className,
         )}
       >
@@ -40,42 +47,56 @@ export function SeasonSwitcher({
     );
   }
 
-  const hrefBySeason = Object.fromEntries(
-    normalizedSeasons.map((season) => [season, buildSeasonHref(pathname, season, query)]),
-  );
+  const otherSeasons = normalizedSeasons
+    .filter((season) => season !== activeSeason)
+    .sort((a, b) => expandDirection === "left" ? a - b : b - a);
+  const DirectionIcon = expandDirection === "left" ? ChevronLeft : ChevronRight;
 
   return (
-    <div className={cn("min-w-0", className)}>
-      <nav
-        aria-label="Сезон"
-        className="hidden min-h-11 items-stretch overflow-hidden rounded-md border border-border/80 bg-background/65 p-1 shadow-sm backdrop-blur-sm sm:inline-flex"
+    <div
+      className={cn(
+        "flex max-w-full min-w-0 items-center gap-1",
+        expandDirection === "left" && "flex-row-reverse",
+        className,
+      )}
+    >
+      <button
+        aria-controls={navId}
+        aria-expanded={open}
+        className="font-telemetry inline-flex h-11 shrink-0 items-center gap-2 rounded-md border border-border/80 bg-background/75 px-3 text-[0.68rem] font-extrabold uppercase text-foreground shadow-sm backdrop-blur-sm transition-colors duration-200 hover:border-primary/45 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
+        onClick={() => setOpen((value) => !value)}
+        type="button"
       >
-        {normalizedSeasons.map((season) => {
-          const isActive = season === activeSeason;
+        <span>{label} {activeSeason}</span>
+        <DirectionIcon
+          aria-hidden="true"
+          className={cn(
+            "size-3.5 transition-transform duration-200 motion-reduce:transition-none",
+            open && "rotate-180",
+          )}
+        />
+      </button>
 
-          return (
-            <Link
-              aria-current={isActive ? "page" : undefined}
-              className={cn(
-                "font-telemetry relative inline-flex min-h-11 min-w-12 items-center justify-center rounded-sm px-2.5 text-[0.68rem] font-extrabold tracking-[0.06em] outline-none transition-[background-color,color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background motion-reduce:transition-none",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-[0_0_18px_rgb(225_6_0_/_0.2)]"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
-              )}
-              href={hrefBySeason[season]}
-              key={season}
-              prefetch={false}
-            >
-              {season}
-            </Link>
-          );
-        })}
-      </nav>
-      <SeasonSelect
-        activeSeason={activeSeason}
-        hrefBySeason={hrefBySeason}
-        seasons={normalizedSeasons}
-      />
+      {open ? (
+        <div className="min-w-0 max-w-full overflow-x-auto" id={navId}>
+          <nav
+            aria-label="Выбрать сезон"
+            className="flex w-max items-center gap-1 rounded-md border border-border/80 bg-background/75 p-1 shadow-sm backdrop-blur-sm"
+          >
+            {otherSeasons.map((season) => (
+              <Link
+                className="font-telemetry inline-flex h-9 min-w-12 items-center justify-center rounded-sm px-2.5 text-[0.68rem] font-extrabold text-muted-foreground outline-none transition-colors duration-200 hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
+                href={buildSeasonHref(pathname, season, query)}
+                key={season}
+                onClick={() => setOpen(false)}
+                prefetch={false}
+              >
+                {season}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      ) : null}
     </div>
   );
 }

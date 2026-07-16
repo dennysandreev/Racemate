@@ -21,6 +21,7 @@ import { AppShell } from "@/components/racemate/app-shell";
 import { DriverCumulativePointsChart } from "@/components/racemate/driver-cumulative-points-chart";
 import {
   getDriverInitials,
+  getHistoricalDriverFallbackSrc,
   getLocalDriverAvatarSrc,
 } from "@/components/racemate/driver-avatar-badge";
 import { RaceFlag } from "@/components/racemate/race-flag";
@@ -104,7 +105,7 @@ export default async function DriverProfilePage({ params, searchParams }: Driver
   const isCurrentSeason = profile.season === CURRENT_F1_SEASON;
 
   return (
-    <AppShell season={profile.season}>
+    <AppShell>
       <div className="grid gap-4 pb-6 sm:gap-5">
         <DriverHero
           availableSeasons={availableSeasons}
@@ -154,7 +155,9 @@ function DriverHero({
     ? getTeamProfileAsset(profile.team.code) ?? getTeamProfileAsset(profile.team.name)
     : null;
   const teamSlug = profile.team.slug ?? teamProfile?.slug;
-  const avatarUrl = profile.aiAvatarUrl || getLocalDriverAvatarSrc(profile.slug, profile.season);
+  const avatarUrl = profile.aiAvatarUrl
+    || getLocalDriverAvatarSrc(profile.slug, profile.season)
+    || getHistoricalDriverFallbackSrc(profile.season);
   const teamColor = profile.team.color ?? "var(--primary)";
   const isChampion = profile.season < CURRENT_F1_SEASON && profile.stats.championshipPosition === 1;
 
@@ -175,18 +178,8 @@ function DriverHero({
         {profile.number ?? profile.code ?? ""}
       </span>
 
-      <div className="relative z-10 flex justify-end px-5 pt-5 sm:px-7 sm:pt-7">
-        <SeasonSwitcher
-          activeSeason={profile.season}
-          className="w-full sm:w-auto"
-          pathname={`/drivers/${profile.slug}`}
-          query={query}
-          seasons={availableSeasons}
-        />
-      </div>
-
-      <div className="relative grid gap-5 p-5 pt-3 sm:p-7 sm:pt-4 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
-        <div className="flex min-w-0 flex-col lg:min-h-72">
+      <div className="relative grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
+        <div className="flex min-w-0 flex-col lg:min-h-64">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">
               <RaceFlag
@@ -207,7 +200,15 @@ function DriverHero({
             ) : null}
           </div>
 
-          <div className="mt-6 lg:mt-auto">
+          <SeasonSwitcher
+            activeSeason={profile.season}
+            className="mt-3 self-start"
+            pathname={`/drivers/${profile.slug}`}
+            query={query}
+            seasons={availableSeasons}
+          />
+
+          <div className="mt-5 lg:mt-auto">
             <h1 className="text-balance font-display leading-[0.94] tracking-[-0.04em]">
               <span className="block text-xl font-bold text-muted-foreground sm:text-3xl">
                 {profile.firstName}
@@ -230,6 +231,7 @@ function DriverHero({
                   color={profile.team.color}
                   logo={profile.team.logo}
                   name={profile.team.name}
+                  season={profile.season}
                   size="sm"
                 />
                 <span className="min-w-0 truncate text-sm font-bold">{profile.team.name}</span>
@@ -245,7 +247,7 @@ function DriverHero({
 
         <div className="relative order-first mx-auto w-full max-w-[15rem] lg:order-none lg:mx-0 lg:max-w-none">
           {avatarUrl ? (
-            <div className="relative h-56 sm:h-64 lg:h-72">
+            <div className="relative h-56 sm:h-64">
               <Image
                 alt={`Аватар ${profile.fullName}`}
                 className="object-contain object-bottom"
@@ -263,7 +265,7 @@ function DriverHero({
           ) : (
             <div
               aria-hidden="true"
-              className="relative grid h-56 place-items-center overflow-hidden rounded-xl border border-border/70 bg-background/40 sm:h-64 lg:h-72"
+              className="relative grid h-56 place-items-center overflow-hidden rounded-xl border border-border/70 bg-background/40 sm:h-64"
             >
               <span
                 className="absolute select-none font-display text-[8rem] font-black leading-none opacity-[0.08] sm:text-[10rem]"

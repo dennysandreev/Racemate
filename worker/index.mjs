@@ -12,9 +12,12 @@ import { getPeerId } from "telegram/Utils.js";
 import { scoreFantasyPrediction } from "./fantasy-scoring.mjs";
 import {
   escapeTelegramHtml,
+  getFantasyDeadlineReminders,
   getSessionNotificationSetting,
+  hasSessionStartChanged,
   isRacePredictionComplete,
   isReminderDue,
+  isNotificationFreshForConnection,
   telegramMedal,
 } from "./notification-rules.mjs";
 import {
@@ -11038,7 +11041,8 @@ async function upsertScheduleSessions(raceId, race, options = {}) {
     if (
       !options.suppressNotifications &&
       previous?.start_at &&
-      previous.start_at !== startAt &&
+      hasSessionStartChanged(previous.start_at, startAt) &&
+      new Date(startAt).getTime() > Date.now() &&
       saved?.id
     ) {
       await enqueueScheduleChangeNotifications({
@@ -11085,7 +11089,7 @@ async function enqueueNotifications() {
   ] = await Promise.all([
     supabase
       .from("sessions")
-      .select("id, race_id, session_type, name, start_at, status, races(race_name)")
+      .select("id, race_id, session_type, name, start_at, status, updated_at, races(race_name)")
       .gte("start_at", since)
       .lte("start_at", until)
       .order("start_at", { ascending: true }),
@@ -11122,6 +11126,7 @@ async function enqueueNotifications() {
   for (const account of accounts) {
     const preference = preferences.get(account.user_id);
     const profile = profiles.get(account.user_id);
+    const connectedAt = account.connected_at;
 
     if (!preference?.telegram_enabled) {
       continue;
@@ -11166,6 +11171,10 @@ async function enqueueNotifications() {
       }
 
       if (session.status === "cancelled") {
+        if (!isNotificationFreshForConnection(session.updated_at, connectedAt)) {
+          continue;
+        }
+
         itemsProcessed += await insertNotification({
           userId: account.user_id,
           eventType: "SESSION_CANCELLED",
@@ -11182,6 +11191,14 @@ async function enqueueNotifications() {
       }
 
       if (session.status === "completed") {
+        const resultReadyAt = startsAt
+          ? new Date(startsAt.getTime() + getResultReadyDurationMs(session.session_type)).toISOString()
+          : session.updated_at;
+
+        if (!isNotificationFreshForConnection(resultReadyAt, connectedAt)) {
+          continue;
+        }
+
         const topThree = resultMap.get(session.id) ?? [];
 
         if (!topThree.length) {
@@ -11233,11 +11250,8 @@ async function enqueueNotifications() {
         const millisecondsUntil = new Date(deadline.startsAt).getTime() - now.getTime();
         const scopeLabel = deadline.scope === "qualification" ? "квалификацию" : "гонку";
 
-        for (const reminder of [
-          { key: "4h", leadMs: 4 * 60 * 60 * 1_000, label: "4 часа", urgency: "⏳" },
-          { key: "15m", leadMs: 15 * 60 * 1_000, label: "15 минут", urgency: "🚨" },
-        ]) {
-          if (!isReminderDue(millisecondsUntil, reminder.leadMs)) {
+        for (const reminder of getFantasyDeadlineReminders(preference)) {
+          if (!reminder.enabled || !isReminderDue(millisecondsUntil, reminder.leadMs)) {
             continue;
           }
 
@@ -11260,6 +11274,10 @@ async function enqueueNotifications() {
 
     if (hasAnyNewsPreference(preference)) {
       for (const article of news ?? []) {
+        if (!isNotificationFreshForConnection(article.ai_processed_at, connectedAt)) {
+          continue;
+        }
+
         if (!matchesNewsPreference(article, preference, favoriteNewsTerms.get(account.user_id))) {
           continue;
         }
@@ -11295,7 +11313,7 @@ async function dispatchNotifications() {
   const limit = Math.max(1, Number(process.env.NOTIFICATION_DISPATCH_LIMIT ?? 100));
   const { data: queued, error } = await supabase
     .from("notification_queue")
-    .select("id, user_id, event_type, payload, attempts")
+    .select("id, user_id, event_type, payload, attempts, created_at")
     .eq("status", "pending")
     .lte("available_at", new Date().toISOString())
     .order("available_at", { ascending: true })
@@ -11309,12 +11327,20 @@ async function dispatchNotifications() {
 
   for (const notification of queued ?? []) {
     const [{ data: account }, { data: preference }] = await Promise.all([
-      supabase.from("telegram_accounts").select("chat_id, is_active").eq("user_id", notification.user_id).maybeSingle(),
+      supabase.from("telegram_accounts").select("chat_id, is_active, connected_at").eq("user_id", notification.user_id).maybeSingle(),
       supabase.from("notification_preferences").select("telegram_enabled").eq("user_id", notification.user_id).maybeSingle(),
     ]);
 
     if (!account?.is_active || !preference?.telegram_enabled) {
       await supabase.from("notification_queue").update({ status: "cancelled" }).eq("id", notification.id);
+      continue;
+    }
+
+    if (!isNotificationFreshForConnection(notification.created_at, account.connected_at)) {
+      await supabase
+        .from("notification_queue")
+        .update({ status: "cancelled", last_error: "Notification predates Telegram connection" })
+        .eq("id", notification.id);
       continue;
     }
 
@@ -11394,7 +11420,10 @@ async function enqueueScheduleChangeNotifications({ sessionId, sessionName, sess
 }
 
 async function getTelegramRecipients() {
-  const { data: accounts } = await supabase.from("telegram_accounts").select("user_id, chat_id").eq("is_active", true);
+  const { data: accounts } = await supabase
+    .from("telegram_accounts")
+    .select("user_id, chat_id, connected_at")
+    .eq("is_active", true);
   const userIds = (accounts ?? []).map((account) => account.user_id);
 
   if (!userIds.length) {

@@ -80,7 +80,7 @@ export default async function TeamProfilePage({ params, searchParams }: TeamPage
   const isCurrentSeason = team.season === CURRENT_F1_SEASON;
 
   return (
-    <AppShell season={team.season}>
+    <AppShell>
       <div className="grid min-w-0 gap-5 pb-6 sm:gap-6 sm:pb-8">
         <TeamHero availableSeasons={availableSeasons} query={query} team={team} />
 
@@ -155,6 +155,7 @@ function TeamHero({
           <SeasonSwitcher
             activeSeason={team.season}
             className="w-full sm:w-auto"
+            expandDirection="left"
             pathname={`/teams/${team.slug}`}
             query={query}
             seasons={availableSeasons}
@@ -163,7 +164,7 @@ function TeamHero({
 
         <div className="max-w-2xl">
           <div className="mb-4 hidden items-center sm:flex">
-            <TeamLogo code={team.code} color={team.color} logo={team.logo} name={team.name} size="md" />
+            <TeamLogo code={team.code} color={team.color} logo={team.logo} name={team.name} season={team.season} size="md" />
           </div>
           <h1 className="text-balance font-display text-4xl font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">
             {team.shortName}
@@ -176,7 +177,7 @@ function TeamHero({
               </p>
             ) : <span />}
             <span className="shrink-0 sm:hidden">
-              <TeamLogo code={team.code} color={team.color} logo={team.logo} name={team.name} size="md" />
+              <TeamLogo code={team.code} color={team.color} logo={team.logo} name={team.name} season={team.season} size="md" />
             </span>
           </div>
 

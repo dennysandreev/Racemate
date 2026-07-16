@@ -21,7 +21,7 @@ RaceMate is a premium motorsport companion for the F1 season. It combines cached
 Success means a user can:
 - understand what matters in F1 today in under a minute;
 - see what happens next in the season or current race weekend;
-- move between the published 2020-2026 sporting archives without losing the selected season;
+- open a published 2020-2026 sporting archive on a specific screen without changing the current season elsewhere;
 - follow favorite drivers and teams;
 - make and compare predictions without friction;
 - trust that news, standings, schedules, and results are sourced and current.
@@ -96,7 +96,8 @@ Deferred from V1:
 
 ## Historical seasons
 
-- The newest published season opens by default. A selected archive year is stored in `?season=YYYY` on the calendar, championship, team list, and driver/team profiles.
+- The current Formula 1 season opens by default. A selected archive year is stored only in `?season=YYYY` on the calendar, championship, team list, and driver/team profile currently being viewed.
+- Main navigation never carries an archive year between sections, and the sidebar always shows the next session of the current season. Direct links from an archive table or team list may preserve the year when opening the related driver or team profile.
 - Unknown, malformed, and unpublished years return 404. Historical seasons are published only as one complete 2020-2025 batch after the launch gate passes.
 - Historical race pages are a sporting archive: schedule, classifications, statistics, and the verified map for that exact race. Race Replay, AI reports, current news, weather, odds, and notifications remain current-season features.
 - Driver and team profiles show only published years in which that driver or team lineage participated. Renault/Alpine, Racing Point/Aston Martin, AlphaTauri/RB/Racing Bulls, and Alfa Romeo/Sauber/Audi share stable lineage pages while retaining their season names and identity.

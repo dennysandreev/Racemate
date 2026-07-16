@@ -20,15 +20,14 @@ import { SiteFooter } from "@/components/racemate/site-footer";
 import { ThemeToggle } from "@/components/racemate/theme-toggle";
 import { getNextSession } from "@/data/racemate-repository";
 import { getIsAdmin, getSessionProfileSummary } from "@/lib/auth";
-import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { formatSessionName } from "@/lib/session-display";
 
 const navigation = [
   { href: "/news", label: "Новости", icon: Newspaper, activePrefixes: ["/news"] },
   { href: "/social", label: "Соцсети", icon: Radio },
-  { href: "/leaderboard", label: "Чемпионат", icon: Trophy, activePrefixes: ["/leaderboard", "/drivers"], seasonal: true },
-  { href: "/teams", label: "Команды", icon: CarFront, activePrefixes: ["/teams"], seasonal: true },
-  { href: "/calendar", label: "Календарь", icon: CalendarDays, seasonal: true },
+  { href: "/leaderboard", label: "Чемпионат", icon: Trophy, activePrefixes: ["/leaderboard", "/drivers"] },
+  { href: "/teams", label: "Команды", icon: CarFront, activePrefixes: ["/teams"] },
+  { href: "/calendar", label: "Календарь", icon: CalendarDays },
   { href: "/weekend", label: "Текущий этап", icon: Flag, activePrefixes: ["/weekend", "/race-replay"] },
   { href: "/fantasy", label: "Фентази лига", icon: Users, activePrefixes: ["/fantasy", "/leagues", "/predictions", "/prediction"] },
   { href: "/admin", label: "Админка", icon: Flag },
@@ -37,17 +36,14 @@ const navigation = [
 export async function AppShell({
   children,
   leaderboardTable,
-  season,
 }: {
   children: React.ReactNode;
   leaderboardTable?: "drivers" | "constructors";
-  season?: number;
 }) {
-  const isHistoricalSeason = season !== undefined && season !== CURRENT_F1_SEASON;
   const [profile, isAdmin, nextSession] = await Promise.all([
     getSessionProfileSummary(),
     getIsAdmin(),
-    isHistoricalSeason ? Promise.resolve(null) : getNextSession(),
+    getNextSession(),
   ]);
   const visibleNavigation = navigation.filter((item) => item.href !== "/admin" || isAdmin);
   const sidebarSessionName = nextSession ? formatSessionName(nextSession.session) : "Расписание уточняется";
@@ -79,7 +75,7 @@ export async function AppShell({
                 activeClassName="bg-primary/12 text-foreground shadow-[inset_3px_0_0_var(--primary)]"
                 activePrefixes={item.activePrefixes}
                 className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                href={getNavigationHref(item.href, item.seasonal, season, leaderboardTable)}
+                href={getNavigationHref(item.href, leaderboardTable)}
                 key={item.href}
                 prefetch={false}
               >
@@ -108,23 +104,19 @@ export async function AppShell({
         <div className="px-6 pb-6">
           <div className="glass-card rounded-lg p-4">
             <p className="font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {isHistoricalSeason ? "архив сезона" : "следующая сессия"}
+              следующая сессия
             </p>
             <p className="font-display mt-2 text-sm font-bold">
-              {isHistoricalSeason ? `Сезон ${season}` : sidebarSessionName}
+              {sidebarSessionName}
             </p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {isHistoricalSeason
-                ? "Календарь и итоги чемпионата"
-                : nextSession?.race ?? "Календарь сезона"}
+              {nextSession?.race ?? "Календарь сезона"}
             </p>
-            {!isHistoricalSeason ? (
-              <SidebarSessionStatus
-                sessionName={nextSession?.session}
-                startsAtIso={nextSession?.startsAtIso}
-                status={nextSession?.status}
-              />
-            ) : null}
+            <SidebarSessionStatus
+              sessionName={nextSession?.session}
+              startsAtIso={nextSession?.startsAtIso}
+              status={nextSession?.status}
+            />
           </div>
         </div>
         <nav className="grid flex-1 content-start gap-1 overflow-y-auto" aria-label="Боковая навигация">
@@ -136,7 +128,7 @@ export async function AppShell({
                 activeClassName="border-primary bg-primary/10 text-foreground shadow-[inset_3px_0_0_rgb(225_6_0_/_0.18)]"
                 activePrefixes={item.activePrefixes}
                 className="group flex items-center gap-4 border-r-2 border-transparent px-6 py-3.5 text-muted-foreground transition-colors hover:border-primary hover:bg-accent/60 hover:text-foreground [&[aria-current=page]_svg]:text-primary"
-                href={getNavigationHref(item.href, item.seasonal, season, leaderboardTable)}
+                href={getNavigationHref(item.href, leaderboardTable)}
                 key={item.href}
                 prefetch={false}
               >
@@ -164,21 +156,13 @@ export async function AppShell({
 
 function getNavigationHref(
   href: string,
-  seasonal: boolean | undefined,
-  season: number | undefined,
   leaderboardTable?: "drivers" | "constructors",
 ) {
-  if (!seasonal || !season) {
-    return href;
-  }
-
-  const search = new URLSearchParams({ season: String(season) });
-
   if (href === "/leaderboard" && leaderboardTable === "constructors") {
-    search.set("table", "constructors");
+    return "/leaderboard?table=constructors";
   }
 
-  return `${href}?${search.toString()}`;
+  return href;
 }
 
 function AuthPanel({

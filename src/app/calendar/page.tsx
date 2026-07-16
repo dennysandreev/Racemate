@@ -40,8 +40,8 @@ export default async function CalendarPage({
   const nextRace = calendarEvents.find((event) => event.status !== "Завершен") ?? null;
 
   return (
-    <AppShell season={season}>
-      <section className="relative overflow-hidden rounded-xl border border-border bg-card">
+    <AppShell>
+      <section className="relative overflow-hidden rounded-xl border border-border bg-card lg:h-40">
         <CalendarHero
           completedCount={completedCount}
           nextRace={nextRace}
@@ -79,7 +79,7 @@ function CalendarHero({
   totalCount: number;
 }) {
   return (
-    <div className="relative min-h-[11.5rem] p-4 sm:p-5 lg:h-56 lg:min-h-0">
+    <div className="relative min-h-[13rem] p-4 sm:p-5 lg:h-full lg:min-h-0">
       <Image
         alt=""
         className="object-cover opacity-80"
@@ -90,8 +90,8 @@ function CalendarHero({
       />
       <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/35" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgb(225_6_0_/_0.28),transparent_20rem)]" />
-      <div className="relative z-10 grid min-h-[9.5rem] gap-5 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
-        <div className="self-center lg:absolute lg:left-0 lg:top-0">
+      <div className="relative z-10 grid min-h-[11rem] gap-5 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center">
+        <div className="self-center">
           <p className="stitch-label flex items-center gap-2 text-primary">
             <CalendarDays aria-hidden="true" className="size-3.5" />
             Календарь · сезон {season}
@@ -99,18 +99,17 @@ function CalendarHero({
           <PageTitle className="mt-2 max-w-4xl">
             Календарь сезона
           </PageTitle>
+          <SeasonSwitcher
+            activeSeason={season}
+            className="mt-3"
+            pathname="/calendar"
+            query={query}
+            seasons={publishedSeasons}
+          />
         </div>
 
-        <SeasonSwitcher
-          activeSeason={season}
-          className="self-start lg:absolute lg:right-0 lg:top-0"
-          pathname="/calendar"
-          query={query}
-          seasons={publishedSeasons}
-        />
-
         <SeasonProgress
-          className="lg:absolute lg:bottom-0 lg:right-0 lg:w-[22rem]"
+          className="lg:w-[22rem]"
           completedCount={completedCount}
           nextRace={nextRace}
           totalCount={totalCount}

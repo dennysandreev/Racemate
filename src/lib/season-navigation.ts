@@ -13,7 +13,7 @@ export function resolvePublishedSeason(
   const requestedSeason = getSearchParam(value);
 
   if (requestedSeason === undefined) {
-    return publishedSeasons[0] ?? null;
+    return publishedSeasons.includes(CURRENT_F1_SEASON) ? CURRENT_F1_SEASON : null;
   }
 
   if (!/^\d{4}$/.test(requestedSeason)) {

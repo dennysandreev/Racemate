@@ -1,6 +1,8 @@
 export const notificationBooleanKeys = [
   "telegram_enabled",
   "fantasy_deadlines",
+  "fantasy_reminder_4h",
+  "fantasy_reminder_15m",
   "important_news",
   "favorite_driver_news",
   "favorite_team_news",
@@ -83,6 +85,8 @@ export const defaultSessionNotificationPreferences: SessionNotificationPreferenc
 export const defaultNotificationPreferences: NotificationPreferences = {
   telegram_enabled: true,
   fantasy_deadlines: true,
+  fantasy_reminder_4h: true,
+  fantasy_reminder_15m: true,
   important_news: true,
   favorite_driver_news: false,
   favorite_team_news: false,
