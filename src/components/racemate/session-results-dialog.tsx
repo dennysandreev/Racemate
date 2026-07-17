@@ -53,7 +53,7 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
     <div
       aria-labelledby={titleId}
       aria-modal="true"
-      className="fixed inset-0 z-50 grid place-items-center bg-background/82 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 grid items-stretch bg-background/82 p-0 backdrop-blur-sm sm:place-items-center sm:p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -61,8 +61,8 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
       }}
       role="dialog"
     >
-      <div className="flex max-h-[88dvh] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-border bg-card shadow-2xl">
-        <div className="shrink-0 flex items-start justify-between gap-4 border-b border-border/70 p-4 sm:p-5">
+      <div className="flex h-dvh max-h-dvh w-full max-w-4xl flex-col overflow-hidden bg-card shadow-2xl sm:h-auto sm:max-h-[88dvh] sm:rounded-lg sm:border sm:border-border">
+        <div className="relative z-10 flex shrink-0 items-start justify-between gap-4 border-b border-border/70 bg-card px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] sm:p-5">
           <div>
             <h2 className="text-xl font-semibold" id={titleId}>{formatSessionName(selected.session.name)}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{selected.session.startsAt}</p>
@@ -72,8 +72,11 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
           </Button>
         </div>
 
-        <div className="grid min-h-0 gap-4 overflow-y-auto p-4 sm:p-5">
-          <div className="grid gap-3 rounded-md border border-border/70 bg-muted/50 p-3 text-sm sm:grid-cols-4">
+        <div
+          className="min-h-0 flex-1 touch-pan-y space-y-3 overflow-y-scroll overscroll-contain p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:space-y-4 sm:p-5"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded-md border border-border/70 bg-muted/50 p-3 text-sm sm:grid-cols-4 sm:gap-3">
             <Metric label="Статус" value={sessionStatus} />
             <Metric label="Температура" value={selected.session.weather?.temperature ?? "Нет данных"} />
             <Metric label="Ветер" value={selected.session.weather?.wind ?? "Нет данных"} />
@@ -81,7 +84,56 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
           </div>
 
           {selected.results.length ? (
-            <div className="overflow-x-auto rounded-md border border-border/70">
+            <>
+              <ol className="divide-y divide-border/70 overflow-hidden rounded-md border border-border/70 sm:hidden">
+                {selected.results.map((result) => {
+                  const resultValue = result.time && result.time !== "-"
+                    ? result.time
+                    : result.status || "—";
+
+                  return (
+                    <li
+                      className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2.5 px-3 py-2.5"
+                      key={`${result.position}-${result.driver}-${result.time}`}
+                    >
+                      <span className="font-telemetry text-sm font-extrabold text-muted-foreground">
+                        {result.position ?? "–"}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-foreground">
+                          {result.driverSlug ? (
+                            <Link className="transition-colors hover:text-primary" href={`/drivers/${result.driverSlug}`}>
+                              {result.driver}
+                            </Link>
+                          ) : result.driver}
+                        </p>
+                        <p className="mt-0.5 flex min-w-0 items-center gap-1.5 truncate text-xs text-muted-foreground">
+                          <span
+                            aria-hidden="true"
+                            className="size-1.5 shrink-0 rounded-full bg-muted-foreground"
+                            style={result.teamColor ? { backgroundColor: result.teamColor } : undefined}
+                          />
+                          <span className="truncate">{result.team}</span>
+                        </p>
+                      </div>
+                      <div className="min-w-[5rem] text-right">
+                        <p className="font-telemetry whitespace-nowrap text-sm font-extrabold text-foreground">
+                          {resultValue}
+                        </p>
+                        {result.laps !== null || result.points !== null ? (
+                          <p className="mt-1 whitespace-nowrap text-[0.65rem] font-semibold text-muted-foreground">
+                            {result.laps !== null ? `${result.laps} кр.` : null}
+                            {result.laps !== null && result.points !== null ? " · " : null}
+                            {result.points !== null ? `${result.points} очк.` : null}
+                          </p>
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              <div className="hidden overflow-x-auto rounded-md border border-border/70 sm:block">
               <table className="w-full min-w-[42rem] text-sm">
                 <thead className="text-left text-xs text-muted-foreground">
                   <tr className="border-b border-border/70">
@@ -117,7 +169,8 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           ) : (
             <div className="grid min-h-44 place-items-center rounded-md border border-border/70 p-5 text-center">
               <div>

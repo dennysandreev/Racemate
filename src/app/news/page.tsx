@@ -21,6 +21,7 @@ import {
   getNewsTeamTags,
 } from "@/data/racemate-repository";
 import { getSessionUser } from "@/lib/auth";
+import { withServerTtlCache } from "@/lib/server-ttl-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -31,25 +32,49 @@ export default async function NewsPage({
 }) {
   const { filter, page, tag, race } = await searchParams;
   const currentPage = Math.max(1, Number(page ?? 1) || 1);
-  const user = await getSessionUser();
-  const [favoriteFilters, digest, driverTags, teamTags] = await Promise.all([
-    getFavoriteNewsFilters(user?.id),
-    getLatestDailyDigest(),
-    getNewsDriverTags(),
-    getNewsTeamTags(),
-  ]);
+  const activeFavoriteFilter = filter === "favorites";
+  const userPromise = getSessionUser();
+  const sidebarDataPromise = withServerTtlCache(
+    "public:news:sidebar",
+    60_000,
+    () => Promise.all([
+      getLatestDailyDigest(),
+      getNewsDriverTags(),
+      getNewsTeamTags(),
+    ]),
+    { staleWhileRevalidateMs: 5 * 60_000 },
+  );
+  const publicNewsPromise = activeFavoriteFilter
+    ? null
+    : withServerTtlCache(
+        `public:news:list:${JSON.stringify([currentPage, tag ?? null, race ?? null])}`,
+        60_000,
+        () => getNewsItems({
+          page: currentPage,
+          pageSize: 21,
+          tagSlug: tag,
+          race,
+        }),
+        { staleWhileRevalidateMs: 5 * 60_000 },
+      );
+  const user = await userPromise;
+  const favoriteFilters = activeFavoriteFilter
+    ? await getFavoriteNewsFilters(user?.id)
+    : { drivers: [], teams: [] };
   const favoriteTagSlugs = [
     ...favoriteFilters.drivers.map((item) => item.slug),
     ...favoriteFilters.teams.map((item) => item.slug),
   ];
-  const activeFavoriteFilter = filter === "favorites";
-  const newsResult = await getNewsItems({
-    page: currentPage,
-    pageSize: 21,
-    tagSlug: tag,
-    tagSlugs: activeFavoriteFilter ? favoriteTagSlugs : undefined,
-    race,
-  });
+  const [[digest, driverTags, teamTags], newsResult] = await Promise.all([
+    sidebarDataPromise,
+    publicNewsPromise ?? getNewsItems({
+      page: currentPage,
+      pageSize: 21,
+      tagSlug: tag,
+      tagSlugs: favoriteTagSlugs,
+      race,
+    }),
+  ]);
   const [featured, ...restItems] = newsResult.items;
 
   return (

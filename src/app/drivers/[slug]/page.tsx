@@ -122,7 +122,7 @@ export default async function DriverProfilePage({ params, searchParams }: Driver
         </div>
 
         <div className="grid min-w-0 gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-stretch">
-          <RaceResultsPanel results={profile.results} />
+          <RaceResultsPanel results={profile.results} season={profile.season} />
           <aside className="grid h-full min-w-0 gap-4 sm:gap-5">
             <TeammatePanel profile={profile} />
             <DeltaPanel profile={profile} />
@@ -178,37 +178,40 @@ function DriverHero({
         {profile.number ?? profile.code ?? ""}
       </span>
 
-      <div className="relative grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
-        <div className="flex min-w-0 flex-col lg:min-h-64">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">
-              <RaceFlag
-                className="mr-1 align-[-0.08em]"
-                countryCode={profile.countryCode}
-                label={profile.country ?? "Страна"}
-              />
-              {profile.country ?? "Страна уточняется"}
-            </Badge>
-            <Badge variant="outline">
-              <span className="font-telemetry">№ {profile.number ?? profile.code ?? "—"}</span>
-            </Badge>
-            {isChampion ? (
-              <Badge className="border-[#f4c95d]/55 bg-[#f4c95d]/15 text-[#8a6500] dark:text-[#f4c95d]" variant="outline">
-                <Trophy aria-hidden="true" className="mr-1 size-3" />
-                Чемпион {profile.season}
+      <div className="relative grid gap-4 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-5">
+        <div className="contents lg:flex lg:min-h-64 lg:min-w-0 lg:flex-col">
+          <div className="order-1 flex min-w-0 items-start justify-between gap-3 lg:block">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <Badge variant="secondary">
+                <RaceFlag
+                  className="mr-1 align-[-0.08em]"
+                  countryCode={profile.countryCode}
+                  label={profile.country ?? "Страна"}
+                />
+                {profile.country ?? "Страна уточняется"}
               </Badge>
-            ) : null}
+              <Badge variant="outline">
+                <span className="font-telemetry">№ {profile.number ?? profile.code ?? "—"}</span>
+              </Badge>
+              {isChampion ? (
+                <Badge className="border-[#f4c95d]/55 bg-[#f4c95d]/15 text-[#8a6500] dark:text-[#f4c95d]" variant="outline">
+                  <Trophy aria-hidden="true" className="mr-1 size-3" />
+                  Чемпион {profile.season}
+                </Badge>
+              ) : null}
+            </div>
+
+            <SeasonSwitcher
+              activeSeason={profile.season}
+              className="w-[9rem] shrink-0 lg:mt-3 lg:w-auto lg:self-start"
+              loadingLabel="Обновляем сезон"
+              pathname={`/drivers/${profile.slug}`}
+              query={query}
+              seasons={availableSeasons}
+            />
           </div>
 
-          <SeasonSwitcher
-            activeSeason={profile.season}
-            className="mt-3 self-start"
-            pathname={`/drivers/${profile.slug}`}
-            query={query}
-            seasons={availableSeasons}
-          />
-
-          <div className="mt-5 lg:mt-auto">
+          <div className="order-3 mt-1 lg:mt-auto">
             <h1 className="text-balance font-display leading-[0.94] tracking-[-0.04em]">
               <span className="block text-xl font-bold text-muted-foreground sm:text-3xl">
                 {profile.firstName}
@@ -245,7 +248,7 @@ function DriverHero({
           </div>
         </div>
 
-        <div className="relative order-first mx-auto w-full max-w-[15rem] lg:order-none lg:mx-0 lg:max-w-none">
+        <div className="relative order-2 mx-auto w-full max-w-[15rem] lg:order-none lg:mx-0 lg:max-w-none">
           {avatarUrl ? (
             <div className="relative h-56 sm:h-64">
               <Image
@@ -387,7 +390,7 @@ function SeasonStats({ profile }: { profile: DriverProfile }) {
   );
 }
 
-function RaceResultsPanel({ results }: { results: DriverRaceResultRow[] }) {
+function RaceResultsPanel({ results, season }: { results: DriverRaceResultRow[]; season: number }) {
   const completedResults = results.filter((result) => result.finishPosition !== null || result.isDnf);
   const recentResults = completedResults.slice(-10);
   const hasHiddenResults = results.length > recentResults.length;
@@ -403,20 +406,20 @@ function RaceResultsPanel({ results }: { results: DriverRaceResultRow[] }) {
               <span className="hidden group-open:inline">Оставить последние 10</span>
               <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
             </summary>
-            <RaceResultsContent results={results} />
+            <RaceResultsContent results={results} season={season} />
           </details>
           <div className="peer-open:hidden">
-            <RaceResultsContent results={recentResults} />
+            <RaceResultsContent results={recentResults} season={season} />
           </div>
         </>
       ) : (
-        <RaceResultsContent results={results} />
+        <RaceResultsContent results={results} season={season} />
       )}
     </StitchPanel>
   );
 }
 
-function RaceResultsContent({ results }: { results: DriverRaceResultRow[] }) {
+function RaceResultsContent({ results, season }: { results: DriverRaceResultRow[]; season: number }) {
   return (
     <>
       <div className="hidden overflow-x-auto sm:block">
@@ -424,7 +427,7 @@ function RaceResultsContent({ results }: { results: DriverRaceResultRow[] }) {
           <thead className="bg-muted text-left text-xs text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-medium">Этап</th>
-              <th className="px-4 py-3 text-right font-medium">Квала</th>
+              <th className="px-4 py-3 text-right font-medium">Квалиф.</th>
               <th className="px-4 py-3 text-right font-medium">Старт</th>
               <th className="px-4 py-3 text-right font-medium">Финиш</th>
               <th className="px-4 py-3 text-right font-medium">+/-</th>
@@ -436,10 +439,14 @@ function RaceResultsContent({ results }: { results: DriverRaceResultRow[] }) {
             {results.map((result) => (
               <tr className="border-t border-border/70" key={`${result.round}-${result.raceName}`}>
                 <td className="px-4 py-3">
-                  <div className="flex min-w-[12rem] items-center gap-2 font-medium">
+                  <Link
+                    className="flex min-w-[12rem] items-center gap-2 rounded-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    href={`/calendar/${season}/${result.round}`}
+                    prefetch={false}
+                  >
                     <RaceFlag countryCode={result.countryCode} label={result.country || result.raceName} />
                     <span>R{result.round} · {result.raceName}</span>
-                  </div>
+                  </Link>
                   <div className="mt-1 text-xs text-muted-foreground">{result.raceDate}</div>
                 </td>
                 <td className="px-4 py-3 text-right font-telemetry">{formatPosition(result.qualifyingPosition)}</td>
@@ -473,19 +480,23 @@ function RaceResultsContent({ results }: { results: DriverRaceResultRow[] }) {
             key={`m-${result.round}-${result.raceName}`}
           >
             <div className="flex items-start justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-2">
+              <Link
+                className="flex min-w-0 items-center gap-2 rounded-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                href={`/calendar/${season}/${result.round}`}
+                prefetch={false}
+              >
                 <RaceFlag countryCode={result.countryCode} label={result.country || result.raceName} />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold">R{result.round} · {result.raceName}</p>
                   <p className="mt-0.5 text-[0.65rem] font-semibold text-muted-foreground">{result.raceDate}</p>
                 </div>
-              </div>
+              </Link>
               <Badge className="shrink-0" variant={result.isDnf ? "danger" : result.finishPosition ? "outline" : "secondary"}>
                 {result.isDnf ? "Сход" : result.status}
               </Badge>
             </div>
             <div className="mt-2.5 grid grid-cols-4 gap-1.5">
-              <MobileResultCell label="Квала" value={formatPosition(result.qualifyingPosition)} />
+              <MobileResultCell label="Квалиф." value={formatPosition(result.qualifyingPosition)} />
               <MobileResultCell label="Старт" value={formatPosition(result.startPosition)} />
               <MobileResultCell
                 label="Финиш"
@@ -628,7 +639,7 @@ function TeammatePanel({ profile }: { profile: DriverProfile }) {
               <span
                 className={cn(
                   "text-right font-telemetry text-sm font-extrabold",
-                  teammateBetter ? "text-foreground" : "text-muted-foreground",
+                  teammateBetter ? "text-primary" : "text-muted-foreground",
                 )}
               >
                 {format(row.teammate)}

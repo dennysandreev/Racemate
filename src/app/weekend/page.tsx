@@ -37,6 +37,7 @@ import { getTeamAssetForMarketOutcome } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
 import { formatSessionName } from "@/lib/session-display";
 import { CURRENT_F1_SEASON, getSearchParam } from "@/lib/season-navigation";
+import { withServerTtlCache } from "@/lib/server-ttl-cache";
 import { cn } from "@/lib/utils";
 import type { PredictionState, RaceDetail, RaceWinnerOdds, StandingRow } from "@/types/racemate";
 
@@ -47,34 +48,45 @@ type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 export default async function WeekendPage({
   searchParams,
 }: {
-  searchParams: Promise<{ season?: string | string[] }>;
+  searchParams: Promise<{
+    season?: string | string[];
+    session?: string | string[];
+  }>;
 }) {
   const query = await searchParams;
   const requestedSeason = getSearchParam(query.season);
+  const requestedSessionId = getSearchParam(query.session);
 
   if (requestedSeason && Number(requestedSeason) !== CURRENT_F1_SEASON) {
     notFound();
   }
 
-  const [nextSession, weekendSessions, currentRace, user, standings] = await Promise.all([
-    getNextSession(),
-    getWeekendSessions(),
-    getCurrentRaceDetail(),
-    getSessionUser(),
-    getDriverStandings(CURRENT_F1_SEASON),
-  ]);
-  const sessionResultsPromise = getSessionResultsBySessionIds(
-    weekendSessions.map((session) => session.id),
-    CURRENT_F1_SEASON,
+  const userPromise = getSessionUser();
+  const publicDataPromise = withServerTtlCache(
+    "public:weekend",
+    10_000,
+    getWeekendPagePublicData,
+    { staleWhileRevalidateMs: 5 * 60_000 },
   );
-  const [raceNews, winnerOdds, predictionState, resultsBySession, circuitStats, raceReplay] = await Promise.all([
-    currentRace ? getRaceNews(currentRace.id, 4) : [],
-    getRaceWinnerOdds(currentRace),
-    getPredictionState(user?.id),
-    sessionResultsPromise,
-    currentRace ? getCircuitStatsForRace(currentRace.season, currentRace.round) : null,
-    getCurrentRaceReplaySummary(),
+  const predictionStatePromise: Promise<PredictionState> = userPromise.then((user) =>
+    user ? getPredictionState(user.id) : getEmptyWeekendPredictionState(),
+  );
+  const [user, publicData, predictionState] = await Promise.all([
+    userPromise,
+    publicDataPromise,
+    predictionStatePromise,
   ]);
+  const {
+    circuitStats,
+    currentRace,
+    nextSession,
+    raceNews,
+    raceReplay,
+    resultsBySession,
+    standings,
+    weekendSessions,
+    winnerOdds,
+  } = publicData;
   const sessionResults = weekendSessions.map((session) => ({
     results: session.id ? resultsBySession.get(session.id) ?? [] : [],
     session,
@@ -115,6 +127,7 @@ export default async function WeekendPage({
             <div className="p-3 sm:p-4">
               <WeekendSessionBoard
                 activeSessionName={nextSession.session}
+                initialSessionId={requestedSessionId}
                 sessions={sessionResults}
               />
             </div>
@@ -127,6 +140,55 @@ export default async function WeekendPage({
       </section>
     </AppShell>
   );
+}
+
+async function getWeekendPagePublicData() {
+  const raceReplayPromise = getCurrentRaceReplaySummary();
+  const [nextSession, weekendSessions, currentRace, standings] = await Promise.all([
+    getNextSession(),
+    getWeekendSessions(),
+    getCurrentRaceDetail(),
+    getDriverStandings(CURRENT_F1_SEASON),
+  ]);
+  const sessionResultsPromise = getSessionResultsBySessionIds(
+    weekendSessions.map((session) => session.id),
+    CURRENT_F1_SEASON,
+  );
+  const [raceNews, winnerOdds, resultsBySession, circuitStats, raceReplay] = await Promise.all([
+    currentRace ? getRaceNews(currentRace.id, 4) : [],
+    getRaceWinnerOdds(currentRace),
+    sessionResultsPromise,
+    currentRace ? getCircuitStatsForRace(currentRace.season, currentRace.round) : null,
+    raceReplayPromise,
+  ]);
+
+  return {
+    circuitStats,
+    currentRace,
+    nextSession,
+    raceNews,
+    raceReplay,
+    resultsBySession,
+    standings,
+    weekendSessions,
+    winnerOdds,
+  };
+}
+
+function getEmptyWeekendPredictionState(): PredictionState {
+  return {
+    current: null,
+    drivers: [],
+    previousResult: null,
+    qualifyingResults: null,
+    race: null,
+    seasonSummary: {
+      predictionCount: 0,
+      scoredPredictionCount: 0,
+      totalScore: null,
+    },
+    teams: [],
+  };
 }
 
 function WeekendHero({
@@ -151,18 +213,24 @@ function WeekendHero({
       <div className="weekend-hero-glow pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgb(225_6_0_/_0.28),transparent_24rem),linear-gradient(125deg,rgb(255_255_255_/_0.08),transparent_38%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.28))]" />
       <div className="relative grid gap-3 px-5 pb-4 pt-3 sm:px-6 sm:pb-5 sm:pt-3.5">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-2">
-            {currentRace ? (
-              <span className="shrink-0">
-                <RaceFlag
-                  className="text-xl"
-                  countryCode={currentRace.countryCode}
-                  label={currentRace.country}
-                  value={currentRace.countryFlag}
-                />
-              </span>
-            ) : null}
-            <Badge variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
+          <div className="grid min-w-0 gap-2">
+            <p className="font-telemetry flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+              <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
+              <span className="truncate">{currentRace?.circuit ?? "Трасса этапа"}</span>
+            </p>
+            <div className="flex min-w-0 items-start gap-2">
+              {currentRace ? (
+                <span className="shrink-0">
+                  <RaceFlag
+                    className="text-xl"
+                    countryCode={currentRace.countryCode}
+                    label={currentRace.country}
+                    value={currentRace.countryFlag}
+                  />
+                </span>
+              ) : null}
+              <Badge variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
+            </div>
           </div>
           <div className="ml-auto flex flex-col items-end gap-1.5">
             <Badge className="shrink-0" variant={weekendStatus === "Live" ? "success" : "warning"}>
@@ -172,10 +240,6 @@ function WeekendHero({
         </div>
 
         <div className="min-w-0">
-          <p className="font-telemetry mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
-            <MapPin aria-hidden="true" className="size-3.5" />
-            {currentRace?.circuit ?? "Трасса этапа"}
-          </p>
           <PageTitle className="max-w-4xl">
             {nextRace}
           </PageTitle>

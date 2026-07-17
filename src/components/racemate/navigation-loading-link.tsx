@@ -7,6 +7,7 @@ import { forwardRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { NavigationLoadingOverlay } from "@/components/racemate/navigation-loading-plate";
+import { ProfileLoadingOverlay } from "@/components/racemate/profile-loading-overlay";
 
 type NavigationLoadingLinkProps = Omit<
   React.ComponentProps<typeof Link>,
@@ -14,6 +15,7 @@ type NavigationLoadingLinkProps = Omit<
 > & {
   href: string;
   loadingLabel: string;
+  loadingVariant?: "plate" | "profile";
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 };
 
@@ -23,6 +25,7 @@ export const NavigationLoadingLink = forwardRef<HTMLAnchorElement, NavigationLoa
       children,
       href,
       loadingLabel,
+      loadingVariant = "plate",
       onClick,
       target,
       ...props
@@ -62,7 +65,12 @@ export const NavigationLoadingLink = forwardRef<HTMLAnchorElement, NavigationLoa
           {children}
         </Link>
         {mounted && loadingPath && loadingPath !== pathname
-          ? createPortal(<NavigationLoadingOverlay label={loadingLabel} />, document.body)
+          ? createPortal(
+              loadingVariant === "profile"
+                ? <ProfileLoadingOverlay label={loadingLabel} />
+                : <NavigationLoadingOverlay label={loadingLabel} />,
+              document.body,
+            )
           : null}
       </>
     );

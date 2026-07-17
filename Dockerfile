@@ -7,6 +7,7 @@ RUN pnpm install --frozen-lockfile
 FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 RUN corepack enable
+COPY --from=deps /root/.cache/node/corepack /root/.cache/node/corepack
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build
@@ -19,12 +20,14 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 python3-venv python3-pip \
   && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
+COPY --from=deps /root/.cache/node/corepack /root/.cache/node/corepack
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/worker ./worker
 COPY --from=builder /app/scripts/telegram-authorize.mjs ./scripts/telegram-authorize.mjs
+COPY --from=builder /app/scripts/warm-public-pages.mjs ./scripts/warm-public-pages.mjs
 COPY --from=builder /app/package.json ./package.json
 RUN python3 -m venv /opt/fastf1 \
   && /opt/fastf1/bin/pip install --no-cache-dir -r worker/fastf1/requirements.txt

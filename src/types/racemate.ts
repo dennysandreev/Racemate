@@ -309,6 +309,7 @@ export type TeamProfileStats = {
 export type TeamCumulativePointsSeries = {
   teamCode: string;
   team: string;
+  teamSlug?: string;
   teamColor?: string;
   points: DriverChartPoint[];
 };
@@ -747,6 +748,7 @@ export type SessionResult = {
   position: number | null;
   driver: string;
   driverSlug?: string;
+  driverNumber?: number;
   team: string;
   teamCode?: string;
   teamLogo?: string;

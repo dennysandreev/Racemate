@@ -130,12 +130,16 @@ export function StitchProgressBar({
 }
 
 export function StitchSegmentedLinks({
+  className,
   items,
+  linkClassName,
 }: {
+  className?: string;
   items: Array<{ active?: boolean; href: string; label: string }>;
+  linkClassName?: string;
 }) {
   return (
-    <div className="inline-flex rounded-md border border-border bg-background/45 p-1">
+    <div className={cn("inline-flex rounded-md border border-border bg-background/45 p-1", className)}>
       {items.map((item) => (
         <Link
           className={cn(
@@ -143,6 +147,7 @@ export function StitchSegmentedLinks({
             item.active
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:bg-accent hover:text-foreground",
+            linkClassName,
           )}
           href={item.href}
           key={item.href + item.label}

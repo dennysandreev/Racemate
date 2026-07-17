@@ -106,7 +106,7 @@ App surfaces:
 
 Historical season surfaces:
 - Calendar, championship, teams, driver profiles, and team-lineage profiles keep the selected year only in their own `?season=YYYY`; championship mode keeps `table=constructors` as well. Main navigation opens the current season and never propagates an archive year.
-- `SeasonSwitcher` sits under the surface title or profile metadata. It is collapsed by default, keeps the active year visible, and reveals the other published years horizontally on demand. It expands right by default and left in the team profile hero. The control uses a 44px interaction height, visible focus, keyboard-native behavior, bounded mobile overflow, 150-200ms feedback, and no transition under reduced motion.
+- `SeasonSwitcher` sits under the surface title or profile metadata. On desktop it is collapsed by default, keeps the active year visible, and reveals the other published years horizontally on demand; it expands right by default and left in the team profile hero. On mobile it becomes a compact native select and never expands the page horizontally. The control uses a 44px interaction height, visible focus, keyboard-native behavior, 150-200ms feedback, and no transition under reduced motion.
 - A profile with one available season shows a quiet static season label instead of a disabled control.
 - Historical pages use the same Apex Performance hierarchy as the current season, but only show sporting information. Current-only news, social posts, odds, weather, AI race reports, and Race Replay do not appear.
 - Cars, logos, and maps must resolve from the selected season and remain part of its publication gate. Never substitute 2026 artwork for a historical asset.

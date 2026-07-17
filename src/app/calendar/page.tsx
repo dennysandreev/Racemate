@@ -17,6 +17,7 @@ import {
   resolvePublishedSeason,
   type SeasonSearchParams,
 } from "@/lib/season-navigation";
+import { withServerTtlCache } from "@/lib/server-ttl-cache";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/types/racemate";
 
@@ -35,7 +36,12 @@ export default async function CalendarPage({
     notFound();
   }
 
-  const calendarEvents = await getCalendarEvents(season);
+  const calendarEvents = await withServerTtlCache(
+    `public:calendar:${season}`,
+    season === CURRENT_F1_SEASON ? 30_000 : 5 * 60_000,
+    () => getCalendarEvents(season),
+    { staleWhileRevalidateMs: season === CURRENT_F1_SEASON ? 5 * 60_000 : 30 * 60_000 },
+  );
   const completedCount = calendarEvents.filter((event) => event.status === "Завершен").length;
   const nextRace = calendarEvents.find((event) => event.status !== "Завершен") ?? null;
 

@@ -5,19 +5,33 @@ import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
+import { withServerTtlCache } from "@/lib/server-ttl-cache";
 
-export const getSessionUser = cache(async () => {
+type SessionUser = {
+  email?: string;
+  id: string;
+  user_metadata: Record<string, unknown>;
+};
+
+export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return null;
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims;
 
-  return user;
+  if (error || typeof claims?.sub !== "string") {
+    return null;
+  }
+
+  return {
+    email: typeof claims.email === "string" ? claims.email : undefined,
+    id: claims.sub,
+    user_metadata: isRecord(claims.user_metadata) ? claims.user_metadata : {},
+  };
 });
 
 export async function getSessionProfileSummary() {
@@ -27,6 +41,15 @@ export async function getSessionProfileSummary() {
     return null;
   }
 
+  return withServerTtlCache(
+    `auth:profile-summary:${user.id}`,
+    60_000,
+    () => loadSessionProfileSummary(user),
+    { staleWhileRevalidateMs: 5 * 60_000 },
+  );
+}
+
+async function loadSessionProfileSummary(user: SessionUser) {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -90,7 +113,9 @@ export async function ensureProfile() {
       id: user.id,
       email: user.email ?? null,
       display_name:
-        user.user_metadata?.display_name ??
+        (typeof user.user_metadata.display_name === "string"
+          ? user.user_metadata.display_name
+          : null) ??
         user.email?.split("@")[0] ??
         "Гость RaceMate",
     })
@@ -134,13 +159,24 @@ export async function getIsAdmin() {
     return false;
   }
 
-  const supabase = await createSupabaseServerClient();
+  return withServerTtlCache(
+    `auth:is-admin:${user.id}`,
+    60_000,
+    async () => {
+      const supabase = await createSupabaseServerClient();
 
-  if (!supabase) {
-    return false;
-  }
+      if (!supabase) {
+        return false;
+      }
 
-  const { data } = await supabase.rpc("is_admin");
+      const { data } = await supabase.rpc("is_admin");
 
-  return Boolean(data);
+      return Boolean(data);
+    },
+    { staleWhileRevalidateMs: 5 * 60_000 },
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

@@ -525,7 +525,7 @@
       "givenName": "Lando",
       "familyName": "Norris",
       "code": "NOR",
-      "permanentNumber": "1",
+      "permanentNumber": "4",
       "nationality": "British",
       "season": 2023,
       "team": {
@@ -725,7 +725,7 @@
       "givenName": "Max",
       "familyName": "Verstappen",
       "code": "VER",
-      "permanentNumber": "3",
+      "permanentNumber": "1",
       "nationality": "Dutch",
       "season": 2023,
       "team": {

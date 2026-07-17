@@ -438,7 +438,7 @@ async function handleCallback(
   await answerCallback(botToken, callback.id, "Результаты открыты");
   await sendTelegramMessage(botToken, chatId, {
     text: `${session.name}\n${race?.race_name ?? ""}\n\n${lines.join("\n")}`,
-    reply_markup: siteKeyboard("Полные результаты", "/weekend"),
+    reply_markup: siteKeyboard("Полные результаты", `/weekend?session=${encodeURIComponent(session.id)}`),
   });
 }
 

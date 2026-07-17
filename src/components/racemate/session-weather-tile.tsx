@@ -65,7 +65,9 @@ export function SessionWeatherTile({
           </p>
         </div>
         {isCompleted ? (
-          <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success/12 text-success">
+            <CheckCircle2 className="size-4" aria-hidden="true" />
+          </span>
         ) : (
           renderWeatherIcon(session.weather?.precipitationMm)
         )}

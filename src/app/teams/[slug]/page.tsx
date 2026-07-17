@@ -145,28 +145,35 @@ function TeamHero({
       />
 
       <div className="relative flex min-h-[31rem] flex-col justify-between p-5 text-foreground sm:min-h-[35rem] sm:p-7">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button asChild size="sm" variant="secondary">
-            <Link href={`/teams?season=${team.season}`} prefetch={false}>
-              <ArrowLeft aria-hidden="true" data-icon="inline-start" />
-              Все команды
-            </Link>
-          </Button>
-          <SeasonSwitcher
-            activeSeason={team.season}
-            className="w-full sm:w-auto"
-            expandDirection="left"
-            pathname={`/teams/${team.slug}`}
-            query={query}
-            seasons={availableSeasons}
-          />
+        <div>
+          <div className="grid grid-cols-[minmax(0,1fr)_9.5rem] items-center gap-2 sm:flex sm:justify-between sm:gap-3">
+            <Button asChild size="sm" variant="secondary">
+              <Link href={`/teams?season=${team.season}`} prefetch={false}>
+                <ArrowLeft aria-hidden="true" data-icon="inline-start" />
+                Все команды
+              </Link>
+            </Button>
+            <SeasonSwitcher
+              activeSeason={team.season}
+              className="min-w-0 sm:w-auto"
+              expandDirection="left"
+              loadingLabel="Обновляем сезон"
+              pathname={`/teams/${team.slug}`}
+              query={query}
+              seasons={availableSeasons}
+            />
+          </div>
+
+          <h1 className="mt-4 text-balance font-display text-4xl font-black leading-[0.95] tracking-[-0.04em] sm:hidden">
+            {team.shortName}
+          </h1>
         </div>
 
         <div className="max-w-2xl">
           <div className="mb-4 hidden items-center sm:flex">
             <TeamLogo code={team.code} color={team.color} logo={team.logo} name={team.name} season={team.season} size="md" />
           </div>
-          <h1 className="text-balance font-display text-4xl font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">
+          <h1 className="hidden text-balance font-display text-4xl font-black leading-[0.95] tracking-[-0.04em] sm:block sm:text-6xl">
             {team.shortName}
           </h1>
           <div className="mt-3 flex min-h-10 items-center justify-between gap-4">
@@ -346,7 +353,7 @@ function TeamResultsTable({
       <div className="hidden grid-cols-[minmax(13rem,1.35fr)_minmax(10rem,1fr)_7rem_7rem_7rem_5rem] items-center gap-3 border-b border-border bg-background/35 px-5 py-3 lg:grid">
         <span className="stitch-label text-muted-foreground">Этап</span>
         <span className="stitch-label text-muted-foreground">Гонщик</span>
-        <span className="stitch-label text-center text-muted-foreground">Квалификация</span>
+        <span className="stitch-label text-center text-muted-foreground">Квалиф.</span>
         <span className="stitch-label text-center text-muted-foreground">Финиш</span>
         <span className="stitch-label text-center text-muted-foreground">Старт → финиш</span>
         <span className="stitch-label text-right text-muted-foreground">Очки</span>
@@ -360,13 +367,17 @@ function TeamResultsTable({
               className="grid min-w-0 gap-3 p-4 transition-colors hover:bg-accent/30 lg:grid-cols-[minmax(13rem,1.35fr)_minmax(10rem,1fr)_7rem_7rem_7rem_5rem] lg:items-center lg:px-5 lg:py-3.5"
               key={result.round}
             >
-              <div className="flex min-w-0 items-center gap-3">
+              <Link
+                className="flex min-w-0 items-center gap-3 rounded-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                href={`/calendar/${season}/${result.round}`}
+                prefetch={false}
+              >
                 <RaceFlag countryCode={result.countryCode} label={result.country || result.raceName} />
                 <div className="min-w-0">
                   <p className="truncate font-bold">{result.raceName}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">Раунд {result.round}</p>
                 </div>
-              </div>
+              </Link>
 
               <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_4.75rem_4.75rem] gap-2 rounded-md border border-border/70 bg-secondary/20 p-3 lg:contents">
                 <div className="grid min-w-0 content-start gap-1.5">
@@ -390,7 +401,7 @@ function TeamResultsTable({
                   ))}
                 </div>
                 <div className="grid content-start justify-items-center gap-1.5">
-                  <span className="stitch-label mb-1 text-[0.55rem] text-muted-foreground lg:hidden">Квала</span>
+                  <span className="stitch-label mb-1 text-[0.55rem] text-muted-foreground lg:hidden">Квалиф.</span>
                   {driverRows.map((driver) => (
                     <div className="flex min-h-7 items-center" key={`${result.round}-${driver.id}`}>
                       <Badge

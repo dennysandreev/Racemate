@@ -92,9 +92,11 @@ export default async function FantasyPage({
   const activeTab = status.tab === "leagues" || status.tab === "leaderboard" ? status.tab : "picks";
   const [predictionState, leagues, leaderboard, profileSummary] = await Promise.all([
     getPredictionState(user?.id),
-    getLeagues(user?.id),
-    getGlobalFantasyLeaderboard(),
-    getSessionProfileSummary(),
+    activeTab === "leagues" ? getLeagues(user?.id) : Promise.resolve([] as LeagueSummary[]),
+    activeTab === "leaderboard"
+      ? getGlobalFantasyLeaderboard()
+      : Promise.resolve({ rows: [], updatedAt: "" }),
+    activeTab === "leaderboard" ? getSessionProfileSummary() : Promise.resolve(null),
   ]);
   const myLeagues = leagues.filter((league) => league.isMember || league.isOwner);
   const openLeagues = leagues.filter((league) => !league.isMember && !league.isOwner);

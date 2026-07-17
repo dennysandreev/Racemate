@@ -1,9 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight, Flag, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
 import { PageTitle } from "@/components/racemate/page-title";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { SeasonSwitcher } from "@/components/racemate/season-switcher";
@@ -36,9 +36,9 @@ export default async function TeamsPage({
   return (
     <AppShell>
       <div className="grid gap-5 pb-6 sm:pb-8">
-        <header className="stitch-panel relative min-h-[13rem] overflow-hidden p-4 sm:p-5 lg:h-40 lg:min-h-0">
+        <header className="stitch-panel relative overflow-hidden p-4 sm:p-5 lg:h-40">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgb(225_6_0_/_0.2),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.04),transparent_48%)]" />
-          <div className="relative z-10 grid min-h-[11rem] gap-3 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div className="relative z-10 grid gap-3 lg:h-full lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div className="min-w-0">
               <p className="stitch-label flex items-center gap-2 text-primary">
                 <Flag aria-hidden="true" className="size-4" />
@@ -68,10 +68,12 @@ export default async function TeamsPage({
         {teams.length ? (
           <section aria-label="Команды сезона" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {teams.map((team) => (
-              <Link
+              <NavigationLoadingLink
                 className="group relative min-h-[15rem] overflow-hidden rounded-lg border border-border bg-card transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 href={`/teams/${team.slug}?season=${season}`}
                 key={team.id}
+                loadingLabel="Загружаем профиль команды"
+                loadingVariant="profile"
                 prefetch={false}
                 style={{
                   backgroundImage: `radial-gradient(circle at 58% 35%, color-mix(in srgb, ${team.color} 22%, transparent), transparent 56%)`,
@@ -126,7 +128,7 @@ export default async function TeamsPage({
                     <ChevronRight aria-hidden="true" className="size-4" />
                   </span>
                 </div>
-              </Link>
+              </NavigationLoadingLink>
             ))}
           </section>
         ) : (

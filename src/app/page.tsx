@@ -54,7 +54,9 @@ import type {
   StandingRow,
 } from "@/types/racemate";
 import { normalizeAuthNext } from "@/lib/auth-redirect";
+import { getSessionUser } from "@/lib/auth";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
+import { withServerTtlCache } from "@/lib/server-ttl-cache";
 import { formatSessionName } from "@/lib/session-display";
 
 export const dynamic = "force-dynamic";
@@ -75,34 +77,29 @@ export default async function Home({
     redirect(`/auth/callback?${callbackParams.toString()}`);
   }
 
-  const weekendSessionsPromise = getWeekendSessions();
-  const sessionResultsPromise = weekendSessionsPromise.then(async (sessions) => {
-    const visibleSessions = sessions.slice(0, 5);
-    const resultsBySession = await getSessionResultsBySessionIds(
-      visibleSessions.map((session) => session.id),
-      CURRENT_F1_SEASON,
-    );
-
-    return visibleSessions.map((session) => ({
-      results: session.id ? resultsBySession.get(session.id) ?? [] : [],
-      session,
-    }));
-  });
-  const [newsResult, nextSession, standings, constructorStandings, currentRace, championOdds, constructorOdds, polls, latestReport, queryReport, driverSlugByName, sessionResults] =
-    await Promise.all([
-      getNewsItems({ pageSize: 7 }),
-      getNextSession(),
-      getDriverStandings(CURRENT_F1_SEASON),
-      getConstructorStandings(CURRENT_F1_SEASON),
-      getCurrentRaceDetail(),
-      getSeasonChampionOdds(),
-      getConstructorChampionOdds(),
-      getPolls(),
-      getLatestGrandPrixReport(),
-      getGrandPrixReportBySlug(query.raceReport),
-      getDriverSlugMap(),
-      sessionResultsPromise,
-    ]);
+  const pollsPromise = getSessionUser().then((user) => getPolls({ userId: user?.id }));
+  const [publicData, polls, queryReport] = await Promise.all([
+    withServerTtlCache(
+      "public:home",
+      15_000,
+      getHomePagePublicData,
+      { staleWhileRevalidateMs: 5 * 60_000 },
+    ),
+    pollsPromise,
+    getGrandPrixReportBySlug(query.raceReport),
+  ]);
+  const {
+    championOdds,
+    constructorOdds,
+    constructorStandings,
+    currentRace,
+    driverSlugByName,
+    latestReport,
+    newsResult,
+    nextSession,
+    sessionResults,
+    standings,
+  } = publicData;
   const newsItems = newsResult.items;
   const dialogReport = queryReport;
   const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
@@ -178,6 +175,58 @@ export default async function Home({
       <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
     </AppShell>
   );
+}
+
+async function getHomePagePublicData() {
+  const weekendSessionsPromise = getWeekendSessions();
+  const sessionResultsPromise = weekendSessionsPromise.then(async (sessions) => {
+    const visibleSessions = sessions.slice(0, 5);
+    const resultsBySession = await getSessionResultsBySessionIds(
+      visibleSessions.map((session) => session.id),
+      CURRENT_F1_SEASON,
+    );
+
+    return visibleSessions.map((session) => ({
+      results: session.id ? resultsBySession.get(session.id) ?? [] : [],
+      session,
+    }));
+  });
+  const [
+    newsResult,
+    nextSession,
+    standings,
+    constructorStandings,
+    currentRace,
+    championOdds,
+    constructorOdds,
+    latestReport,
+    driverSlugByName,
+    sessionResults,
+  ] = await Promise.all([
+    getNewsItems({ pageSize: 7 }),
+    getNextSession(),
+    getDriverStandings(CURRENT_F1_SEASON),
+    getConstructorStandings(CURRENT_F1_SEASON),
+    getCurrentRaceDetail(),
+    getSeasonChampionOdds(),
+    getConstructorChampionOdds(),
+    getLatestGrandPrixReport(),
+    getDriverSlugMap(),
+    sessionResultsPromise,
+  ]);
+
+  return {
+    championOdds,
+    constructorOdds,
+    constructorStandings,
+    currentRace,
+    driverSlugByName,
+    latestReport,
+    newsResult,
+    nextSession,
+    sessionResults,
+    standings,
+  };
 }
 
 function CurrentRaceCard({

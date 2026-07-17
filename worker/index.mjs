@@ -427,7 +427,7 @@ async function ensureSocialSources({ platform } = {}) {
 
   const { error } = await supabase
     .from("social_sources")
-    .upsert(defaults, { onConflict: "platform,url", ignoreDuplicates: true });
+    .upsert(defaults, { onConflict: "platform,url" });
 
   if (error) {
     throw error;
@@ -732,7 +732,9 @@ async function uploadTelegramMtprotoPostMedia(client, source, post, messagesById
     }
 
     const message = messagesById.get(item.telegramMessageId);
-    if (!message) throw new Error(`Telegram media message ${item.telegramMessageId} is unavailable`);
+    if (!message) {
+      continue;
+    }
     if (item.size && item.size > maxBytes) {
       continue;
     }
@@ -741,10 +743,14 @@ async function uploadTelegramMtprotoPostMedia(client, source, post, messagesById
     try {
       downloaded = await client.downloadMedia(message, {});
     } catch (error) {
-      throw createTelegramSourceError(error);
+      const sourceError = createTelegramSourceError(error);
+      if (sourceError?.rateLimitedUntil) {
+        throw sourceError;
+      }
+      continue;
     }
     if (!Buffer.isBuffer(downloaded) || !downloaded.length) {
-      throw new Error(`Telegram media ${item.telegramMessageId} could not be downloaded`);
+      continue;
     }
     if (downloaded.length > maxBytes) {
       continue;
@@ -762,7 +768,7 @@ async function uploadTelegramMtprotoPostMedia(client, source, post, messagesById
       continue;
     }
     if (error) {
-      throw new Error(`Telegram media upload failed (${downloaded.length} bytes): ${error.message}`);
+      continue;
     }
     const { data } = supabase.storage.from("social-media").getPublicUrl(storagePath);
     media.push({
@@ -6739,7 +6745,7 @@ async function prepareDriverAssetRows({ integrityIssues, manifest, manifestPath,
   const { data: existingProfiles, error: profileError } = driverIds.length
     ? await supabase
       .from("driver_season_profiles")
-      .select("driver_id, primary_team_id, starts")
+      .select("driver_id, primary_team_id, permanent_number, starts")
       .eq("season_year", season)
       .in("driver_id", driverIds)
     : { data: [], error: null };
@@ -6809,7 +6815,10 @@ async function prepareDriverAssetRows({ integrityIssues, manifest, manifestPath,
       driver_id: driver.id,
       primary_team_id: existing?.primary_team_id ?? team.id,
       code: driver.code,
-      permanent_number: driver.permanent_number,
+      permanent_number:
+        numberOrNull(entry.permanentNumber) ??
+        existing?.permanent_number ??
+        driver.permanent_number,
       starts: existing?.starts ?? numberOrNull(entry.starts) ?? 0,
       avatar_image_url: fileValid ? entry.file : null,
       avatar_prompt: entry.prompt ?? null,
@@ -7160,6 +7169,15 @@ async function rebuildSeasonProfiles(season) {
     })
     .filter((entry) => entry.driverId && entry.teamId);
   const assignments = selectPrimaryTeamsByStarts(raceEntries);
+  const permanentNumberByDriverId = new Map();
+
+  for (const result of sportingData.results) {
+    const number = getSeasonDriverNumberFromResult(result.raw_payload);
+
+    if (result.driver_id && number !== null && !permanentNumberByDriverId.has(result.driver_id)) {
+      permanentNumberByDriverId.set(result.driver_id, number);
+    }
+  }
   const driverIds = [...new Set(assignments.map((assignment) => assignment.driverId))];
   const teamIds = [...new Set(raceEntries.map((entry) => entry.teamId))];
 
@@ -7170,7 +7188,7 @@ async function rebuildSeasonProfiles(season) {
   const [driverResult, teamResult, lineageResult] = await Promise.all([
     supabase
       .from("drivers")
-      .select("id, code, permanent_number")
+      .select("id, external_id, code, permanent_number")
       .in("id", driverIds),
     supabase
       .from("teams")
@@ -7220,7 +7238,10 @@ async function rebuildSeasonProfiles(season) {
       driver_id: assignment.driverId,
       primary_team_id: assignment.primaryTeamId,
       code: driver.code,
-      permanent_number: driver.permanent_number,
+      permanent_number:
+        getKnownSeasonDriverNumber(season, driver.external_id) ??
+        permanentNumberByDriverId.get(assignment.driverId) ??
+        driver.permanent_number,
       starts: assignment.starts,
     };
   });
@@ -7334,7 +7355,7 @@ async function fetchSessionResultRows(sessionIds) {
   for (let from = 0; ; from += pageSize) {
     const { data, error } = await supabase
       .from("session_results")
-      .select("session_id, driver_id, team_id, status")
+      .select("session_id, driver_id, team_id, status, raw_payload")
       .in("session_id", sessionIds)
       .range(from, from + pageSize - 1);
 
@@ -7962,7 +7983,7 @@ async function syncOpenF1Laps() {
   const season = Number(process.env.F1_SEASON ?? new Date().getUTCFullYear());
   const { data: sessions, error } = await supabase
     .from("sessions")
-    .select("id, session_type, openf1_session_key, races(season_year)")
+    .select("id, session_type, openf1_session_key, end_at, races(season_year)")
     .not("openf1_session_key", "is", null)
     .lte("start_at", new Date().toISOString())
     .order("start_at", { ascending: false, nullsFirst: false })
@@ -7972,8 +7993,11 @@ async function syncOpenF1Laps() {
     throw error;
   }
 
-  const drivers = await getDriverMapByNumber();
+  const drivers = await getDriverMapByNumber(season);
   let itemsProcessed = 0;
+  let sessionsChecked = 0;
+  let restrictedSessions = 0;
+  const failures = [];
 
   for (const session of sessions ?? []) {
     const race = Array.isArray(session.races) ? session.races[0] : session.races;
@@ -7991,15 +8015,37 @@ async function syncOpenF1Laps() {
       continue;
     }
 
+    sessionsChecked += 1;
     let laps = [];
 
     try {
       laps = await fetchJson(`${baseUrl}/laps?session_key=${session.openf1_session_key}`);
-    } catch {
+    } catch (error) {
+      if (isOpenF1AuthRestriction(error)) {
+        restrictedSessions += 1;
+      } else {
+        failures.push({
+          sessionKey: session.openf1_session_key,
+          reason: getSafeErrorMessage(error),
+        });
+      }
       continue;
     }
 
     const bestLaps = getBestLapsByDriver(laps);
+
+    if (!bestLaps.length) {
+      continue;
+    }
+
+    const { error: cleanupError } = await supabase
+      .from("session_results")
+      .delete()
+      .eq("session_id", session.id);
+
+    if (cleanupError) {
+      throw cleanupError;
+    }
 
     for (const [index, lap] of bestLaps.entries()) {
       const driver = drivers.get(Number(lap.driver_number));
@@ -8024,9 +8070,31 @@ async function syncOpenF1Laps() {
       );
       itemsProcessed += 1;
     }
+
+    if (session.end_at && new Date(session.end_at).getTime() <= Date.now()) {
+      const { error: statusError } = await supabase
+        .from("sessions")
+        .update({ status: "completed" })
+        .eq("id", session.id);
+
+      if (statusError) {
+        failures.push({
+          sessionKey: session.openf1_session_key,
+          reason: getSafeErrorMessage(statusError),
+        });
+      }
+    }
   }
 
-  return { itemsProcessed, metadata: { season } };
+  return {
+    itemsProcessed,
+    metadata: {
+      season,
+      sessionsChecked,
+      restrictedSessions,
+      failures,
+    },
+  };
 }
 
 async function hasOfficialQualifyingClassification(sessionId) {
@@ -10464,20 +10532,47 @@ async function buildCircuitLayoutFromOpenF1(baseUrl, sessionKey) {
   };
 }
 
-async function getDriverMapByNumber() {
-  const { data, error } = await supabase
-    .from("drivers")
-    .select("id, permanent_number, current_team_id");
+async function getDriverMapByNumber(season) {
+  const [{ data: seasonProfiles, error: seasonProfilesError }, { data: drivers, error: driversError }] = await Promise.all([
+    supabase
+      .from("driver_season_profiles")
+      .select("driver_id, permanent_number, primary_team_id")
+      .eq("season_year", season),
+    supabase
+      .from("drivers")
+      .select("id, permanent_number, current_team_id"),
+  ]);
 
-  if (error) {
-    throw error;
+  if (seasonProfilesError) {
+    throw seasonProfilesError;
   }
 
-  return new Map(
-    (data ?? [])
-      .filter((driver) => driver.permanent_number !== null)
-      .map((driver) => [Number(driver.permanent_number), driver]),
-  );
+  if (driversError) {
+    throw driversError;
+  }
+
+  const driverByNumber = new Map();
+
+  for (const profile of seasonProfiles ?? []) {
+    if (profile.permanent_number === null || !profile.driver_id) {
+      continue;
+    }
+
+    driverByNumber.set(Number(profile.permanent_number), {
+      id: profile.driver_id,
+      current_team_id: profile.primary_team_id ?? null,
+    });
+  }
+
+  for (const driver of drivers ?? []) {
+    if (driver.permanent_number === null || driverByNumber.has(Number(driver.permanent_number))) {
+      continue;
+    }
+
+    driverByNumber.set(Number(driver.permanent_number), driver);
+  }
+
+  return driverByNumber;
 }
 
 function getBestLapsByDriver(laps) {
@@ -11223,7 +11318,7 @@ async function enqueueNotifications() {
             text,
             parseMode: "HTML",
             buttonText: hidden ? "Открыть результаты" : "Полные результаты",
-            buttonUrl: "/weekend",
+            buttonUrl: `/weekend?session=${encodeURIComponent(session.id)}`,
           },
         });
       }
@@ -12047,12 +12142,15 @@ async function upsertDriverFromJolpica(driver, teamId, options = {}) {
 
   const profile = {
     code: driver.code ?? driver.driverId.slice(0, 3).toUpperCase(),
-    permanent_number: numberOrNull(driver.permanentNumber),
     first_name: firstName,
     last_name: lastName,
     full_name: fullName,
     country: driver.nationality ?? null,
   };
+
+  if (!historical || !existing?.id) {
+    profile.permanent_number = numberOrNull(driver.permanentNumber);
+  }
   const slug = resolveDriverProfileSlug(existing?.slug, fullName);
 
   if (existing?.id) {
@@ -12127,6 +12225,41 @@ function numberOrNull(value) {
 
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function getSeasonDriverNumberFromResult(rawPayload) {
+  if (!rawPayload || typeof rawPayload !== "object" || Array.isArray(rawPayload)) {
+    return null;
+  }
+
+  const driver = rawPayload.Driver && typeof rawPayload.Driver === "object" && !Array.isArray(rawPayload.Driver)
+    ? rawPayload.Driver
+    : null;
+
+  return numberOrNull(
+    driver?.permanentNumber ??
+    driver?.permanent_number ??
+    rawPayload.driver_number ??
+    rawPayload.driverNumber,
+  );
+}
+
+function getKnownSeasonDriverNumber(season, externalId) {
+  if (externalId === "norris" && season >= 2020 && season <= 2025) {
+    return 4;
+  }
+
+  if (externalId === "max_verstappen") {
+    if (season >= 2020 && season <= 2021) {
+      return 33;
+    }
+
+    if (season >= 2022 && season <= 2025) {
+      return 1;
+    }
+  }
+
+  return null;
 }
 
 function roundNumber(value, digits = 0) {

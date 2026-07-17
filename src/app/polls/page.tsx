@@ -20,7 +20,11 @@ export default async function PollsPage({
 }) {
   const search = await searchParams;
   const view: PollView = search.view === "archive" ? "archive" : "active";
-  const [user, polls] = await Promise.all([getSessionUser(), getPolls({ view })]);
+  const userPromise = getSessionUser();
+  const [user, polls] = await Promise.all([
+    userPromise,
+    userPromise.then((sessionUser) => getPolls({ userId: sessionUser?.id, view })),
+  ]);
   const groups = groupPollsByRace(polls);
 
   return (

@@ -5,10 +5,12 @@ import {
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { getPredictionLocksForRace } from "@/lib/prediction-locks";
+import { withServerTtlCache } from "@/lib/server-ttl-cache";
 import { getSiteUrl } from "@/lib/env";
 import { getRoundResultPoints } from "@/lib/f1-points";
 import { getOrCreatePredictionShareUrl } from "@/lib/share-links";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
+import { getDriverSeasonNumberOverride } from "@/lib/driver-season-number";
 import {
   adminJobs,
   adminSignals,
@@ -79,7 +81,6 @@ import type {
   SocialMode,
   SocialPlatform,
   SocialPost,
-  SocialSort,
   SocialTrendingTopic,
   StandingsMeta,
   StandingRow,
@@ -336,6 +337,7 @@ type DriverSeasonProfileDbRow = {
   code: string | null;
   permanent_number: number | null;
   avatar_image_url: string | null;
+  drivers?: { slug: string | null } | { slug: string | null }[] | null;
 };
 
 type RaceTrackAssetDbRow = {
@@ -366,7 +368,10 @@ type SessionResultDbRow = {
     | { session_type: string }
     | { session_type: string }[]
     | null;
-  drivers: { full_name: string; slug?: string | null } | { full_name: string; slug?: string | null }[] | null;
+  drivers:
+    | { full_name: string; slug?: string | null; permanent_number?: number | null }
+    | { full_name: string; slug?: string | null; permanent_number?: number | null }[]
+    | null;
   teams: TeamRelationObject | TeamRelationObject[] | null;
 };
 
@@ -798,9 +803,8 @@ type PollDbRow = {
       }[]
     | null;
   poll_options:
-    | { id: string; label: string; poll_votes: { user_id: string }[] | null }[]
+    | { id: string; label: string }[]
     | null;
-  poll_votes: { option_id: string; user_id: string }[] | null;
 };
 
 type PolymarketMarket = {
@@ -838,6 +842,10 @@ type PolymarketEvent = {
   markets?: PolymarketMarket[];
 };
 
+type PolymarketEventsResponse = {
+  events?: PolymarketEvent[];
+};
+
 const POLYMARKET_F1_TAG_ID = "435";
 const POLYMARKET_EVENT_LIMIT = "20";
 const POLYMARKET_CACHE_TTL_MS = 2 * 60 * 1000;
@@ -872,7 +880,7 @@ export async function getNewsItems(
     return emptyNewsList(page);
   }
 
-  const activeNewsTagAllowlist = await getCurrentNewsTagAllowlist(supabase);
+  const activeNewsTagAllowlist = await getCurrentNewsTagAllowlist();
   let articleIds: string[] | null = null;
   const explicitTagListRequested = Array.isArray(options.tagSlugs);
 
@@ -1020,7 +1028,7 @@ export async function getNewsDriverTags(): Promise<{ name: string; slug: string 
     return [];
   }
 
-  const tagAllowlist = await getCurrentNewsTagAllowlist(supabase);
+  const tagAllowlist = await getCurrentNewsTagAllowlist();
 
   return uniqueNewsTagFilters(
     ((data ?? []) as unknown as NewsFilterTagRow[])
@@ -1050,7 +1058,7 @@ export async function getNewsTeamTags(): Promise<{ name: string; slug: string }[
     return [];
   }
 
-  const tagAllowlist = await getCurrentNewsTagAllowlist(supabase);
+  const tagAllowlist = await getCurrentNewsTagAllowlist();
 
   return uniqueNewsTagFilters(
     ((data ?? []) as unknown as NewsFilterTagRow[])
@@ -1156,7 +1164,6 @@ export async function getSocialPosts({
   cursor,
   pageSize = 12,
   platform = "all",
-  sort = "new",
   mode = "main",
   topic,
   team,
@@ -1166,7 +1173,6 @@ export async function getSocialPosts({
   cursor?: string | null;
   pageSize?: number;
   platform?: SocialPlatform;
-  sort?: SocialSort;
   mode?: SocialMode;
   topic?: string | null;
   team?: string | null;
@@ -1258,10 +1264,6 @@ export async function getSocialPosts({
   const pageRows = rows.slice(0, limit);
   const items = pageRows.map(mapSocialPostRow);
 
-  if (mode === "main" || sort === "popular") {
-    items.sort((left, right) => getSocialRank(right) - getSocialRank(left));
-  }
-
   const lastRow = pageRows.at(-1);
 
   return {
@@ -1275,10 +1277,6 @@ export async function getSocialPosts({
 
 export function normalizeSocialPlatform(value?: string | null): SocialPlatform {
   return value === "x" || value === "reddit" || value === "telegram" ? value : "all";
-}
-
-export function normalizeSocialSort(value?: string | null): SocialSort {
-  return value === "popular" ? "popular" : "new";
 }
 
 export function normalizeSocialMode(value?: string | null): SocialMode {
@@ -1460,7 +1458,7 @@ export async function getGrandPrixReportBySlug(
   return mapGrandPrixReportRow(data as unknown as GrandPrixReportDbRow);
 }
 
-export const getNextSession = cache(async (): Promise<NextSession> => {
+async function getNextSessionUncached(): Promise<NextSession> {
   const race = await getCurrentRace();
   const sessions = await getWeekendSessions();
   const first =
@@ -1483,7 +1481,16 @@ export const getNextSession = cache(async (): Promise<NextSession> => {
     startsAtIso: first.startsAtIso,
     status: getWeekendRuntimeStatus(sessions),
   };
-});
+}
+
+export const getNextSession = cache(() =>
+  withServerTtlCache(
+    "public:next-session",
+    10_000,
+    getNextSessionUncached,
+    { staleWhileRevalidateMs: 5 * 60_000 },
+  ),
+);
 
 export async function getPublishedSeasons(): Promise<number[]> {
   return getPublishedSeasonsCached();
@@ -1769,16 +1776,19 @@ export async function getDriverChampionshipMatrix(
     };
   }
 
-  const roundPointTotals = await getChampionshipRoundPointTotals(latest.season_year);
   const standingsLatestRound = latest.round;
 
-  const { data, error } = await supabase
+  const standingsQuery = supabase
     .from("driver_standings")
     .select("driver_id, team_id, round, position, points, drivers(full_name, slug, permanent_number), teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
     .lte("round", standingsLatestRound)
     .order("round", { ascending: true })
     .order("position", { ascending: true, nullsFirst: false });
+  const [roundPointTotals, { data, error }] = await Promise.all([
+    getChampionshipRoundPointTotals(latest.season_year),
+    standingsQuery,
+  ]);
 
   if (error || !data?.length) {
     return { rounds: [], rows: [] };
@@ -1838,15 +1848,15 @@ export async function getDriverChampionshipMatrix(
     rowsByDriver.set(row.driver_id, existing);
   });
 
-  const rounds = await getRaceRoundVisualsForRounds(latest.season_year, [
+  const displayedRounds = [
     ...roundPointTotals.scoredRounds,
     ...getCumulativeScoredRounds(
       [...rowsByDriver.values()].map((row) => row.cumulative),
       standingsLatestRound,
     ),
-  ]);
-  const roundNumbers = rounds.map((round) => round.round);
-  const [teamProfiles, driverSeasonProfiles] = await Promise.all([
+  ];
+  const [rounds, teamProfiles, driverSeasonProfiles] = await Promise.all([
+    getRaceRoundVisualsForRounds(latest.season_year, displayedRounds),
     getTeamProfiles(selectedSeason),
     getDriverSeasonProfilesByIds(
       supabase,
@@ -1854,6 +1864,7 @@ export async function getDriverChampionshipMatrix(
       [...rowsByDriver.keys()],
     ),
   ]);
+  const roundNumbers = rounds.map((round) => round.round);
   const teamProfileById = new Map(teamProfiles.map((profile) => [profile.id, profile]));
   const rows = [...rowsByDriver.values()]
     .filter((row) => row.cumulative.has(standingsLatestRound))
@@ -1932,7 +1943,7 @@ async function getDriverSeasonProfilesByIds(
   const { data, error } = await supabase
     .from("driver_season_profiles")
     .select(
-      "season_year, driver_id, primary_team_id, code, permanent_number, avatar_image_url",
+      "season_year, driver_id, primary_team_id, code, permanent_number, avatar_image_url, drivers(slug)",
     )
     .eq("season_year", season)
     .in("driver_id", driverIds);
@@ -1942,10 +1953,18 @@ async function getDriverSeasonProfilesByIds(
   }
 
   return new Map(
-    ((data ?? []) as unknown as DriverSeasonProfileDbRow[]).map((profile) => [
-      profile.driver_id,
-      profile,
-    ]),
+    ((data ?? []) as unknown as DriverSeasonProfileDbRow[]).map((profile) => {
+      const slug = getRelationObject(profile.drivers ?? null)?.slug;
+
+      return [
+        profile.driver_id,
+        {
+          ...profile,
+          permanent_number:
+            getDriverSeasonNumberOverride(slug, season) ?? profile.permanent_number,
+        },
+      ];
+    }),
   );
 }
 
@@ -2059,7 +2078,9 @@ export async function getDriverProfileBySlug(
     lastName: driver.last_name,
     fullName: driver.full_name,
     code: seasonProfile ? seasonProfile.code ?? undefined : driver.code ?? undefined,
-    number: seasonProfile ? seasonProfile.permanent_number : driver.permanent_number,
+    number:
+      getDriverSeasonNumberOverride(driver.slug ?? normalizedSlug, selectedSeason) ??
+      (seasonProfile ? seasonProfile.permanent_number : driver.permanent_number),
     country: driver.country,
     countryCode: driver.country_code ?? getCountryCode(driver.country ?? ""),
     aiAvatarUrl: seasonProfile?.avatar_image_url ?? (selectedSeason === 2026 ? driver.ai_avatar_url : null),
@@ -2519,16 +2540,19 @@ export async function getConstructorChampionshipMatrix(
     return { rounds: [], rows };
   }
 
-  const roundPointTotals = await getChampionshipRoundPointTotals(latest.season_year);
   const standingsLatestRound = latest.round;
 
-  const { data, error } = await supabase
+  const standingsQuery = supabase
     .from("constructor_standings")
     .select("team_id, round, position, points, wins, teams(name, code, color_hex)")
     .eq("season_year", latest.season_year)
     .lte("round", standingsLatestRound)
     .order("round", { ascending: true })
     .order("position", { ascending: true, nullsFirst: false });
+  const [roundPointTotals, { data, error }] = await Promise.all([
+    getChampionshipRoundPointTotals(latest.season_year),
+    standingsQuery,
+  ]);
 
   if (error || !data?.length) {
     return { rounds: [], rows: [] };
@@ -2582,15 +2606,18 @@ export async function getConstructorChampionshipMatrix(
     rowsByTeam.set(row.team_id, existing);
   });
 
-  const rounds = await getRaceRoundVisualsForRounds(latest.season_year, [
+  const displayedRounds = [
     ...roundPointTotals.scoredRounds,
     ...getCumulativeScoredRounds(
       [...rowsByTeam.values()].map((row) => row.cumulative),
       standingsLatestRound,
     ),
+  ];
+  const [rounds, teamProfiles] = await Promise.all([
+    getRaceRoundVisualsForRounds(latest.season_year, displayedRounds),
+    getTeamProfiles(selectedSeason),
   ]);
   const roundNumbers = rounds.map((round) => round.round);
-  const teamProfiles = await getTeamProfiles(selectedSeason);
   const teamProfileById = new Map(teamProfiles.map((profile) => [profile.id, profile]));
   const rows = [...rowsByTeam.values()]
     .filter((row) => row.cumulative.has(standingsLatestRound))
@@ -2632,7 +2659,7 @@ export async function getConstructorChampionshipMatrix(
   return { rounds, rows };
 }
 
-export async function getTeamProfiles(
+async function getTeamProfilesUncached(
   season: number,
 ): Promise<TeamProfileSummary[]> {
   const selectedSeason = await resolvePublishedSeason(season);
@@ -2768,6 +2795,8 @@ export async function getTeamProfiles(
     } satisfies TeamProfileSummary];
   });
 }
+
+export const getTeamProfiles = cache(getTeamProfilesUncached);
 
 export async function getTeamProfileBySlug(
   slug: string,
@@ -3063,6 +3092,7 @@ export async function getTeamProfileBySlug(
     return {
       teamCode: row.teamCode ?? slugify(row.team),
       team: row.team,
+      teamSlug: row.teamSlug,
       teamColor: row.teamColor,
       points: [
         { round: 0, raceName: "Старт", value: 0 },
@@ -3131,6 +3161,7 @@ export async function getTeamProfileBySlug(
       : [{
           teamCode: team.code,
           team: team.shortName,
+          teamSlug: team.slug,
           teamColor: team.color,
           points: [
             { round: 0, raceName: "Старт", value: 0 },
@@ -3302,45 +3333,30 @@ export async function getPredictionPicks() {
 export async function getPredictionState(
   userId?: string | null,
 ): Promise<PredictionState> {
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    return {
-      current: null,
-      drivers: [],
-      previousResult: null,
-      qualifyingResults: null,
-      race: null,
-      seasonSummary: emptyPredictionSeasonSummary(),
-      teams: [],
-    };
-  }
-
-  const [currentRace, fantasyOptions] = await Promise.all([
-    getCurrentRace("id, season_year, race_name, race_start_at"),
-    getCurrentSeasonPredictionOptions(supabase),
-  ]);
-
-  const locks = currentRace
-    ? await getPredictionLocksForRace(currentRace.id)
-    : null;
-  const race = currentRace
-    ? {
-        id: currentRace.id,
-        name: currentRace.race_name,
-        startsAt: formatDateTime(currentRace.race_start_at),
-        qualifyingStartsAtIso: locks?.qualifyingStartsAtIso ?? null,
-        raceStartsAtIso: locks?.raceStartsAtIso ?? currentRace.race_start_at,
-        poleLocked: locks?.poleLocked ?? false,
-        raceLocked: locks?.raceLocked ?? false,
-      }
-    : null;
+  const publicState = await withServerTtlCache(
+    "public:prediction-state",
+    10_000,
+    getPublicPredictionState,
+    { staleWhileRevalidateMs: 5 * 60_000 },
+  );
+  const { currentRace, race } = publicState;
 
   let current: PredictionState["current"] = null;
   let previousResult: PredictionState["previousResult"] = null;
   let seasonSummary = emptyPredictionSeasonSummary();
 
   if (race && userId) {
+    const supabase = await createSupabaseServerClient();
+
+    if (!supabase) {
+      return {
+        ...publicState,
+        current,
+        previousResult,
+        seasonSummary,
+      };
+    }
+
     const [{ data }, previous, summary] = await Promise.all([
       supabase
         .from("predictions")
@@ -3378,13 +3394,57 @@ export async function getPredictionState(
   }
 
   return {
+    drivers: publicState.drivers,
+    qualifyingResults: publicState.qualifyingResults,
     race,
-    drivers: fantasyOptions.drivers,
-    teams: fantasyOptions.teams,
-    qualifyingResults: currentRace ? await getQualifyingResultsForRace(currentRace.id) : null,
+    teams: publicState.teams,
     previousResult,
     seasonSummary,
     current,
+  };
+}
+
+async function getPublicPredictionState() {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return {
+      currentRace: null,
+      drivers: [] as PredictionState["drivers"],
+      qualifyingResults: null,
+      race: null,
+      teams: [] as PredictionState["teams"],
+    };
+  }
+
+  const [currentRace, fantasyOptions] = await Promise.all([
+    getCurrentRace("id, season_year, race_name, race_start_at"),
+    getCurrentSeasonPredictionOptions(supabase),
+  ]);
+  const [locks, qualifyingResults] = currentRace
+    ? await Promise.all([
+        getPredictionLocksForRace(currentRace.id),
+        getQualifyingResultsForRace(currentRace.id),
+      ])
+    : [null, null];
+  const race = currentRace
+    ? {
+        id: currentRace.id,
+        name: currentRace.race_name,
+        startsAt: formatDateTime(currentRace.race_start_at),
+        qualifyingStartsAtIso: locks?.qualifyingStartsAtIso ?? null,
+        raceStartsAtIso: locks?.raceStartsAtIso ?? currentRace.race_start_at,
+        poleLocked: locks?.poleLocked ?? false,
+        raceLocked: locks?.raceLocked ?? false,
+      }
+    : null;
+
+  return {
+    currentRace,
+    drivers: fantasyOptions.drivers,
+    qualifyingResults,
+    race,
+    teams: fantasyOptions.teams,
   };
 }
 
@@ -5115,24 +5175,64 @@ function buildLeagueHistory(
 }
 
 export async function getPolls({
+  userId,
   view = "active",
 }: {
+  userId?: string | null;
   view?: "active" | "archive";
 } = {}): Promise<PollSummary[]> {
+  const polls = await withServerTtlCache(
+    `public:polls:${view}`,
+    60_000,
+    () => getPublicPolls(view),
+    { staleWhileRevalidateMs: 5 * 60_000 },
+  );
+
+  if (!userId || !polls.length) {
+    return polls;
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return polls;
+  }
+
+  const pollIds = polls.flatMap((poll) => (poll.id ? [poll.id] : []));
+
+  if (!pollIds.length) {
+    return polls;
+  }
+
+  const { data: votes, error } = await supabase
+    .from("poll_votes")
+    .select("poll_id, option_id")
+    .eq("user_id", userId)
+    .in("poll_id", pollIds);
+
+  if (error || !votes?.length) {
+    return polls;
+  }
+
+  const voteByPoll = new Map(votes.map((vote) => [vote.poll_id, vote.option_id]));
+
+  return polls.map((poll) => ({
+    ...poll,
+    userVote: poll.id ? voteByPoll.get(poll.id) : undefined,
+  }));
+}
+
+async function getPublicPolls(view: "active" | "archive"): Promise<PollSummary[]> {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return [];
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const query = supabase
     .from("polls")
     .select(
-      "id, race_id, question, status, closes_at, poll_kind, races(id, season_year, round, race_name, circuits(name, country)), poll_options(id, label, sort_order, poll_votes(user_id)), poll_votes(option_id, user_id)",
+      "id, race_id, question, status, closes_at, poll_kind, races(id, season_year, round, race_name, circuits(name, country)), poll_options(id, label, sort_order)",
     )
     .order("created_at", { ascending: false })
     .limit(10);
@@ -5164,7 +5264,6 @@ export async function getPolls({
 
   return (data as unknown as PollDbRow[]).map((poll) => {
     const options = poll.poll_options ?? [];
-    const userVote = poll.poll_votes?.find((vote) => vote.user_id === user?.id)?.option_id;
     const race = getRelationObject(poll.races);
     const circuit = getRelationObject(race?.circuits ?? null);
 
@@ -5190,7 +5289,6 @@ export async function getPolls({
         label: option.label,
         votes: voteCounts.get(option.id) ?? 0,
       })),
-      userVote,
     };
   });
 }
@@ -5224,11 +5322,14 @@ export async function getRaceDetail(
     return null;
   }
 
-  const race = data as unknown as RaceRow;
+  return buildRaceDetail(data as unknown as RaceRow);
+}
+
+async function buildRaceDetail(race: RaceRow): Promise<RaceDetail> {
   const circuit = getRelationObject(race.circuits);
   const [layout, latestStanding, trackAssets] = await Promise.all([
-    season === 2026 && circuit?.id ? getCircuitLayout(circuit.id) : null,
-    getLatestCompleteStandingRound("driver_standings", 20, season),
+    race.season_year === 2026 && circuit?.id ? getCircuitLayout(circuit.id) : null,
+    getLatestCompleteStandingRound("driver_standings", 20, race.season_year),
     getRaceTrackAssetsByRaceIds([race.id]),
   ]);
 
@@ -5252,7 +5353,7 @@ export async function getRaceDetail(
     ),
     timezone: circuit?.timezone || getCircuitTimezone(circuit?.country ?? "", circuit?.name ?? ""),
     layout,
-    trackMapUrl: trackAssets.get(race.id)?.image_url ?? (season === 2026 ? undefined : null),
+    trackMapUrl: trackAssets.get(race.id)?.image_url ?? (race.season_year === 2026 ? undefined : null),
   };
 }
 
@@ -5527,7 +5628,7 @@ export async function getCurrentRaceDetail(): Promise<RaceDetail | null> {
     return null;
   }
 
-  return getRaceDetail(race.season_year, race.round);
+  return buildRaceDetail(race);
 }
 
 export async function getCurrentRaceReplaySummary(): Promise<RaceReplaySummary | null> {
@@ -5757,7 +5858,7 @@ export async function getSessionResults(
 
   const { data, error } = await supabase
     .from("session_results")
-    .select("position, time_text, status, grid, laps, points, raw_payload, sessions(session_type), drivers(full_name, slug), teams(name, code, color_hex)")
+    .select("driver_id, position, time_text, status, grid, laps, points, raw_payload, sessions(session_type), drivers(full_name, slug, permanent_number), teams(name, code, color_hex)")
     .eq("session_id", sessionId)
     .order("position", { ascending: true, nullsFirst: false });
 
@@ -5765,7 +5866,14 @@ export async function getSessionResults(
     return [];
   }
 
-  return mapSessionResultRows(data as unknown as SessionResultDbRow[], season);
+  const rows = data as unknown as SessionResultDbRow[];
+  const seasonProfiles = await getDriverSeasonProfilesByIds(
+    supabase,
+    season,
+    getSessionResultDriverIds(rows),
+  );
+
+  return mapSessionResultRows(rows, season, seasonProfiles);
 }
 
 export async function getSessionResultsBySessionIds(
@@ -5786,7 +5894,7 @@ export async function getSessionResultsBySessionIds(
 
   const { data, error } = await supabase
     .from("session_results")
-    .select("session_id, position, time_text, status, grid, laps, points, raw_payload, sessions(session_type), drivers(full_name, slug), teams(name, code, color_hex)")
+    .select("session_id, driver_id, position, time_text, status, grid, laps, points, raw_payload, sessions(session_type), drivers(full_name, slug, permanent_number), teams(name, code, color_hex)")
     .in("session_id", ids)
     .order("position", { ascending: true, nullsFirst: false });
 
@@ -5794,21 +5902,39 @@ export async function getSessionResultsBySessionIds(
     return new Map();
   }
 
+  const resultRows = data as unknown as Array<SessionResultDbRow & { session_id: string }>;
+  const seasonProfiles = await getDriverSeasonProfilesByIds(
+    supabase,
+    season,
+    getSessionResultDriverIds(resultRows),
+  );
   const rowsBySession = new Map<string, SessionResultDbRow[]>();
 
-  (data as unknown as Array<SessionResultDbRow & { session_id: string }>).forEach((row) => {
+  resultRows.forEach((row) => {
     const rows = rowsBySession.get(row.session_id) ?? [];
     rows.push(row);
     rowsBySession.set(row.session_id, rows);
   });
 
   return new Map(
-    [...rowsBySession].map(([sessionId, rows]) => [sessionId, mapSessionResultRows(rows, season)]),
+    [...rowsBySession].map(([sessionId, rows]) => [
+      sessionId,
+      mapSessionResultRows(rows, season, seasonProfiles),
+    ]),
   );
 }
 
-function mapSessionResultRows(rows: SessionResultDbRow[], season: number): SessionResult[] {
-  return rows
+function getSessionResultDriverIds(rows: SessionResultDbRow[]) {
+  return [...new Set(rows.flatMap((row) => (row.driver_id ? [row.driver_id] : [])))];
+}
+
+function mapSessionResultRows(
+  rows: SessionResultDbRow[],
+  season: number,
+  seasonProfiles = new Map<string, DriverSeasonProfileDbRow>(),
+): SessionResult[] {
+  return deduplicateSessionResultRows(
+    rows
     .filter((row) => {
       const session = getRelationObject(row.sessions);
 
@@ -5817,18 +5943,96 @@ function mapSessionResultRows(rows: SessionResultDbRow[], season: number): Sessi
       }
 
       return !isLapOnlyResult(row);
-    })
-    .map((row) => ({
-      ...getTeamVisualFields(row.teams, "Команда уточняется", season),
-      position: row.position,
-      driver: getRelationName(row.drivers, "Пилот уточняется"),
-      driverSlug: getRelationObject(row.drivers)?.slug ?? undefined,
-      time: row.time_text ?? "Без времени",
-      status: row.status ?? "Классифицирован",
-      grid: row.grid,
-      laps: row.laps,
-      points: row.points === null ? null : Number(row.points),
-    }));
+    }),
+    season,
+    seasonProfiles,
+  )
+    .map((row) => {
+      const driver = getRelationObject(row.drivers);
+      const seasonProfile = row.driver_id ? seasonProfiles.get(row.driver_id) : null;
+
+      return {
+        ...getTeamVisualFields(row.teams, "Команда уточняется", season),
+        position: row.position,
+        driver: getRelationName(row.drivers, "Пилот уточняется"),
+        driverSlug: driver?.slug ?? undefined,
+        driverNumber:
+          seasonProfile?.permanent_number ??
+          getDriverSeasonNumberOverride(driver?.slug, season) ??
+          getSessionResultDriverNumber(row.raw_payload) ??
+          driver?.permanent_number ??
+          undefined,
+        time: row.time_text ?? "Без времени",
+        status: row.status ?? "Классифицирован",
+        grid: row.grid,
+        laps: row.laps,
+        points: row.points === null ? null : Number(row.points),
+      };
+    });
+}
+
+function deduplicateSessionResultRows(
+  rows: SessionResultDbRow[],
+  season: number,
+  seasonProfiles: Map<string, DriverSeasonProfileDbRow>,
+) {
+  const selectedRows = new Map<string, { priority: number; row: SessionResultDbRow }>();
+
+  rows.forEach((row, index) => {
+    const driver = getRelationObject(row.drivers);
+    const seasonProfile = row.driver_id ? seasonProfiles.get(row.driver_id) : null;
+    const number =
+      seasonProfile?.permanent_number ??
+      getDriverSeasonNumberOverride(driver?.slug, season) ??
+      getSessionResultDriverNumber(row.raw_payload) ??
+      driver?.permanent_number ??
+      null;
+    const key = number
+      ? `number:${number}`
+      : row.driver_id
+        ? `driver:${row.driver_id}`
+        : `row:${index}`;
+    const priority =
+      (seasonProfile ? 4 : 0) +
+      (driver?.full_name ? 2 : 0) +
+      (getRelationObject(row.teams)?.name ? 1 : 0);
+    const current = selectedRows.get(key);
+
+    if (!current || priority > current.priority) {
+      selectedRows.set(key, { priority, row });
+    }
+  });
+
+  return [...selectedRows.values()]
+    .map((entry) => entry.row)
+    .sort((left, right) => (left.position ?? 999) - (right.position ?? 999));
+}
+
+function getSessionResultDriverNumber(rawPayload: unknown) {
+  if (!rawPayload || typeof rawPayload !== "object" || Array.isArray(rawPayload)) {
+    return undefined;
+  }
+
+  const payload = rawPayload as Record<string, unknown>;
+  const driver = payload.Driver && typeof payload.Driver === "object" && !Array.isArray(payload.Driver)
+    ? payload.Driver as Record<string, unknown>
+    : null;
+  const candidates = [
+    driver?.permanentNumber,
+    driver?.permanent_number,
+    payload.driver_number,
+    payload.driverNumber,
+  ];
+
+  for (const candidate of candidates) {
+    const number = Number(candidate);
+
+    if (Number.isInteger(number) && number > 0) {
+      return number;
+    }
+  }
+
+  return undefined;
 }
 
 export async function getRaceNews(raceId: string, limit = 5): Promise<NewsItem[]> {
@@ -5867,7 +6071,7 @@ export async function getRaceNews(raceId: string, limit = 5): Promise<NewsItem[]
     return [];
   }
 
-  const tagAllowlist = await getCurrentNewsTagAllowlist(supabase);
+  const tagAllowlist = await getCurrentNewsTagAllowlist();
 
   return (data as unknown as ArticleRow[]).map((row) => mapArticleRow(row, tagAllowlist));
 }
@@ -5937,7 +6141,7 @@ export async function getNewsArticle(id: string) {
     return null;
   }
 
-  const tagAllowlist = await getCurrentNewsTagAllowlist(supabase);
+  const tagAllowlist = await getCurrentNewsTagAllowlist();
 
   return mapArticleRow(data as unknown as ArticleRow, tagAllowlist);
 }
@@ -6186,12 +6390,6 @@ function intersectSocialPostIds(sets: string[][]) {
   );
 }
 
-function getSocialRank(item: SocialPost) {
-  const ageHours = Math.max(0, (Date.now() - new Date(item.publishedAtIso).getTime()) / 3_600_000);
-  const trust = item.sourceTrust === "official" ? 26 : item.sourceTrust === "media" ? 14 : 4;
-  return item.importanceScore * 1.8 + Math.log10(item.popularityScore + 10) * 12 + trust - ageHours * 0.8;
-}
-
 function mapSocialFilterOption(item: { name: string; slug: string }) {
   return { label: item.name, value: item.slug };
 }
@@ -6253,7 +6451,7 @@ async function getSessionWeatherByIds(sessionIds: string[]) {
   return weatherBySession;
 }
 
-async function getChampionshipRoundPointTotals(season: number) {
+const getChampionshipRoundPointTotals = cache(async (season: number) => {
   const empty = {
     constructorPoints: new Map<string, Map<number, number>>(),
     driverPoints: new Map<string, Map<number, number>>(),
@@ -6361,7 +6559,7 @@ async function getChampionshipRoundPointTotals(season: number) {
     driverRacePositions,
     scoredRounds: [...scoredRounds].sort((a, b) => a - b),
   };
-}
+});
 
 function buildDriverProfileContext(
   driverId: string,
@@ -6860,7 +7058,7 @@ function isLapOnlyResult(row: { status?: string | null; raw_payload?: unknown })
   );
 }
 
-export async function getLatestCompleteStandingRound(
+async function getLatestCompleteStandingRoundUncached(
   table: "driver_standings" | "constructor_standings",
   minimumRows: number,
   season: number,
@@ -6910,6 +7108,10 @@ export async function getLatestCompleteStandingRound(
 
   return ordered.find((round) => round.count >= minimumRows) ?? null;
 }
+
+export const getLatestCompleteStandingRound = cache(
+  getLatestCompleteStandingRoundUncached,
+);
 
 function isRaceCompletedByStandings(
   race: Pick<RaceRow, "season_year" | "round" | "race_start_at">,
@@ -7024,7 +7226,7 @@ async function fetchPolymarketRaceEvents() {
       active: "true",
       closed: "false",
       limit: POLYMARKET_EVENT_LIMIT,
-      order: "volume_24hr",
+      order: "volume24hr",
       ascending: "false",
     })
       .then((events) => {
@@ -7048,7 +7250,7 @@ async function fetchPolymarketRaceEvents() {
 async function fetchPolymarketEvents(params: Record<string, string>) {
   try {
     const searchParams = new URLSearchParams(params);
-    const response = await fetch(`https://gamma-api.polymarket.com/events?${searchParams}`, {
+    const response = await fetch(`https://gamma-api.polymarket.com/events/keyset?${searchParams}`, {
       headers: { accept: "application/json" },
       next: { revalidate: 120 },
     });
@@ -7059,7 +7261,9 @@ async function fetchPolymarketEvents(params: Record<string, string>) {
 
     const data = await response.json();
 
-    return Array.isArray(data) ? (data as PolymarketEvent[]) : [];
+    return Array.isArray((data as PolymarketEventsResponse | null)?.events)
+      ? (data as PolymarketEventsResponse).events!
+      : [];
   } catch {
     return [];
   }
@@ -7511,7 +7715,7 @@ const getCurrentRace = cache(async (select?: string): Promise<RaceRow | null> =>
 
   const fields = ensureRaceCompletionSelectFields(
     select ??
-      "id, season_year, round, race_name, race_start_at, status, circuits(name, country, locality, external_id)",
+      "id, season_year, round, race_name, race_start_at, status, circuits(id, name, country, locality, external_id, timezone)",
   );
   const currentRaceWindowIso = new Date(
     Date.now() - getSessionDurationMs("race", "Гонка"),
@@ -7928,9 +8132,13 @@ function getProfileName(
   return value?.display_name ?? value?.email?.split("@")[0] ?? "Участник";
 }
 
-async function getCurrentNewsTagAllowlist(
-  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
-): Promise<NewsTagAllowlist> {
+const getCurrentNewsTagAllowlist = cache(async (): Promise<NewsTagAllowlist> => {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return { drivers: new Set<string>(), teams: new Set<string>() };
+  }
+
   const latestStanding = await supabase
     .from("driver_standings")
     .select("season_year, round")
@@ -7994,7 +8202,7 @@ async function getCurrentNewsTagAllowlist(
   });
 
   return { drivers, teams };
-}
+});
 
 function addDriverTagSlugs(
   drivers: Set<string>,

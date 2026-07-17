@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Cloud, CloudRain, CloudSun, Sun } from "lucide-react";
 
 import { getLocalDriverAvatarSrc } from "@/components/racemate/driver-avatar-badge";
@@ -11,14 +12,27 @@ import { formatSessionName } from "@/lib/session-display";
 
 type WeekendSessionBoardProps = {
   activeSessionName: string;
+  initialSessionId?: string;
   sessions: SessionWithResults[];
 };
 
 export function WeekendSessionBoard({
   activeSessionName,
+  initialSessionId,
   sessions,
 }: WeekendSessionBoardProps) {
-  const [selected, setSelected] = useState<SessionWithResults | null>(null);
+  const router = useRouter();
+  const [selected, setSelected] = useState<SessionWithResults | null>(() =>
+    sessions.find((item) => item.session.id === initialSessionId) ?? null,
+  );
+
+  function closeResults() {
+    setSelected(null);
+
+    if (initialSessionId) {
+      router.replace("/weekend", { scroll: false });
+    }
+  }
 
   return (
     <>
@@ -106,7 +120,7 @@ export function WeekendSessionBoard({
         })}
       </div>
 
-      <SessionResultsDialog onClose={() => setSelected(null)} selected={selected} />
+      <SessionResultsDialog onClose={closeResults} selected={selected} />
     </>
   );
 }

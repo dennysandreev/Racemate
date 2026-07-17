@@ -93,13 +93,15 @@ export default async function SocialPage({
               Публикации команд, пилотов и сообщества с короткой сводкой RaceMate.
             </p>
           </div>
-          <div className="mt-auto self-start lg:absolute lg:right-0 lg:top-1/2 lg:mt-0 lg:-translate-y-1/2">
+          <div className="mt-auto w-full lg:absolute lg:right-0 lg:top-1/2 lg:mt-0 lg:w-auto lg:-translate-y-1/2">
             <StitchSegmentedLinks
+              className="grid w-full grid-cols-2 sm:inline-flex sm:w-auto"
               items={modeFilters.map((option) => ({
                 active: option.value === mode,
                 href: getSocialHref({ ...activeFilters, mode: option.value, platform }),
                 label: option.label,
               }))}
+              linkClassName="inline-flex min-h-10 items-center justify-center px-4 font-display font-bold leading-none"
             />
           </div>
         </div>

@@ -8,6 +8,7 @@ import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
 import { PageTitle } from "@/components/racemate/page-title";
 import { SeasonProgress } from "@/components/racemate/season-progress";
 import { SeasonSwitcher } from "@/components/racemate/season-switcher";
+import { SyncedHorizontalScroller } from "@/components/racemate/synced-horizontal-scroller";
 import { getTeamProfileAsset } from "@/data/f1-assets";
 import { cn } from "@/lib/utils";
 import {
@@ -23,6 +24,7 @@ import {
   resolvePublishedSeason,
   type SeasonSearchParams,
 } from "@/lib/season-navigation";
+import { withServerTtlCache } from "@/lib/server-ttl-cache";
 import type { ChampionshipRound } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
@@ -72,13 +74,18 @@ export default async function LeaderboardPage({
   }
 
   const isCurrentSeason = season === CURRENT_F1_SEASON;
-  const [drivers, constructors, calendar, driverOdds, constructorOdds] = await Promise.all([
-    getDriverChampionshipMatrix(season),
-    getConstructorChampionshipMatrix(season),
-    getCalendarEvents(season),
-    isCurrentSeason ? getSeasonChampionOdds() : Promise.resolve(null),
-    isCurrentSeason ? getConstructorChampionOdds() : Promise.resolve(null),
-  ]);
+  const [drivers, constructors, calendar, driverOdds, constructorOdds] = await withServerTtlCache(
+    `public:leaderboard:${season}`,
+    isCurrentSeason ? 60_000 : 5 * 60_000,
+    () => Promise.all([
+      getDriverChampionshipMatrix(season),
+      getConstructorChampionshipMatrix(season),
+      getCalendarEvents(season),
+      isCurrentSeason ? getSeasonChampionOdds() : Promise.resolve(null),
+      isCurrentSeason ? getConstructorChampionOdds() : Promise.resolve(null),
+    ]),
+    { staleWhileRevalidateMs: isCurrentSeason ? 5 * 60_000 : 30 * 60_000 },
+  );
 
   const rounds = activeTable === "drivers" ? drivers.rounds : constructors.rounds;
   const entries = activeTable === "drivers"
@@ -144,7 +151,7 @@ export default async function LeaderboardPage({
   return (
     <AppShell leaderboardTable={activeTable}>
       <section className="grid gap-4 pb-6 sm:gap-5 sm:pb-8">
-        <section className="stitch-panel relative min-h-[13rem] overflow-hidden p-0 lg:h-40 lg:min-h-0">
+        <section className="stitch-panel relative overflow-hidden p-0 lg:h-40">
           <Image
             alt=""
             className="object-cover object-[center_42%] opacity-95"
@@ -156,8 +163,8 @@ export default async function LeaderboardPage({
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/76 to-background/15" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgb(225_6_0_/_0.25),transparent_22rem)]" />
 
-          <div className="relative z-10 flex min-h-[13rem] flex-col p-4 sm:p-5 lg:grid lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-6">
-            <div className="min-w-0">
+          <div className="relative z-10 flex flex-col gap-3 p-4 sm:p-5 lg:grid lg:h-full lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-6">
+            <div className="order-1 min-w-0 lg:order-none">
               <p className="stitch-label flex items-center gap-2 text-primary">
                 <Trophy aria-hidden="true" className="size-3.5" />
                 Чемпионат · сезон {season}
@@ -174,7 +181,7 @@ export default async function LeaderboardPage({
               />
             </div>
 
-            <nav aria-label="Тип зачета" className="mt-auto grid grid-cols-2 gap-1 rounded-md border border-border/70 bg-background/55 p-1 backdrop-blur-sm sm:inline-flex sm:justify-self-start lg:absolute lg:left-1/2 lg:top-[37%] lg:mt-0 lg:-translate-x-1/2 lg:-translate-y-1/2">
+            <nav aria-label="Тип зачета" className="order-3 grid grid-cols-2 gap-1 rounded-md border border-border/70 bg-background/55 p-1 backdrop-blur-sm sm:inline-flex sm:justify-self-start lg:absolute lg:left-1/2 lg:top-[37%] lg:order-none lg:-translate-x-1/2 lg:-translate-y-1/2">
               <TableTab active={activeTable === "drivers"} href={`/leaderboard?season=${season}`}>
                 Пилоты
               </TableTab>
@@ -183,7 +190,7 @@ export default async function LeaderboardPage({
               </TableTab>
             </nav>
             <SeasonProgress
-              className="mt-4 lg:col-start-2 lg:mt-0 lg:w-[22rem]"
+              className="order-2 mt-1 lg:order-none lg:col-start-2 lg:mt-0 lg:w-[22rem]"
               completedCount={completedRounds}
               nextRace={nextRace}
               totalCount={totalRounds}
@@ -234,10 +241,6 @@ export default async function LeaderboardPage({
             <LegendSwatch className="bg-[#d48a5f]" label="3-е место" />
             <LegendSwatch className="bg-primary/60" label="В очках" />
             <LegendSwatch className="bg-secondary" label="Без очков" />
-            <span className="text-[0.62rem] font-semibold text-muted-foreground">
-              <span className="lg:hidden">Флаг над ячейкой — этап. </span>
-              В ячейках — очки за этап; наведите, чтобы увидеть гонку
-            </span>
           </div>
         </section>
       </section>
@@ -566,7 +569,10 @@ function RoundStrip({
   season: number;
 }) {
   return (
-    <div className="max-w-full overflow-x-auto pb-1 lg:overflow-visible lg:pb-0">
+    <SyncedHorizontalScroller
+      className="pb-1 lg:overflow-visible lg:pb-0"
+      group="leaderboard-rounds"
+    >
       <div className="grid w-max grid-flow-col auto-cols-[1.6rem] gap-1">
         {rounds.map((round) => {
           const points = entry.pointsByRound[round.round];
@@ -624,7 +630,7 @@ function RoundStrip({
           );
         })}
       </div>
-    </div>
+    </SyncedHorizontalScroller>
   );
 }
 
