@@ -58,7 +58,7 @@
     "test:season-navigation": "node --experimental-strip-types --experimental-default-type=module --test src/lib/season-navigation.test.mjs",
     "test:season-points": "node --experimental-strip-types --experimental-default-type=module --test src/lib/f1-points.test.mjs",
     "assets:history:teams": "node scripts/check-f1-historical-team-assets.mjs",
-    "assets:history:circuits": "python3 scripts/review-fia-circuit-maps.py --require-approved",
+    "assets:history:circuits": "python3 scripts/review-f1-circuit-maps.py --require-approved",
     "assets:history:avatars": "node scripts/check-f1-driver-avatars.mjs",
     "assets:history:inventory": "node scripts/check-f1-driver-avatars.mjs --inventory-only",
     "test:share-links": "node --experimental-strip-types --experimental-default-type=module --test worker/share-link-code.test.mjs",

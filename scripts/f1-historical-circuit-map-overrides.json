@@ -1,0 +1,134 @@
+{
+  "2020": {
+    "round-2": {
+      "selection": "live",
+      "note": "Dedicated immutable Formula1.com asset for the one-off Styrian Grand Prix."
+    },
+    "round-5": {
+      "archiveTimestamp": "20221207115928",
+      "note": "Dedicated immutable Formula1.com asset for the one-off 70th Anniversary layout."
+    },
+    "round-6": {
+      "archiveTimestamp": "20200512233119",
+      "note": "Pre-2021 Barcelona layout with the original Turn 10 and final chicane."
+    },
+    "round-13": {
+      "archiveTimestamp": "20210418203744",
+      "note": "Detailed Imola asset with the same 2020–2021 layout and DRS configuration; the pre-event 2020 capture contained only a plain outline."
+    }
+  },
+  "2021": {
+    "monaco": {
+      "selection": "live",
+      "note": "Dedicated Formula1.com Monaco asset; the circuit and sole DRS zone are unchanged for this season."
+    },
+    "round-4": {
+      "archiveTimestamp": "20210507010635",
+      "note": "Reprofiled 2021 Turn 10 with the final chicane retained."
+    }
+  },
+  "2022": {
+    "monaco": {
+      "selection": "live",
+      "note": "Dedicated Formula1.com Monaco asset; the circuit and sole DRS zone are unchanged for this season."
+    },
+    "round-3": {
+      "archiveTimestamp": "20220409175007",
+      "note": "Race configuration after the fourth DRS zone was removed on Saturday."
+    },
+    "round-6": {
+      "archiveTimestamp": "20210507010635",
+      "note": "Reprofiled Turn 10 with the final chicane retained."
+    },
+    "round-17": {
+      "archiveTimestamp": "20221231123329",
+      "note": "Last 23-corner Singapore layout before the 2023 redevelopment."
+    }
+  },
+  "2023": {
+    "monaco": {
+      "selection": "live",
+      "note": "Dedicated Formula1.com Monaco asset; the circuit and sole DRS zone are unchanged for this season."
+    },
+    "round-3": {
+      "archiveTimestamp": "20230614123044",
+      "note": "Four-zone DRS configuration reinstated from 2023."
+    },
+    "round-4": {
+      "archiveTimestamp": "20231015010511",
+      "note": "Shortened 2023 main-straight DRS zone."
+    },
+    "round-5": {
+      "archiveTimestamp": "20230824181821",
+      "note": "Miami map updated for the 2023 event configuration."
+    },
+    "round-7": {
+      "archiveTimestamp": "20230120183717",
+      "note": "Fourteen-corner layout after removal of the final chicane."
+    },
+    "round-13": {
+      "archiveTimestamp": "20220831163608",
+      "note": "Detailed Zandvoort map with the banking DRS configuration retained for the 2023 event."
+    },
+    "round-21": {
+      "archiveTimestamp": "20231116161148",
+      "note": "Formula1.com event-week capture with the original 2023 Las Vegas DRS configuration."
+    }
+  },
+  "2024": {
+    "monaco": {
+      "selection": "live",
+      "note": "Dedicated Formula1.com Monaco asset; the circuit and sole DRS zone are unchanged for this season."
+    },
+    "round-10": {
+      "archiveTimestamp": "20240817010558",
+      "note": "Fourteen-corner layout with the 2024 DRS adjustment."
+    },
+    "round-14": {
+      "archiveTimestamp": "20240905023247",
+      "note": "Kemmel Straight DRS zone shortened for the 2024 event."
+    },
+    "round-19": {
+      "archiveTimestamp": "20241028205238",
+      "note": "Austin map updated for the 2024 event DRS configuration."
+    },
+    "round-20": {
+      "archiveTimestamp": "20250105164629",
+      "note": "Main-straight DRS zone shortened for the 2024 event."
+    },
+    "round-22": {
+      "selection": "live",
+      "note": "The shared official map matches the 2024 Las Vegas DRS configuration."
+    },
+    "round-23": {
+      "selection": "live",
+      "note": "Official current static map carries the DRS length introduced for the 2024 event."
+    }
+  },
+  "2025": {
+    "monaco": {
+      "selection": "live",
+      "note": "Dedicated Formula1.com Monaco asset; the circuit and sole DRS zone are unchanged for this season."
+    },
+    "round-2": {
+      "selection": "official-external",
+      "authority": "Mercedes-AMG PETRONAS F1 Team",
+      "pageUrl": "https://media.mercedesamgf1.com/marsF1/en/instance/picture/ENGLISH-2025-Chinese-Grand-Prix---Track-Map.xhtml?oid=193820809",
+      "sourceUrl": "https://media.mercedesamgf1.com/marsF1/scr/1742298440000/193820809v1tv3m3/M490780-ENGLISH-2025-Chinese-Grand-Prix---Track-Map.jpg",
+      "sourceTitle": "2025 Chinese Grand Prix — Track Map",
+      "transform": {
+        "crop": [0.03, 0.05, 0.977, 0.714],
+        "whiteToTransparent": true
+      },
+      "note": "Official event-week map showing the 75 m DRS extension introduced for the 2025 race."
+    },
+    "round-22": {
+      "selection": "live",
+      "note": "The shared official map matches the 2024–2025 Las Vegas DRS configuration."
+    },
+    "round-23": {
+      "selection": "live",
+      "note": "Same official shortened DRS configuration as the 2024 event."
+    }
+  }
+}

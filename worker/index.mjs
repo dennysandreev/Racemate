@@ -6553,8 +6553,14 @@ async function prepareCircuitAssetRows({ integrityIssues, manifest, manifestPath
       continue;
     }
 
-    const reviewStatus = getManualReviewStatus(source.manualReview);
-    const approved = reviewStatus === "approved";
+    const sourceManifest = {
+      downloadedAt: manifest.downloadedAt ?? null,
+      manifestPath,
+      rightsReview: manifest.rightsReview ?? null,
+      rightsReviewRequired: manifest.rightsReviewRequired === true,
+      ...source,
+    };
+    const approved = hasApprovedCircuitAssetManifest(sourceManifest);
 
     rows.push({
       race_id: race.id,
@@ -6562,11 +6568,7 @@ async function prepareCircuitAssetRows({ integrityIssues, manifest, manifestPath
       layout_slug: source.layoutSlug ?? slugify(source.raceName ?? `round-${race.round}`),
       image_url: source.file,
       source_url: source.pageUrl,
-      source_manifest: {
-        downloadedAt: manifest.downloadedAt ?? null,
-        manifestPath,
-        ...source,
-      },
+      source_manifest: sourceManifest,
       checksum_sha256: String(source.sha256).toLowerCase(),
       is_verified: approved,
       verified_at: approved
@@ -6877,8 +6879,13 @@ export function verifyLocalAssetFile({ asset, expectedPrefix, integrityIssues, l
 
   const publicRoot = resolve(process.cwd(), "public");
   const absolutePath = resolve(publicRoot, String(file).replace(/^\/+/, ""));
+  const expectedRoot = resolve(publicRoot, String(expectedPrefix).replace(/^\/+/, ""));
 
-  if (!absolutePath.startsWith(`${publicRoot}/`) || !existsSync(absolutePath)) {
+  if (
+    !absolutePath.startsWith(`${publicRoot}/`) ||
+    !absolutePath.startsWith(`${expectedRoot}/`) ||
+    !existsSync(absolutePath)
+  ) {
     integrityIssues.push(`${label} local file is missing: ${file}`);
     return false;
   }
@@ -7781,11 +7788,87 @@ export function hasApprovedTeamAssetManifest(sourceUrls) {
 }
 
 export function hasApprovedCircuitAssetManifest(sourceManifest) {
+  const rightsApproved =
+    sourceManifest?.rightsReviewRequired === true &&
+    ["approved", "cleared"].includes(
+      String(sourceManifest?.rightsReview?.status ?? "").toLowerCase(),
+    );
+  const officialSource = hasApprovedCircuitSource(sourceManifest);
+  const archiveValid =
+    !String(sourceManifest?.sourceSelection ?? "").startsWith("wayback-") ||
+    (
+      /^\d{14}$/.test(String(sourceManifest?.archiveTimestamp ?? "")) &&
+      isFormulaOneWaybackUrl(
+        sourceManifest?.archiveUrl,
+        String(sourceManifest?.archiveTimestamp ?? ""),
+      )
+    );
+
   return (
     sourceManifest?.manualReview?.status === "approved" &&
     /^[0-9a-f]{64}$/i.test(String(sourceManifest?.sha256 ?? "")) &&
-    sourceManifest?.authority === "FIA"
+    /^[0-9a-f]{64}$/i.test(String(sourceManifest?.sourceImageSha256 ?? "")) &&
+    Number(sourceManifest?.width) === 1252 &&
+    Number(sourceManifest?.height) === 704 &&
+    rightsApproved &&
+    officialSource &&
+    archiveValid
   );
+}
+
+function hasApprovedCircuitSource(sourceManifest) {
+  if (sourceManifest?.authority === "Formula1.com") {
+    return (
+      isOfficialFormulaOneUrl(sourceManifest?.pageUrl, {
+        allowedHosts: ["formula1.com", "www.formula1.com"],
+      }) &&
+      isOfficialFormulaOneUrl(sourceManifest?.sourceUrl, {
+        allowedHosts: ["formula1.com", "www.formula1.com", "media.formula1.com"],
+      })
+    );
+  }
+
+  if (sourceManifest?.authority === "Mercedes-AMG PETRONAS F1 Team") {
+    return (
+      sourceManifest?.sourceSelection === "official-team-event-media" &&
+      sourceManifest?.transform?.whiteToTransparent === true &&
+      Array.isArray(sourceManifest?.transform?.crop) &&
+      sourceManifest.transform.crop.length === 4 &&
+      isOfficialFormulaOneUrl(sourceManifest?.pageUrl, {
+        allowedHosts: ["media.mercedesamgf1.com"],
+      }) &&
+      isOfficialFormulaOneUrl(sourceManifest?.sourceUrl, {
+        allowedHosts: ["media.mercedesamgf1.com"],
+      })
+    );
+  }
+
+  return false;
+}
+
+function isOfficialFormulaOneUrl(value, { allowedHosts }) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && allowedHosts.includes(url.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function isFormulaOneWaybackUrl(value, archiveTimestamp) {
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      url.hostname.toLowerCase() === "web.archive.org" &&
+      new RegExp(
+        `^/web/${archiveTimestamp}(?:id_)?/https?://(?:www\\.)?formula1\\.com/`,
+        "i",
+      ).test(url.pathname)
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function requiresDriverAvatarAssets(season) {

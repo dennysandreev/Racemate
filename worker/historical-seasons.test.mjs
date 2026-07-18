@@ -247,10 +247,18 @@ test("an approved historical avatar still requires an exact helmet reference", (
   );
 });
 
-test("circuit maps require an official FIA source and explicit manual approval", () => {
+test("circuit maps require a reviewed official Formula1 or event-team source", () => {
   const source = {
-    authority: "FIA",
+    authority: "Formula1.com",
+    pageUrl: "https://www.formula1.com/en/racing/2024/austria",
+    sourceUrl: "https://media.formula1.com/image/upload/Austria_Circuit.webp",
     sha256: checksum,
+    sourceImageSha256: checksum,
+    width: 1252,
+    height: 704,
+    rightsReviewRequired: true,
+    rightsReview: { status: "approved" },
+    sourceSelection: "official-season-page-live-asset",
     manualReview: { status: "pending" },
   };
 
@@ -262,10 +270,59 @@ test("circuit maps require an official FIA source and explicit manual approval",
   assert.equal(
     hasApprovedCircuitAssetManifest({
       ...source,
-      authority: "Formula1.com",
+      authority: "FIA",
       manualReview: { status: "approved" },
     }),
     false,
+  );
+  assert.equal(
+    hasApprovedCircuitAssetManifest({
+      ...source,
+      pageUrl: "https://formula1.com.example.org/en/racing/2024/austria",
+      manualReview: { status: "approved" },
+    }),
+    false,
+  );
+  assert.equal(
+    hasApprovedCircuitAssetManifest({
+      ...source,
+      archiveTimestamp: "20240630120000",
+      archiveUrl:
+        "https://web.archive.org/web/20240630120000id_/https://www.formula1.com/content/Austria_Circuit.png",
+      sourceSelection: "wayback-nearest-to-race-date",
+      sourceUrl: "https://www.formula1.com/content/Austria_Circuit.png",
+      manualReview: { status: "approved" },
+    }),
+    true,
+  );
+  assert.equal(
+    hasApprovedCircuitAssetManifest({
+      ...source,
+      archiveTimestamp: "20240630120000",
+      archiveUrl:
+        "https://web.archive.org/web/20240629120000id_/https://www.formula1.com/content/Austria_Circuit.png",
+      sourceSelection: "wayback-nearest-to-race-date",
+      sourceUrl: "https://www.formula1.com/content/Austria_Circuit.png",
+      manualReview: { status: "approved" },
+    }),
+    false,
+  );
+  assert.equal(
+    hasApprovedCircuitAssetManifest({
+      ...source,
+      authority: "Mercedes-AMG PETRONAS F1 Team",
+      pageUrl:
+        "https://media.mercedesamgf1.com/marsF1/en/instance/picture/ENGLISH-2025-Chinese-Grand-Prix---Track-Map.xhtml?oid=193820809",
+      sourceUrl:
+        "https://media.mercedesamgf1.com/marsF1/scr/1742298440000/193820809v1tv3m3/M490780-ENGLISH-2025-Chinese-Grand-Prix---Track-Map.jpg",
+      sourceSelection: "official-team-event-media",
+      transform: {
+        crop: [0.03, 0.05, 0.977, 0.714],
+        whiteToTransparent: true,
+      },
+      manualReview: { status: "approved" },
+    }),
+    true,
   );
 });
 
@@ -296,6 +353,20 @@ test("local season assets are accepted only when the manifest checksum matches t
     false,
   );
   assert.match(integrityIssues.at(-1), /sha256 does not match/);
+  assert.equal(
+    verifyLocalAssetFile({
+      asset: {
+        ...asset,
+        file: "/f1/circuits/2020/../2021/01-bahrain.webp",
+      },
+      expectedPrefix: "/f1/circuits/2020/",
+      integrityIssues,
+      label: "cross-season map",
+      requireFile: true,
+    }),
+    false,
+  );
+  assert.match(integrityIssues.at(-1), /local file is missing/);
 });
 
 test("historical RLS exposes only published season data with verified track assets", () => {
