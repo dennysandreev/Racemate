@@ -39,3 +39,12 @@ export function createExpiringSingleFlight<T>(
     },
   };
 }
+
+export function shouldPreserveSessionCookies(error: unknown) {
+  if (!error || typeof error !== "object" || !("status" in error)) {
+    return false;
+  }
+
+  const status = error.status;
+  return typeof status === "number" && (status === 429 || status >= 500);
+}

@@ -3,7 +3,10 @@ import { createHash } from "node:crypto";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { createExpiringSingleFlight } from "@/lib/auth-refresh-flight";
+import {
+  createExpiringSingleFlight,
+  shouldPreserveSessionCookies,
+} from "@/lib/auth-refresh-flight";
 import { getSupabaseEnv } from "@/lib/env";
 import type { Database } from "@/types/supabase";
 
@@ -104,8 +107,10 @@ async function checkAuthSession(
     const claims = data?.claims;
 
     if (error) {
+      const cookies = shouldPreserveSessionCookies(error) ? [] : cookieUpdates;
+
       return {
-        cookies: cookieUpdates,
+        cookies,
         responseHeaders,
         status: "unavailable",
         user: null,
