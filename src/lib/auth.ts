@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { cache } from "react";
 
 import {
@@ -14,6 +15,17 @@ type SessionUser = {
 };
 
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
+  const authHeaders = await headers();
+  const proxyAuthStatus = authHeaders.get("x-racemate-auth-status");
+
+  if (proxyAuthStatus === "authenticated") {
+    return parseProxySessionUser(authHeaders.get("x-racemate-auth-user"));
+  }
+
+  if (proxyAuthStatus === "anonymous" || proxyAuthStatus === "unavailable") {
+    return null;
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -179,4 +191,26 @@ export async function getIsAdmin() {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function parseProxySessionUser(value: string | null): SessionUser | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const user = JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
+
+    if (!isRecord(user) || typeof user.id !== "string") {
+      return null;
+    }
+
+    return {
+      email: typeof user.email === "string" ? user.email : undefined,
+      id: user.id,
+      user_metadata: isRecord(user.user_metadata) ? user.user_metadata : {},
+    };
+  } catch {
+    return null;
+  }
 }
