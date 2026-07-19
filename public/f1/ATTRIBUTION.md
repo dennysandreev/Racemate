@@ -10,9 +10,9 @@ season manifest in `public/f1/circuits/{season}/manifest.json` records the race
 page, exact source URL, Wayback timestamp where applicable, source and output
 SHA-256 checksums, dimensions, rights review, and manual visual review.
 
-The 2025 Chinese Grand Prix uses the official Mercedes-AMG PETRONAS F1 Team
-event map because it records the 75 m DRS extension introduced for that race:
-https://media.mercedesamgf1.com/marsF1/en/instance/picture/ENGLISH-2025-Chinese-Grand-Prix---Track-Map.xhtml?oid=193820809
+The 2025 Chinese Grand Prix intentionally reuses the reviewed Formula1.com map
+from the 2024 event. The 2025 season manifest records the shared archived
+source and checksum explicitly.
 
 - Australia: https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmelbournedetailed.webp (page: https://www.formula1.com/en/racing/2026/australia)
 - China: https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackshanghaidetailed.webp (page: https://www.formula1.com/en/racing/2026/china)

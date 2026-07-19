@@ -15,6 +15,7 @@ import { getCalendarEvents, getPublishedSeasons } from "@/data/racemate-reposito
 import {
   CURRENT_F1_SEASON,
   resolvePublishedSeason,
+  shouldMuteCalendarRaceMap,
   type SeasonSearchParams,
 } from "@/lib/season-navigation";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
@@ -132,6 +133,7 @@ function CalendarRaceCard({ event }: { event: CalendarEvent }) {
   const assetSrc = event.trackMapUrl ?? legacyAsset?.src ?? null;
   const isCurrent = event.status === "Текущий этап" && isCurrentSeason;
   const isCompleted = event.status === "Завершен";
+  const isMapMuted = shouldMuteCalendarRaceMap(event.season, event.status);
 
   return (
     <Link
@@ -148,7 +150,7 @@ function CalendarRaceCard({ event }: { event: CalendarEvent }) {
             alt={`Схема трассы ${event.circuit}`}
             className={cn(
               "object-contain p-4 transition-all duration-500 group-hover:scale-105",
-              !isCurrent && isCurrentSeason && "grayscale group-hover:grayscale-0",
+              isMapMuted && "grayscale group-hover:grayscale-0",
             )}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 20rem"

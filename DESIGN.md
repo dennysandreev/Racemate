@@ -109,6 +109,7 @@ Historical season surfaces:
 - `SeasonSwitcher` sits under the surface title or profile metadata. On desktop it is collapsed by default, keeps the active year visible, and reveals the other published years horizontally on demand; it expands right by default and left in the team profile hero. On mobile it becomes a compact native select and never expands the page horizontally. The control uses a 44px interaction height, visible focus, keyboard-native behavior, 150-200ms feedback, and no transition under reduced motion.
 - A profile with one available season shows a quiet static season label instead of a disabled control.
 - Historical pages use the same Apex Performance hierarchy as the current season, but only show sporting information. Current-only news, social posts, odds, weather, AI race reports, and Race Replay do not appear.
+- Historical calendar maps always use the same muted grayscale treatment as completed races in the current season; the active current-season race remains the only full-color state.
 - Cars, logos, and maps must resolve from the selected season and remain part of its publication gate. Never substitute 2026 artwork for a historical asset.
 - Historical driver portraits are optional. When a season-specific portrait is absent, show a composed number or initials placeholder with the team's seasonal color, without loading or review-status copy. Existing 2026 portraits remain unchanged.
 

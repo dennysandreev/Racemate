@@ -50,36 +50,28 @@
       "circuitId": "shanghai",
       "layoutSlug": "china",
       "file": "/f1/circuits/2025/02-china.webp",
-      "authority": "Mercedes-AMG PETRONAS F1 Team",
-      "pageUrl": "https://media.mercedesamgf1.com/marsF1/en/instance/picture/ENGLISH-2025-Chinese-Grand-Prix---Track-Map.xhtml?oid=193820809",
+      "authority": "Formula1.com",
+      "pageUrl": "https://www.formula1.com/en/racing/2025/china",
       "racePageUrl": "https://www.formula1.com/en/racing/2025/china",
-      "sourceUrl": "https://media.mercedesamgf1.com/marsF1/scr/1742298440000/193820809v1tv3m3/M490780-ENGLISH-2025-Chinese-Grand-Prix---Track-Map.jpg",
-      "sourceTitle": "2025 Chinese Grand Prix — Track Map",
-      "liveSourceUrl": null,
-      "archiveUrl": null,
-      "archiveTimestamp": null,
-      "archiveDistanceDays": null,
-      "sourceSelection": "official-team-event-media",
-      "sourceNote": "Official event-week map showing the 75 m DRS extension introduced for the 2025 race.",
-      "transform": {
-        "crop": [
-          0.03,
-          0.05,
-          0.977,
-          0.714
-        ],
-        "whiteToTransparent": true
-      },
+      "sourceUrl": "https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/China_Circuit.png",
+      "sourceTitle": "China_Circuit.png",
+      "liveSourceUrl": "https://media.formula1.com/image/upload/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/China_Circuit.png",
+      "archiveUrl": "https://web.archive.org/web/20240524174558id_/https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/China_Circuit.png",
+      "archiveTimestamp": "20240524174558",
+      "archiveDistanceDays": 303,
+      "sourceSelection": "wayback-pinned-event-version",
+      "sourceNote": "Uses the same reviewed Formula1.com circuit map as the 2024 Chinese Grand Prix.",
+      "transform": null,
       "raceDate": "2025-03-23",
-      "sourceImageSha256": "3535bb717abe954c5ec6d066f413db5c45be7f8bfeabd11921c3ca20284e389d",
-      "sha256": "7f79494f24b8b82227d2c96d2df4553b9054cb4dfe194e4bcc835e3f7250608d",
+      "sourceImageSha256": "a74e08f1f39aade4ff9a7d3c936e05ca88693a647a34f8c57f30e0676396b16f",
+      "sha256": "f5bcd7527a79d25a265b7299e320bd0a9ee39c77a3799a1376d28698c94397d1",
       "width": 1252,
       "height": 704,
       "manualReview": {
         "status": "approved",
-        "reviewedAt": "2026-07-18T13:45:44.758510Z",
+        "reviewedAt": "2026-07-19T20:24:35Z",
         "reviewer": "RaceMate visual QA",
-        "note": "Checked on the season contact sheet against the official Formula1.com race-page map and the event layout."
+        "note": "Confirmed identical to the approved 2024 Chinese Grand Prix circuit map by product request."
       }
     },
     {

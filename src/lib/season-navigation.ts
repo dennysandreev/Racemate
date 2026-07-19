@@ -24,6 +24,10 @@ export function resolvePublishedSeason(
   return publishedSeasons.includes(season) ? season : null;
 }
 
+export function shouldMuteCalendarRaceMap(season: number, status: string) {
+  return season !== CURRENT_F1_SEASON || status !== "Текущий этап";
+}
+
 export function buildSeasonHref(
   pathname: string,
   season: number,

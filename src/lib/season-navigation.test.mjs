@@ -5,6 +5,7 @@ import {
   buildSeasonHref,
   CURRENT_F1_SEASON,
   resolvePublishedSeason,
+  shouldMuteCalendarRaceMap,
 } from "./season-navigation.ts";
 
 test("the current season is selected when the query is absent", () => {
@@ -34,4 +35,11 @@ test("season navigation preserves unrelated query parameters and replaces the ye
   assert.equal(url.searchParams.get("season"), "2023");
   assert.equal(url.searchParams.get("table"), "constructors");
   assert.deepEqual(url.searchParams.getAll("filter"), ["wet", "sprint"]);
+});
+
+test("archive race maps stay muted like completed current-season races", () => {
+  assert.equal(shouldMuteCalendarRaceMap(2025, "Завершен"), true);
+  assert.equal(shouldMuteCalendarRaceMap(2025, "Текущий этап"), true);
+  assert.equal(shouldMuteCalendarRaceMap(CURRENT_F1_SEASON, "Завершен"), true);
+  assert.equal(shouldMuteCalendarRaceMap(CURRENT_F1_SEASON, "Текущий этап"), false);
 });

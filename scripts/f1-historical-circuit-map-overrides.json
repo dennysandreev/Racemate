@@ -111,16 +111,8 @@
       "note": "Dedicated Formula1.com Monaco asset; the circuit and sole DRS zone are unchanged for this season."
     },
     "round-2": {
-      "selection": "official-external",
-      "authority": "Mercedes-AMG PETRONAS F1 Team",
-      "pageUrl": "https://media.mercedesamgf1.com/marsF1/en/instance/picture/ENGLISH-2025-Chinese-Grand-Prix---Track-Map.xhtml?oid=193820809",
-      "sourceUrl": "https://media.mercedesamgf1.com/marsF1/scr/1742298440000/193820809v1tv3m3/M490780-ENGLISH-2025-Chinese-Grand-Prix---Track-Map.jpg",
-      "sourceTitle": "2025 Chinese Grand Prix — Track Map",
-      "transform": {
-        "crop": [0.03, 0.05, 0.977, 0.714],
-        "whiteToTransparent": true
-      },
-      "note": "Official event-week map showing the 75 m DRS extension introduced for the 2025 race."
+      "archiveTimestamp": "20240524174558",
+      "note": "Uses the same reviewed Formula1.com circuit map as the 2024 Chinese Grand Prix."
     },
     "round-22": {
       "selection": "live",
