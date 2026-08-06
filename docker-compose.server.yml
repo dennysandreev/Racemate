@@ -1,0 +1,94 @@
+services:
+  web:
+    image: app-web
+    container_name: racemate-web
+    env_file:
+      - .env
+      - .env.telegram
+    environment:
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+    expose:
+      - "3000"
+    restart: unless-stopped
+    networks:
+      - default
+      - splitopus_proxy
+
+  cache-warmer:
+    image: app-web
+    container_name: racemate-cache-warmer
+    profiles:
+      - cache-warm
+    command:
+      - node
+      - scripts/warm-public-pages.mjs
+      - http://web:3000
+    depends_on:
+      - web
+    restart: unless-stopped
+    networks:
+      - default
+
+  admin-job-runner:
+    image: app-web
+    container_name: racemate-admin-job-runner
+    env_file:
+      - .env
+      - .env.telegram
+    command:
+      - sh
+      - -lc
+      - |
+        heartbeat_count=0
+        while true; do
+          if [ "$heartbeat_count" -le 0 ]; then
+            node worker/cli.mjs ops.heartbeat --service admin-job-runner || true
+            heartbeat_count=10
+          fi
+          node worker/cli.mjs jobs.consume_queued --limit 3 || true
+          heartbeat_count=$((heartbeat_count - 1))
+          sleep 3
+        done
+    restart: unless-stopped
+    networks:
+      - default
+
+  cron:
+    image: app-web
+    container_name: racemate-cron
+    env_file:
+      - .env
+      - .env.telegram
+    command:
+      - sh
+      - -lc
+      - |
+        while true; do
+          node worker/cli.mjs ops.heartbeat --service cron || true
+          node worker/cli.mjs jobs.enqueue_schedules --limit 20 || true
+          sleep 15
+        done
+    restart: unless-stopped
+    networks:
+      - default
+
+  rsshub:
+    image: diygod/rsshub:latest
+    container_name: racemate-rsshub
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      CACHE_TYPE: memory
+      PORT: 1200
+    expose:
+      - "1200"
+    restart: unless-stopped
+    networks:
+      - default
+
+networks:
+  splitopus_proxy:
+    external: true
+    name: splitopus-v2_default
