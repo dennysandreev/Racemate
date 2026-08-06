@@ -1,0 +1,395 @@
+[
+  {
+    "name": "rss.fetch_all",
+    "title": "Проверить все RSS-источники",
+    "description": "Загрузит свежие материалы из активных новостных источников.",
+    "group": "news",
+    "expectedIntervalMinutes": 30,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "ai.process_news",
+    "title": "Обработать новости",
+    "description": "Подготовит русские заголовки, тексты и редакционные метки.",
+    "group": "ai",
+    "expectedIntervalMinutes": 30,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
+      { "name": "articleId", "flag": "--id", "type": "uuid", "required": false }
+    ]
+  },
+  {
+    "name": "ai.reprocess_fallback_news",
+    "title": "Повторить проблемные новости",
+    "description": "Повторно обработает материалы, где использован резервный текст.",
+    "group": "ai",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
+      { "name": "articleId", "flag": "--id", "type": "uuid", "required": false }
+    ]
+  },
+  {
+    "name": "ai.rehighlight_news",
+    "title": "Обновить ключевые фразы",
+    "description": "Пересоберёт выделения в уже подготовленных материалах.",
+    "group": "ai",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
+      { "name": "articleId", "flag": "--id", "type": "uuid", "required": false }
+    ]
+  },
+  {
+    "name": "ai.retag_news",
+    "title": "Обновить теги новостей",
+    "description": "Повторно определит этапы, команды и гонщиков в материалах.",
+    "group": "ai",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false }
+    ]
+  },
+  {
+    "name": "news.retry_dedup",
+    "title": "Повторить проверку дублей",
+    "description": "Вернёт зависшие материалы в безопасную очередь дедупликации.",
+    "group": "news",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
+      { "name": "articleId", "flag": "--id", "type": "uuid", "required": false }
+    ]
+  },
+  {
+    "name": "ai.generate_daily_digest",
+    "title": "Собрать дневную сводку",
+    "description": "Подготовит сводку дня из опубликованных новостей.",
+    "group": "news",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "social.fetch_all",
+    "title": "Проверить новые посты",
+    "description": "Проверит активные соцсети и сохранит только новые или изменённые публикации.",
+    "group": "social",
+    "expectedIntervalMinutes": 5,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "social.fetch_x",
+    "title": "Проверить X",
+    "description": "Загрузит новые публикации из активных источников X.",
+    "group": "social",
+    "expectedIntervalMinutes": 15,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "sourceId", "flag": "--source", "type": "uuid", "required": false }
+    ]
+  },
+  {
+    "name": "social.fetch_reddit",
+    "title": "Проверить Reddit",
+    "description": "Загрузит новые публикации из активных источников Reddit.",
+    "group": "social",
+    "expectedIntervalMinutes": 15,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "sourceId", "flag": "--source", "type": "uuid", "required": false }
+    ]
+  },
+  {
+    "name": "social.fetch_telegram",
+    "title": "Проверить Telegram",
+    "description": "Загрузит новые публикации из активных Telegram-источников.",
+    "group": "social",
+    "expectedIntervalMinutes": 15,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "sourceId", "flag": "--source", "type": "uuid", "required": false }
+    ]
+  },
+  {
+    "name": "social.process_ai",
+    "title": "Обработать посты",
+    "description": "Подготовит русские тексты, темы и решение по публикации.",
+    "group": "social",
+    "expectedIntervalMinutes": 5,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
+      { "name": "postId", "flag": "--id", "type": "uuid", "required": false }
+    ]
+  },
+  {
+    "name": "social.refresh_metrics",
+    "title": "Обновить реакции",
+    "description": "Обновит доступные показатели популярности социальных постов.",
+    "group": "social",
+    "expectedIntervalMinutes": 60,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "social.retry_failed",
+    "title": "Повторить проблемные посты",
+    "description": "Вернёт в обработку социальные посты с временной ошибкой.",
+    "group": "social",
+    "expectedIntervalMinutes": 30,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false }
+    ]
+  },
+  {
+    "name": "reports.check_latest",
+    "title": "Проверить отчёты этапов",
+    "description": "Проверит готовность отчётов завершённых Гран-при.",
+    "group": "reports",
+    "expectedIntervalMinutes": 1440,
+    "adaptiveSchedule": {
+      "activeLabel": "После гонки · каждые 15–60 мин",
+      "idleLabel": "Без гонки · раз в сутки"
+    },
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "reports.generate",
+    "title": "Перезагрузить отчёт",
+    "description": "Заново соберёт данные выбранного Гран-при.",
+    "group": "reports",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2100, "required": true },
+      { "name": "round", "flag": "--round", "type": "integer", "min": 1, "max": 30, "required": true },
+      { "name": "force", "flag": "--force", "type": "boolean", "required": false }
+    ]
+  },
+  {
+    "name": "reports.generate_summary",
+    "title": "Повторить саммари отчёта",
+    "description": "Заново подготовит русское саммари выбранного отчёта.",
+    "group": "reports",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2100, "required": true },
+      { "name": "round", "flag": "--round", "type": "integer", "min": 1, "max": 30, "required": true }
+    ]
+  },
+  {
+    "name": "reports.refresh_due",
+    "title": "Обновить ожидающие отчёты",
+    "description": "Обновит отчёты, для которых подошло время следующей проверки.",
+    "group": "reports",
+    "expectedIntervalMinutes": 1440,
+    "adaptiveSchedule": {
+      "activeLabel": "По времени обновления отчёта",
+      "idleLabel": "Без обновлений · раз в сутки"
+    },
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "jolpica.sync_calendar",
+    "title": "Синхронизировать календарь",
+    "description": "Обновит этапы и расписание текущего сезона из источника.",
+    "group": "sport",
+    "expectedIntervalMinutes": 360,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "jolpica.sync_results",
+    "title": "Синхронизировать результаты",
+    "description": "Обновит официальные классификации завершённых сессий.",
+    "group": "sport",
+    "expectedIntervalMinutes": 1440,
+    "adaptiveSchedule": {
+      "activeLabel": "После сессий · каждые 15–60 мин",
+      "idleLabel": "Без сессий · раз в сутки"
+    },
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "jolpica.repair_race_results",
+    "title": "Восстановить результаты гонок",
+    "description": "Повторно загрузит пропущенные классификации гонок выбранного сезона.",
+    "group": "sport",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2100, "required": true }
+    ]
+  },
+  {
+    "name": "jolpica.repair_qualifying_results",
+    "title": "Восстановить квалификации",
+    "description": "Повторно загрузит пропущенные классификации квалификаций.",
+    "group": "sport",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2100, "required": true }
+    ]
+  },
+  {
+    "name": "jolpica.sync_standings",
+    "title": "Синхронизировать чемпионат",
+    "description": "Обновит личный и командный зачёты.",
+    "group": "sport",
+    "expectedIntervalMinutes": 360,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "openf1.sync_sessions",
+    "title": "Обновить сессии OpenF1",
+    "description": "Свяжет сессии и доступные схемы трасс с OpenF1.",
+    "group": "sport",
+    "expectedIntervalMinutes": 360,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "openf1.sync_results",
+    "title": "Проверить свежие классификации",
+    "description": "Проверит результаты недавних сессий в OpenF1.",
+    "group": "sport",
+    "expectedIntervalMinutes": 1440,
+    "adaptiveSchedule": {
+      "activeLabel": "После сессий · каждые 5–60 мин",
+      "idleLabel": "Без сессий · раз в сутки"
+    },
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "openf1.check_current_sessions",
+    "title": "Проверить сессии последнего этапа",
+    "description": "Повторно проверит все завершённые сессии последнего начавшегося этапа, включая пропущенные практики.",
+    "group": "sport",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "weather.sync_weekend",
+    "title": "Обновить погоду этапа",
+    "description": "Загрузит прогноз для ближайшего гоночного уик-энда.",
+    "group": "sport",
+    "expectedIntervalMinutes": 180,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "circuit_stats.sync_all",
+    "title": "Обновить данные трасс",
+    "description": "Пересчитает статистику и справочные данные всех трасс.",
+    "group": "sport",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 1,
+    "parameters": []
+  },
+  {
+    "name": "race_replay.prepare_current",
+    "title": "Подготовить Race Replay",
+    "description": "Соберёт повтор для последней завершённой гонки.",
+    "group": "sport",
+    "expectedIntervalMinutes": 30,
+    "maxAttempts": 2,
+    "parameters": [
+      { "name": "force", "flag": "--force", "type": "boolean", "required": false }
+    ]
+  },
+  {
+    "name": "race_replay.prepare_completed",
+    "title": "Восстановить Race Replay",
+    "description": "Проверит завершённые гонки и подготовит недостающие повторы.",
+    "group": "sport",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 1,
+    "parameters": [
+      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 10, "required": false }
+    ]
+  },
+  {
+    "name": "predictions.score",
+    "title": "Начислить очки прогнозов",
+    "description": "Рассчитает очки после появления подтверждённых результатов.",
+    "group": "community",
+    "expectedIntervalMinutes": 30,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "polls.generate_next_race",
+    "title": "Подготовить опросы этапа",
+    "description": "Создаст черновики опросов для ближайшего Гран-при.",
+    "group": "community",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "notifications.enqueue",
+    "title": "Собрать уведомления",
+    "description": "Соберёт и сразу отправит уведомления, для которых подошло время.",
+    "group": "notifications",
+    "expectedIntervalMinutes": 5,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "notifications.dispatch",
+    "title": "Отправить уведомления",
+    "description": "Отправит готовые записи из Telegram-очереди.",
+    "group": "notifications",
+    "expectedIntervalMinutes": 5,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "jolpica.prepare_history",
+    "title": "Подготовить архив 2020-2025",
+    "description": "Синхронизирует и проверит полный исторический пакет.",
+    "group": "archive",
+    "expectedIntervalMinutes": 10080,
+    "maxAttempts": 1,
+    "parameters": []
+  },
+  {
+    "name": "jolpica.validate_season",
+    "title": "Проверить сезон архива",
+    "description": "Проверит полноту данных и ассетов выбранного сезона.",
+    "group": "archive",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 1,
+    "parameters": [
+      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2025, "required": true }
+    ]
+  },
+  {
+    "name": "jolpica.publish_history",
+    "title": "Опубликовать архив",
+    "description": "Откроет архив 2020-2025 только после прохождения всех проверок.",
+    "group": "archive",
+    "expectedIntervalMinutes": 10080,
+    "maxAttempts": 1,
+    "danger": true,
+    "confirmation": "Архив станет доступен на публичных страницах. Публикация начнётся только при зелёном результате всех проверок.",
+    "parameters": []
+  }
+]

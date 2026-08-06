@@ -94,7 +94,7 @@ async function readOptionalJson(filePath) {
 
 async function fetchJson(url, attempt = 1) {
   const response = await fetch(url, {
-    headers: { "user-agent": "RaceMateDriverAvatarSync/1.0" },
+    headers: { "user-agent": "RaceSideDriverAvatarSync/1.0" },
     signal: AbortSignal.timeout(30_000),
   });
 
@@ -378,7 +378,7 @@ async function syncSeason(season) {
       manualReview = {
         status: "approved",
         reviewedAt: generatedAt,
-        note: "Imported from the accepted RaceMate 2026 production avatar set.",
+        note: "Imported from the accepted RaceSide 2026 production avatar set.",
       };
     } else if (outputChanged || sourceChanged) {
       manualReview = {

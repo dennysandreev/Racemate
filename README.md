@@ -1,10 +1,10 @@
-# RaceMate
+# RaceSide
 
 Дата фиксации MVP-прохода: 2026-06-10
 
 ## Что это
 
-RaceMate — веб-приложение для русскоязычных фанатов Формулы 1. Оно собирает новости из RSS/API, делает краткие русскоязычные AI-сводки, показывает календарь, результаты, standings, race weekend hub, прогнозы, мини-лиги, опросы и реакции.
+RaceSide — веб-приложение для русскоязычных фанатов Формулы 1. Оно собирает новости из RSS/API, делает краткие русскоязычные AI-сводки, показывает календарь, результаты, standings, race weekend hub, прогнозы, мини-лиги, опросы и реакции.
 
 Текущий стек:
 - Next.js App Router;
@@ -22,15 +22,15 @@ RaceMate — веб-приложение для русскоязычных фа�
 5. Live-режим в MVP не делаем.
 6. FastF1/OpenF1 используем для аналитики после гонки, не для live.
 7. YouTube в MVP не делаем.
-8. Авторизация — email OTP/passwordless, без хранения паролей.
+8. Авторизация — email и пароль через Supabase Auth; приложение не хранит пароли в своей БД.
 9. Telegram входит в текущий MVP; web push и другие каналы уведомлений отложены.
 10. Бесплатный уровень продукта делаем сразу.
 11. Все внешние данные кешируем в собственной БД.
 
 ## Файлы
 
-- `PRODUCT.md` — главный продуктовый контекст RaceMate.
-- `DESIGN.md` — дизайн-система и UI-направление RaceMate.
+- `PRODUCT.md` — главный продуктовый контекст RaceSide.
+- `DESIGN.md` — дизайн-система и UI-направление RaceSide.
 - `SKILLS.md` — закрепленный набор скиллов для разработки проекта.
 - `supabase/migrations` — актуальная схема и seed для Supabase.
 - `worker/index.mjs` — worker CLI для ingestion, AI, sync и scoring.
@@ -41,6 +41,7 @@ RaceMate — веб-приложение для русскоязычных фа�
 - `05_database_schema.sql` — первичная схема БД.
 - `06_ai_pipeline.md` — AI-пайплайн и промты.
 - `07_bot_spec.md` — исторический документ; бот отложен из V1.
+- `12_autonomous_site_administration.md` — план внедрения Codex как операционного администратора RaceSide.
 - `.env.example` — пример переменных окружения.
 
 ## Локальный запуск
@@ -92,13 +93,13 @@ corepack pnpm worker:history:prepare
 `SUPABASE_SERVICE_ROLE_KEY` используется только worker-процессом и не должен
 попадать в браузерные переменные или клиентский код.
 
-Настройка Supabase Auth для массовой passwordless-авторизации:
+Настройка Supabase Auth для входа по email и паролю:
 
 ```bash
 corepack pnpm supabase:auth
 ```
 
-Команда читает `.env`/`.env.local`, включает custom SMTP и поднимает лимиты Auth. Нужны `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SMTP_ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SENDER_NAME`, а также лимиты `AUTH_SMTP_MAX_FREQUENCY`, `AUTH_RATE_LIMIT_EMAIL_SENT`, `AUTH_RATE_LIMIT_OTP`, `AUTH_RATE_LIMIT_VERIFY` и `AUTH_RATE_LIMIT_TOKEN_REFRESH`.
+Команда читает `.env`/`.env.local`, включает подтверждение почты, задаёт минимальную длину пароля 8 символов, подключает custom SMTP и поднимает лимиты Auth. Нужны `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SMTP_ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SENDER_NAME`, а также лимиты `AUTH_SMTP_MAX_FREQUENCY`, `AUTH_RATE_LIMIT_EMAIL_SENT`, `AUTH_RATE_LIMIT_OTP`, `AUTH_RATE_LIMIT_VERIFY` и `AUTH_RATE_LIMIT_TOKEN_REFRESH`.
 
 ## Как использовать в Codex
 

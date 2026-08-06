@@ -10,7 +10,7 @@ import {
 import { getSupabaseEnv } from "@/lib/env";
 import type { Database } from "@/types/supabase";
 
-const protectedRoutes: string[] = [];
+const protectedRoutes: string[] = ["/admin"];
 const authStatusHeader = "x-racemate-auth-status";
 const authUserHeader = "x-racemate-auth-user";
 const authRefreshes = createExpiringSingleFlight<AuthCheckResult>(5_000);

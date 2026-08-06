@@ -96,7 +96,7 @@ export function GrandPrixReportDialog({
         className="flex max-h-[92dvh] w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-border bg-background shadow-[0_24px_90px_rgb(0_0_0_/_0.55)]"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <header className="shrink-0 border-b border-border bg-card/85 px-4 py-4 backdrop-blur sm:px-6">
+        <header className="shrink-0 border-b border-border bg-card/85 px-4 py-3 backdrop-blur sm:px-6 sm:py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -108,7 +108,7 @@ export function GrandPrixReportDialog({
                 </Badge>
               </div>
               <h2
-                className="mt-4 text-balance font-display text-2xl font-extrabold leading-tight tracking-[-0.04em] text-foreground sm:text-4xl"
+                className="mt-3 text-balance font-display text-xl font-extrabold leading-tight tracking-[-0.04em] text-foreground sm:mt-4 sm:text-4xl"
                 id="grand-prix-report-title"
               >
                 {report.raceName}
@@ -130,9 +130,9 @@ export function GrandPrixReportDialog({
         </header>
 
         <div className="min-h-0 overflow-y-auto">
-          <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="grid gap-4 p-3 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <main className="contents lg:grid lg:min-w-0 lg:gap-6">
-              <section className="order-1 relative overflow-hidden rounded-xl border border-border bg-card p-5">
+              <section className="order-1 relative overflow-hidden rounded-xl border border-border bg-card p-4 sm:p-5">
                 <div className="absolute left-0 top-0 h-full w-1 bg-primary" />
                 <div className="mb-4 flex items-center gap-2">
                   <Sparkles aria-hidden="true" className="size-5 text-primary" />
@@ -141,7 +141,7 @@ export function GrandPrixReportDialog({
                   </h3>
                 </div>
                 {summaryParagraphs.length ? (
-                  <div className="grid gap-4 text-base leading-7 text-foreground/90">
+                  <div className="grid gap-3 text-sm leading-6 text-foreground/90 sm:gap-4 sm:text-base sm:leading-7">
                     {summaryParagraphs.map((paragraph, index) => (
                       <p className={cn(index === 0 && "font-semibold text-foreground")} key={paragraph}>
                         {paragraph}
@@ -156,7 +156,7 @@ export function GrandPrixReportDialog({
               </section>
 
               {newsSummary.length ? (
-                <section className="order-2 rounded-xl border border-border bg-card p-5">
+                <section className="order-2 rounded-xl border border-border bg-card p-4 sm:p-5">
                   <div className="mb-4 flex items-center gap-2">
                     <Newspaper aria-hidden="true" className="size-5 text-primary" />
                     <h3 className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
@@ -165,7 +165,7 @@ export function GrandPrixReportDialog({
                   </div>
                   <div className="grid gap-3">
                     {newsSummary.map((item) => (
-                      <p className="rounded-md border border-border bg-background/35 p-3 text-sm leading-6 text-muted-foreground" key={item}>
+                      <p className="rounded-md border border-border bg-background/35 p-3 text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6" key={item}>
                         {item}
                       </p>
                     ))}
@@ -216,14 +216,14 @@ export function GrandPrixReportDialog({
                             <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                               {driverSlug ? (
                                 <Link
-                                  className="truncate font-semibold transition-colors hover:text-primary"
+                                  className="truncate text-sm font-semibold transition-colors hover:text-primary sm:text-base"
                                   href={`/drivers/${driverSlug}`}
                                   onClick={(event) => event.stopPropagation()}
                                 >
                                   {result.driver}
                                 </Link>
                               ) : (
-                                <span className="truncate font-semibold">{result.driver}</span>
+                                <span className="truncate text-sm font-semibold sm:text-base">{result.driver}</span>
                               )}
                               {result.isWinner ? <Badge variant="success">Победа</Badge> : null}
                               {result.isFastestLap ? <Badge variant="outline">ЛК</Badge> : null}
@@ -268,9 +268,9 @@ export function GrandPrixReportDialog({
                       <p className="font-telemetry text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">
                         {event.lap ? `Круг ${event.lap}` : "Событие"}
                       </p>
-                      <p className="font-semibold">{event.title}</p>
+                      <p className="text-sm font-semibold sm:text-base">{event.title}</p>
                       {event.detail ? (
-                        <p className="text-sm leading-6 text-muted-foreground">{event.detail}</p>
+                        <p className="text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">{event.detail}</p>
                       ) : null}
                     </li>
                   )) : (
@@ -288,7 +288,7 @@ export function GrandPrixReportDialog({
                     <div>
                       <h3 className="font-semibold text-warning">Часть источников не ответила</h3>
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        Отчет доступен по имеющимся данным. RaceMate попробует обновить его позже.
+                        Отчет доступен по имеющимся данным. RaceSide попробует обновить его позже.
                       </p>
                     </div>
                   </div>
@@ -335,9 +335,9 @@ export function GrandPrixReportDialog({
                 <ReportStat icon={Flag} label="SC / VSC / красный флаг" value={safetyCarSummary} />
               ) : null}
               <ReportStat icon={Trophy} label="Частая стратегия" value={mostCommonStrategy ?? "Нет данных"} />
-              <div className="rounded-xl border border-border bg-card p-5 text-center">
-                <Trophy aria-hidden="true" className="mx-auto size-9 text-primary" />
-                <p className="mt-3 font-display text-lg font-bold">
+              <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
+                <Trophy aria-hidden="true" className="mx-auto size-8 text-primary sm:size-9" />
+                <p className="mt-3 font-display text-base font-bold sm:text-lg">
                   {report.status === "ready" ? "Классификация подтверждена" : "Отчет частично готов"}
                 </p>
                 <p className="mt-2 font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.12em] text-muted-foreground">
@@ -377,7 +377,7 @@ function PodiumCard({
           Подиум
         </h3>
       </div>
-      <div className="grid gap-4 p-5">
+      <div className="grid gap-3 p-4 sm:gap-4 sm:p-5">
         {rows.map((name, index) => {
           const result = getResultForDriverName(results, name);
           const teamVisual = getTeamAsset(result?.team);
@@ -395,14 +395,14 @@ function PodiumCard({
                 <span className="grid min-w-0 gap-0.5">
                   {driverSlug ? (
                     <Link
-                      className="truncate font-semibold transition-colors hover:text-primary"
+                      className="truncate text-sm font-semibold transition-colors hover:text-primary sm:text-base"
                       href={`/drivers/${driverSlug}`}
                       onClick={(event) => event.stopPropagation()}
                     >
                       {name}
                     </Link>
                   ) : (
-                    <span className="truncate font-semibold">{name}</span>
+                    <span className="truncate text-sm font-semibold sm:text-base">{name}</span>
                   )}
                   {teamVisual?.name ? (
                     <span className="truncate text-xs text-muted-foreground">{teamVisual.name}</span>
@@ -477,7 +477,7 @@ function ReportStat({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-4">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3 sm:gap-4 sm:p-4">
       <div className="flex min-w-0 items-center gap-3">
         <Icon
           aria-hidden="true"
@@ -488,11 +488,11 @@ function ReportStat({
           )}
         />
         {color ? <TeamColorBar className="h-5 w-1" color={color} /> : null}
-        <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+        <span className="font-telemetry text-[0.6rem] font-bold uppercase tracking-[0.06em] text-muted-foreground sm:text-[0.68rem] sm:tracking-[0.08em]">
           {label}
         </span>
       </div>
-      <span className={cn("max-w-[58%] break-words text-right font-telemetry text-xs font-bold leading-5", tone === "red" && "text-primary", tone === "live" && "text-success")}>
+      <span className={cn("max-w-[58%] break-words text-right font-telemetry text-[0.68rem] font-bold leading-4 sm:text-xs sm:leading-5", tone === "red" && "text-primary", tone === "live" && "text-success")}>
         {value}
       </span>
     </div>

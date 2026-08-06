@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert a square transparent source image to RaceMate's WebP avatar format."""
+"""Convert a square transparent source image to RaceSide's WebP avatar format."""
 
 from __future__ import annotations
 

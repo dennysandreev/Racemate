@@ -23,7 +23,7 @@ do {
   for (const path of paths) {
     try {
       const response = await fetch(`${baseUrl}${path}`, {
-        headers: { "user-agent": "RaceMate cache warmer" },
+        headers: { "user-agent": "RaceSide cache warmer" },
         signal: AbortSignal.timeout(requestTimeoutMs),
       });
 

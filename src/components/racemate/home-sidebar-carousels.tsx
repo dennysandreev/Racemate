@@ -302,10 +302,10 @@ function PollCarousel({ polls }: { polls: PollSummary[] }) {
           <CarouselCounter activeIndex={carousel.activeIndex} length={items.length} />
         </div>
       </CardHeader>
-      <CardContent className="grid h-[26.5rem] min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 overflow-hidden pt-4 sm:pt-4">
+      <CardContent className="grid h-[27rem] min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 overflow-hidden pt-4 sm:pt-4">
         {poll ? (
           <div
-            className="home-carousel-slide grid min-h-0 grid-rows-[auto_auto_1fr_auto] gap-3 overflow-y-auto overscroll-contain pr-1 [scrollbar-width:thin]"
+            className="home-carousel-slide grid min-h-0 grid-rows-[auto_auto_1fr_auto] gap-3 overflow-hidden"
             data-direction={carousel.direction}
             data-dragging={carousel.isDragging || undefined}
             key={`${poll.id ?? poll.question}-${carousel.transitionKey}`}
@@ -338,6 +338,7 @@ function PollCarousel({ polls }: { polls: PollSummary[] }) {
                       isSelected && "border-primary/60",
                       pendingOptionId === option.id && "border-primary/60 bg-primary/8",
                     )}
+                    data-carousel-control
                     disabled={Boolean(poll.userVote) || isVoting}
                     key={option.id}
                     onClick={() => submitVote(poll.id, option.id)}
@@ -374,7 +375,7 @@ function PollCarousel({ polls }: { polls: PollSummary[] }) {
               })}
             </div>
             <p aria-live="polite" className={cn("min-h-5 text-xs leading-5 text-muted-foreground", voteError && "text-danger")}>
-              {voteError ?? (poll.userVote ? "Голос учтен" : isVoting ? "Сохраняем голос..." : null)}
+              {voteError ?? (isVoting ? "Сохраняем голос..." : null)}
             </p>
           </div>
         ) : (

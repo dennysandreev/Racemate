@@ -1,8 +1,10 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import { hostname } from "node:os";
 
 import { createClient } from "@supabase/supabase-js";
 import { TelegramClient } from "telegram";
@@ -13,6 +15,7 @@ import { scoreFantasyPrediction } from "./fantasy-scoring.mjs";
 import {
   escapeTelegramHtml,
   getFantasyDeadlineReminders,
+  getRemainingNewsNotificationBudget,
   getSessionNotificationSetting,
   hasSessionStartChanged,
   isRacePredictionComplete,
@@ -20,17 +23,39 @@ import {
   isNotificationFreshForConnection,
   telegramMedal,
 } from "./notification-rules.mjs";
+import { shouldPersistQuietJobResult } from "./job-run-policy.mjs";
+import {
+  ADAPTIVE_JOB_NAMES,
+  getAdaptiveReportCheckPlan,
+  getAdaptiveReportRefreshPlan,
+  getAdaptiveResultPlan,
+  getLatestStartedRound,
+  isAdaptiveJobName,
+} from "./adaptive-job-schedule.mjs";
 import {
   countOpenF1SafetyEvents,
   countReportSafetyEvents,
+  filterRaceControlForSession,
+  formatSafetyEventSummary,
+  getRaceControlEventTitle,
   getHistoricalSafetyEventCounts,
+  isImportantRaceControlMessage,
   loadHistoricalSafetyEventIndex,
 } from "./circuit-safety-events.mjs";
+import {
+  OPENF1_RESULT_SESSION_TYPES,
+  getOpenF1ParticipantIdentity,
+  isOpenF1ClassificationReady,
+  isOpenF1ResultProbeDue,
+  isOpenF1TimedSessionType,
+  normalizeOpenF1SessionClassification,
+} from "./openf1-session-results.mjs";
 import {
   SOCIAL_TOPIC_DEFINITIONS,
   createSocialContentHash,
   getSocialAiEditorialFields,
   getSocialInitialBackfillDays,
+  getSocialPostWriteDecision,
   getTelegramFloodWaitSeconds,
   getSocialRetryDelayMs,
   isSocialFormulaScopeAllowed,
@@ -40,6 +65,24 @@ import {
   mapXApiResponse,
   parseSocialAiPayload,
 } from "./social-pipeline.mjs";
+import {
+  createNewsSourceContentHash,
+  getNewsDedupConfig,
+  isNewsFeedItemPublishable,
+  isNewsDedupIdentityMatch,
+  makeNewsDedupClassifierInput,
+  normalizeNewsSourceUrl,
+  parseNewsDedupDecision,
+  parseNewsEditorialMetadata,
+  rankNewsDedupCandidates,
+  runNewsDeduplicationPipeline,
+} from "./news-deduplication.mjs";
+import {
+  toWorkerArguments,
+  validateQueuedJob,
+} from "./admin-job-queue.mjs";
+import { buildOpenRouterUsageLog } from "./ai-usage.mjs";
+import { resolveWorkerAiPrompt } from "./ai-prompt-registry.mjs";
 
 loadEnvFiles([".env", ".env.local"]);
 
@@ -61,6 +104,8 @@ const commands = new Map([
   ["ai.reprocess_fallback_news", reprocessFallbackNewsWithAi],
   ["ai.rehighlight_news", rehighlightNewsWithAi],
   ["news.backfill_source_images", backfillNewsSourceImages],
+  ["news.audit_recent", auditRecentNewsDeduplication],
+  ["news.retry_dedup", retryNewsDeduplication],
   ["ai.retag_news", retagNewsWithAi],
   ["ai.generate_daily_digest", generateDailyDigest],
   ["polls.generate_next_race", generateNextRacePolls],
@@ -77,13 +122,17 @@ const commands = new Map([
   ["jolpica.prepare_history", prepareHistoricalSeasons],
   ["jolpica.publish_history", publishHistoricalSeasons],
   ["openf1.sync_sessions", syncOpenF1Sessions],
+  ["openf1.check_current_sessions", checkCurrentOpenF1Sessions],
+  ["openf1.sync_results", syncOpenF1Laps],
   ["openf1.sync_laps", syncOpenF1Laps],
   ["weather.sync_weekend", syncWeekendWeather],
   ["predictions.score", scorePredictions],
-  ["notifications.enqueue", enqueueNotifications],
+  ["notifications.enqueue", runNotificationCycle],
   ["notifications.dispatch", dispatchNotifications],
   ["race_replay.prepare_current", prepareCurrentRaceReplay],
   ["race_replay.prepare_completed", prepareCompletedRaceReplays],
+  ["jobs.consume_queued", consumeQueuedAdminJobs],
+  ["jobs.enqueue_schedules", enqueueDueAdminSchedules],
 ]);
 
 const command = process.argv[2];
@@ -100,6 +149,9 @@ let jolpicaLastFetchAt = 0;
 const openF1SessionsByYear = new Map();
 let openF1FetchQueue = Promise.resolve();
 let openF1LastFetchAt = 0;
+let openF1AccessTokenCache = null;
+let openF1AccessTokenExpiresAt = 0;
+let openF1AccessTokenPromise = null;
 let historicalSafetyEventIndexPromise = null;
 let socialEntityContextCache = null;
 let telegramClient = null;
@@ -167,7 +219,13 @@ if (isMainModule) {
   supabase = createWorkerClient();
 
   try {
-    await runJob(command, commands.get(command));
+    if (command === "jobs.consume_queued") {
+      await consumeQueuedAdminJobs();
+    } else if (command === "jobs.enqueue_schedules") {
+      await enqueueDueAdminSchedules();
+    } else {
+      await runJob(command, commands.get(command));
+    }
   } finally {
     await disconnectTelegramClient();
   }
@@ -217,53 +275,522 @@ function createWorkerClient() {
   });
 }
 
+async function requestOpenRouterCompletion({
+  apiKey,
+  body,
+  model,
+  purpose,
+  relatedArticleId = null,
+  relatedDigestId = null,
+  promptKey = null,
+  promptVersionId = null,
+}) {
+  await ensureAiBudgetAvailable(purpose);
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      "content-type": "application/json",
+      "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
+      "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceSide",
+    },
+    body: JSON.stringify({ model, ...body }),
+  });
+  const payload = await readJsonResponse(response);
+
+  await recordOpenRouterUsage(payload, {
+    model,
+    purpose,
+    relatedArticleId,
+    relatedDigestId,
+    promptKey,
+    promptVersionId,
+  });
+
+  return { payload, response };
+}
+
+async function ensureAiBudgetAvailable(purpose) {
+  try {
+    const { data, error } = await supabase.rpc("get_ai_budget_guard", {
+      p_purpose: purpose,
+    });
+
+    if (error) {
+      logWorkerWarning("openrouter.budget_guard.unavailable", {
+        purpose,
+        reason: getSafeErrorMessage(error),
+      });
+      return;
+    }
+
+    const blocked = (data ?? []).find((budget) => budget.allowed === false);
+    if (!blocked) return;
+
+    const label = blocked.scope === "social_x"
+      ? "Лимит AI для публикаций из X исчерпан"
+      : "Общий лимит AI исчерпан";
+    throw new Error(`${label}. Новые обращения поставлены на паузу.`);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("лимит AI")) {
+      throw error;
+    }
+    logWorkerWarning("openrouter.budget_guard.unavailable", {
+      purpose,
+      reason: getSafeErrorMessage(error),
+    });
+  }
+}
+
+async function recordOpenRouterUsage(payload, context) {
+  const row = buildOpenRouterUsageLog(payload, context);
+  try {
+    const { error } = await supabase.from("ai_usage_logs").insert(row);
+    if (!error) return;
+    logWorkerWarning("openrouter.usage_log.failed", {
+      purpose: context.purpose,
+      reason: getSafeErrorMessage(error),
+    });
+  } catch (error) {
+    logWorkerWarning("openrouter.usage_log.failed", {
+      purpose: context.purpose,
+      reason: getSafeErrorMessage(error),
+    });
+  }
+}
+
 async function runJob(jobName, runner) {
-  const { data: job, error } = await supabase
-    .from("job_runs")
-    .insert({
-      job_name: jobName,
-      status: "running",
-      items_processed: 0,
-      metadata: { cli: true },
-    })
-    .select("id")
-    .single();
+  const attachedRunId = getCliOption("attached-run-id");
+  const quietEmpty = !attachedRunId && process.argv.includes("--quiet-empty");
+  const attachedResult = attachedRunId
+    ? await supabase
+      .from("job_runs")
+      .select("id, job_name, status, queue_version, metadata")
+      .eq("id", attachedRunId)
+      .maybeSingle()
+    : null;
+  const createdResult = attachedRunId || quietEmpty
+    ? null
+    : await supabase
+      .from("job_runs")
+      .insert({
+        job_name: jobName,
+        status: "running",
+        items_processed: 0,
+        metadata: { cli: true },
+      })
+      .select("id, job_name, status, queue_version, metadata")
+      .single();
+  const job = attachedResult?.data ?? createdResult?.data;
+  const error = attachedResult?.error ?? createdResult?.error;
+
+  if (error) {
+    throw error;
+  }
+  if (
+    !quietEmpty && (
+      !job ||
+      (attachedRunId && (
+        job.id !== attachedRunId ||
+        job.job_name !== jobName ||
+        job.queue_version !== 1 ||
+        job.status !== "running"
+      ))
+    )
+  ) {
+    throw new Error("Attached admin job is not available for execution");
+  }
+
+  try {
+    const result = await runner();
+    const adaptiveSchedule = getPlainObject(job?.metadata).source === "schedule"
+      ? await refreshRelatedAdaptiveSchedules(jobName)
+      : null;
+    const jobResult = {
+      jobName,
+      itemsProcessed: result.itemsProcessed ?? 0,
+      metadata: {
+        ...(result.metadata ?? {}),
+        ...(adaptiveSchedule ? { adaptiveSchedule } : {}),
+      },
+    };
+
+    if (quietEmpty && !shouldPersistQuietJobResult(jobResult)) {
+      process.stdout.write(`${JSON.stringify(jobResult)}\n`);
+      return jobResult;
+    }
+
+    const successfulRun = {
+      status: "success",
+      finished_at: new Date().toISOString(),
+      items_processed: jobResult.itemsProcessed,
+      metadata: {
+        ...getPlainObject(job?.metadata),
+        cli: true,
+        result: jobResult.metadata,
+      },
+    };
+    const persistence = quietEmpty
+      ? await supabase
+        .from("job_runs")
+        .insert({
+          job_name: jobName,
+          started_at: successfulRun.finished_at,
+          ...successfulRun,
+        })
+      : await supabase
+        .from("job_runs")
+        .update({
+          ...successfulRun,
+          metadata: {
+            ...getPlainObject(job.metadata),
+            result: jobResult.metadata,
+          },
+        })
+        .eq("id", job.id);
+
+    if (persistence.error) {
+      throw persistence.error;
+    }
+
+    process.stdout.write(`${JSON.stringify(jobResult)}\n`);
+    return jobResult;
+  } catch (jobError) {
+    if (getPlainObject(job?.metadata).source === "schedule") {
+      await refreshRelatedAdaptiveSchedules(jobName).catch((scheduleError) => {
+        logWorkerWarning("adaptive_schedule.refresh_after_failure.failed", {
+          jobName,
+          reason: getSafeErrorMessage(scheduleError),
+        });
+      });
+    }
+    const failedRun = {
+      status: "failed",
+      finished_at: new Date().toISOString(),
+      error_message: jobError instanceof Error ? jobError.message : String(jobError),
+    };
+    const persistence = quietEmpty
+      ? await supabase
+        .from("job_runs")
+        .insert({
+          job_name: jobName,
+          started_at: failedRun.finished_at,
+          items_processed: 0,
+          metadata: { cli: true },
+          ...failedRun,
+        })
+      : await supabase
+        .from("job_runs")
+        .update(failedRun)
+        .eq("id", job.id);
+
+    if (persistence.error) {
+      throw persistence.error;
+    }
+
+    throw jobError;
+  }
+}
+
+async function refreshRelatedAdaptiveSchedules(jobName) {
+  const relatedNames = new Set();
+
+  if (isAdaptiveJobName(jobName)) {
+    relatedNames.add(jobName);
+  }
+  if (jobName === "jolpica.sync_calendar") {
+    ADAPTIVE_JOB_NAMES.forEach((name) => relatedNames.add(name));
+  }
+  if (jobName === "openf1.sync_results" || jobName === "jolpica.sync_results") {
+    relatedNames.add("reports.check_latest");
+  }
+  if (jobName === "reports.check_latest") {
+    relatedNames.add("reports.refresh_due");
+  }
+
+  const plans = {};
+
+  for (const relatedName of relatedNames) {
+    const plan = await buildAdaptiveSchedulePlan(relatedName);
+    const { error } = await supabase
+      .from("admin_job_schedules")
+      .update({
+        next_run_at: plan.nextRunAt,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("job_name", relatedName)
+      .eq("schedule_kind", "adaptive")
+      .eq("is_enabled", true);
+
+    if (error) {
+      throw error;
+    }
+
+    plans[relatedName] = plan;
+  }
+
+  return Object.keys(plans).length ? plans : null;
+}
+
+async function buildAdaptiveSchedulePlan(jobName) {
+  if (jobName === "openf1.sync_results" || jobName === "jolpica.sync_results") {
+    const provider = jobName.startsWith("openf1.") ? "openf1" : "jolpica";
+    const sessions = await loadAdaptiveResultSessions(provider);
+
+    return getAdaptiveResultPlan({
+      hasLiveAccess: provider === "openf1" && hasOpenF1LiveCredentials(),
+      provider,
+      sessions,
+    });
+  }
+
+  if (jobName === "reports.check_latest") {
+    return getAdaptiveReportCheckPlan({
+      races: await loadAdaptiveRaceReportStates(),
+    });
+  }
+
+  if (jobName === "reports.refresh_due") {
+    return getAdaptiveReportRefreshPlan({
+      nextRefreshAt: await loadNextReportRefreshAt(),
+    });
+  }
+
+  throw new Error(`Unknown adaptive schedule: ${jobName}`);
+}
+
+async function loadAdaptiveResultSessions(provider) {
+  const season = getCurrentF1Season();
+  const now = Date.now();
+  const since = new Date(now - 25 * 60 * 60 * 1000).toISOString();
+  const { data: sessions, error } = await supabase
+    .from("sessions")
+    .select("id, session_type, end_at, races!inner(season_year)")
+    .eq("races.season_year", season)
+    .not("end_at", "is", null)
+    .gte("end_at", since)
+    .order("end_at", { ascending: true, nullsFirst: false })
+    .limit(100);
 
   if (error) {
     throw error;
   }
 
-  try {
-    const result = await runner();
-    const { error: updateError } = await supabase
-      .from("job_runs")
-      .update({
-        status: "success",
-        finished_at: new Date().toISOString(),
-        items_processed: result.itemsProcessed ?? 0,
-        metadata: result.metadata ?? {},
-      })
-      .eq("id", job.id);
+  const endedSessionIds = (sessions ?? [])
+    .filter((session) => Date.parse(session.end_at) <= now)
+    .map((session) => session.id);
+  const resultRows = endedSessionIds.length
+    ? await supabase
+      .from("session_results")
+      .select("session_id, raw_payload")
+      .in("session_id", endedSessionIds)
+      .limit(endedSessionIds.length * 30)
+    : { data: [], error: null };
 
-    if (updateError) {
-      throw updateError;
-    }
-  } catch (jobError) {
-    const { error: updateError } = await supabase
-      .from("job_runs")
-      .update({
-        status: "failed",
-        finished_at: new Date().toISOString(),
-        error_message: jobError instanceof Error ? jobError.message : String(jobError),
-      })
-      .eq("id", job.id);
-
-    if (updateError) {
-      throw updateError;
-    }
-
-    throw jobError;
+  if (resultRows.error) {
+    throw resultRows.error;
   }
+
+  const sourceCounts = new Map();
+
+  for (const row of resultRows.data ?? []) {
+    const counts = sourceCounts.get(row.session_id) ?? { jolpica: 0, openf1: 0 };
+    const payload = getPlainObject(row.raw_payload);
+
+    if ("Driver" in payload) {
+      counts.jolpica += 1;
+    }
+    if (payload._racemate_source === "openf1_session_result") {
+      counts.openf1 += 1;
+    }
+    sourceCounts.set(row.session_id, counts);
+  }
+
+  const minimumRows = Math.max(10, Number(process.env.OPENF1_MIN_RESULT_ROWS ?? 20));
+
+  return (sessions ?? []).map((session) => {
+    const counts = sourceCounts.get(session.id) ?? { jolpica: 0, openf1: 0 };
+    const isComplete = provider === "openf1"
+      ? counts.openf1 >= minimumRows || counts.jolpica >= minimumRows
+      : counts.jolpica >= minimumRows;
+
+    return {
+      endAt: session.end_at,
+      isComplete,
+      sessionType: session.session_type,
+    };
+  });
+}
+
+async function loadAdaptiveRaceReportStates() {
+  const season = getCurrentF1Season();
+  const since = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+  const [{ data: sessions, error: sessionError }, { data: reports, error: reportError }] =
+    await Promise.all([
+      supabase
+        .from("sessions")
+        .select("end_at, races!inner(season_year, round)")
+        .eq("session_type", "race")
+        .eq("races.season_year", season)
+        .not("end_at", "is", null)
+        .gte("end_at", since)
+        .order("end_at", { ascending: true, nullsFirst: false })
+        .limit(30),
+      supabase
+        .from("grand_prix_reports")
+        .select("round, status, summary_status")
+        .eq("season", season),
+    ]);
+
+  if (sessionError) {
+    throw sessionError;
+  }
+  if (reportError) {
+    throw reportError;
+  }
+
+  const reportsByRound = new Map((reports ?? []).map((report) => [Number(report.round), report]));
+
+  return (sessions ?? []).map((session) => {
+    const race = firstRelation(session.races);
+    const report = reportsByRound.get(Number(race?.round));
+
+    return {
+      endAt: session.end_at,
+      reportComplete: Boolean(
+        report &&
+        ["ready", "partial"].includes(report.status) &&
+        ["generated", "edited"].includes(report.summary_status),
+      ),
+    };
+  });
+}
+
+async function loadNextReportRefreshAt() {
+  const { data, error } = await supabase
+    .from("grand_prix_reports")
+    .select("next_refresh_at")
+    .not("next_refresh_at", "is", null)
+    .order("next_refresh_at", { ascending: true, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data?.next_refresh_at ?? null;
+}
+
+async function consumeQueuedAdminJobs() {
+  const workerId = `${hostname()}:${process.pid}`;
+  const limit = Math.max(1, Math.min(Number(getCliOption("limit") ?? 1), 10));
+  let itemsProcessed = 0;
+
+  for (let index = 0; index < limit; index += 1) {
+    const { data, error } = await supabase.rpc("claim_next_admin_job", {
+      p_worker_id: workerId,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const job = Array.isArray(data) ? data[0] : data;
+
+    if (!job) {
+      break;
+    }
+
+    const validated = validateQueuedJob(job);
+
+    if (
+      !validated.ok ||
+      !commands.has(job.job_name) ||
+      job.job_name === "jobs.consume_queued" ||
+      job.job_name === "jobs.enqueue_schedules"
+    ) {
+      await supabase
+        .from("job_runs")
+        .update({
+          status: "failed",
+          finished_at: new Date().toISOString(),
+          error_message: `Запуск отклонён: ${validated.reason ?? "job_not_allowed"}`,
+        })
+        .eq("id", job.id);
+      continue;
+    }
+
+    const workerArguments = toWorkerArguments(validated.definition, validated.args);
+    try {
+      const exitCode = await spawnAttachedJob(job, workerArguments);
+
+      if (exitCode !== 0) {
+        process.stderr.write(`Admin job ${job.id} exited with code ${exitCode}\n`);
+      }
+    } catch (spawnError) {
+      await supabase
+        .from("job_runs")
+        .update({
+          status: "failed",
+          finished_at: new Date().toISOString(),
+          error_message: getSafeErrorMessage(spawnError).slice(0, 2_000),
+        })
+        .eq("id", job.id);
+      process.stderr.write(`Admin job ${job.id} could not start\n`);
+    }
+    itemsProcessed += 1;
+  }
+
+  process.stdout.write(`${JSON.stringify({ jobName: "jobs.consume_queued", itemsProcessed })}\n`);
+  return { itemsProcessed, metadata: { workerId } };
+}
+
+async function enqueueDueAdminSchedules() {
+  const limit = Math.max(1, Math.min(Number(getCliOption("limit") ?? 20), 100));
+  const { data, error } = await supabase.rpc("enqueue_due_admin_schedules", {
+    p_limit: limit,
+  });
+
+  if (error) throw error;
+  const itemsProcessed = Number(data ?? 0);
+  process.stdout.write(
+    `${JSON.stringify({ jobName: "jobs.enqueue_schedules", itemsProcessed })}\n`,
+  );
+  return { itemsProcessed };
+}
+
+function spawnAttachedJob(job, workerArguments) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const child = spawn(
+      process.execPath,
+      [
+        fileURLToPath(import.meta.url),
+        job.job_name,
+        ...workerArguments,
+        "--attached-run-id",
+        job.id,
+      ],
+      {
+        env: process.env,
+        shell: false,
+        stdio: "inherit",
+      },
+    );
+
+    child.once("error", rejectPromise);
+    child.once("exit", (code, signal) => {
+      if (signal) {
+        rejectPromise(new Error(`Admin job stopped by signal ${signal}`));
+        return;
+      }
+      resolvePromise(code ?? 1);
+    });
+  });
+}
+
+function getPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
 async function fetchAllRss() {
@@ -281,7 +808,7 @@ async function fetchAllRss() {
   for (const source of sources ?? []) {
     try {
       const response = await fetch(source.url, {
-        headers: { "user-agent": "RaceMate/0.1 (+https://racemate.local)" },
+        headers: { "user-agent": "RaceSide/0.1 (+https://racemate.local)" },
       });
 
       if (!response.ok) {
@@ -295,39 +822,92 @@ async function fetchAllRss() {
       );
 
       for (const item of items) {
-        const canonicalUrl = item.link || item.guid;
+        const normalizedSourceUrl = normalizeNewsSourceUrl(item.link || item.guid);
+        const canonicalUrl = normalizedSourceUrl || item.link || item.guid;
 
         if (!canonicalUrl || !item.title) {
           continue;
         }
 
-        const { error: articleError } = await supabase
-          .from("news_articles")
-          .upsert(
-            {
-              source_id: source.id,
-              canonical_url: canonicalUrl,
-              original_url: item.link,
-              original_title: item.title,
-              original_description: item.description,
-              original_language: source.language,
-              published_at: item.pubDate,
-              source_image_url: item.imageUrl,
-              status: "pending",
-              raw_payload: item,
-            },
-            { onConflict: "canonical_url", ignoreDuplicates: true },
-          );
+        const sourceContentHash = createNewsSourceContentHash({
+          title: item.title,
+          description: item.description,
+          content: item.content,
+        });
+        const technicalMatch = await findTechnicalNewsDuplicate({
+          sourceId: source.id,
+          rssGuid: item.guid,
+          normalizedSourceUrl,
+          sourceContentHash,
+        });
 
-        if (!articleError) {
-          itemsProcessed += 1;
+        if (technicalMatch?.kind === "same_item") {
           if (item.imageUrl) {
             await supabase
               .from("news_articles")
               .update({ source_image_url: item.imageUrl })
-              .eq("canonical_url", canonicalUrl)
+              .eq("id", technicalMatch.article.id)
               .is("source_image_url", null);
           }
+
+          continue;
+        }
+
+        const ingestedAt = new Date().toISOString();
+        const isTechnicalDuplicate = technicalMatch?.kind === "same_content";
+        const { data: insertedArticle, error: articleError } = await supabase
+          .from("news_articles")
+          .insert({
+            source_id: source.id,
+            canonical_url: canonicalUrl,
+            original_url: item.link,
+            normalized_source_url: normalizedSourceUrl,
+            rss_guid: item.guid,
+            source_content_hash: sourceContentHash,
+            original_title: item.title,
+            original_description: item.description,
+            original_language: source.language,
+            source_published_at: item.pubDate,
+            published_at: null,
+            ingested_at: ingestedAt,
+            source_image_url: item.imageUrl,
+            status: isTechnicalDuplicate ? "processed" : "pending",
+            publication_status: isTechnicalDuplicate ? "duplicate" : "processing",
+            dedup_status: isTechnicalDuplicate ? "duplicate" : "pending",
+            dedup_checked_at: isTechnicalDuplicate ? ingestedAt : null,
+            duplicate_of: isTechnicalDuplicate ? technicalMatch.article.id : null,
+            duplicate_confidence: isTechnicalDuplicate ? 1 : null,
+            duplicate_relation: isTechnicalDuplicate ? "duplicate" : null,
+            duplicate_reason: isTechnicalDuplicate
+              ? "Совпадает нормализованный хеш содержимого RSS."
+              : null,
+            raw_payload: item,
+          })
+          .select("id")
+          .single();
+
+        if (articleError) {
+          if (articleError.code !== "23505") {
+            throw articleError;
+          }
+
+          continue;
+        }
+
+        itemsProcessed += 1;
+
+        if (isTechnicalDuplicate && insertedArticle) {
+          await insertNewsDedupDecision({
+            articleId: insertedArticle.id,
+            candidateCount: 1,
+            dedupStatus: "duplicate",
+            publicationStatus: "duplicate",
+            duplicateOf: technicalMatch.article.id,
+            confidence: 1,
+            relation: "duplicate",
+            reason: "Совпадает нормализованный хеш содержимого RSS.",
+            processingTimeMs: 0,
+          }, "technical");
         }
       }
 
@@ -351,6 +931,70 @@ async function fetchAllRss() {
   }
 
   return { itemsProcessed };
+}
+
+async function findTechnicalNewsDuplicate({
+  sourceId,
+  rssGuid,
+  normalizedSourceUrl,
+  sourceContentHash,
+}) {
+  if (normalizedSourceUrl) {
+    const { data, error } = await supabase
+      .from("news_articles")
+      .select("id")
+      .eq("normalized_source_url", normalizedSourceUrl)
+      .order("ingested_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (data) {
+      return { kind: "same_item", article: data };
+    }
+  }
+
+  if (rssGuid) {
+    const { data, error } = await supabase
+      .from("news_articles")
+      .select("id")
+      .eq("source_id", sourceId)
+      .eq("rss_guid", rssGuid)
+      .order("ingested_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (data) {
+      return { kind: "same_item", article: data };
+    }
+  }
+
+  if (sourceContentHash) {
+    const { data, error } = await supabase
+      .from("news_articles")
+      .select("id")
+      .eq("source_content_hash", sourceContentHash)
+      .order("ingested_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (data) {
+      return { kind: "same_content", article: data };
+    }
+  }
+
+  return null;
 }
 
 async function fetchAllSocial() {
@@ -457,6 +1101,8 @@ async function fetchSocialSources({ platform, ignoreSchedule = false, sourceId }
   }
 
   let itemsProcessed = 0;
+  let postsFetched = 0;
+  let postsUnchanged = 0;
   const failures = [];
 
   const dueSources = (sources ?? []).filter((source) => ignoreSchedule || isSocialSourceDue(source));
@@ -474,9 +1120,16 @@ async function fetchSocialSources({ platform, ignoreSchedule = false, sourceId }
       const filtered = result.posts.filter((post) =>
         (!post.isRepost || source.include_reposts) && (!post.isReply || source.include_replies),
       );
+      postsFetched += filtered.length;
 
       for (const post of filtered) {
-        if (await saveNormalizedSocialPost(post)) itemsProcessed += 1;
+        const writeResult = await saveNormalizedSocialPost(post);
+
+        if (writeResult === "unchanged") {
+          postsUnchanged += 1;
+        } else {
+          itemsProcessed += 1;
+        }
       }
 
       await supabase
@@ -511,7 +1164,11 @@ async function fetchSocialSources({ platform, ignoreSchedule = false, sourceId }
     itemsProcessed,
     metadata: {
       platform: platform ?? "all",
-      sourcesChecked: (sources ?? []).length,
+      sourcesAvailable: (sources ?? []).length,
+      sourcesChecked: dueSources.length,
+      postsFetched,
+      postsChanged: itemsProcessed,
+      postsUnchanged,
       failures,
     },
   };
@@ -545,7 +1202,7 @@ async function fetchTelegramMtprotoSource(source) {
           waitTime: 1,
         }),
         client.getMessages(entity, {
-          limit: getBoundedInteger(process.env.TELEGRAM_EDIT_LOOKBACK_MESSAGES, 100, 0, 500),
+          limit: getBoundedInteger(process.env.TELEGRAM_EDIT_LOOKBACK_MESSAGES, 20, 0, 100),
         }),
       ]);
 
@@ -604,7 +1261,7 @@ async function fetchTelegramMtprotoSource(source) {
     .map(Number)
     .filter(Number.isInteger))]
     .sort((left, right) => right - left)
-    .slice(0, getBoundedInteger(process.env.TELEGRAM_EDIT_LOOKBACK_MESSAGES, 100, 0, 500));
+    .slice(0, getBoundedInteger(process.env.TELEGRAM_EDIT_LOOKBACK_MESSAGES, 20, 0, 100));
 
   return {
     posts,
@@ -696,7 +1353,7 @@ async function resolveTelegramEntity(client, source) {
     throw createTelegramSourceError(error);
   }
 
-  throw new Error("Telegram channel is unavailable. Check the username or join it with the RaceMate account.");
+  throw new Error("Telegram channel is unavailable. Check the username or join it with the RaceSide account.");
 }
 
 async function getExistingTelegramMedia(posts) {
@@ -982,7 +1639,7 @@ function getNextSocialFetchAt(minutes) {
 }
 
 function getSocialUserAgent() {
-  return process.env.REDDIT_USER_AGENT || "RaceMate/1.0 (+https://racemate.ru)";
+  return process.env.REDDIT_USER_AGENT || "RaceSide/1.0 (+https://raceside.online)";
 }
 
 async function assertSocialApiResponse(response, label) {
@@ -1178,7 +1835,7 @@ function normalizeSocialAuthor(author, source) {
 }
 
 async function saveNormalizedSocialPost(post) {
-  if (!post?.externalId || !post?.originalUrl || !post?.platform) return false;
+  if (!post?.externalId || !post?.originalUrl || !post?.platform) return "unchanged";
   const contentHash = createSocialContentHash(post);
   const popularityScore = calculateSocialPopularity(post);
   const payload = {
@@ -1212,20 +1869,22 @@ async function saveNormalizedSocialPost(post) {
     const { data: byUrl } = await supabase.from("social_posts").select("id, content_hash, status").eq("original_url", post.originalUrl).maybeSingle();
     existing = byUrl;
   }
+  const writeDecision = getSocialPostWriteDecision(existing, contentHash);
   let postId = existing?.id;
 
   if (existing) {
-    const changed = contentHash !== existing.content_hash;
+    if (writeDecision === "unchanged") {
+      return writeDecision;
+    }
+
     const { error } = await supabase.from("social_posts").update({
       ...payload,
-      ...(changed ? {
-        status: "pending",
-        ai_title_ru: null,
-        ai_summary_ru: null,
-        ai_processed_at: null,
-        next_retry_at: new Date().toISOString(),
-        last_processing_error: null,
-      } : {}),
+      status: "pending",
+      ai_title_ru: null,
+      ai_summary_ru: null,
+      ai_processed_at: null,
+      next_retry_at: new Date().toISOString(),
+      last_processing_error: null,
     }).eq("id", existing.id);
     if (error) throw error;
   } else {
@@ -1266,7 +1925,7 @@ async function saveNormalizedSocialPost(post) {
       if (error) throw error;
     }
   }
-  return true;
+  return writeDecision;
 }
 
 function calculateSocialPopularity(post) {
@@ -1279,19 +1938,23 @@ function calculateSocialPopularity(post) {
 
 async function processSocialWithAi() {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = process.env.SOCIAL_AI_MODEL || process.env.AI_SUMMARY_MODEL || process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash-lite";
   if (!apiKey) throw new Error("OPENROUTER_API_KEY is missing for social AI processing");
   const limit = Math.max(1, Math.min(100, Number(getCliOption("limit") || process.env.SOCIAL_AI_MAX_POSTS_PER_RUN || 30)));
+  const postId = normalizeString(getCliOption("id"));
   const nowIso = new Date().toISOString();
-  const { data: posts, error } = await supabase
+  let postsQuery = supabase
     .from("social_posts")
     .select("id, platform, author, title, body, original_url, published_at, processing_attempts, social_sources(name, external_key, trust_level, publication_mode)")
     .eq("status", "pending")
     .is("duplicate_of", null)
     .or(`next_retry_at.is.null,next_retry_at.lte.${nowIso}`)
     .lt("processing_attempts", 8)
-    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("ingested_at", { ascending: true })
     .limit(limit);
+  if (postId) {
+    postsQuery = postsQuery.eq("id", postId);
+  }
+  const { data: posts, error } = await postsQuery;
   if (error) throw error;
   if (!posts?.length) return { itemsProcessed: 0, metadata: { queued: 0 } };
 
@@ -1306,7 +1969,8 @@ async function processSocialWithAi() {
     const attempts = Number(post.processing_attempts ?? 0) + 1;
     try {
       await supabase.from("social_posts").update({ status: "processing", processing_attempts: attempts }).eq("id", post.id);
-      const result = await requestSocialAi({ post, context, apiKey, model });
+      const ai = await requestSocialAi({ post, context, apiKey });
+      const result = ai.result;
       const source = firstRelation(post.social_sources) ?? {};
       const status = decideSocialPublicationStatus(result, source, {
         requireFormulaScope: post.platform === "telegram",
@@ -1321,7 +1985,7 @@ async function processSocialWithAi() {
         importance_score: result.importance,
         relevance_score: result.relevance,
         ai_confidence: result.confidence,
-        ai_model: model,
+        ai_model: ai.model,
         ai_processed_at: nowIso,
         next_retry_at: null,
         last_processing_error: null,
@@ -1347,57 +2011,51 @@ async function processSocialWithAi() {
   return { itemsProcessed, metadata: { queued: posts.length, published, review, rejected, failures } };
 }
 
-async function requestSocialAi({ post, context, apiKey, model }) {
+async function requestSocialAi({ post, context, apiKey }) {
   const isTelegram = post.platform === "telegram";
-  const taskInstructions = isTelegram
-    ? `Не переписывай исходный текст, не создавай заголовок или сводку. Только определи характер публикации и сформируй категории и теги.
-JSON: {"formulaScope":"target","primarySeries":"Formula 1","series":["Formula 1"],"categories":["slug"],"entities":{"teams":["точное имя"],"drivers":["точное имя"],"races":["точное имя"]},"contentType":"report","importance":0,"relevance":0.0,"confidence":0.0,"shouldPublish":true,"originalLanguage":"ru"}`
-    : `Составь короткий русский заголовок и сводку.
-JSON: {"title":"русский заголовок до 120 знаков","summary":"русская сводка до 700 знаков","formulaScope":"target","primarySeries":"Formula 1","series":["Formula 1"],"categories":["slug"],"entities":{"teams":["точное имя"],"drivers":["точное имя"],"races":["точное имя"]},"contentType":"report","importance":0,"relevance":0.0,"confidence":0.0,"shouldPublish":true,"originalLanguage":"en"}`;
-  const prompt = `Ты редактор RaceMate. Проанализируй каждую публикацию отдельно. Верни только JSON без markdown.
-Сначала определи гоночную серию по содержанию самого поста. Название канала и его общая тематика не доказывают релевантность поста.
-formulaScope="target" только для материалов, где основная тема — классические одноместные формульные серии: Formula 1 (F1), Formula 2 (F2), Formula 3 (F3), Formula 4 (F4), F1 Academy, Formula Regional и другие национальные или международные формульные чемпионаты с открытыми колёсами.
-formulaScope="excluded" для Formula E, Extreme E, WEC, Le Mans, IMSA, гонок на выносливость, GT, кузовных серий, ралли, MotoGP, NASCAR, IndyCar и любого другого автоспорта не из целевой группы. Упоминание пилота или команды F1 в таком посте не делает его целевым.
-formulaScope="unclear", если серию нельзя уверенно определить. Для excluded и unclear всегда ставь shouldPublish=false, relevance ниже 0.6 и можешь вернуть categories=[].
-Если пост смешанный, ставь target только когда формульная серия из целевой группы является главной темой и о ней есть содержательная информация. Исторические материалы о целевых формульных сериях допустимы.
-primarySeries — одна главная серия поста, series — массив всех явно определённых серий. Для unclear верни primarySeries="" и series=[]. Не называй Formula E целевой формулой.
-Допустимые categories: ${SOCIAL_TOPIC_DEFINITIONS.map((item) => `${item.slug} (${item.name})`).join(", ")}.
-Допустимые contentType: official, report, opinion, rumor, discussion.
-Актуальные команды: ${context.teams.map((item) => item.name).join(", ")}.
-Актуальные пилоты: ${context.drivers.map((item) => item.name).join(", ")}.
-Актуальные этапы: ${context.races.map((item) => item.name).join(", ")}.
-Не подтверждай слух как факт. Мемы, реклама, спам и бессодержательные реплики должны получить shouldPublish=false.
-${taskInstructions}
-Источник: ${firstRelation(post.social_sources)?.name || post.platform}
-Автор: ${post.author || "не указан"}
-Заголовок: ${post.title || ""}
-Текст: ${post.body || post.title || ""}`;
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${apiKey}`,
-      "content-type": "application/json",
-      "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-      "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+  const prompt = await resolveWorkerAiPrompt({
+    client: supabase,
+    promptKey: isTelegram ? "social.telegram_classification" : "social.editorial",
+    variables: {
+      categories: SOCIAL_TOPIC_DEFINITIONS
+        .map((item) => `${item.slug} (${item.name})`)
+        .join(", "),
+      teams: context.teams.map((item) => item.name).join(", "),
+      drivers: context.drivers.map((item) => item.name).join(", "),
+      races: context.races.map((item) => item.name).join(", "),
+      source: firstRelation(post.social_sources)?.name || post.platform,
+      author: post.author || "не указан",
+      title: post.title || "",
+      body: post.body || post.title || "",
     },
-    body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], response_format: { type: "json_object" }, temperature: 0.1, max_tokens: 900 }),
+  });
+  const { payload, response } = await requestOpenRouterCompletion({
+    apiKey,
+    model: prompt.model,
+    purpose: post.platform === "x"
+      ? "social.x"
+      : post.platform === "reddit"
+        ? "social.reddit"
+        : "social.telegram",
+    promptKey: prompt.key,
+    promptVersionId: prompt.promptVersionId,
+    body: {
+      messages: [
+        { role: "system", content: prompt.systemPrompt },
+        { role: "user", content: prompt.userPrompt },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.1,
+      max_completion_tokens: prompt.maxTokens,
+    },
   });
   if (!response.ok) throw new Error(`OpenRouter social AI: HTTP ${response.status}`);
-  const payload = await response.json();
   const content = payload?.choices?.[0]?.message?.content;
   const result = parseSocialAiPayload(content, {
     requireEditorialText: !isTelegram,
     requireFormulaScope: isTelegram,
   });
-  await supabase.from("ai_usage_logs").insert({
-    purpose: "social_post",
-    provider: "openrouter",
-    model,
-    input_tokens: numberOrNull(payload?.usage?.prompt_tokens),
-    output_tokens: numberOrNull(payload?.usage?.completion_tokens),
-    estimated_cost_usd: numberOrNull(payload?.usage?.cost),
-  });
-  return result;
+  return { result, model: prompt.model };
 }
 
 function applySocialSourceCategoryRules(result, source) {
@@ -1829,6 +2487,7 @@ async function getRaceNewsSummaryForReport(raceId) {
     .from("news_articles")
     .select("ai_title_ru, original_title, ai_summary_ru, ai_summary_long_ru, published_at")
     .eq("status", "processed")
+    .eq("publication_status", "published")
     .eq("related_race_id", raceId)
     .is("duplicate_of", null)
     .order("published_at", { ascending: false, nullsFirst: false })
@@ -1955,15 +2614,20 @@ function buildOpenF1LapMetrics(laps) {
 }
 
 function buildGrandPrixReportStructuredData(race, raceSession, resultRows, openF1, fastF1, sourceErrors, newsSummary) {
+  const raceControl = filterRaceControlForSession(
+    openF1.raceControl ?? [],
+    raceSession.openf1_session_key,
+  );
+  const safetyEventCounts = countOpenF1SafetyEvents(raceControl);
   const tyreStintsByDriver = getTyreStintsByDriverNumber(openF1.stints ?? []);
   const results = mapReportResults(resultRows, openF1.laps ?? [], tyreStintsByDriver);
   const pitStops = mapReportPitStops(openF1.pits ?? [], results);
   const strategies = mapReportStrategies(openF1.stints ?? [], pitStops, results, fastF1);
-  const keyEvents = buildReportKeyEvents(results, pitStops, openF1.raceControl ?? [], openF1.positions ?? []);
+  const keyEvents = buildReportKeyEvents(results, pitStops, raceControl, openF1.positions ?? []);
   const teammateComparisons = buildTeammateComparisons(results, pitStops);
-  const highlights = buildReportHighlights(results, pitStops, keyEvents, strategies);
+  const highlights = buildReportHighlights(results, pitStops, keyEvents, strategies, safetyEventCounts);
   const weather = summarizeReportWeather(openF1.weather ?? []);
-  const raceStatistics = buildRaceStatistics(results, keyEvents, weather);
+  const raceStatistics = buildRaceStatistics(results, safetyEventCounts, weather);
 
   return {
     weather,
@@ -2166,14 +2830,14 @@ function buildReportKeyEvents(results, pitStops, raceControl, positions) {
     const text = String(control.message ?? control.flag ?? "").trim();
     const category = String(control.category ?? control.flag ?? "").toLowerCase();
 
-    if (!isImportantRaceControl(text, category)) {
+    if (!isImportantRaceControlMessage(text, category)) {
       continue;
     }
 
     events.push({
       lap: numberOrNull(control.lap_number),
       type: category || "race_control",
-      title: getRaceControlTitle(text, category),
+      title: getRaceControlEventTitle(text, category),
       detail: text,
     });
   }
@@ -2251,7 +2915,7 @@ function buildTeammateComparisons(results, pitStops) {
   }));
 }
 
-function buildReportHighlights(results, pitStops, keyEvents, strategies) {
+function buildReportHighlights(results, pitStops, keyEvents, strategies, safetyEventCounts) {
   const podium = results.filter((result) => result.position !== null && result.position <= 3);
   const bestGain = getExtremeByDelta(results, "max");
   const biggestDrop = getExtremeByDelta(results, "min");
@@ -2260,7 +2924,7 @@ function buildReportHighlights(results, pitStops, keyEvents, strategies) {
     .filter((pit) => pit.duration !== null)
     .sort((a, b) => Number(a.duration) - Number(b.duration))[0];
   const mostCommonStrategy = getMostCommonStrategy(strategies);
-  const safetyCarSummary = getSafetyCarSummary(keyEvents);
+  const safetyCarSummary = formatSafetyEventSummary(safetyEventCounts);
   const teamPoints = new Map();
 
   for (const result of results) {
@@ -2309,42 +2973,6 @@ function getMostCommonStrategy(strategies) {
   return mostCommon ? { sequence: mostCommon[0], drivers: mostCommon[1] } : null;
 }
 
-function getSafetyCarSummary(keyEvents) {
-  let safetyCar = 0;
-  let vsc = 0;
-  let redFlag = 0;
-
-  for (const event of keyEvents ?? []) {
-    const text = `${event.title ?? ""} ${event.detail ?? ""}`.toLowerCase();
-
-    if (/red flag|красн/.test(text)) {
-      redFlag += 1;
-      continue;
-    }
-
-    if (/virtual safety car|\bvsc\b/.test(text)) {
-      vsc += 1;
-      continue;
-    }
-
-    if (/safety car|\bsc\b/.test(text)) {
-      safetyCar += 1;
-    }
-  }
-
-  if (!safetyCar && !vsc && !redFlag) {
-    return null;
-  }
-
-  return [
-    safetyCar ? `SC: ${safetyCar}` : null,
-    vsc ? `VSC: ${vsc}` : null,
-    redFlag ? `красные флаги: ${redFlag}` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
-
 function summarizeReportWeather(weatherRows) {
   const rows = weatherRows ?? [];
 
@@ -2363,13 +2991,14 @@ function summarizeReportWeather(weatherRows) {
   };
 }
 
-function buildRaceStatistics(results, keyEvents, weather) {
-  const eventText = keyEvents.map((event) => `${event.type} ${event.title} ${event.detail ?? ""}`.toLowerCase()).join(" ");
-
+function buildRaceStatistics(results, safetyEventCounts, weather) {
   return {
-    safetyCar: /safety car/.test(eventText),
-    virtualSafetyCar: /virtual safety car|vsc/.test(eventText),
-    redFlag: /red flag/.test(eventText),
+    safetyCar: Number(safetyEventCounts.safetyCarCount) > 0,
+    virtualSafetyCar: Number(safetyEventCounts.vscCount) > 0,
+    redFlag: Number(safetyEventCounts.redFlagCount) > 0,
+    safetyCarCount: Number(safetyEventCounts.safetyCarCount) || 0,
+    virtualSafetyCarCount: Number(safetyEventCounts.vscCount) || 0,
+    redFlagCount: Number(safetyEventCounts.redFlagCount) || 0,
     weather,
   };
 }
@@ -2387,7 +3016,6 @@ async function updateGrandPrixReportSummary(report, { force = false } = {}) {
   }
 
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = process.env.REPORT_SUMMARY_MODEL ?? process.env.AI_SUMMARY_MODEL ?? "google/gemini-2.5-flash-lite";
 
   if (!apiKey) {
     await supabase
@@ -2425,31 +3053,33 @@ async function updateGrandPrixReportSummary(report, { force = false } = {}) {
   };
 
   try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${apiKey}`,
-        "content-type": "application/json",
-        "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-        "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+    const prompt = await resolveWorkerAiPrompt({
+      client: supabase,
+      promptKey: "reports.summary",
+      variables: {
+        facts_json: JSON.stringify(facts),
       },
-      body: JSON.stringify({
-        model,
+    });
+    const { payload, response } = await requestOpenRouterCompletion({
+      apiKey,
+      model: prompt.model,
+      purpose: prompt.purpose,
+      promptKey: prompt.key,
+      promptVersionId: prompt.promptVersionId,
+      body: {
         messages: [
           {
             role: "system",
-            content:
-              "Ты редактор RaceMate. Напиши компактный итог Гран-при на русском в 2-4 абзацах только по переданным фактам. Если есть newsSummary.articles, добавь короткий раздел «Что обсуждали вокруг этапа» по этим новостям. Не придумывай события, не добавляй неподтвержденные оценки, не уходи в нерелевантные темы.",
+            content: prompt.systemPrompt,
           },
           {
             role: "user",
-            content: JSON.stringify(facts),
+            content: prompt.userPrompt,
           },
         ],
-        max_tokens: Number(process.env.REPORT_SUMMARY_MAX_TOKENS ?? 250),
-      }),
+        max_completion_tokens: prompt.maxTokens,
+      },
     });
-    const payload = await response.json();
 
     if (!response.ok) {
       throw new Error(`OpenRouter failed for report ${report.id}: ${response.status} ${JSON.stringify(payload).slice(0, 220)}`);
@@ -2470,19 +3100,6 @@ async function updateGrandPrixReportSummary(report, { force = false } = {}) {
         last_error: null,
       })
       .eq("id", report.id);
-
-    const usage = payload.usage ?? null;
-
-    if (usage) {
-      await supabase.from("ai_usage_logs").insert({
-        purpose: "reports.summary",
-        provider: "openrouter",
-        model,
-        input_tokens: usage.prompt_tokens ?? null,
-        output_tokens: usage.completion_tokens ?? null,
-        estimated_cost_usd: null,
-      });
-    }
 
     return true;
   } catch (error) {
@@ -2746,40 +3363,6 @@ function countBy(items, keyFn) {
   return counts;
 }
 
-function isImportantRaceControl(text, category) {
-  const haystack = `${category} ${text}`.toLowerCase();
-
-  return /safety car|virtual safety car|\bvsc\b|red flag|penalt|investigat|collision|incident|stopp|retir|black and white|drive through|time penalty/.test(
-    haystack,
-  );
-}
-
-function getRaceControlTitle(text, category) {
-  const haystack = `${category} ${text}`.toLowerCase();
-
-  if (/red flag/.test(haystack)) {
-    return "Красный флаг";
-  }
-
-  if (/virtual safety car|\bvsc\b/.test(haystack)) {
-    return "Virtual Safety Car";
-  }
-
-  if (/safety car/.test(haystack)) {
-    return "Safety Car";
-  }
-
-  if (/penalt|drive through|time penalty/.test(haystack)) {
-    return "Штраф";
-  }
-
-  if (/investigat|incident|collision/.test(haystack)) {
-    return "Инцидент";
-  }
-
-  return "Сообщение дирекции гонки";
-}
-
 function getLeadChangeEvents(positions, results) {
   const resultByNumber = new Map(
     results
@@ -2877,7 +3460,6 @@ async function processNewsArticleBatch({ mode }) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model =
     process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
-  const maxTokens = Number(process.env.AI_SUMMARY_MAX_TOKENS ?? 1800);
   const limit = Math.max(
     1,
     Math.min(Number(getCliOption("limit") ?? process.env.AI_MAX_ARTICLES_PER_RUN ?? 20), 100),
@@ -2886,9 +3468,9 @@ async function processNewsArticleBatch({ mode }) {
 
   let query = supabase
     .from("news_articles")
-    .select("id, canonical_url, original_url, original_title, original_description, source_image_url, raw_payload")
+    .select("id, canonical_url, original_url, original_title, original_description, source_image_url, raw_payload, source_published_at, ingested_at, published_at, publication_status")
     .is("duplicate_of", null)
-    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("ingested_at", { ascending: true })
     .limit(limit);
 
   if (articleId) {
@@ -2921,7 +3503,9 @@ async function processNewsArticleBatch({ mode }) {
     let title = fallback.title;
     let usage = null;
     let aiSucceeded = false;
+    let editorialMetadata = null;
     let relatedRace = matchRaceByText(article, races);
+    let selectedModel = model;
 
     if (!apiKey) {
       logWorkerWarning("openrouter.news_summary.pending", {
@@ -2934,35 +3518,45 @@ async function processNewsArticleBatch({ mode }) {
 
     if (apiKey) {
       try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${apiKey}`,
-            "content-type": "application/json",
-            "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-            "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+        const prompt = await resolveWorkerAiPrompt({
+          client: supabase,
+          promptKey: "news.article",
+          variables: {
+            source_url: article.canonical_url ?? article.original_url ?? "RSS",
+            original_title: article.original_title,
+            rss_description: article.original_description ?? "Нет",
+            article_text: articleContext.text || "Полный текст недоступен, используй только RSS-описание и не расширяй факты.",
+            races: races
+              .map((race) => `${race.round}: ${race.race_name} (${race.circuit_name}, ${race.country})`)
+              .join("\n"),
+            teams: teams
+              .map((team) => `${team.slug}: ${team.name}`)
+              .join("\n"),
           },
-          body: JSON.stringify({
-            model,
+        });
+        selectedModel = prompt.model;
+        const { payload, response } = await requestOpenRouterCompletion({
+          apiKey,
+          model: prompt.model,
+          purpose: prompt.purpose,
+          relatedArticleId: article.id,
+          promptKey: prompt.key,
+          promptVersionId: prompt.promptVersionId,
+          body: {
             messages: [
               {
                 role: "system",
-                content: buildNewsAiSystemPrompt(),
+                content: prompt.systemPrompt,
               },
               {
                 role: "user",
-                content: `Источник: ${article.canonical_url ?? article.original_url ?? "RSS"}\nОригинальный заголовок: ${article.original_title}\n\nRSS-описание:\n${article.original_description ?? "Нет"}\n\nТекст оригинальной статьи или расширенный контекст:\n${articleContext.text || "Полный текст недоступен, используй только RSS-описание и не расширяй факты."}\n\nЭтапы сезона:\n${races
-                  .map((race) => `${race.round}: ${race.race_name} (${race.circuit_name}, ${race.country})`)
-                  .join("\n")}\n\nКоманды для team_slugs:\n${teams
-                  .map((team) => `${team.slug}: ${team.name}`)
-                  .join("\n")}`,
+                content: prompt.userPrompt,
               },
             ],
             response_format: { type: "json_object" },
-            max_tokens: maxTokens,
-          }),
+            max_completion_tokens: prompt.maxTokens,
+          },
         });
-        const payload = await readJsonResponse(response);
         if (!response.ok) {
           logWorkerWarning("openrouter.news_summary.fallback", {
             articleId: article.id,
@@ -3000,6 +3594,7 @@ async function processNewsArticleBatch({ mode }) {
             const aiRace = races.find((race) => race.round === numberOrNull(parsed?.race_round));
             relatedRace = aiRace ?? relatedRace;
             aiPayload.teamSlugs = normalizeStringArray(parsed?.team_slugs) ?? [];
+            editorialMetadata = parseNewsEditorialMetadata(parsed);
             usage = payload.usage ?? null;
             aiSucceeded = true;
           }
@@ -3017,7 +3612,39 @@ async function processNewsArticleBatch({ mode }) {
       continue;
     }
 
-    await supabase
+    if (!editorialMetadata) {
+      try {
+        editorialMetadata = await requestNewsEditorialMetadata({
+          apiKey,
+          model,
+          article,
+          articleContext,
+          title,
+          aiPayload,
+        });
+      } catch (metadataError) {
+        logWorkerWarning("openrouter.news_metadata.failed", {
+          articleId: article.id,
+          reason: getSafeErrorMessage(metadataError),
+        });
+      }
+    }
+
+    const dedupArticle = {
+      id: article.id,
+      title,
+      summary: aiPayload.summary,
+      mainFact: editorialMetadata?.mainFact ?? aiPayload.summary,
+      eventType: editorialMetadata?.eventType ?? null,
+      eventStage: editorialMetadata?.eventStage ?? null,
+      eventDate: editorialMetadata?.eventDate ?? article.source_published_at?.slice(0, 10) ?? null,
+      eventFingerprint: editorialMetadata?.eventFingerprint ?? null,
+      normalizedEntities: editorialMetadata?.normalizedEntities ?? [],
+      ingestedAt: article.ingested_at,
+      publishedAt: mode === "fallback" ? article.published_at : null,
+    };
+
+    const { error: updateArticleError } = await supabase
       .from("news_articles")
       .update({
         ai_title_ru: title,
@@ -3027,11 +3654,23 @@ async function processNewsArticleBatch({ mode }) {
         ai_highlights_ru: aiPayload.highlights,
         source_image_url: article.source_image_url ?? articleContext.imageUrl ?? null,
         related_race_id: relatedRace?.id ?? null,
-        ai_model: usage ? model : "fallback",
+        ai_model: usage ? selectedModel : "fallback",
         ai_processed_at: new Date().toISOString(),
+        main_fact: dedupArticle.mainFact,
+        event_type: dedupArticle.eventType,
+        event_stage: dedupArticle.eventStage,
+        event_date: dedupArticle.eventDate,
+        event_fingerprint: dedupArticle.eventFingerprint,
+        normalized_entities: dedupArticle.normalizedEntities,
+        publication_status: "processing_dedup",
+        dedup_status: "checking",
         status: "processed",
       })
       .eq("id", article.id);
+
+    if (updateArticleError) {
+      throw updateArticleError;
+    }
 
     if (relatedRace) {
       await upsertRaceTagForArticle(article.id, relatedRace, 0.84, "ai");
@@ -3067,17 +3706,9 @@ async function processNewsArticleBatch({ mode }) {
       await upsertTeamTagForArticle(article.id, team, confidence, method);
     }
 
-    if (usage) {
-      await supabase.from("ai_usage_logs").insert({
-        purpose: "news.summary",
-        provider: "openrouter",
-        model,
-        input_tokens: usage.prompt_tokens ?? null,
-        output_tokens: usage.completion_tokens ?? null,
-        estimated_cost_usd: null,
-        related_article_id: article.id,
-      });
-    }
+    await processNewsArticleDeduplication(dedupArticle, {
+      metadataWasRepaired: Boolean(editorialMetadata),
+    });
 
     itemsProcessed += 1;
   }
@@ -3101,10 +3732,501 @@ async function keepNewsArticlePending(article, articleContext, failureReason) {
     .eq("id", article.id);
 }
 
+async function requestNewsEditorialMetadata({
+  apiKey,
+  model,
+  article,
+  articleContext,
+  title,
+  aiPayload,
+}) {
+  const config = getNewsDedupConfig();
+  const payload = await requestOpenRouterNewsJson({
+    apiKey,
+    promptKey: "news.metadata",
+    userPayload: {
+      source_url: article.canonical_url ?? article.original_url ?? null,
+      source_published_at: article.source_published_at ?? null,
+      original_title: article.original_title,
+      original_description: article.original_description,
+      title_ru: title,
+      summary_ru: aiPayload.summary,
+      details_ru: aiPayload.details,
+      source_text: articleContext.text || null,
+    },
+    retries: config.aiRetryCount,
+    logKey: "openrouter.news_metadata",
+    articleId: article.id,
+    purpose: "news.metadata",
+  });
+
+  const metadata = parseNewsEditorialMetadata(payload);
+
+  if (!metadata) {
+    logWorkerWarning("openrouter.news_metadata.invalid", { articleId: article.id, model });
+  }
+
+  return metadata;
+}
+
+async function requestOpenRouterNewsJson({
+  apiKey,
+  promptKey,
+  userPayload,
+  retries,
+  logKey,
+  articleId,
+  purpose,
+}) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      const prompt = await resolveWorkerAiPrompt({
+        client: supabase,
+        promptKey,
+        variables: {
+          payload_json: JSON.stringify(userPayload),
+        },
+      });
+      const { payload, response } = await requestOpenRouterCompletion({
+        apiKey,
+        model: prompt.model,
+        purpose: prompt.purpose ?? purpose,
+        relatedArticleId: articleId,
+        promptKey: prompt.key,
+        promptVersionId: prompt.promptVersionId,
+        body: {
+          messages: [
+            { role: "system", content: prompt.systemPrompt },
+            { role: "user", content: prompt.userPrompt },
+          ],
+          response_format: { type: "json_object" },
+          max_completion_tokens: prompt.maxTokens,
+          temperature: 0,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${getOpenRouterFailureReason(payload)}`);
+      }
+
+      const message = payload.choices?.[0]?.message;
+      const parsed = parseOpenRouterMessageJson(message?.content);
+
+      if (!isPlainObject(parsed)) {
+        const contentType = Array.isArray(message?.content)
+          ? "array"
+          : typeof message?.content;
+        const contentLength = typeof message?.content === "string" ? message.content.length : 0;
+        const finishReason = payload.choices?.[0]?.finish_reason ?? "unknown";
+        throw new Error(
+          `OpenRouter returned invalid JSON content (${contentType}, ${contentLength} chars, finish ${finishReason})`,
+        );
+      }
+
+      return parsed;
+    } catch (error) {
+      lastError = error;
+      logWorkerWarning(`${logKey}.retry`, {
+        articleId,
+        attempt: attempt + 1,
+        reason: getSafeErrorMessage(error),
+      });
+
+      if (attempt < retries) {
+        await sleep(250 * 2 ** attempt);
+      }
+    }
+  }
+
+  throw lastError ?? new Error("OpenRouter news request failed");
+}
+
+async function processNewsArticleDeduplication(article, options = {}) {
+  const config = getNewsDedupConfig();
+
+  return runNewsDeduplicationPipeline({
+    article,
+    config,
+    acquireLock: acquireNewsDedupLock,
+    releaseLock: releaseNewsDedupLock,
+    loadCandidates: loadNewsDedupCandidates,
+    classify: classifyNewsDedupWithAi,
+    saveDecision: (decision) => saveNewsDedupDecision(decision, options.decisionSource ?? "pipeline"),
+    onError: async (error) => {
+      logWorkerWarning("news.dedup.error", {
+        articleId: article.id,
+        metadataAvailable: options.metadataWasRepaired ?? true,
+        reason: getSafeErrorMessage(error),
+      });
+    },
+  });
+}
+
+async function classifyNewsDedupWithAi(article, candidates, config) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("OPENROUTER_API_KEY is missing for news deduplication");
+  }
+
+  const payload = await requestOpenRouterNewsJson({
+    apiKey,
+    promptKey: "news.dedup",
+    userPayload: makeNewsDedupClassifierInput(article, candidates),
+    retries: config.aiRetryCount,
+    logKey: "openrouter.news_dedup",
+    articleId: article.id,
+    purpose: "news.dedup",
+  });
+
+  return parseNewsDedupDecision(payload, new Set(candidates.map((candidate) => candidate.id)));
+}
+
+async function acquireNewsDedupLock(lockKey, articleId) {
+  const attempts = 10;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const { data, error } = await supabase.rpc("acquire_news_dedup_lock", {
+      p_lock_key: lockKey,
+      p_article_id: articleId,
+      p_stale_after_seconds: 300,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (data === true) {
+      return true;
+    }
+
+    if (attempt < attempts - 1) {
+      await sleep(Math.min(100 * 2 ** attempt, 2_000));
+    }
+  }
+
+  return false;
+}
+
+async function releaseNewsDedupLock(lockKey, articleId) {
+  const { error } = await supabase.rpc("release_news_dedup_lock", {
+    p_lock_key: lockKey,
+    p_article_id: articleId,
+  });
+
+  if (error) {
+    logWorkerWarning("news.dedup.release_lock", {
+      articleId,
+      reason: getSafeErrorMessage(error),
+    });
+  }
+}
+
+async function loadNewsDedupCandidates(article, config) {
+  const referenceTime = new Date(article.ingestedAt ?? new Date().toISOString());
+  const windowStart = new Date(referenceTime.getTime() - config.windowHours * 3_600_000).toISOString();
+  const { data, error } = await supabase
+    .from("news_articles")
+    .select("id, ai_title_ru, original_title, ai_summary_ru, original_description, main_fact, event_type, event_stage, event_date, event_fingerprint, normalized_entities, ingested_at, published_at, publication_status")
+    .eq("publication_status", "published")
+    .is("duplicate_of", null)
+    .gte("ingested_at", windowStart)
+    .lt("ingested_at", referenceTime.toISOString())
+    .order("ingested_at", { ascending: false })
+    .limit(250);
+
+  if (error) {
+    throw error;
+  }
+
+  return rankNewsDedupCandidates(article, data ?? [], config);
+}
+
+async function saveNewsDedupDecision(decision, decisionSource = "pipeline") {
+  const checkedAt = new Date().toISOString();
+  const { error } = await supabase
+    .from("news_articles")
+    .update({
+      dedup_checked_at: checkedAt,
+      dedup_status: decision.dedupStatus,
+      publication_status: decision.publicationStatus,
+      published_at: decision.publishedAt,
+      duplicate_of: decision.duplicateOf,
+      duplicate_confidence: decision.confidence,
+      duplicate_relation: decision.relation,
+      duplicate_reason: decision.reason,
+      dedup_candidate_count: decision.candidateCount,
+      dedup_processing_time_ms: decision.processingTimeMs,
+    })
+    .eq("id", decision.articleId);
+
+  if (error) {
+    throw error;
+  }
+
+  await insertNewsDedupDecision(decision, decisionSource);
+  console.log(JSON.stringify({
+    event: "news.dedup.decision",
+    articleId: decision.articleId,
+    publicationStatus: decision.publicationStatus,
+    dedupStatus: decision.dedupStatus,
+    duplicateOf: decision.duplicateOf,
+    confidence: decision.confidence,
+    relation: decision.relation,
+    candidateCount: decision.candidateCount,
+    processingTimeMs: decision.processingTimeMs,
+  }));
+}
+
+async function insertNewsDedupDecision(decision, decisionSource) {
+  const { error } = await supabase.from("news_dedup_decisions").insert({
+    article_id: decision.articleId,
+    duplicate_of: decision.duplicateOf,
+    candidate_count: decision.candidateCount ?? 0,
+    is_duplicate: decision.publicationStatus === "duplicate",
+    confidence: decision.confidence,
+    relation: decision.relation,
+    reason: decision.reason,
+    dedup_status: decision.dedupStatus,
+    publication_status: decision.publicationStatus,
+    processing_time_ms: decision.processingTimeMs,
+    error_message: decision.dedupStatus === "error" ? decision.reason : null,
+    decision_source: decisionSource,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function retryNewsDeduplication() {
+  const limit = Math.max(1, Math.min(Number(getCliOption("limit") ?? 50), 100));
+  const articleId = normalizeString(getCliOption("id"));
+  let articlesQuery = supabase
+    .from("news_articles")
+    .select("id, ai_title_ru, original_title, ai_summary_ru, original_description, main_fact, event_type, event_stage, event_date, event_fingerprint, normalized_entities, ingested_at, published_at")
+    .eq("status", "processed")
+    .eq("publication_status", "processing_dedup")
+    .order("ingested_at", { ascending: true })
+    .limit(limit);
+  if (articleId) {
+    articlesQuery = articlesQuery.eq("id", articleId);
+  }
+  const { data: articles, error } = await articlesQuery;
+
+  if (error) {
+    throw error;
+  }
+
+  for (const article of articles ?? []) {
+    await processNewsArticleDeduplication(mapStoredNewsArticleForDedup(article));
+  }
+
+  return { itemsProcessed: articles?.length ?? 0, metadata: { limit } };
+}
+
+function mapStoredNewsArticleForDedup(article) {
+  return {
+    id: article.id,
+    title: article.ai_title_ru ?? article.original_title,
+    summary: article.ai_summary_ru ?? article.original_description,
+    mainFact: article.main_fact,
+    eventType: article.event_type,
+    eventStage: article.event_stage,
+    eventDate: article.event_date,
+    eventFingerprint: article.event_fingerprint,
+    normalizedEntities: article.normalized_entities ?? [],
+    ingestedAt: article.ingested_at,
+    publishedAt: article.published_at,
+  };
+}
+
+async function auditRecentNewsDeduplication() {
+  const apply = process.argv.includes("--apply");
+  const limit = Math.max(1, Math.min(Number(getCliOption("limit") ?? 50), 50));
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const config = getNewsDedupConfig();
+
+  if (!apiKey) {
+    throw new Error("OPENROUTER_API_KEY is missing for the recent news audit");
+  }
+
+  const { data, error } = await supabase
+    .from("news_articles")
+    .select("id, ai_title_ru, original_title, ai_summary_ru, original_description, ai_summary_long_ru, main_fact, event_type, event_stage, event_date, event_fingerprint, normalized_entities, source_published_at, ingested_at, published_at, publication_status")
+    .eq("status", "processed")
+    .eq("publication_status", "published")
+    .is("duplicate_of", null)
+    .order("ingested_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  const articles = [...(data ?? [])].reverse();
+  const prepared = [];
+
+  for (const article of articles) {
+    let metadata = parseNewsEditorialMetadata(article);
+
+    if (!metadata) {
+      const payload = await requestOpenRouterNewsJson({
+        apiKey,
+        promptKey: "news.audit_metadata",
+        userPayload: {
+          source_published_at: article.source_published_at,
+          title_ru: article.ai_title_ru ?? article.original_title,
+          summary_ru: article.ai_summary_ru ?? article.original_description,
+          details_ru: article.ai_summary_long_ru,
+        },
+        retries: config.aiRetryCount,
+        logKey: "openrouter.news_audit_metadata",
+        articleId: article.id,
+        purpose: "news.audit_metadata",
+      });
+      metadata = parseNewsEditorialMetadata(payload);
+    }
+
+    if (!metadata) {
+      throw new Error(`Invalid editorial metadata for audited article ${article.id}`);
+    }
+
+    prepared.push({
+      ...mapStoredNewsArticleForDedup(article),
+      title: article.ai_title_ru ?? article.original_title,
+      summary: article.ai_summary_ru ?? article.original_description,
+      mainFact: metadata.mainFact,
+      eventType: metadata.eventType,
+      eventStage: metadata.eventStage,
+      eventDate: metadata.eventDate,
+      eventFingerprint: metadata.eventFingerprint,
+      normalizedEntities: metadata.normalizedEntities,
+      sourcePublishedAt: article.source_published_at,
+      storedPublishedAt: article.published_at,
+    });
+  }
+
+  const retained = [];
+  const decisions = [];
+
+  for (const article of prepared) {
+    const candidates = rankNewsDedupCandidates(article, retained, config);
+    let classification = null;
+
+    if (candidates.length) {
+      classification = await classifyNewsDedupWithAi(article, candidates, config);
+
+      if (!classification) {
+        throw new Error(`Invalid deduplication decision for audited article ${article.id}`);
+      }
+    }
+
+    const proposedDuplicate = candidates.find(
+      (candidate) => candidate.id === classification?.duplicateOf,
+    );
+    const identityMatches = proposedDuplicate
+      ? isNewsDedupIdentityMatch(article, proposedDuplicate)
+      : false;
+    const rejectedByIdentityGuard = Boolean(
+      classification?.isDuplicate &&
+      classification.relation === "duplicate" &&
+      proposedDuplicate &&
+      !identityMatches,
+    );
+    const suppress = Boolean(
+      classification?.isDuplicate &&
+      classification.relation === "duplicate" &&
+      classification.confidence >= config.confidenceThreshold &&
+      proposedDuplicate &&
+      identityMatches,
+    );
+    const decision = {
+      articleId: article.id,
+      title: article.title,
+      candidateCount: candidates.length,
+      dedupStatus: suppress ? "duplicate" : "unique",
+      publicationStatus: suppress ? "duplicate" : "published",
+      publishedAt: suppress ? null : article.storedPublishedAt,
+      duplicateOf: suppress ? classification.duplicateOf : null,
+      confidence: classification?.confidence ?? null,
+      relation: rejectedByIdentityGuard ? "related" : classification?.relation ?? null,
+      reason: rejectedByIdentityGuard
+        ? `Опубликовано: тип или стадия события отличаются. Исходная оценка: ${classification.reason}`
+        : classification?.reason ?? "В 24-часовом окне нет подходящих кандидатов.",
+      processingTimeMs: null,
+      metadata: {
+        mainFact: article.mainFact,
+        eventType: article.eventType,
+        eventStage: article.eventStage,
+        eventDate: article.eventDate,
+        eventFingerprint: article.eventFingerprint,
+        normalizedEntities: article.normalizedEntities,
+      },
+    };
+    decisions.push(decision);
+
+    if (!suppress) {
+      retained.push({ ...article, publicationStatus: "published" });
+    }
+  }
+
+  if (apply) {
+    for (const decision of decisions) {
+      const checkedAt = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from("news_articles")
+        .update({
+          main_fact: decision.metadata.mainFact,
+          event_type: decision.metadata.eventType,
+          event_stage: decision.metadata.eventStage,
+          event_date: decision.metadata.eventDate,
+          event_fingerprint: decision.metadata.eventFingerprint,
+          normalized_entities: decision.metadata.normalizedEntities,
+          dedup_checked_at: checkedAt,
+          dedup_status: decision.dedupStatus,
+          publication_status: decision.publicationStatus,
+          published_at: decision.publishedAt,
+          duplicate_of: decision.duplicateOf,
+          duplicate_confidence: decision.confidence,
+          duplicate_relation: decision.relation,
+          duplicate_reason: decision.reason,
+          dedup_candidate_count: decision.candidateCount,
+        })
+        .eq("id", decision.articleId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      await insertNewsDedupDecision(decision, "audit");
+    }
+  }
+
+  const duplicateDecisions = decisions.filter((decision) => decision.publicationStatus === "duplicate");
+
+  return {
+    itemsProcessed: decisions.length,
+    metadata: {
+      applied: apply,
+      checked: decisions.length,
+      duplicates: duplicateDecisions.length,
+      retained: decisions.length - duplicateDecisions.length,
+      duplicateDecisions: duplicateDecisions.map((decision) => ({
+        articleId: decision.articleId,
+        title: decision.title,
+        duplicateOf: decision.duplicateOf,
+        confidence: decision.confidence,
+        reason: decision.reason,
+      })),
+    },
+  };
+}
+
 async function rehighlightNewsWithAi() {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model =
-    process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
   const limit = Math.max(1, Math.min(Number(getCliOption("limit") ?? 100), 200));
 
   if (!apiKey) {
@@ -3115,6 +4237,7 @@ async function rehighlightNewsWithAi() {
     .from("news_articles")
     .select("id, ai_summary_ru, ai_summary_long_ru, original_description")
     .eq("status", "processed")
+    .eq("publication_status", "published")
     .is("duplicate_of", null)
     .order("published_at", { ascending: false, nullsFirst: false })
     .limit(limit);
@@ -3136,28 +4259,30 @@ async function rehighlightNewsWithAi() {
     }
 
     try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${apiKey}`,
-          "content-type": "application/json",
-          "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-          "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+      const prompt = await resolveWorkerAiPrompt({
+        client: supabase,
+        promptKey: "news.highlights",
+        variables: {
+          summary: summary || "Нет",
+          details: details || "Нет",
         },
-        body: JSON.stringify({
-          model,
+      });
+      const { payload, response } = await requestOpenRouterCompletion({
+        apiKey,
+        model: prompt.model,
+        purpose: prompt.purpose,
+        relatedArticleId: article.id,
+        promptKey: prompt.key,
+        promptVersionId: prompt.promptVersionId,
+        body: {
           messages: [
-            { role: "system", content: buildNewsHighlightSystemPrompt() },
-            {
-              role: "user",
-              content: `Лид:\n${summary || "Нет"}\n\nТекст статьи:\n${details || "Нет"}`,
-            },
+            { role: "system", content: prompt.systemPrompt },
+            { role: "user", content: prompt.userPrompt },
           ],
           response_format: { type: "json_object" },
-          max_tokens: 500,
-        }),
+          max_completion_tokens: prompt.maxTokens,
+        },
       });
-      const payload = await readJsonResponse(response);
 
       if (!response.ok) {
         throw new Error(`OpenRouter returned HTTP ${response.status}: ${getOpenRouterFailureReason(payload)}`);
@@ -3198,6 +4323,7 @@ async function backfillNewsSourceImages() {
     .from("news_articles")
     .select("id, canonical_url, original_url, original_title, original_description, source_image_url, raw_payload")
     .eq("status", "processed")
+    .eq("publication_status", "published")
     .is("duplicate_of", null)
     .order("published_at", { ascending: false, nullsFirst: false })
     .limit(limit);
@@ -3255,6 +4381,7 @@ async function retagNewsWithAi() {
     .from("news_articles")
     .select("id, original_title, original_description")
     .eq("status", "processed")
+    .eq("publication_status", "published")
     .is("duplicate_of", null)
     .order("published_at", { ascending: false, nullsFirst: false })
     .limit(Number(process.env.AI_RETAG_ARTICLES_PER_RUN ?? 100));
@@ -3409,35 +4536,26 @@ async function generateNextRacePolls() {
 async function closeCompletedAiPolls() {
   const { data: polls, error } = await supabase
     .from("polls")
-    .select("id, race_id")
+    .select("id, race_id, races!inner(status)")
     .eq("status", "published")
     .eq("generated_by_ai", true)
-    .not("race_id", "is", null);
+    .not("race_id", "is", null)
+    .in("races.status", ["completed", "finished"]);
 
   if (error) {
     throw error;
   }
 
-  const raceIds = [...new Set((polls ?? []).map((poll) => poll.race_id).filter(Boolean))];
-  const completedRaceIds = [];
+  const pollIds = (polls ?? []).map((poll) => poll.id).filter(Boolean);
 
-  for (const raceId of raceIds) {
-    const session = await getRaceSessionForReport(raceId);
-    const results = session ? await getRaceResultRows(session.id) : [];
-
-    if (hasFinalRaceResults(results)) {
-      completedRaceIds.push(raceId);
-    }
-  }
-
-  if (!completedRaceIds.length) {
+  if (!pollIds.length) {
     return 0;
   }
 
   const { data: closed, error: closeError } = await supabase
     .from("polls")
     .update({ status: "closed", closes_at: new Date().toISOString() })
-    .in("race_id", completedRaceIds)
+    .in("id", pollIds)
     .eq("status", "published")
     .eq("generated_by_ai", true)
     .select("id");
@@ -3453,23 +4571,17 @@ async function findLatestCompletedRaceForPolls() {
   const { data, error } = await supabase
     .from("races")
     .select("id, season_year, round, race_name, race_start_at, status, circuits(name, country, locality, external_id)")
+    .eq("season_year", getCurrentF1Season())
+    .in("status", ["completed", "finished"])
     .order("race_start_at", { ascending: false, nullsFirst: false })
-    .limit(16);
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
     throw error;
   }
 
-  for (const race of data ?? []) {
-    const session = await getRaceSessionForReport(race.id);
-    const results = session ? await getRaceResultRows(session.id) : [];
-
-    if (hasFinalRaceResults(results)) {
-      return race;
-    }
-  }
-
-  return null;
+  return data ?? null;
 }
 
 async function findNextRaceForPolls(afterRaceStartAt) {
@@ -3672,6 +4784,7 @@ async function getPollNewsContext(raceId) {
     .from("news_articles")
     .select("ai_title_ru, original_title, ai_summary_ru")
     .eq("status", "processed")
+    .eq("publication_status", "published")
     .is("duplicate_of", null)
     .or(`related_race_id.eq.${raceId},related_race_id.is.null`)
     .order("published_at", { ascending: false, nullsFirst: false })
@@ -3689,31 +4802,33 @@ async function getPollNewsContext(raceId) {
 
 async function requestAiRacePolls(context) {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
 
   if (!apiKey) {
     throw new Error("OPENROUTER_API_KEY is missing for poll generation.");
   }
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${apiKey}`,
-      "content-type": "application/json",
-      "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-      "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+  const prompt = await resolveWorkerAiPrompt({
+    client: supabase,
+    promptKey: "polls.generate",
+    variables: {
+      context_json: JSON.stringify(context),
     },
-    body: JSON.stringify({
-      model,
+  });
+  const { payload, response } = await requestOpenRouterCompletion({
+    apiKey,
+    model: prompt.model,
+    purpose: prompt.purpose,
+    promptKey: prompt.key,
+    promptVersionId: prompt.promptVersionId,
+    body: {
       messages: [
-        { role: "system", content: buildRacePollSystemPrompt() },
-        { role: "user", content: JSON.stringify(context) },
+        { role: "system", content: prompt.systemPrompt },
+        { role: "user", content: prompt.userPrompt },
       ],
       response_format: { type: "json_object" },
-      max_tokens: Number(process.env.AI_POLL_MAX_TOKENS ?? 900),
-    }),
+      max_completion_tokens: prompt.maxTokens,
+    },
   });
-  const payload = await readJsonResponse(response);
 
   if (!response.ok) {
     throw new Error(`OpenRouter poll generation failed: ${response.status} ${getOpenRouterFailureReason(payload)}`);
@@ -3722,30 +4837,7 @@ async function requestAiRacePolls(context) {
   const parsed = safeJson(payload.choices?.[0]?.message?.content);
   const polls = validateGeneratedPolls(parsed?.polls);
 
-  await supabase.from("ai_usage_logs").insert({
-    purpose: "polls.generate",
-    provider: "openrouter",
-    model,
-    input_tokens: payload.usage?.prompt_tokens ?? null,
-    output_tokens: payload.usage?.completion_tokens ?? null,
-    estimated_cost_usd: null,
-  });
-
   return polls;
-}
-
-function buildRacePollSystemPrompt() {
-  return [
-    "Ты редактор RaceMate для русскоязычных фанатов Формулы-1.",
-    "Сформируй ровно три фанатских опроса к следующему Гран-при на основе только переданного JSON-контекста.",
-    "Верни только JSON: { polls: [{ kind, question, options }] }.",
-    "kind должен быть ровно sport, strategy и fan: по одному опросу каждого типа.",
-    "В каждом опросе ровно 3 варианта ответа. Вопрос короткий, живой и понятный; варианты должны быть равнозначными по интересу.",
-    "sport — борьба пилотов или команд; strategy — шины, погода, Safety Car, пит-стопы или характер трассы; fan — интрига, герой, сюрприз или разочарование уикенда.",
-    "Не придумывай факты, цитаты, травмы, обновления или прошлые результаты. Не делай все опросы про одного пилота или одну команду.",
-    "Не используй оскорбления, кликбейт, вероятности, варианты вроде 'не знаю' и формулировки с очевидным ответом.",
-    "Если в контексте нет подтвержденной информации, выбирай нейтральный фанатский вопрос, не утверждающий отсутствующие факты.",
-  ].join(" ");
 }
 
 function validateGeneratedPolls(value) {
@@ -3815,8 +4907,6 @@ function getCircuitPollNotes(circuitName) {
 }
 
 async function generateDailyDigest() {
-  const model =
-    process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
   const apiKey = process.env.OPENROUTER_API_KEY;
   const now = new Date();
   const dateKey = now.toISOString().slice(0, 10);
@@ -3838,6 +4928,7 @@ async function generateDailyDigest() {
     .from("news_articles")
     .select("id, ai_title_ru, original_title, ai_summary_ru, ai_summary_long_ru")
     .eq("status", "processed")
+    .eq("publication_status", "published")
     .is("duplicate_of", null)
     .gte("published_at", windowStart)
     .lt("published_at", now.toISOString())
@@ -3850,41 +4941,43 @@ async function generateDailyDigest() {
 
   const title = "Короткая сводка дня";
   let body = makeDigestFallback(articles ?? []);
-  let usage = null;
+  let usedModel = null;
 
   if (apiKey && articles?.length) {
     try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${apiKey}`,
-          "content-type": "application/json",
-          "http-referer": process.env.OPENROUTER_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "",
-          "x-title": process.env.OPENROUTER_APP_NAME ?? "RaceMate",
+      const prompt = await resolveWorkerAiPrompt({
+        client: supabase,
+        promptKey: "news.daily_digest",
+        variables: {
+          articles_text: articles
+            .map(
+              (article, index) =>
+                `${index + 1}. ${article.ai_title_ru ?? article.original_title}\n${article.ai_summary_long_ru ?? article.ai_summary_ru ?? ""}`,
+            )
+            .join("\n\n"),
         },
-        body: JSON.stringify({
-          model,
+      });
+      const { payload, response } = await requestOpenRouterCompletion({
+        apiKey,
+        model: prompt.model,
+        purpose: prompt.purpose,
+        promptKey: prompt.key,
+        promptVersionId: prompt.promptVersionId,
+        body: {
           messages: [
             {
               role: "system",
-              content:
-                "Собери дневную F1-сводку RaceMate по-русски. Верни JSON: title_ru, body_md. body_md — 4-6 коротких пунктов Markdown, без выдуманных фактов.",
+              content: prompt.systemPrompt,
             },
             {
               role: "user",
-              content: articles
-                .map(
-                  (article, index) =>
-                    `${index + 1}. ${article.ai_title_ru ?? article.original_title}\n${article.ai_summary_long_ru ?? article.ai_summary_ru ?? ""}`,
-                )
-                .join("\n\n"),
+              content: prompt.userPrompt,
             },
           ],
           response_format: { type: "json_object" },
-          max_tokens: Number(process.env.AI_DIGEST_MAX_TOKENS ?? 800),
-        }),
+          max_completion_tokens: prompt.maxTokens,
+        },
       });
-      const payload = await readJsonResponse(response);
       if (!response.ok) {
         logWorkerWarning("openrouter.daily_digest.fallback", {
           status: response.status,
@@ -3893,7 +4986,7 @@ async function generateDailyDigest() {
       } else {
         const parsed = safeJson(payload.choices?.[0]?.message?.content);
         body = normalizeString(parsed?.body_md) ?? body;
-        usage = payload.usage ?? null;
+        usedModel = prompt.model;
       }
     } catch (aiError) {
       logWorkerWarning("openrouter.daily_digest.fallback", {
@@ -3902,30 +4995,20 @@ async function generateDailyDigest() {
     }
   }
 
-  const { data: digest } = await supabase
+  const { error: digestError } = await supabase
     .from("digests")
     .insert({
       digest_type: "daily_news",
       date_key: dateKey,
       title,
       body_md: body,
-      ai_model: model,
+      ai_model: usedModel,
       status: "published",
       generated_at: new Date().toISOString(),
-    })
-    .select("id")
-    .single();
-
-  if (digest?.id && usage) {
-    await supabase.from("ai_usage_logs").insert({
-      purpose: "news.daily_digest",
-      provider: "openrouter",
-      model,
-      input_tokens: usage.prompt_tokens ?? null,
-      output_tokens: usage.completion_tokens ?? null,
-      estimated_cost_usd: null,
-      related_digest_id: digest.id,
     });
+
+  if (digestError) {
+    throw digestError;
   }
 
   return {
@@ -3959,10 +5042,13 @@ async function syncAllCircuitStats() {
 async function syncCircuitStats() {
   const season = numberOrNull(getCliOption("season")) ?? Number(process.env.F1_SEASON ?? new Date().getUTCFullYear());
   const round = numberOrNull(getCliOption("round"));
+  const force = process.argv.includes("--force");
+
   let query = supabase
     .from("races")
     .select("id, season_year, round, race_name, race_start_at, circuit_id")
     .eq("season_year", season)
+    .eq("status", "completed")
     .not("circuit_id", "is", null)
     .order("round", { ascending: false });
 
@@ -3976,6 +5062,27 @@ async function syncCircuitStats() {
 
   if (!race) {
     return { itemsProcessed: 0, metadata: { season, round, skipped: "completed race not found" } };
+  }
+
+  if (!round && !force) {
+    const { data: existingHistory } = await supabase
+      .from("circuit_grand_prix_history")
+      .select("id")
+      .eq("circuit_id", race.circuit_id)
+      .eq("season", race.season_year)
+      .eq("round", race.round)
+      .limit(1);
+
+    if (existingHistory?.length) {
+      return {
+        itemsProcessed: 0,
+        metadata: {
+          season: race.season_year,
+          round: race.round,
+          skipped: "race already indexed",
+        },
+      };
+    }
   }
 
   const itemsProcessed = await syncCircuitStatsForRace(race);
@@ -4866,7 +5973,7 @@ function buildCircuitCharacterStats(circuit, contexts) {
       {
         label: "Износ шин",
         value: tyreWearRating,
-        helper: "Оценка нагрузки на шины по стратегиям и справочнику RaceMate.",
+        helper: "Оценка нагрузки на шины по стратегиям и справочнику RaceSide.",
       },
       {
         label: "Safety Car",
@@ -5447,11 +6554,11 @@ function buildCircuitAiPreview(circuit, aggregate) {
 
   if (aggregate.chaosScore !== null) {
     const chaos = aggregate.chaosScore >= 8 ? "высокий" : aggregate.chaosScore >= 4 ? "средний" : "низкий";
-    parts.push(`Индекс хаоса сейчас ${chaos}: RaceMate учитывает сходы, Safety Car, VSC и красные флаги.`);
+    parts.push(`Индекс хаоса сейчас ${chaos}: RaceSide учитывает сходы, Safety Car, VSC и красные флаги.`);
   }
 
   if (!parts.length) {
-    return `RaceMate уже собирает досье трассы ${circuit.name}. Подробное превью появится после синхронизации исторических результатов.`;
+    return `RaceSide уже собирает досье трассы ${circuit.name}. Подробное превью появится после синхронизации исторических результатов.`;
   }
 
   return parts.slice(0, 4).join(" ");
@@ -5480,6 +6587,7 @@ async function syncCalendar(options = {}) {
   }
 
   let itemsProcessed = 0;
+  let venueChanges = 0;
 
   for (const race of races) {
     const circuit = race.Circuit;
@@ -5503,6 +6611,19 @@ async function syncCalendar(options = {}) {
       throw circuitError;
     }
 
+    const { data: previousRace, error: previousRaceError } = await supabase
+      .from("races")
+      .select("circuit_id")
+      .eq("season_year", season)
+      .eq("round", Number(race.round))
+      .maybeSingle();
+
+    if (previousRaceError) {
+      throw previousRaceError;
+    }
+
+    const venueChanged = hasRaceVenueChanged(previousRace?.circuit_id, circuitRow?.id);
+
     const raceStartAt = race.date ? `${race.date}T${race.time ?? "00:00:00Z"}` : null;
     const { data: raceRow, error: raceError } = await supabase.from("races").upsert(
       {
@@ -5523,12 +6644,38 @@ async function syncCalendar(options = {}) {
     }
 
     if (raceRow?.id) {
+      if (venueChanged && isFutureRaceStart(raceStartAt)) {
+        const { error: sessionsError } = await supabase
+          .from("sessions")
+          .delete()
+          .eq("race_id", raceRow.id);
+
+        if (sessionsError) {
+          throw sessionsError;
+        }
+
+        venueChanges += 1;
+      }
+
+      const trackAsset = {
+        race_id: raceRow.id,
+        circuit_id: circuitRow?.id ?? null,
+        layout_slug: slugify(race.raceName ?? circuit.circuitId),
+      };
+
+      if (venueChanged) {
+        Object.assign(trackAsset, {
+          image_url: null,
+          source_url: null,
+          source_manifest: {},
+          checksum_sha256: null,
+          is_verified: false,
+          verified_at: null,
+        });
+      }
+
       const { error: assetError } = await supabase.from("race_track_assets").upsert(
-        {
-          race_id: raceRow.id,
-          circuit_id: circuitRow?.id ?? null,
-          layout_slug: slugify(race.raceName ?? circuit.circuitId),
-        },
+        trackAsset,
         { onConflict: "race_id" },
       );
 
@@ -5541,42 +6688,85 @@ async function syncCalendar(options = {}) {
     itemsProcessed += 1;
   }
 
-  return { itemsProcessed, metadata: { season, historical } };
+  return { itemsProcessed, metadata: { season, historical, venueChanges } };
+}
+
+export function hasRaceVenueChanged(previousCircuitId, nextCircuitId) {
+  return Boolean(
+    previousCircuitId &&
+    nextCircuitId &&
+    String(previousCircuitId) !== String(nextCircuitId),
+  );
+}
+
+function isFutureRaceStart(value) {
+  const timestamp = value ? new Date(value).getTime() : Number.NaN;
+  return Number.isFinite(timestamp) && timestamp > Date.now();
 }
 
 async function syncResults(options = {}) {
   const baseUrl = process.env.JOLPICA_BASE_URL ?? "https://api.jolpi.ca/ergast/f1";
   const season = resolveSyncSeason(options.season);
   const historical = options.historical ?? isHistoricalSeason(season);
-  let [raceRows, qualifyingRows, sprintRows] = await Promise.all([
-    fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/results.json`, "Results"),
-    fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/qualifying.json`, "QualifyingResults"),
-    fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/sprint.json`, "SprintResults"),
-  ]);
+  const targetRound = historical ? null : await getLatestStartedJolpicaRound(season);
+  let [raceRows, qualifyingRows, sprintRows] = targetRound
+    ? await Promise.all([
+      fetchJolpicaRoundResults(baseUrl, season, targetRound, "results", "Results"),
+      fetchJolpicaRoundResults(baseUrl, season, targetRound, "qualifying", "QualifyingResults"),
+      fetchJolpicaRoundResults(baseUrl, season, targetRound, "sprint", "SprintResults"),
+    ])
+    : historical
+      ? await Promise.all([
+        fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/results.json`, "Results"),
+        fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/qualifying.json`, "QualifyingResults"),
+        fetchJolpicaPaginatedRaces(`${baseUrl}/${season}/sprint.json`, "SprintResults"),
+      ])
+      : [[], [], []];
 
-  raceRows = await addPerRoundJolpicaRowsForCompletedRaces({
-    baseUrl,
-    endpoint: "results",
-    resultKey: "Results",
-    rows: raceRows,
-    season,
-  });
-  qualifyingRows = await addPerRoundJolpicaRowsForCompletedRaces({
-    baseUrl,
-    endpoint: "qualifying",
-    resultKey: "QualifyingResults",
-    rows: qualifyingRows,
-    rounds: await getCompletedSessionRounds(season, "qualifying"),
-    season,
-  });
-  sprintRows = await addPerRoundJolpicaRowsForCompletedRaces({
-    baseUrl,
-    endpoint: "sprint",
-    resultKey: "SprintResults",
-    rows: sprintRows,
-    rounds: await getCompletedSessionRounds(season, "sprint"),
-    season,
-  });
+  if (historical) {
+    raceRows = await addPerRoundJolpicaRowsForCompletedRaces({
+      baseUrl,
+      endpoint: "results",
+      resultKey: "Results",
+      rows: raceRows,
+      season,
+    });
+    qualifyingRows = await addPerRoundJolpicaRowsForCompletedRaces({
+      baseUrl,
+      endpoint: "qualifying",
+      resultKey: "QualifyingResults",
+      rows: qualifyingRows,
+      rounds: await getCompletedSessionRounds(season, "qualifying"),
+      season,
+    });
+    sprintRows = await addPerRoundJolpicaRowsForCompletedRaces({
+      baseUrl,
+      endpoint: "sprint",
+      resultKey: "SprintResults",
+      rows: sprintRows,
+      rounds: await getCompletedSessionRounds(season, "sprint"),
+      season,
+    });
+  }
+  const latestCompletedRaceRow = historical
+    ? null
+    : [...raceRows]
+      .filter((race) => Array.isArray(race.Results) && race.Results.length >= 10)
+      .sort((left, right) => Number(right.round ?? 0) - Number(left.round ?? 0))[0] ?? null;
+  const latestCompletedRaceId = latestCompletedRaceRow
+    ? await findRaceId(season, Number(latestCompletedRaceRow.round))
+    : null;
+  const { data: latestCompletedRaceState } = latestCompletedRaceId
+    ? await supabase
+      .from("races")
+      .select("status")
+      .eq("id", latestCompletedRaceId)
+      .maybeSingle()
+    : { data: null };
+  const shouldPrepareNextRacePolls = Boolean(
+    latestCompletedRaceId &&
+    !["completed", "finished"].includes(String(latestCompletedRaceState?.status ?? "")),
+  );
   let itemsProcessed = 0;
 
   for (const race of raceRows) {
@@ -5718,16 +6908,65 @@ async function syncResults(options = {}) {
     }
   }
 
+  let pollRefresh = null;
+
+  if (shouldPrepareNextRacePolls) {
+    try {
+      pollRefresh = await generateNextRacePolls();
+    } catch (error) {
+      pollRefresh = { error: getSafeErrorMessage(error) };
+      logWorkerWarning("polls.generate_after_results.failed", {
+        round: Number(latestCompletedRaceRow?.round ?? 0),
+        season,
+        reason: pollRefresh.error,
+      });
+    }
+  }
+
   return {
     itemsProcessed,
     metadata: {
       season,
       historical,
+      targetRound,
       races: raceRows.length,
       qualifying: qualifyingRows.length,
       sprints: sprintRows.length,
+      pollRefresh,
     },
   };
+}
+
+async function getLatestStartedJolpicaRound(season) {
+  const { data, error } = await supabase
+    .from("sessions")
+    .select("start_at, races!inner(season_year, round)")
+    .in("session_type", ["qualifying", "sprint", "race"])
+    .eq("races.season_year", season)
+    .not("start_at", "is", null)
+    .lte("start_at", new Date().toISOString())
+    .order("start_at", { ascending: false, nullsFirst: false })
+    .limit(20);
+
+  if (error) {
+    throw error;
+  }
+
+  return getLatestStartedRound((data ?? []).map((session) => ({
+    round: Number(firstRelation(session.races)?.round),
+    startAt: session.start_at,
+  })));
+}
+
+async function fetchJolpicaRoundResults(baseUrl, season, round, endpoint, resultKey) {
+  const payload = await fetchJolpicaJsonObject(
+    `${baseUrl}/${season}/${round}/${endpoint}.json?limit=1000`,
+  );
+  const race = payload.MRData?.RaceTable?.Races?.[0];
+
+  return race && Array.isArray(race[resultKey]) && race[resultKey].length
+    ? [race]
+    : [];
 }
 
 async function repairRaceResults() {
@@ -5884,7 +7123,7 @@ async function fetchJolpicaJsonObject(url, attempt = 1) {
   try {
     await throttleJolpicaFetch();
     response = await fetch(url, {
-      headers: { "user-agent": "RaceMate/0.1 (+https://racemate.local)" },
+      headers: { "user-agent": "RaceSide/0.1 (+https://racemate.local)" },
       signal: AbortSignal.timeout(Number(process.env.JOLPICA_FETCH_TIMEOUT_MS ?? 15000)),
     });
   } catch (error) {
@@ -8014,6 +9253,7 @@ async function syncOpenF1Sessions() {
       .from("sessions")
       .update({
         openf1_session_key: Number(match.session_key),
+        start_at: match.date_start ? new Date(match.date_start).toISOString() : session.start_at,
         end_at: match.date_end ? new Date(match.date_end).toISOString() : session.end_at,
       })
       .eq("id", session.id);
@@ -8061,150 +9301,364 @@ async function syncOpenF1Sessions() {
   return { itemsProcessed: matchedSessions + layouts, metadata: { season, matchedSessions, layouts } };
 }
 
-async function syncOpenF1Laps() {
+async function checkCurrentOpenF1Sessions() {
+  return syncOpenF1Laps({
+    forceProbe: true,
+    forceOpenF1Refresh: true,
+    manualCurrentRaceCheck: true,
+  });
+}
+
+async function syncOpenF1Laps({
+  forceOpenF1Refresh = false,
+  forceProbe = false,
+  manualCurrentRaceCheck = false,
+} = {}) {
   const baseUrl = process.env.OPENF1_BASE_URL ?? "https://api.openf1.org/v1";
   const season = Number(process.env.F1_SEASON ?? new Date().getUTCFullYear());
-  const { data: sessions, error } = await supabase
+  const now = Date.now();
+  const minimumRows = Math.max(10, Number(process.env.OPENF1_MIN_RESULT_ROWS ?? 20));
+  const hasLiveAccess = hasOpenF1LiveCredentials();
+  const { data: latestEndedSession, error: latestSessionError } = await supabase
     .from("sessions")
-    .select("id, session_type, openf1_session_key, end_at, races(season_year)")
+    .select("id, session_type, openf1_session_key, start_at, end_at, races!inner(id, season_year, round, race_name)")
     .not("openf1_session_key", "is", null)
-    .lte("start_at", new Date().toISOString())
-    .order("start_at", { ascending: false, nullsFirst: false })
-    .limit(Number(process.env.OPENF1_MAX_LAP_SESSIONS ?? 40));
+    .not("end_at", "is", null)
+    .in("session_type", OPENF1_RESULT_SESSION_TYPES)
+    .eq("races.season_year", season)
+    .lte("end_at", new Date(now).toISOString())
+    .order("end_at", { ascending: false, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (error) {
-    throw error;
+  if (latestSessionError) {
+    throw latestSessionError;
   }
 
-  const drivers = await getDriverMapByNumber(season);
+  const latestRace = firstRelation(latestEndedSession?.races);
+  let currentRaceSessions = [];
+
+  if (latestRace?.id) {
+    const { data, error } = await supabase
+      .from("sessions")
+      .select("id, session_type, openf1_session_key, start_at, end_at, races!inner(id, season_year, round, race_name)")
+      .eq("race_id", latestRace.id)
+      .not("openf1_session_key", "is", null)
+      .not("end_at", "is", null)
+      .in("session_type", OPENF1_RESULT_SESSION_TYPES)
+      .lte("end_at", new Date(now).toISOString())
+      .order("end_at", { ascending: false, nullsFirst: false })
+      .limit(Number(process.env.OPENF1_MAX_RESULT_SESSIONS ?? 12));
+
+    if (error) {
+      throw error;
+    }
+
+    currentRaceSessions = data ?? [];
+  }
+
+  if (!currentRaceSessions.length) {
+    return {
+      itemsProcessed: 0,
+      metadata: {
+        season,
+        sessionsChecked: 0,
+        sessionsSaved: 0,
+        skipped: "no_ended_sessions_for_latest_race",
+      },
+    };
+  }
+
+  const storedStates = await getStoredSessionResultStates(
+    currentRaceSessions.map((session) => session.id),
+    minimumRows,
+  );
+  let drivers = null;
   let itemsProcessed = 0;
   let sessionsChecked = 0;
+  let sessionsSaved = 0;
   let restrictedSessions = 0;
+  let waitingForAccess = 0;
+  let alreadyComplete = 0;
+  let fallbackSessions = 0;
+  let emptySessions = 0;
+  const completedSessions = [];
+  const savedSessions = [];
   const failures = [];
 
-  for (const session of sessions ?? []) {
+  for (const session of currentRaceSessions) {
     const race = Array.isArray(session.races) ? session.races[0] : session.races;
 
-    if (race?.season_year !== season && Number(process.env.OPENF1_SYNC_ALL_YEARS ?? 0) !== 1) {
-      continue;
-    }
-
     const sessionType = String(session.session_type);
-    if (["race", "sprint"].includes(sessionType)) {
+    const storedState = storedStates.get(session.id) ?? createStoredSessionResultState([], minimumRows);
+
+    if (
+      storedState.hasOfficialClassification ||
+      (storedState.hasOpenF1Classification && !forceOpenF1Refresh)
+    ) {
+      alreadyComplete += 1;
+      completedSessions.push({
+        race: race?.race_name ?? null,
+        round: race?.round ?? null,
+        sessionType,
+        rows: storedState.rows.length,
+      });
       continue;
     }
 
-    if (sessionType === "qualifying" && await hasOfficialQualifyingClassification(session.id)) {
+    if (!forceProbe && !isOpenF1ResultProbeDue({
+      endAt: session.end_at,
+      hasLiveAccess,
+      historicalDelayMinutes: Number(process.env.OPENF1_HISTORICAL_DELAY_MINUTES ?? 31),
+      liveDelayMinutes: Number(process.env.OPENF1_LIVE_RESULT_DELAY_MINUTES ?? 2),
+      nowMs: now,
+    })) {
+      waitingForAccess += 1;
       continue;
     }
 
     sessionsChecked += 1;
-    let laps = [];
+    drivers ??= await getDriverMapByNumber(season);
+    let normalizedResults = [];
+    let source = "openf1_session_result";
 
     try {
-      laps = await fetchJson(`${baseUrl}/laps?session_key=${session.openf1_session_key}`);
+      const classification = await fetchJson(`${baseUrl}/session_result?session_key=${session.openf1_session_key}`);
+      normalizedResults = normalizeOpenF1SessionClassification(classification, sessionType);
     } catch (error) {
       if (isOpenF1AuthRestriction(error)) {
         restrictedSessions += 1;
+        continue;
       } else {
         failures.push({
           sessionKey: session.openf1_session_key,
+          source,
           reason: getSafeErrorMessage(error),
         });
       }
-      continue;
     }
 
-    const bestLaps = getBestLapsByDriver(laps);
+    if (!isOpenF1ClassificationReady(normalizedResults, { minimumRows }) && isOpenF1TimedSessionType(sessionType)) {
+      try {
+        const laps = await fetchJson(`${baseUrl}/laps?session_key=${session.openf1_session_key}`);
+        normalizedResults = normalizeOpenF1LapFallback(laps);
+        source = "openf1_laps_fallback";
+      } catch (error) {
+        if (isOpenF1AuthRestriction(error)) {
+          restrictedSessions += 1;
+          continue;
+        }
 
-    if (!bestLaps.length) {
-      continue;
-    }
-
-    const { error: cleanupError } = await supabase
-      .from("session_results")
-      .delete()
-      .eq("session_id", session.id);
-
-    if (cleanupError) {
-      throw cleanupError;
-    }
-
-    for (const [index, lap] of bestLaps.entries()) {
-      const driver = drivers.get(Number(lap.driver_number));
-
-      if (!driver?.id) {
-        continue;
-      }
-
-      await supabase.from("session_results").upsert(
-        {
-          session_id: session.id,
-          driver_id: driver.id,
-          team_id: driver.current_team_id ?? null,
-          position: index + 1,
-          classified_position: String(index + 1),
-          laps: numberOrNull(lap.lap_number),
-          status: "Лучшее время",
-          time_text: formatLapDuration(lap.lap_duration),
-          raw_payload: lap,
-        },
-        { onConflict: "session_id,driver_id" },
-      );
-      itemsProcessed += 1;
-    }
-
-    if (session.end_at && new Date(session.end_at).getTime() <= Date.now()) {
-      const { error: statusError } = await supabase
-        .from("sessions")
-        .update({ status: "completed" })
-        .eq("id", session.id);
-
-      if (statusError) {
         failures.push({
           sessionKey: session.openf1_session_key,
-          reason: getSafeErrorMessage(statusError),
+          source: "openf1_laps_fallback",
+          reason: getSafeErrorMessage(error),
         });
       }
     }
+
+    if (!isOpenF1ClassificationReady(normalizedResults, { minimumRows })) {
+      emptySessions += 1;
+      continue;
+    }
+
+    if (normalizedResults.some((result) => !drivers.has(result.driverNumber))) {
+      drivers = await extendDriverMapWithOpenF1SessionParticipants({
+        baseUrl,
+        drivers,
+        sessionKey: session.openf1_session_key,
+      });
+    }
+    const saved = await saveOpenF1SessionClassification({
+      drivers,
+      existingRows: storedState.rows,
+      minimumRows,
+      normalizedResults,
+      session,
+      source,
+    });
+
+    if (!saved.ok) {
+      failures.push({
+        sessionKey: session.openf1_session_key,
+        source,
+        reason: saved.reason,
+        unmappedDriverNumbers: saved.unmappedDriverNumbers,
+      });
+      continue;
+    }
+
+    itemsProcessed += saved.itemsProcessed;
+    sessionsSaved += 1;
+    fallbackSessions += source === "openf1_laps_fallback" ? 1 : 0;
+    savedSessions.push({
+      race: race?.race_name ?? null,
+      round: race?.round ?? null,
+      sessionType,
+      rows: saved.itemsProcessed,
+      source,
+    });
   }
 
   return {
     itemsProcessed,
     metadata: {
       season,
+      race: latestRace?.race_name ?? null,
+      round: latestRace?.round ?? null,
+      hasLiveAccess,
+      scope: "latest_ended_race",
+      manualCurrentRaceCheck,
       sessionsChecked,
+      sessionsSaved,
       restrictedSessions,
+      waitingForAccess,
+      alreadyComplete,
+      fallbackSessions,
+      emptySessions,
+      completedSessions,
+      savedSessions,
       failures,
     },
   };
 }
 
-async function hasOfficialQualifyingClassification(sessionId) {
+async function getStoredSessionResultStates(sessionIds, minimumRows) {
+  if (!sessionIds.length) {
+    return new Map();
+  }
+
   const { data, error } = await supabase
     .from("session_results")
-    .select("status, raw_payload")
-    .eq("session_id", sessionId)
-    .limit(25);
+    .select("id, session_id, driver_id, status, raw_payload")
+    .in("session_id", sessionIds)
+    .limit(sessionIds.length * 30);
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []).some((result) => {
-    const status = String(result.status ?? "").trim().toLowerCase();
+  const rowsBySession = new Map(sessionIds.map((sessionId) => [sessionId, []]));
 
-    if (["лучший круг", "лучшее время"].includes(status)) {
-      return false;
-    }
+  for (const row of data ?? []) {
+    const rows = rowsBySession.get(row.session_id) ?? [];
+    rows.push(row);
+    rowsBySession.set(row.session_id, rows);
+  }
 
-    if (["q1", "q2", "q3"].includes(status)) {
-      return true;
-    }
+  return new Map(
+    sessionIds.map((sessionId) => [
+      sessionId,
+      createStoredSessionResultState(rowsBySession.get(sessionId) ?? [], minimumRows),
+    ]),
+  );
+}
 
-    const rawPayload = result.raw_payload;
-    return Boolean(rawPayload && typeof rawPayload === "object" && !Array.isArray(rawPayload) && "Driver" in rawPayload);
+function createStoredSessionResultState(rows, minimumRows) {
+  const officialRows = rows.filter((row) => {
+    const payload = row.raw_payload;
+    return Boolean(payload && typeof payload === "object" && !Array.isArray(payload) && "Driver" in payload);
   });
+  const openF1Rows = rows.filter((row) => row.raw_payload?._racemate_source === "openf1_session_result");
+
+  return {
+    rows,
+    hasOfficialClassification: officialRows.length >= minimumRows,
+    hasOpenF1Classification: openF1Rows.length >= minimumRows,
+  };
+}
+
+function normalizeOpenF1LapFallback(laps) {
+  return getBestLapsByDriver(laps).map((lap, index) => ({
+    driverNumber: Number(lap.driver_number),
+    position: index + 1,
+    classifiedPosition: String(index + 1),
+    laps: numberOrNull(lap.lap_number),
+    status: "Лучшее время",
+    timeText: formatLapDuration(lap.lap_duration),
+    rawPayload: lap,
+  }));
+}
+
+async function saveOpenF1SessionClassification({
+  drivers,
+  existingRows,
+  minimumRows,
+  normalizedResults,
+  session,
+  source,
+}) {
+  const syncedAt = new Date().toISOString();
+  const unmappedDriverNumbers = [];
+  const resultRows = normalizedResults.flatMap((result) => {
+    const driver = drivers.get(result.driverNumber);
+
+    if (!driver?.id) {
+      unmappedDriverNumbers.push(result.driverNumber);
+      return [];
+    }
+
+    return [{
+      session_id: session.id,
+      driver_id: driver.id,
+      team_id: driver.current_team_id ?? null,
+      position: result.position,
+      classified_position: result.classifiedPosition,
+      laps: result.laps,
+      status: result.status,
+      time_text: result.timeText,
+      raw_payload: {
+        ...result.rawPayload,
+        _racemate_source: source,
+        _racemate_synced_at: syncedAt,
+      },
+    }];
+  });
+  const mappingRatio = Math.min(1, Math.max(0.75, Number(process.env.OPENF1_MIN_DRIVER_MAPPING_RATIO ?? 0.9)));
+  const requiredMappedRows = Math.max(minimumRows, Math.ceil(normalizedResults.length * mappingRatio));
+
+  if (resultRows.length < requiredMappedRows) {
+    return {
+      ok: false,
+      reason: `Only ${resultRows.length}/${normalizedResults.length} OpenF1 drivers mapped to season profiles`,
+      unmappedDriverNumbers,
+    };
+  }
+
+  const { error: upsertError } = await supabase
+    .from("session_results")
+    .upsert(resultRows, { onConflict: "session_id,driver_id" });
+
+  if (upsertError) {
+    return { ok: false, reason: getSafeErrorMessage(upsertError), unmappedDriverNumbers };
+  }
+
+  const savedDriverIds = new Set(resultRows.map((row) => row.driver_id));
+  const staleResultIds = existingRows
+    .filter((row) => !row.driver_id || !savedDriverIds.has(row.driver_id))
+    .map((row) => row.id);
+
+  if (staleResultIds.length) {
+    const { error: cleanupError } = await supabase
+      .from("session_results")
+      .delete()
+      .in("id", staleResultIds);
+
+    if (cleanupError) {
+      return { ok: false, reason: getSafeErrorMessage(cleanupError), unmappedDriverNumbers };
+    }
+  }
+
+  const { error: statusError } = await supabase
+    .from("sessions")
+    .update({ status: "completed" })
+    .eq("id", session.id);
+
+  if (statusError) {
+    return { ok: false, reason: getSafeErrorMessage(statusError), unmappedDriverNumbers };
+  }
+
+  return { ok: true, itemsProcessed: resultRows.length, unmappedDriverNumbers };
 }
 
 async function syncWeekendWeather() {
@@ -10371,9 +11825,10 @@ async function deleteReplayEvents(replaySessionId) {
 
 async function fetchJson(url, attempt = 1) {
   await throttleOpenF1Fetch(url);
+  const headers = await getFetchHeaders(url);
 
   const response = await fetch(url, {
-    headers: getFetchHeaders(),
+    headers,
     signal: AbortSignal.timeout(Number(process.env.OPENF1_FETCH_TIMEOUT_MS ?? 12000)),
   });
   const payload = await readJsonResponse(response);
@@ -10383,10 +11838,23 @@ async function fetchJson(url, attempt = 1) {
     return fetchJson(url, attempt + 1);
   }
 
+  if (response.status === 401 && headers.authorization && canRefreshOpenF1AccessToken() && attempt < 2) {
+    clearOpenF1AccessTokenCache();
+    return fetchJson(url, attempt + 1);
+  }
+
   if (!response.ok) {
     const detail = getSafeErrorMessage(payload?.detail ?? payload?.message ?? payload?.error ?? "");
 
     if (isOpenF1Url(url) && response.status === 401) {
+      if (headers.authorization) {
+        throw new Error(
+          detail
+            ? `OpenF1 authentication failed (${response.status}): ${detail}`
+            : `OpenF1 authentication failed (${response.status})`,
+        );
+      }
+
       throw new Error(
         detail
           ? `OpenF1 free tier temporarily restricted (${response.status}): ${detail}`
@@ -10420,10 +11888,93 @@ async function throttleOpenF1Fetch(url) {
   await run;
 }
 
-function getFetchHeaders() {
-  return {
-    "user-agent": "RaceMate/0.1 (+https://racemate.ru)",
+async function getFetchHeaders(url) {
+  const headers = {
+    accept: "application/json",
+    "user-agent": "RaceSide/0.1 (+https://raceside.online)",
   };
+
+  if (!isOpenF1Url(url)) {
+    return headers;
+  }
+
+  const accessToken = await getOpenF1AccessToken();
+
+  if (accessToken) {
+    headers.authorization = `Bearer ${accessToken}`;
+  }
+
+  return headers;
+}
+
+function hasOpenF1LiveCredentials() {
+  return Boolean(
+    normalizeString(process.env.OPENF1_ACCESS_TOKEN)
+    || (normalizeString(process.env.OPENF1_USERNAME) && normalizeString(process.env.OPENF1_PASSWORD)),
+  );
+}
+
+function canRefreshOpenF1AccessToken() {
+  return Boolean(normalizeString(process.env.OPENF1_USERNAME) && normalizeString(process.env.OPENF1_PASSWORD));
+}
+
+async function getOpenF1AccessToken() {
+  const staticToken = normalizeString(process.env.OPENF1_ACCESS_TOKEN);
+
+  if (staticToken) {
+    return staticToken;
+  }
+
+  if (!canRefreshOpenF1AccessToken()) {
+    return null;
+  }
+
+  if (openF1AccessTokenCache && openF1AccessTokenExpiresAt > Date.now() + 60_000) {
+    return openF1AccessTokenCache;
+  }
+
+  if (!openF1AccessTokenPromise) {
+    openF1AccessTokenPromise = requestOpenF1AccessToken().finally(() => {
+      openF1AccessTokenPromise = null;
+    });
+  }
+
+  return openF1AccessTokenPromise;
+}
+
+async function requestOpenF1AccessToken() {
+  const baseUrl = process.env.OPENF1_BASE_URL ?? "https://api.openf1.org/v1";
+  const tokenUrl = new URL("/token", baseUrl).toString();
+  const body = new URLSearchParams({
+    username: process.env.OPENF1_USERNAME,
+    password: process.env.OPENF1_PASSWORD,
+  });
+  const response = await fetch(tokenUrl, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/x-www-form-urlencoded",
+      "user-agent": "RaceSide/0.1 (+https://raceside.online)",
+    },
+    body,
+    signal: AbortSignal.timeout(Number(process.env.OPENF1_FETCH_TIMEOUT_MS ?? 12000)),
+  });
+  const payload = await readJsonResponse(response);
+
+  if (!response.ok || !normalizeString(payload?.access_token)) {
+    throw new Error(
+      `OpenF1 token request failed (${response.status}): ${getSafeErrorMessage(payload?.detail ?? payload?.error ?? "empty access token")}`,
+    );
+  }
+
+  openF1AccessTokenCache = payload.access_token;
+  openF1AccessTokenExpiresAt = Date.now() + Math.max(60, Number(payload.expires_in) || 3_600) * 1_000;
+  return openF1AccessTokenCache;
+}
+
+function clearOpenF1AccessTokenCache() {
+  openF1AccessTokenCache = null;
+  openF1AccessTokenExpiresAt = 0;
 }
 
 function isOpenF1Url(url) {
@@ -10475,7 +12026,7 @@ async function getCircuitsForLayouts() {
   return data ?? [];
 }
 
-function findOpenF1SessionMatch(localSession, openF1Sessions) {
+export function findOpenF1SessionMatch(localSession, openF1Sessions) {
   const race = Array.isArray(localSession.races) ? localSession.races[0] : localSession.races;
   const circuit = Array.isArray(race?.circuits) ? race?.circuits[0] : race?.circuits;
   const localType = normalizeSessionType(localSession.session_type);
@@ -10484,11 +12035,13 @@ function findOpenF1SessionMatch(localSession, openF1Sessions) {
   return (openF1Sessions ?? [])
     .map((session) => ({
       session,
+      sessionType: normalizeSessionType(session.session_name ?? session.session_type),
       score:
         scoreCircuitMatch(circuit, session) +
-        (normalizeSessionType(session.session_type ?? session.session_name) === localType ? 40 : 0) +
+        (normalizeSessionType(session.session_name ?? session.session_type) === localType ? 40 : 0) +
         scoreDateMatch(localStart, session.date_start),
     }))
+    .filter((item) => item.sessionType === localType)
     .filter((item) => item.score >= 55)
     .sort((a, b) => b.score - a.score)[0]?.session ?? null;
 }
@@ -10658,6 +12211,124 @@ async function getDriverMapByNumber(season) {
   return driverByNumber;
 }
 
+async function extendDriverMapWithOpenF1SessionParticipants({ baseUrl, drivers, sessionKey }) {
+  const participantsPayload = await fetchJson(`${baseUrl}/drivers?session_key=${sessionKey}`);
+  const participants = (participantsPayload ?? [])
+    .map(getOpenF1ParticipantIdentity)
+    .filter(Boolean);
+
+  if (!participants.length) {
+    return drivers;
+  }
+
+  const missingParticipants = participants.filter(
+    (participant) => !drivers.has(participant.driverNumber),
+  );
+
+  if (!missingParticipants.length) {
+    return drivers;
+  }
+
+  const [
+    { data: teams, error: teamsError },
+    { data: driversByExternalId, error: externalIdError },
+    { data: driversByFullName, error: fullNameError },
+  ] = await Promise.all([
+    supabase
+      .from("teams")
+      .select("id, name, short_name, code, external_id")
+      .eq("is_active", true),
+    supabase
+      .from("drivers")
+      .select("id, code, full_name, external_id, current_team_id")
+      .in("external_id", missingParticipants.map((participant) => participant.externalId)),
+    supabase
+      .from("drivers")
+      .select("id, code, full_name, external_id, current_team_id")
+      .in("full_name", missingParticipants.map((participant) => participant.fullName)),
+  ]);
+
+  if (teamsError) {
+    throw teamsError;
+  }
+  if (externalIdError) {
+    throw externalIdError;
+  }
+  if (fullNameError) {
+    throw fullNameError;
+  }
+
+  const knownByIdentity = new Map(
+    [...(driversByExternalId ?? []), ...(driversByFullName ?? [])].flatMap((driver) => [
+      [normalizeFantasyTeamKey(driver.external_id), driver],
+      [normalizeFantasyTeamKey(driver.full_name), driver],
+    ]),
+  );
+  const extended = new Map(drivers);
+
+  for (const participant of missingParticipants) {
+    const teamId = resolveExactTeamId(participant.teamName, teams ?? []);
+    let driver =
+      knownByIdentity.get(normalizeFantasyTeamKey(participant.externalId)) ??
+      knownByIdentity.get(normalizeFantasyTeamKey(participant.fullName)) ??
+      null;
+
+    if (!driver) {
+      const { data, error } = await supabase
+        .from("drivers")
+        .upsert({
+          external_id: participant.externalId,
+          code: participant.code,
+          permanent_number: participant.driverNumber,
+          first_name: participant.firstName,
+          last_name: participant.lastName,
+          full_name: participant.fullName,
+          current_team_id: teamId,
+          slug: participant.slug,
+          ai_avatar_url: participant.headshotUrl,
+          is_active: false,
+        }, { onConflict: "external_id" })
+        .select("id, code, full_name, external_id, current_team_id")
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      driver = data;
+      if (driver) {
+        knownByIdentity.set(normalizeFantasyTeamKey(participant.externalId), driver);
+        knownByIdentity.set(normalizeFantasyTeamKey(participant.fullName), driver);
+      }
+    }
+
+    if (driver?.id) {
+      extended.set(participant.driverNumber, {
+        id: driver.id,
+        current_team_id: teamId ?? driver.current_team_id ?? null,
+      });
+    }
+  }
+
+  return extended;
+}
+
+function resolveExactTeamId(teamName, teams) {
+  const normalized = normalizeFantasyTeamKey(teamName);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const exact = teams.find((team) =>
+    [team.name, team.short_name, team.code, team.external_id]
+      .filter(Boolean)
+      .some((candidate) => normalizeFantasyTeamKey(candidate) === normalized),
+  );
+
+  return exact?.id ?? resolveTeamId(teamName, teams);
+}
+
 function getBestLapsByDriver(laps) {
   const byDriver = new Map();
 
@@ -10746,7 +12417,7 @@ function scoreDateMatch(localStart, openF1Start) {
 }
 
 function scoreLayoutSessionType(session) {
-  const type = normalizeSessionType(session.session_type ?? session.session_name);
+  const type = normalizeSessionType(session.session_name ?? session.session_type);
 
   if (type === "qualifying" || type === "race") {
     return 3;
@@ -11238,6 +12909,8 @@ async function enqueueNotifications() {
   const now = new Date();
   const since = new Date(now.getTime() - 48 * 60 * 60 * 1_000).toISOString();
   const until = new Date(now.getTime() + 25 * 60 * 60 * 1_000).toISOString();
+  const newsBudgetSince = new Date(now.getTime() - 24 * 60 * 60 * 1_000).toISOString();
+  const allNewsDailyLimit = 30;
   const { data: previousRun } = await supabase
     .from("job_runs")
     .select("finished_at")
@@ -11264,6 +12937,7 @@ async function enqueueNotifications() {
     { data: sessions },
     { data: news },
     { data: upcomingRace },
+    recentNewsCounts,
   ] = await Promise.all([
     supabase
       .from("sessions")
@@ -11275,6 +12949,7 @@ async function enqueueNotifications() {
       .from("news_articles")
       .select("id, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, image_url, source_image_url, news_sources(name), news_article_tags(tags(type,slug,name))")
       .eq("status", "processed")
+      .eq("publication_status", "published")
       .gte("ai_processed_at", newsSince)
       .order("ai_processed_at", { ascending: false })
       .limit(60),
@@ -11286,6 +12961,10 @@ async function enqueueNotifications() {
       .order("race_start_at", { ascending: true })
       .limit(1)
       .maybeSingle(),
+    getRecentNewsNotificationCounts(
+      accounts.map((account) => account.user_id),
+      newsBudgetSince,
+    ),
   ]);
   const { data: upcomingPredictions } = upcomingRace?.id
     ? await supabase
@@ -11296,6 +12975,8 @@ async function enqueueNotifications() {
     : { data: [] };
 
   let itemsProcessed = 0;
+  let newsEnqueued = 0;
+  let newsSuppressed = 0;
   const completedSessions = (sessions ?? []).filter((session) =>
     session.status === "completed" && isResultSession(session.session_type),
   );
@@ -11360,7 +13041,7 @@ async function enqueueNotifications() {
           entityId: session.id,
           dedupeKey: `cancelled:${session.id}:${account.user_id}`,
           payload: {
-            text: `⚠️ <b>${escapeTelegramHtml(session.name)} отменена</b>\n\nАктуальное расписание уже доступно в RaceMate.`,
+            text: `⚠️ <b>${escapeTelegramHtml(session.name)} отменена</b>\n\nАктуальное расписание уже доступно в RaceSide.`,
             parseMode: "HTML",
             buttonText: "Открыть календарь",
             buttonUrl: "/calendar",
@@ -11451,6 +13132,13 @@ async function enqueueNotifications() {
     }
 
     if (hasAnyNewsPreference(preference)) {
+      let allNewsBudget = preference.important_news
+        ? getRemainingNewsNotificationBudget(
+          recentNewsCounts.get(account.user_id) ?? 0,
+          allNewsDailyLimit,
+        )
+        : Number.POSITIVE_INFINITY;
+
       for (const article of news ?? []) {
         if (!isNotificationFreshForConnection(article.ai_processed_at, connectedAt)) {
           continue;
@@ -11460,7 +13148,12 @@ async function enqueueNotifications() {
           continue;
         }
 
-        itemsProcessed += await insertNotification({
+        if (preference.important_news && allNewsBudget <= 0) {
+          newsSuppressed += 1;
+          continue;
+        }
+
+        const inserted = await insertNotification({
           userId: account.user_id,
           eventType: "IMPORTANT_NEWS",
           entityType: "news",
@@ -11474,11 +13167,67 @@ async function enqueueNotifications() {
             buttonUrl: `/news/${article.id}`,
           },
         });
+        itemsProcessed += inserted;
+        newsEnqueued += inserted;
+
+        if (inserted && preference.important_news) {
+          allNewsBudget -= 1;
+        }
       }
     }
   }
 
-  return { itemsProcessed, metadata: { recipients: accounts.length } };
+  return {
+    itemsProcessed,
+    metadata: {
+      recipients: accounts.length,
+      newsEnqueued,
+      newsSuppressed,
+      allNewsDailyLimit,
+    },
+  };
+}
+
+async function runNotificationCycle() {
+  const enqueueResult = await enqueueNotifications();
+  const dispatchResult = await dispatchNotifications();
+
+  return {
+    itemsProcessed: enqueueResult.itemsProcessed + dispatchResult.itemsProcessed,
+    metadata: {
+      ...enqueueResult.metadata,
+      enqueued: enqueueResult.itemsProcessed,
+      dispatched: dispatchResult.itemsProcessed,
+      dispatchSelected: dispatchResult.metadata?.selected ?? 0,
+    },
+  };
+}
+
+async function getRecentNewsNotificationCounts(userIds, since) {
+  if (!userIds.length) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase
+    .from("notification_queue")
+    .select("user_id")
+    .eq("event_type", "IMPORTANT_NEWS")
+    .in("status", ["pending", "sending", "sent"])
+    .in("user_id", userIds)
+    .gte("created_at", since)
+    .limit(Math.max(100, userIds.length * 60));
+
+  if (error) {
+    throw error;
+  }
+
+  const counts = new Map(userIds.map((userId) => [userId, 0]));
+
+  for (const row of data ?? []) {
+    counts.set(row.user_id, (counts.get(row.user_id) ?? 0) + 1);
+  }
+
+  return counts;
 }
 
 async function dispatchNotifications() {
@@ -11687,7 +13436,7 @@ async function insertNotification({ userId, eventType, entityType, entityId, ded
 }
 
 async function sendQueuedTelegramMessage(botToken, chatId, payload) {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://racemate.ru").replace(/\/$/, "");
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://raceside.online").replace(/\/$/, "");
   const buttons = [];
 
   if (payload.callbackText && payload.callbackData) {
@@ -11701,7 +13450,7 @@ async function sendQueuedTelegramMessage(botToken, chatId, payload) {
     buttons.push([{ text: payload.buttonText, url: buttonUrl }]);
   }
 
-  const text = String(payload.text ?? "Новое уведомление RaceMate");
+  const text = String(payload.text ?? "Новое уведомление RaceSide");
   const replyMarkup = buttons.length ? { reply_markup: { inline_keyboard: buttons } } : {};
   const parseMode = payload.parseMode ? { parse_mode: payload.parseMode } : {};
   const send = async (method, body) => {
@@ -11803,7 +13552,7 @@ function matchesNewsPreference(article, preference, favoriteTerms = { drivers: [
 function formatNewsTelegramText(article) {
   const source = firstRelation(article.news_sources);
   const title = escapeTelegramHtml(article.ai_title_ru ?? article.original_title ?? "Новая история из мира Формулы-1");
-  const summary = escapeTelegramHtml(String(article.ai_summary_ru ?? "Свежий материал уже доступен в RaceMate.").slice(0, 620));
+  const summary = escapeTelegramHtml(String(article.ai_summary_ru ?? "Свежий материал уже доступен в RaceSide.").slice(0, 620));
   const sourceLine = source?.name ? `\n\n📰 ${escapeTelegramHtml(source.name)}` : "";
 
   return `🏎 <b>${title}</b>\n\n${summary}${sourceLine}`;
@@ -12458,11 +14207,13 @@ function parseRss(xml) {
 }
 
 function filterRssItemsForSource(items, source) {
+  const publishableItems = items.filter(isNewsFeedItemPublishable);
+
   if (source.source_type !== "rss-formula-1") {
-    return items;
+    return publishableItems;
   }
 
-  return items.filter((item) =>
+  return publishableItems.filter((item) =>
     (item.categories ?? []).some((category) => normalizeString(category)?.toLowerCase() === "formula 1"),
   );
 }
@@ -12709,6 +14460,30 @@ function safeJson(value) {
   }
 }
 
+function parseOpenRouterMessageJson(content) {
+  if (isPlainObject(content)) {
+    return content;
+  }
+
+  const text = Array.isArray(content)
+    ? content
+        .map((part) => typeof part === "string" ? part : part?.text ?? part?.content ?? "")
+        .join("")
+    : String(content ?? "");
+  const direct = safeJson(text);
+
+  if (direct) {
+    return direct;
+  }
+
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+
+  return firstBrace >= 0 && lastBrace > firstBrace
+    ? safeJson(text.slice(firstBrace, lastBrace + 1))
+    : null;
+}
+
 function isPlainObject(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
@@ -12784,7 +14559,7 @@ async function fetchReadableArticleMetadata(url) {
     const response = await fetch(url, {
       headers: {
         accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
-        "user-agent": "RaceMate/1.0 (+https://racemate.ru)",
+        "user-agent": "RaceSide/1.0 (+https://raceside.online)",
       },
       signal: AbortSignal.timeout(Number(process.env.AI_ARTICLE_FETCH_TIMEOUT_MS ?? 8000)),
     });
@@ -12822,7 +14597,7 @@ async function fetchReadableArticleMetadataViaReader(url, fallback = { text: nul
     const response = await fetch(`https://r.jina.ai/http://${url}`, {
       headers: {
         accept: "text/plain, text/markdown;q=0.9, */*;q=0.8",
-        "user-agent": "RaceMate/1.0 (+https://racemate.ru)",
+        "user-agent": "RaceSide/1.0 (+https://raceside.online)",
       },
       signal: AbortSignal.timeout(Number(process.env.AI_ARTICLE_READER_TIMEOUT_MS ?? 15000)),
     });
@@ -13047,29 +14822,11 @@ function makeFallbackNewsPayload(article) {
   return {
     title: "Новость Формулы-1: детали уточняются",
     summary: "Источник сообщил новую информацию по Формуле-1, но деталей пока недостаточно для уверенного русского пересказа. Мы не добавляем неподтвержденные факты и обновим материал после повторной обработки.",
-    details: `${sourceText}\n\nПодробная русская версия появится после повторной обработки. До этого RaceMate показывает только осторожное описание без дополнительных выводов и домыслов.`,
+    details: `${sourceText}\n\nПодробная русская версия появится после повторной обработки. До этого RaceSide показывает только осторожное описание без дополнительных выводов и домыслов.`,
     keyPoints: ["Источник передал краткое описание.", "Подробная русская версия готовится.", "Факты не расширялись без подтверждения источника."],
     highlights: ["Подробная русская версия готовится"],
     teamSlugs: [],
   };
-}
-
-function buildNewsAiSystemPrompt() {
-  return [
-    "Ты редактор RaceMate для русскоязычных фанатов Формулы-1.",
-    "Твоя задача — прочитать переданные материалы, перевести смысл на русский и написать подробный редакторский пересказ своими словами.",
-    "Все пользовательские текстовые поля JSON должны быть на русском языке, кроме названий команд, пилотов, серий, технических аббревиатур и team_slugs.",
-    "Не возвращай английский заголовок, английский лид или английский текст статьи как title_ru, summary_ru или details_ru.",
-    "Не копируй фразы источника дословно, не выдавай текст за оригинальную публикацию и не придумывай факты.",
-    "Если данных мало, напиши короткий осторожный пересказ на русском по доступному RSS-описанию.",
-    "Верни только JSON: title_ru, summary_ru, details_ru, key_points_ru, highlight_phrases_ru, race_round, race_confidence, team_slugs.",
-    "summary_ru — короткий лид на 2-3 предложения.",
-    "details_ru — полноценный материал RaceMate: 5-8 абзацев, разделенных пустой строкой, с контекстом, участниками, причиной важности и возможными последствиями только из переданных фактов.",
-    "key_points_ru — массив из 4-5 коротких пунктов.",
-    "highlight_phrases_ru — массив из 3-6 точных коротких фактических фраз на русском, которые дословно встречаются в summary_ru или details_ru. Каждая фраза должна быть 4-140 символов, без оценок и без новых формулировок: RaceMate подчеркнет их в тексте статьи.",
-    "race_round — номер этапа из списка или null.",
-    "team_slugs — массив slug команд из списка, если новость прямо связана с командой, ее пилотом, руководителем, болидом, стратегией или результатом команды. Не придумывай slug вне списка.",
-  ].join(" ");
 }
 
 function isUsableRussianNewsPayload({ details, summary, title }) {
@@ -13091,16 +14848,6 @@ function isMostlyRussianText(value, { minCyrillic, minRatio }) {
   const latinCount = (text.match(/[A-Za-z]/g) ?? []).length;
 
   return cyrillicCount >= minCyrillic && cyrillicCount >= latinCount * minRatio;
-}
-
-function buildNewsHighlightSystemPrompt() {
-  return [
-    "Ты редактор RaceMate для русскоязычных фанатов Формулы-1.",
-    "Верни только JSON: highlight_phrases_ru.",
-    "Выбери 3-6 коротких фактических фраз, которые дословно присутствуют в переданном лиде или тексте статьи.",
-    "Фразы должны выделять ключевые факты: результат, решение, цитату, изменение, срок или причину. Не добавляй оценок, новых слов, заголовков и фраз, которых нет в тексте.",
-    "Каждая фраза: от 4 до 140 символов. Не повторяй похожие фразы.",
-  ].join(" ");
 }
 
 function selectArticleHighlights(value, summary, details) {

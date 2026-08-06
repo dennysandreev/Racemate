@@ -22,11 +22,11 @@ export function NavigationLoadingPlate({ className, label }: NavigationLoadingPl
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="grid size-11 place-items-center">
-              <RaceMateMark className="h-7 w-11" />
+              <RaceMateMark className="h-7 w-[3.75rem]" />
             </span>
             <div>
               <p className="font-display text-lg font-extrabold leading-none tracking-[-0.03em]">
-                RaceMate
+                RaceSide
               </p>
               <p className="font-telemetry mt-1 text-[0.6rem] font-bold uppercase tracking-[0.18em] text-muted-foreground">
                 переход запущен

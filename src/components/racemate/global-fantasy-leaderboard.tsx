@@ -35,7 +35,7 @@ export function GlobalFantasyLeaderboardPanel({
             <div>
               <h2 className="font-display text-lg font-bold leading-tight">Глобальный лидерборд</h2>
               <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-                Все участники RaceMate за сезон
+                Все участники RaceSide за сезон
               </p>
             </div>
           </div>

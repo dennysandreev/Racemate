@@ -1,6 +1,8 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Clock, Flag, MapPin } from "lucide-react";
+import { cache } from "react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { CircuitStatsSection } from "@/components/racemate/circuit-stats-section";
@@ -10,6 +12,7 @@ import { RaceSessionResultsPanel } from "@/components/racemate/race-session-resu
 import { TrackMap } from "@/components/racemate/track-map";
 import { GrandPrixReportDialog } from "@/components/racemate/grand-prix-report-dialog";
 import { GrandPrixPodiumPreview } from "@/components/racemate/grand-prix-podium-preview";
+import { JsonLd } from "@/components/racemate/json-ld";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -31,17 +34,55 @@ import {
   getSessionResultsBySessionIds,
 } from "@/data/racemate-repository";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
+import { absoluteUrl, createPageMetadata, SITE_URL } from "@/lib/seo";
 import type { GrandPrixReport } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
 
+type RaceCalendarPageProps = {
+  params: Promise<{ season: string; round: string }>;
+  searchParams: Promise<{ session?: string; raceReport?: string }>;
+};
+
+const getCachedRaceDetail = cache(getRaceDetail);
+
+export async function generateMetadata({
+  params,
+}: RaceCalendarPageProps): Promise<Metadata> {
+  const { season, round } = await params;
+
+  if (!/^\d{4}$/.test(season) || !/^[1-9]\d*$/.test(round)) {
+    return createPageMetadata({
+      description: "Этап не найден в календаре RaceSide.",
+      noIndex: true,
+      path: `/calendar/${season}/${round}`,
+      title: "Этап не найден",
+    });
+  }
+
+  const race = await getCachedRaceDetail(Number(season), Number(round));
+
+  if (!race) {
+    return createPageMetadata({
+      description: "Этап не найден в опубликованном календаре RaceSide.",
+      noIndex: true,
+      path: `/calendar/${season}/${round}`,
+      title: "Этап не найден",
+    });
+  }
+
+  return createPageMetadata({
+    description: `${race.race} ${race.season}: расписание сессий, результаты, статистика трассы ${race.circuit} и материалы этапа.`,
+    image: race.trackMapUrl,
+    path: `/calendar/${race.season}/${race.round}`,
+    title: `${race.race} ${race.season}: расписание и результаты`,
+  });
+}
+
 export default async function RaceCalendarPage({
   params,
   searchParams,
-}: {
-  params: Promise<{ season: string; round: string }>;
-  searchParams: Promise<{ session?: string; raceReport?: string }>;
-}) {
+}: RaceCalendarPageProps) {
   const [{ season, round }, query] = await Promise.all([params, searchParams]);
   if (!/^\d{4}$/.test(season) || !/^[1-9]\d*$/.test(round)) {
     notFound();
@@ -56,7 +97,7 @@ export default async function RaceCalendarPage({
     notFound();
   }
 
-  const race = await getRaceDetail(seasonYear, raceRound);
+  const race = await getCachedRaceDetail(seasonYear, raceRound);
 
   if (!race) {
     notFound();
@@ -93,6 +134,61 @@ export default async function RaceCalendarPage({
 
   return (
     <AppShell>
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                item: SITE_URL,
+                name: "Главная",
+                position: 1,
+              },
+              {
+                "@type": "ListItem",
+                item: absoluteUrl(
+                  seasonYear === CURRENT_F1_SEASON
+                    ? "/calendar"
+                    : `/calendar?season=${seasonYear}`,
+                ),
+                name: `Календарь ${seasonYear}`,
+                position: 2,
+              },
+              {
+                "@type": "ListItem",
+                item: absoluteUrl(`/calendar/${seasonYear}/${raceRound}`),
+                name: race.race,
+                position: 3,
+              },
+            ],
+          },
+          {
+            "@context": "https://schema.org",
+            "@id": `${absoluteUrl(`/calendar/${seasonYear}/${raceRound}`)}#event`,
+            "@type": "SportsEvent",
+            description: `${race.race}, сезон Формулы-1 ${seasonYear}, раунд ${raceRound}.`,
+            eventStatus: race.status === "Завершен"
+              ? "https://schema.org/EventCompleted"
+              : "https://schema.org/EventScheduled",
+            image: race.trackMapUrl ? absoluteUrl(race.trackMapUrl) : undefined,
+            inLanguage: "ru-RU",
+            location: {
+              "@type": "Place",
+              address: {
+                "@type": "PostalAddress",
+                addressCountry: race.country,
+                addressLocality: race.locality,
+              },
+              name: race.circuit,
+            },
+            name: `${race.race} ${seasonYear}`,
+            startDate: race.startsAtIso,
+            url: absoluteUrl(`/calendar/${seasonYear}/${raceRound}`),
+          },
+        ]}
+      />
       <PageHeading
         badge={`${race.season}, раунд ${race.round}`}
         description={`${race.circuit} · ${race.locality}, ${race.country}`}
@@ -181,7 +277,7 @@ export default async function RaceCalendarPage({
             </div>
           ) : (
             <div className="rounded-md border border-border/70 p-5 text-sm text-muted-foreground">
-              RaceMate еще не привязал свежие новости к этому этапу.
+              RaceSide еще не привязал свежие новости к этому этапу.
             </div>
           )}
         </section>

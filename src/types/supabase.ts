@@ -123,6 +123,60 @@ export type Database = {
         user_id: string;
         created_at: string;
       }>;
+      admin_audit_log: TableDefinition<{
+        id: string;
+        actor_user_id: string;
+        action: string;
+        entity_type: string;
+        entity_id: string | null;
+        outcome: "started" | "succeeded" | "failed";
+        before_data: Json;
+        after_data: Json;
+        metadata: Json;
+        error_code: string | null;
+        created_at: string;
+        finished_at: string | null;
+      }>;
+      admin_ai_budgets: TableDefinition<{
+        scope: "default" | "social_x";
+        daily_limit_usd: number;
+        monthly_limit_usd: number;
+        updated_by: string | null;
+        updated_at: string;
+      }>;
+      ai_prompt_versions: TableDefinition<{
+        id: string;
+        prompt_key: string;
+        version: number;
+        status: "draft" | "published" | "archived";
+        system_prompt: string;
+        user_template: string;
+        model: string | null;
+        max_tokens: number | null;
+        change_note: string | null;
+        checksum: string;
+        created_by: string;
+        published_by: string | null;
+        created_at: string;
+        published_at: string | null;
+      }>;
+      admin_job_schedules: TableDefinition<{
+        id: string;
+        schedule_key: string;
+        job_name: string;
+        schedule_kind: "interval" | "daily" | "adaptive";
+        interval_minutes: number | null;
+        daily_time_utc: string | null;
+        args: Json;
+        max_attempts: number;
+        is_enabled: boolean;
+        next_run_at: string;
+        last_enqueued_at: string | null;
+        last_job_run_id: string | null;
+        updated_by: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
       teams: TableDefinition<{
         id: string;
         external_id: string | null;
@@ -357,6 +411,7 @@ export type Database = {
       }>;
       news_articles: TableDefinition<{
         id: string;
+        slug: string;
         source_id: string | null;
         canonical_url: string;
         original_url: string | null;
@@ -364,6 +419,10 @@ export type Database = {
         original_description: string | null;
         original_language: string | null;
         published_at: string | null;
+        source_published_at: string | null;
+        rss_guid: string | null;
+        normalized_source_url: string | null;
+        source_content_hash: string | null;
         fetched_at: string;
         ai_summary_ru: string | null;
         ai_summary_long_ru: string | null;
@@ -380,6 +439,25 @@ export type Database = {
         importance_score: number;
         status: string;
         duplicate_of: string | null;
+        main_fact: string | null;
+        event_type: string | null;
+        event_stage: string | null;
+        event_date: string | null;
+        event_fingerprint: string | null;
+        normalized_entities: Json;
+        ingested_at: string;
+        dedup_checked_at: string | null;
+        dedup_status: string;
+        publication_status: string;
+        duplicate_confidence: number | null;
+        duplicate_relation: string | null;
+        duplicate_reason: string | null;
+        dedup_candidate_count: number;
+        dedup_processing_time_ms: number | null;
+        dedup_decision_history: Json;
+        published_manually: boolean;
+        manual_published_at: string | null;
+        manual_published_by: string | null;
         related_race_id: string | null;
         raw_payload: Json | null;
         ai_model: string | null;
@@ -387,11 +465,34 @@ export type Database = {
         created_at: string;
         updated_at: string;
       }>;
+      news_dedup_locks: TableDefinition<{
+        lock_key: string;
+        article_id: string;
+        acquired_at: string;
+        expires_at: string;
+      }>;
+      news_dedup_decisions: TableDefinition<{
+        id: number;
+        article_id: string;
+        duplicate_of: string | null;
+        candidate_count: number;
+        is_duplicate: boolean;
+        confidence: number | null;
+        relation: string | null;
+        reason: string | null;
+        dedup_status: string;
+        publication_status: string;
+        processing_time_ms: number | null;
+        error_message: string | null;
+        decision_source: string;
+        created_at: string;
+      }>;
       share_links: TableDefinition<{
         code: string;
         news_article_id: string | null;
         prediction_id: string | null;
         prediction_scope: string | null;
+        share_image_version: number | null;
         created_at: string;
       }>;
       tags: TableDefinition<{
@@ -771,6 +872,15 @@ export type Database = {
         items_processed: number;
         error_message: string | null;
         metadata: Json | null;
+        queue_version: number | null;
+        requested_by: string | null;
+        available_at: string | null;
+        claimed_at: string | null;
+        worker_id: string | null;
+        attempt_count: number;
+        max_attempts: number;
+        retry_of: string | null;
+        request_key: string | null;
       }>;
       ai_usage_logs: TableDefinition<{
         id: string;
@@ -782,6 +892,8 @@ export type Database = {
         estimated_cost_usd: number | null;
         related_article_id: string | null;
         related_digest_id: string | null;
+        prompt_key: string | null;
+        prompt_version_id: string | null;
         created_at: string;
       }>;
     };
@@ -789,6 +901,78 @@ export type Database = {
     Functions: {
       is_admin: {
         Args: never;
+        Returns: boolean;
+      };
+      claim_next_admin_job: {
+        Args: {
+          p_worker_id: string;
+        };
+        Returns: Database["public"]["Tables"]["job_runs"]["Row"][];
+      };
+      get_admin_ai_usage_summary: {
+        Args: {
+          p_since: string;
+        };
+        Returns: Array<{
+          dimension: "day" | "model" | "purpose" | "total";
+          bucket: string;
+          request_count: number;
+          input_tokens: number;
+          output_tokens: number;
+          cost_usd: number;
+          unpriced_count: number;
+        }>;
+      };
+      save_admin_ai_prompt_version: {
+        Args: {
+          p_prompt_key: string;
+          p_system_prompt: string;
+          p_user_template: string;
+          p_model: string;
+          p_max_tokens: number;
+          p_change_note: string;
+          p_actor: string;
+          p_publish: boolean;
+          p_checksum: string;
+        };
+        Returns: Array<{
+          saved_id: string;
+          saved_version: number;
+          saved_status: "draft" | "published";
+        }>;
+      };
+      get_ai_budget_guard: {
+        Args: {
+          p_purpose: string;
+        };
+        Returns: Array<{
+          scope: "default" | "social_x";
+          daily_limit_usd: number;
+          monthly_limit_usd: number;
+          daily_spend_usd: number;
+          monthly_spend_usd: number;
+          allowed: boolean;
+        }>;
+      };
+      enqueue_due_admin_schedules: {
+        Args: {
+          p_limit?: number;
+        };
+        Returns: number;
+      };
+      acquire_news_dedup_lock: {
+        Args: {
+          p_lock_key: string;
+          p_article_id: string;
+          p_stale_after_seconds?: number;
+        };
+        Returns: boolean;
+      };
+      release_news_dedup_lock: {
+        Args: {
+          p_lock_key: string;
+          p_article_id: string;
+        };
         Returns: boolean;
       };
     };

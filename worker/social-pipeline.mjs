@@ -48,6 +48,14 @@ export function createSocialContentHash({ title, body }) {
     : null;
 }
 
+export function getSocialPostWriteDecision(existing, contentHash) {
+  if (!existing) {
+    return "created";
+  }
+
+  return existing.content_hash === contentHash ? "unchanged" : "updated";
+}
+
 export function getSocialRetryDelayMs(attempt) {
   const safeAttempt = Math.max(1, Math.min(Number(attempt) || 1, 20));
   return Math.min(24 * 60 * 60 * 1_000, 5 * 60 * 1_000 * 2 ** (safeAttempt - 1));

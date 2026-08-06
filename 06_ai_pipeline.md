@@ -23,14 +23,20 @@ OpenRouter.
 ## Pipeline новости
 
 1. RSS item fetched.
-2. Normalize.
-3. Deduplicate.
-4. Apply rule-based tags.
-5. If unique — send to AI.
-6. Validate JSON.
-7. Save AI title, summary, importance score.
-8. Log AI usage.
-9. Article status = processed.
+2. Normalize URL and calculate a stable content hash.
+3. Check technical duplicates by normalized URL, RSS GUID and content hash without an AI call.
+4. Save a new article as `publication_status = processing`.
+5. Build the Russian article and normalized editorial metadata in one AI call.
+6. Validate JSON; retry metadata extraction separately when the first response is incomplete.
+7. Select no more than 10 plausible candidates from the previous 24 hours.
+8. Under an event lock, classify only those candidates as duplicate, update, confirmation, decision, result, analysis, reaction, related or unrelated.
+9. Publish the first ingested version of a fact. A later article is hidden only when relation is `duplicate` and confidence reaches the configured threshold.
+10. Save the decision, candidate count, timing and reason in `news_dedup_decisions`.
+11. Apply rule-based tags and log AI usage.
+
+После формирования `title_ru` материал получает стабильный публичный `slug`, транслитерированный из короткого редакционного заголовка. Slug фиксируется при публикации: последующее редактирование заголовка не меняет URL. При совпадении заголовков к slug добавляется короткий уникальный суффикс.
+
+Rumor, official confirmation, new decision, result, reaction and analysis remain separate publications even when they concern the same participants. Public queries return only `status = processed`, `publication_status = published` rows without `duplicate_of`.
 
 ## Prompt: article summary
 
@@ -62,9 +68,48 @@ URL: {{canonical_url}}
 {
   "title_ru": "короткий заголовок на русском, без кликбейта",
   "summary_ru": "2-4 предложения, своими словами",
+  "details_ru": "подробный редакторский пересказ",
+  "key_points_ru": ["короткий факт"],
+  "highlight_phrases_ru": ["фраза, которая дословно есть в тексте"],
   "importance_score": число от 1 до 10,
   "why_it_matters": "1 короткое предложение, почему это важно",
-  "confidence": число от 0 до 1
+  "confidence": число от 0 до 1,
+  "main_fact": "одно предложение с центральным новым фактом",
+  "event_type": "стабильный тип события в snake_case",
+  "event_stage": "стадия события в snake_case",
+  "event_date": "YYYY-MM-DD или null",
+  "event_fingerprint": "стабильный ключ события в snake_case на латинице",
+  "entities": [
+    {
+      "type": "team | person | race | organization | other",
+      "name": "отображаемое имя",
+      "normalized_name": "имя в snake_case на латинице"
+    }
+  ]
+}
+```
+
+## Prompt: semantic deduplication
+
+System:
+
+```text
+Ты проверяешь новости автоспорта на смысловые дубли.
+Определи, сообщает ли новая новость тот же центральный факт, который уже опубликован.
+Разница только в формулировке, переводе, заголовке, несущественной цитате или общем контексте означает duplicate.
+Официальное подтверждение, решение, наказание, результат, новый статус, самостоятельный анализ, интервью или реакция с новым существенным фактом не являются дублем.
+Верни только валидный JSON.
+```
+
+Response:
+
+```json
+{
+  "is_duplicate": true,
+  "duplicate_of": "uuid из переданного списка или null",
+  "relation": "duplicate | update | official_confirmation | decision | result | analysis | reaction | related | unrelated",
+  "confidence": 0.97,
+  "reason": "короткое объяснение решения"
 }
 ```
 
@@ -114,6 +159,13 @@ ENV:
 - `AI_DAILY_COST_LIMIT_USD`
 - `AI_MONTHLY_COST_LIMIT_USD`
 - `AI_MAX_ARTICLES_PER_RUN`
+- `NEWS_DEDUP_ENABLED`
+- `NEWS_DEDUP_WINDOW_HOURS`
+- `NEWS_DEDUP_MAX_CANDIDATES`
+- `NEWS_DEDUP_CONFIDENCE_THRESHOLD`
+- `NEWS_DEDUP_FAIL_MODE`
+- `NEWS_DEDUP_AI_RETRY_COUNT`
+- `NEWS_DEDUP_AI_MODEL`
 
 DB:
 - `ai_usage_logs`
@@ -123,3 +175,35 @@ Rules:
 - не обрабатывать дубли;
 - при превышении лимита оставлять статьи pending;
 - в админке показывать usage.
+
+Учёт usage выполняется сразу после каждого полученного ответа OpenRouter, до разбора
+контента и продуктовой валидации. Поэтому оплаченные повторные попытки, ответы с
+невалидным JSON и последующие ошибки сохранения также остаются в журнале.
+`estimated_cost_usd` берётся из `usage.cost`, а токены из нативных полей
+`usage.prompt_tokens` и `usage.completion_tokens`.
+
+Админская статистика за период агрегируется функцией
+`get_admin_ai_usage_summary`, без ограничения PostgREST по числу строк. Старые
+записи без сохранённого `usage.cost` учитываются в токенах и вызовах, но отдельно
+помечаются как вызовы без цены.
+
+## Версии промптов
+
+`src/config/ai-prompts.json` содержит полный каталог AI-задач, которые реально
+вызывает worker. Для каждой задачи зафиксированы понятное назначение, стандартная
+системная инструкция, шаблон входной задачи, разрешённые переменные, защищённый
+формат ответа, базовая модель и лимит ответа.
+
+В `/admin/ai` администратор может сохранить черновик и опубликовать новую версию
+инструкции. Опубликованные версии хранятся в `ai_prompt_versions`. Worker загружает
+актуальную версию перед обращением к OpenRouter и не дольше минуты держит её в
+памяти. Если таблица недоступна или версия не проходит повторную проверку
+переменных, используется стандартный текст из каталога.
+
+Защищённый формат ответа не редактируется: worker всегда добавляет его к
+системной инструкции. Это сохраняет обязательные JSON-поля и продуктовую
+валидацию новостей, дублей, опросов и соцсетей.
+
+Каждая новая запись `ai_usage_logs` получает `prompt_key` и
+`prompt_version_id`. В журнал не попадают исходный материал, собранный prompt,
+ответ AI, ключ OpenRouter и другие секреты.

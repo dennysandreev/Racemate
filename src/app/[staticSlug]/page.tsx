@@ -7,6 +7,7 @@ import {
   StaticDocumentPageView,
 } from "@/components/racemate/static-info-page";
 import { placeholderPages, staticDocumentPages } from "@/content/static-pages";
+import { createPageMetadata } from "@/lib/seo";
 
 type StaticPageProps = {
   params: Promise<{ staticSlug: string }>;
@@ -26,15 +27,20 @@ export async function generateMetadata({ params }: StaticPageProps): Promise<Met
   const page = documentPage ?? placeholderPage;
 
   if (!page) {
-    return {
-      title: "Страница не найдена — RaceMate",
-    };
+    return createPageMetadata({
+      description: "Страница не найдена.",
+      noIndex: true,
+      path: `/${staticSlug}`,
+      title: "Страница не найдена",
+    });
   }
 
-  return {
-    title: `${page.title} — RaceMate`,
+  return createPageMetadata({
     description: page.description,
-  };
+    noIndex: Boolean(placeholderPage),
+    path: `/${staticSlug}`,
+    title: page.title,
+  });
 }
 
 export default async function StaticPage({ params }: StaticPageProps) {

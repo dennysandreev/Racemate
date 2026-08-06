@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ExternalLink, Flame, Newspaper } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 
 import { reactToArticle } from "@/app/news/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { ArticleShareActions } from "@/components/racemate/article-share-actions";
+import { JsonLd } from "@/components/racemate/json-ld";
 import { NewsImage } from "@/components/racemate/news-image";
 import { NewsTagBadge } from "@/components/racemate/news-tag-badge";
 import {
@@ -20,7 +21,12 @@ import {
   getNewsArticle,
   getNewsItems,
 } from "@/data/racemate-repository";
-import { getSiteUrl } from "@/lib/env";
+import {
+  absoluteUrl,
+  createPageMetadata,
+  SITE_URL,
+  truncateSeoText,
+} from "@/lib/seo";
 import { getOrCreateNewsShareUrl } from "@/lib/share-links";
 
 type NewsArticlePageProps = {
@@ -36,34 +42,29 @@ export async function generateMetadata({
   const article = await getCachedNewsArticle(slug);
 
   if (!article) {
-    return { title: "Новость не найдена · RaceMate" };
+    return createPageMetadata({
+      description: "Материал не найден или больше не опубликован.",
+      noIndex: true,
+      path: `/news/${slug}`,
+      title: "Новость не найдена",
+    });
   }
 
   const canonicalUrl = buildArticleUrl(article.slug);
-  const description = buildMetadataDescription(article.summary);
+  const description = truncateSeoText(article.summary);
   const imageUrl = toAbsoluteUrl(article.imageUrl);
-  const title = `${article.title} · RaceMate`;
 
-  return {
-    alternates: { canonical: canonicalUrl },
+  return createPageMetadata({
+    authors: ["RaceSide"],
     description,
-    openGraph: {
-      description,
-      locale: "ru_RU",
-      siteName: "RaceMate",
-      title,
-      type: "article",
-      url: canonicalUrl,
-      ...(imageUrl ? { images: [{ alt: article.title, url: imageUrl }] } : {}),
-    },
-    title,
-    twitter: {
-      card: "summary_large_image",
-      description,
-      title,
-      ...(imageUrl ? { images: [imageUrl] } : {}),
-    },
-  };
+    image: imageUrl,
+    path: canonicalUrl,
+    publishedTime: article.publishedAt,
+    section: "Новости Формулы-1",
+    tags: article.tags.map((tag) => tag.name),
+    title: article.title,
+    type: "article",
+  });
 }
 
 export default async function NewsArticlePage({
@@ -76,16 +77,72 @@ export default async function NewsArticlePage({
     notFound();
   }
 
+  if (slug !== article.slug) {
+    permanentRedirect(`/news/${article.slug}`);
+  }
+
   const canonicalUrl = buildArticleUrl(article.slug);
   const [reactions, latestNews, shareUrl] = await Promise.all([
-    getArticleReactionCounts(article.slug),
+    getArticleReactionCounts(article.id),
     getNewsItems({ pageSize: 4 }),
-    getOrCreateNewsShareUrl(article.slug, canonicalUrl),
+    getOrCreateNewsShareUrl(article.id, canonicalUrl),
   ]);
   const detailParagraphs = splitArticleDetails(article.details);
+  const imageUrl = toAbsoluteUrl(article.imageUrl);
 
   return (
     <AppShell>
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                item: SITE_URL,
+                name: "Главная",
+                position: 1,
+              },
+              {
+                "@type": "ListItem",
+                item: `${SITE_URL}/news`,
+                name: "Новости",
+                position: 2,
+              },
+              {
+                "@type": "ListItem",
+                item: canonicalUrl,
+                name: article.title,
+                position: 3,
+              },
+            ],
+          },
+          {
+            "@context": "https://schema.org",
+            "@id": `${canonicalUrl}#article`,
+            "@type": "NewsArticle",
+            articleSection: "Формула-1",
+            author: {
+              "@id": `${SITE_URL}/#organization`,
+            },
+            citation: article.href,
+            dateModified: article.publishedAt,
+            datePublished: article.publishedAt,
+            description: truncateSeoText(article.summary),
+            headline: truncateSeoText(article.title, 110),
+            image: imageUrl ? [imageUrl] : undefined,
+            inLanguage: "ru-RU",
+            isBasedOn: article.href,
+            keywords: article.tags.map((tag) => tag.name).join(", "),
+            mainEntityOfPage: canonicalUrl,
+            publisher: {
+              "@id": `${SITE_URL}/#organization`,
+            },
+            url: canonicalUrl,
+          },
+        ]}
+      />
       <header className="border-b border-border py-5 sm:py-6">
         <h1 className="font-display max-w-5xl text-balance text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:text-4xl">
           {article.title}
@@ -117,7 +174,7 @@ export default async function NewsArticlePage({
             text={article.summary}
           />
           <NewsImage
-            alt=""
+            alt={article.title}
             className="relative mt-6 aspect-video overflow-hidden rounded-lg border border-border bg-muted"
             priority
             src={article.imageUrl}
@@ -165,7 +222,8 @@ export default async function NewsArticlePage({
             <StitchPanelHeader icon={Flame} title="Оцени и поделись" />
             <div className="p-3">
               <form action={reactToArticle} className="flex flex-wrap gap-2">
-                <input name="articleId" type="hidden" value={article.slug} />
+                <input name="articleId" type="hidden" value={article.id} />
+                <input name="articleSlug" type="hidden" value={article.slug} />
                 {Object.entries(reactions).map(([reaction, count]) => (
                   <Button className="min-w-20 justify-between" key={reaction} name="reaction" type="submit" value={reaction} variant="secondary">
                     {reaction}
@@ -181,7 +239,7 @@ export default async function NewsArticlePage({
             <StitchPanelHeader icon={Newspaper} title="Свежие материалы" />
             <div className="grid gap-2 p-4">
               {latestNews.items
-                .filter((item) => item.slug !== article.slug)
+                .filter((item) => item.id !== article.id)
                 .slice(0, 3)
                 .map((item) => (
                   <Link
@@ -252,14 +310,8 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function buildArticleUrl(articleId: string) {
-  return `${getSiteUrl().replace(/\/+$/, "")}/news/${articleId}`;
-}
-
-function buildMetadataDescription(summary: string) {
-  const normalized = summary.replace(/\s+/g, " ").trim();
-
-  return normalized.length > 180 ? `${normalized.slice(0, 177).trimEnd()}...` : normalized;
+function buildArticleUrl(articleSlug: string) {
+  return absoluteUrl(`/news/${articleSlug}`);
 }
 
 function toAbsoluteUrl(value?: string) {
@@ -268,7 +320,7 @@ function toAbsoluteUrl(value?: string) {
   }
 
   try {
-    return new URL(value, getSiteUrl()).toString();
+    return absoluteUrl(value);
   } catch {
     return undefined;
   }

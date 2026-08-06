@@ -2,13 +2,13 @@
 
 ## Purpose
 
-`Race replay` in RaceMate is a user-facing historical replay. V1 does not use live timing. It replays a completed race from OpenF1, normalizes it in the worker, stores it in Supabase, and serves the UI only from RaceMate data.
+`Race replay` in RaceSide is a user-facing historical replay. V1 does not use live timing. It replays a completed race from OpenF1, normalizes it in the worker, stores it in Supabase, and serves the UI only from RaceSide data.
 
 ## Source Selection
 
-1. For `/weekend`, find the RaceMate weekend currently shown to the user.
+1. For `/weekend`, find the RaceSide weekend currently shown to the user.
 2. If that race has not happened yet, match it to the previous season race on the same circuit.
-3. For completed RaceMate races, use the main race session from the same season and round context whenever OpenF1 has data.
+3. For completed RaceSide races, use the main race session from the same season and round context whenever OpenF1 has data.
 4. Use the OpenF1 main race session for that circuit and source season.
 4. Store the prepared link in `race_replay_sessions`.
 

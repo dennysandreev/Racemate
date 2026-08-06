@@ -79,32 +79,36 @@ const circuitAssets = [
     src: "/f1/circuits/2026/15-azerbaijan.webp",
   },
   {
+    aliases: ["malaysia", "sepang", "kuala lumpur", "bahrain grand prix in malaysia"],
+    src: "/f1/circuits/2026/16-malaysia.webp",
+  },
+  {
     aliases: ["singapore", "marina bay"],
-    src: "/f1/circuits/2026/16-singapore.webp",
+    src: "/f1/circuits/2026/17-singapore.webp",
   },
   {
     aliases: ["united states", "usa", "americas", "austin", "cota"],
-    src: "/f1/circuits/2026/17-united-states.webp",
+    src: "/f1/circuits/2026/18-united-states.webp",
   },
   {
     aliases: ["mexico", "hermanos rodriguez"],
-    src: "/f1/circuits/2026/18-mexico.webp",
+    src: "/f1/circuits/2026/19-mexico.webp",
   },
   {
     aliases: ["brazil", "interlagos", "jose carlos pace", "sao paulo"],
-    src: "/f1/circuits/2026/19-brazil.webp",
+    src: "/f1/circuits/2026/20-brazil.webp",
   },
   {
     aliases: ["las vegas", "las vegas strip"],
-    src: "/f1/circuits/2026/20-las-vegas.webp",
+    src: "/f1/circuits/2026/21-las-vegas.webp",
   },
   {
     aliases: ["qatar", "losail", "lusail"],
-    src: "/f1/circuits/2026/21-qatar.webp",
+    src: "/f1/circuits/2026/22-qatar.webp",
   },
   {
     aliases: ["abu dhabi", "yas marina", "united arab emirates"],
-    src: "/f1/circuits/2026/22-united-arab-emirates.webp",
+    src: "/f1/circuits/2026/23-united-arab-emirates.webp",
   },
 ] satisfies CircuitAsset[];
 

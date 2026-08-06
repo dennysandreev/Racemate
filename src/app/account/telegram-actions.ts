@@ -150,7 +150,7 @@ export async function sendTelegramTest() {
       user_id: user.id,
       event_type: "TEST_NOTIFICATION",
       payload: {
-        text: "🏁 <b>RaceMate на связи</b>\n\nУведомления настроены. Напишем, когда появится действительно важный повод.",
+        text: "🏁 <b>RaceSide на связи</b>\n\nУведомления настроены. Напишем, когда появится действительно важный повод.",
         parseMode: "HTML",
         buttonText: "Открыть настройки",
         buttonUrl: "/account#telegram",

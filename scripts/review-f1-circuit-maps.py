@@ -180,7 +180,7 @@ def build_contact_sheet(
     label_font = load_font(14)
     draw.text(
         (18, 16),
-        f"RaceMate clean Formula1 circuit maps — {season}",
+        f"RaceSide clean Formula1 circuit maps — {season}",
         fill=(244, 247, 250),
         font=title_font,
     )
@@ -269,7 +269,7 @@ def review_season(
             source["manualReview"] = {
                 "status": "approved",
                 "reviewedAt": reviewed_at,
-                "reviewer": "RaceMate visual QA",
+                "reviewer": "RaceSide visual QA",
                 "note": (
                     "Checked on the season contact sheet against the official Formula1.com "
                     "race-page map and the event layout."
@@ -279,7 +279,7 @@ def review_season(
         manifest["manualReview"] = {
             "status": "approved",
             "reviewedAt": reviewed_at,
-            "reviewer": "RaceMate visual QA",
+            "reviewer": "RaceSide visual QA",
         }
         manifest_path.write_text(
             json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",

@@ -1,22 +1,45 @@
 import { BarChart3, CalendarDays, History, Trophy } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { votePoll } from "@/app/polls/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageHeading } from "@/components/racemate/page-heading";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getPolls } from "@/data/racemate-repository";
 import { getSessionUser } from "@/lib/auth";
+import { createPageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import type { PollSummary } from "@/types/racemate";
 
 type PollView = "active" | "archive";
 
+type PollSearchParams = {
+  error?: string;
+  view?: PollView;
+  voted?: string;
+};
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<PollSearchParams>;
+}): Promise<Metadata> {
+  const query = await searchParams;
+
+  return createPageMetadata({
+    description:
+      "Опросы о Формуле-1: голосуй за главные интриги этапа, стратегию, пилотов и команды, затем сравнивай мнение сообщества.",
+    noIndex: Object.values(query).some(Boolean),
+    path: "/polls",
+    title: "Опросы о Формуле-1",
+  });
+}
+
 export default async function PollsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ voted?: string; error?: string; view?: PollView }>;
+  searchParams: Promise<PollSearchParams>;
 }) {
   const search = await searchParams;
   const view: PollView = search.view === "archive" ? "archive" : "active";
@@ -112,7 +135,7 @@ function PollGroupHeader({
           {isArchive ? "Прошедший этап" : "Следующий этап"}
         </p>
         <h2 className="mt-2 font-display text-balance text-2xl font-bold sm:text-3xl">
-          {race?.name ?? "Опросы RaceMate"}
+          {race?.name ?? "Опросы RaceSide"}
         </h2>
         {race ? (
           <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
@@ -155,16 +178,15 @@ function PollCard({
         <input name="pollId" type="hidden" value={poll.id ?? ""} />
         {options.map((option) => {
           const percent = getVotePercent(option.votes ?? 0, poll.votes);
-
-          return (
-            <label
-              className={cn(
-                "relative grid min-h-12 cursor-pointer overflow-hidden rounded-md border border-border bg-background/45 px-3 py-2 transition-colors hover:border-primary/60",
-                (isClosed || Boolean(poll.userVote) || !userSignedIn) && "cursor-default",
-              )}
-              key={option.id}
-            >
-              {isClosed || poll.userVote ? (
+          const showResult = isClosed || Boolean(poll.userVote);
+          const optionClassName = cn(
+            "relative grid min-h-12 w-full overflow-hidden rounded-md border border-border bg-background/45 px-3 py-2 text-left transition-colors",
+            !showResult && "hover:border-primary/60 hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            poll.userVote === option.id && "border-primary/60",
+          );
+          const content = (
+            <>
+              {showResult ? (
                 <span
                   aria-hidden="true"
                   className="absolute inset-y-0 left-0 bg-primary/13"
@@ -172,32 +194,33 @@ function PollCard({
                 />
               ) : null}
               <span className="relative flex min-h-6 items-center justify-between gap-3 text-sm">
-                <span className="flex min-w-0 items-center gap-2">
-                  <input
-                    defaultChecked={poll.userVote === option.id}
-                    disabled={isClosed || Boolean(poll.userVote) || !userSignedIn}
-                    name="optionId"
-                    type="radio"
-                    value={option.id}
-                  />
-                  <span className="min-w-0">{option.label}</span>
-                </span>
-                {isClosed || poll.userVote ? (
+                <span className="min-w-0 leading-5">{option.label}</span>
+                {showResult ? (
                   <span className="font-telemetry shrink-0 text-xs font-bold text-muted-foreground">{percent}%</span>
                 ) : null}
               </span>
-            </label>
+            </>
           );
+
+          if (!showResult && !userSignedIn) {
+            return (
+              <Link className={optionClassName} href="/auth?next=%2Fpolls" key={option.id}>
+                {content}
+              </Link>
+            );
+          }
+
+          if (!showResult) {
+            return (
+              <button className={optionClassName} key={option.id} name="optionId" type="submit" value={option.id}>
+                {content}
+              </button>
+            );
+          }
+
+          return <div className={optionClassName} key={option.id}>{content}</div>;
         })}
-        {!isClosed && poll.id && options.length === 3 ? (
-          poll.userVote ? (
-            <p className="text-sm text-muted-foreground">Твой голос сохранен</p>
-          ) : (
-            <Button disabled={!userSignedIn} type="submit" variant="secondary">
-              {userSignedIn ? "Проголосовать" : "Войти, чтобы голосовать"}
-            </Button>
-          )
-        ) : null}
+        {!isClosed && poll.userVote ? <p className="text-sm text-muted-foreground">Твой голос сохранен</p> : null}
       </form>
     </article>
   );
@@ -214,7 +237,7 @@ function EmptyPolls({ archive }: { archive: boolean }) {
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
           {archive
             ? "Здесь будут результаты фанатских опросов после завершения этапов."
-            : "RaceMate подготовит три опроса для следующего Гран-при, как только появятся подтвержденные результаты предыдущей гонки."}
+            : "RaceSide подготовит три опроса для следующего Гран-при, как только появятся подтвержденные результаты предыдущей гонки."}
         </p>
       </div>
     </section>

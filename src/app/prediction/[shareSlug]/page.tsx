@@ -50,13 +50,14 @@ export async function generateMetadata({
 
   if (!share) {
     return {
-      title: "Прогноз не найден · RaceMate",
+      robots: { follow: false, index: false },
+      title: "Прогноз не найден · RaceSide",
     };
   }
 
   const title = scope === "qualification"
-    ? `${share.displayName}: прогноз на поул · ${share.race.name} · RaceMate`
-    : `${share.displayName}: прогноз на гонку ${share.race.name} · RaceMate`;
+    ? `${share.displayName}: прогноз на поул · ${share.race.name} · RaceSide`
+    : `${share.displayName}: прогноз на гонку ${share.race.name} · RaceSide`;
   const availability = getPredictionScopeAvailability(share);
   const description = availability[scope]
     ? scope === "qualification"
@@ -75,6 +76,7 @@ export async function generateMetadata({
   };
 
   return {
+    alternates: { canonical: share.publicUrl },
     description,
     openGraph: {
       description,
@@ -83,6 +85,7 @@ export async function generateMetadata({
       ...(availability[scope] ? { images: [previewImage] } : {}),
     },
     title,
+    robots: { follow: false, index: false },
     twitter: {
       card: "summary_large_image",
       description,
@@ -117,7 +120,7 @@ export default async function PredictionSharePage({
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
               <div className="min-w-0">
                 <div className="mb-4 flex flex-wrap items-center gap-2">
-                  <Badge variant="danger">Прогноз RaceMate</Badge>
+                  <Badge variant="danger">Прогноз RaceSide</Badge>
                   <Badge variant="outline">
                     {scope === "qualification" ? "Квалификация" : "Гонка"}
                   </Badge>
@@ -161,8 +164,8 @@ export default async function PredictionSharePage({
               <StitchPanel className="overflow-hidden">
                 <Image
                   alt={scope === "qualification"
-                    ? `Прогноз RaceMate на поул: ${share.race.name}`
-                    : `Прогноз RaceMate на гонку ${share.race.name}`}
+                    ? `Прогноз RaceSide на поул: ${share.race.name}`
+                    : `Прогноз RaceSide на гонку ${share.race.name}`}
                   className="h-auto w-full"
                   height={1350}
                   priority
@@ -489,7 +492,7 @@ function PredictionScopeEmptyState({ scope }: { scope: PredictionShareScope }) {
           Пока нет сохранённого прогноза
         </h2>
         <p className="mx-auto mt-3 max-w-md text-sm font-semibold leading-6 text-muted-foreground">
-          Автор ещё не сохранил этот выбор. Загляните позже или соберите свой прогноз на RaceMate.
+          Автор ещё не сохранил этот выбор. Загляните позже или соберите свой прогноз на RaceSide.
         </p>
         <Button asChild className="mt-6 h-11">
           <Link href="/fantasy">

@@ -91,7 +91,7 @@ export default async function AccountPage() {
   const displayName =
     profile?.display_name?.trim() ||
     profile?.email?.split("@")[0] ||
-    "Гость RaceMate";
+    "Гость RaceSide";
   const email = profile?.email ?? "Почта не указана";
   const timezone = profile?.timezone ?? "Europe/Moscow";
   const [overview, predictionState, driversMatrix, constructorsMatrix, leaderboard, extras] = await Promise.all([
@@ -134,7 +134,7 @@ export default async function AccountPage() {
               <div className="min-w-0">
                 <p className="font-telemetry flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
                   <UserRound aria-hidden="true" className="size-3.5" />
-                  Паддок-пасс RaceMate
+                  Паддок-пасс RaceSide
                 </p>
                 <PageTitle className="mt-1.5 max-w-3xl">
                   {displayName}
@@ -143,7 +143,7 @@ export default async function AccountPage() {
                   <ProfileChip icon={Mail} value={email} />
                   <ProfileChip icon={Clock3} value={formatTimezone(timezone)} />
                   {extras.memberSince ? (
-                    <ProfileChip icon={CalendarDays} value={`В RaceMate с ${extras.memberSince}`} />
+                    <ProfileChip icon={CalendarDays} value={`В RaceSide с ${extras.memberSince}`} />
                   ) : null}
                 </div>
               </div>
@@ -340,7 +340,7 @@ function GaragePanel({
           <div className="min-w-0">
             <h2 className="font-display text-lg font-bold leading-tight">Мой гараж</h2>
             <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-              Команда сезона и два пилота — RaceMate подсвечивает их везде
+              Команда сезона и два пилота — RaceSide подсвечивает их везде
             </p>
           </div>
         </div>

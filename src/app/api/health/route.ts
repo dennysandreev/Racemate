@@ -11,7 +11,7 @@ export async function GET() {
 
   return NextResponse.json({
     ok: Boolean(hasSupabaseEnv() && !database?.error),
-    app: "RaceMate",
+    app: "RaceSide",
     supabase: hasSupabaseEnv() ? "configured" : "missing",
     database: database?.error ? "unhealthy" : "healthy",
     checkedAt: new Date().toISOString(),

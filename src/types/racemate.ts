@@ -1,4 +1,5 @@
 export type NewsItem = {
+  id: string;
   slug: string;
   href?: string;
   source: string;
@@ -13,6 +14,7 @@ export type NewsItem = {
   raceTag?: string;
   raceTagSlug?: string;
   raceFilter?: string;
+  publishedAt?: string;
   time: string;
 };
 
@@ -383,6 +385,7 @@ export type RaceDetail = {
   countryCode?: string;
   locality: string;
   startsAt: string;
+  startsAtIso?: string;
   status: string;
   timezone?: string | null;
   layout?: TrackLayout | null;
@@ -962,6 +965,21 @@ export type AdminJob = {
   status: string;
   processed: number;
   finishedAt: string;
+};
+
+export type AdminDuplicateNews = {
+  id: string;
+  title: string;
+  mainFact?: string;
+  source: string;
+  checkedAt: string;
+  confidence?: number;
+  reason?: string;
+  originalUrl: string;
+  duplicateOf?: {
+    id: string;
+    title: string;
+  };
 };
 
 export type AdminSource = {

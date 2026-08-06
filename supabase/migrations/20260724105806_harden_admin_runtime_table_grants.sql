@@ -1,0 +1,3 @@
+-- Production migration receipt created by the Supabase migration API.
+-- The ordered, idempotent grant hardening remains in 20260724131000 so a
+-- fresh database applies it after all admin runtime tables have been created.

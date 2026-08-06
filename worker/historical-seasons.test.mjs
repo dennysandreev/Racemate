@@ -6,6 +6,8 @@ import {
   hasApprovedCircuitAssetManifest,
   hasApprovedDriverAssetManifest,
   hasApprovedTeamAssetManifest,
+  hasRaceVenueChanged,
+  findOpenF1SessionMatch,
   getSeasonTeamColor,
   hasExactRoundCounts,
   getHistoricalSeasonYears,
@@ -23,6 +25,48 @@ import {
 } from "./index.mjs";
 
 const checksum = "a".repeat(64);
+
+test("calendar detects a venue replacement without treating a new row as a change", () => {
+  assert.equal(hasRaceVenueChanged("marina-bay", "sepang"), true);
+  assert.equal(hasRaceVenueChanged("sepang", "sepang"), false);
+  assert.equal(hasRaceVenueChanged(null, "sepang"), false);
+});
+
+test("OpenF1 session matching distinguishes numbered practice sessions", () => {
+  const localSession = {
+    session_type: "fp2",
+    start_at: "2026-10-02T06:00:00Z",
+    races: {
+      circuits: {
+        external_id: "sepang",
+        name: "Sepang International Circuit",
+        locality: "Kuala Lumpur",
+        country: "Malaysia",
+      },
+    },
+  };
+  const sessions = [
+    {
+      session_key: 11727,
+      session_type: "Practice",
+      session_name: "Practice 1",
+      date_start: "2026-10-02T04:30:00Z",
+      circuit_short_name: "Kuala Lumpur",
+      location: "Kuala Lumpur",
+    },
+    {
+      session_key: 11728,
+      session_type: "Practice",
+      session_name: "Practice 2",
+      date_start: "2026-10-02T08:00:00Z",
+      circuit_short_name: "Kuala Lumpur",
+      location: "Kuala Lumpur",
+    },
+  ];
+
+  assert.equal(findOpenF1SessionMatch(localSession, sessions)?.session_key, 11728);
+  assert.equal(findOpenF1SessionMatch(localSession, sessions.slice(0, 1)), null);
+});
 
 test("historical backfill accepts only explicit 2020-2025 seasons", () => {
   assert.equal(requireHistoricalSeason("2020"), 2020);

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Download, ImageIcon, Share2, Trophy, X } from "lucide-react";
+import { Copy, Download, ImageIcon, Share2, Trophy, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -75,8 +75,8 @@ export function PredictionShareModal({
   const imageFailed = failedImageUrl === shareImageUrl;
   const fileName = buildPredictionShareFileName(scope, shareSlug);
   const shareTitle = scope === "qualification"
-    ? "Прогноз на квалификацию RaceMate"
-    : "Прогноз на гонку RaceMate";
+    ? "Прогноз на квалификацию RaceSide"
+    : "Прогноз на гонку RaceSide";
   const shareText = buildPredictionShareText(raceName, scope);
   const shareTextWithUrl = `${shareText}\n${shareUrl}`;
 
@@ -232,8 +232,8 @@ export function PredictionShareModal({
               ) : (
                 <Image
                   alt={scope === "qualification"
-                    ? `Превью прогноза RaceMate на поул: ${raceName}`
-                    : `Превью прогноза RaceMate на гонку ${raceName}`}
+                    ? `Превью прогноза RaceSide на поул: ${raceName}`
+                    : `Превью прогноза RaceSide на гонку ${raceName}`}
                   className={cn(
                     "block w-full object-cover",
                     "aspect-[1080/1350]",
@@ -252,6 +252,15 @@ export function PredictionShareModal({
               <Button className="h-12 w-full justify-center" onClick={sharePrediction} type="button">
                 <Share2 aria-hidden="true" data-icon="inline-start" />
                 Поделиться
+              </Button>
+              <Button
+                className="h-12 w-full justify-center"
+                onClick={copyShareText}
+                type="button"
+                variant="secondary"
+              >
+                <Copy aria-hidden="true" data-icon="inline-start" />
+                Скопировать прогноз
               </Button>
               <Button className="h-12 w-full justify-center" onClick={downloadImage} type="button" variant="secondary">
                 <Download aria-hidden="true" data-icon="inline-start" />
@@ -274,7 +283,7 @@ export function PredictionShareModal({
 function buildPredictionShareFileName(scope: PredictionShareScope, shareSlug: string) {
   const predictionType = scope === "qualification" ? "qualification" : "race";
 
-  return `racemate-${predictionType}-${shareSlug}.png`;
+  return `raceside-${predictionType}-${shareSlug}.png`;
 }
 
 function buildPredictionShareText(

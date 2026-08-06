@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import {
   createFantasyLeague,
@@ -42,6 +43,7 @@ import {
 } from "@/data/racemate-repository";
 import { getTeamAsset } from "@/data/f1-assets";
 import { getSessionProfileSummary, getSessionUser } from "@/lib/auth";
+import { createPageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import type {
   DriverOption,
@@ -82,6 +84,22 @@ type TeamPredictionField = {
   locked?: boolean;
   value?: string | null;
 };
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<FantasySearchParams>;
+}): Promise<Metadata> {
+  const query = await searchParams;
+
+  return createPageMetadata({
+    description:
+      "Фентази Формулы-1 от RaceSide: прогнозируй топ-10, поул, быстрый круг и результаты команд, создавай лиги и сравнивай очки.",
+    noIndex: Object.values(query).some(Boolean),
+    path: "/fantasy",
+    title: "Фентази Формулы-1 и прогнозы",
+  });
+}
 
 export default async function FantasyPage({
   searchParams,
@@ -414,7 +432,7 @@ function PredictionModule({
         </div>
       ) : (
         <p className="m-4 rounded-md border border-border/70 bg-background/35 p-4 text-sm leading-6 text-muted-foreground sm:m-5">
-          Прогноз откроется, когда RaceMate подтянет гонку и список пилотов.
+          Прогноз откроется, когда RaceSide подтянет гонку и список пилотов.
         </p>
       )}
     </section>

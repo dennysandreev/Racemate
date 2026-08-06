@@ -176,7 +176,7 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
               <div>
                 <p className="font-medium">Результаты появятся после синхронизации</p>
                 <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                  RaceMate покажет таблицу сразу после обработки этой сессии.
+                  RaceSide покажет таблицу сразу после обработки этой сессии.
                 </p>
               </div>
             </div>

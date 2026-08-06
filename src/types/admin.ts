@@ -1,0 +1,184 @@
+import type { Json } from "@/types/supabase";
+
+export type AdminActionResult<T = unknown> = {
+  ok: boolean;
+  message: string;
+  data?: T;
+  fieldErrors?: Record<string, string[]>;
+};
+
+export type AdminTableQuery = {
+  page: number;
+  pageSize: number;
+  search: string;
+  status?: string;
+  sort?: string;
+};
+
+export type AdminJobParameter = {
+  name: string;
+  flag: string;
+  type: "boolean" | "integer" | "string" | "uuid";
+  required: boolean;
+  min?: number;
+  max?: number;
+  options?: string[];
+};
+
+export type AdminJobDefinition = {
+  name: string;
+  title: string;
+  description: string;
+  group: "ai" | "archive" | "community" | "news" | "notifications" | "reports" | "social" | "sport";
+  expectedIntervalMinutes: number;
+  adaptiveSchedule?: {
+    activeLabel: string;
+    idleLabel: string;
+  };
+  maxAttempts: number;
+  danger?: boolean;
+  confirmation?: string;
+  parameters: AdminJobParameter[];
+};
+
+export type AdminJobRun = {
+  id: string;
+  jobName: string;
+  status: string;
+  requestedBy: string | null;
+  availableAt: string | null;
+  claimedAt: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+  itemsProcessed: number;
+  attemptCount: number;
+  maxAttempts: number;
+  retryOf: string | null;
+  requestKey: string | null;
+  queueVersion: number | null;
+  workerId: string | null;
+  metadata: Json | null;
+  errorMessage: string | null;
+};
+
+export type AdminSystemSignal = {
+  id: string;
+  label: string;
+  status: "healthy" | "stale" | "warning" | "failed" | "unknown";
+  detail: string;
+  checkedAt: string | null;
+  href?: string;
+};
+
+export type AdminSystemStatus = AdminSystemSignal & {
+  kind: "api" | "source" | "schedule";
+  group: string;
+  description: string;
+  lastSuccessAt: string | null;
+  nextCheckAt: string | null;
+  isEnabled: boolean;
+};
+
+export type AdminSchedule = {
+  id: string;
+  scheduleKey: string;
+  jobName: string;
+  scheduleKind: "interval" | "daily" | "adaptive";
+  intervalMinutes: number | null;
+  dailyTimeUtc: string | null;
+  args: Json;
+  maxAttempts: number;
+  isEnabled: boolean;
+  nextRunAt: string;
+  lastEnqueuedAt: string | null;
+  lastJobRunId: string | null;
+  lastRun: AdminJobRun | null;
+  updatedAt: string;
+};
+
+export type AdminAuditEntry = {
+  id: string;
+  actorUserId: string;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  outcome: "started" | "succeeded" | "failed";
+  beforeData: Json;
+  afterData: Json;
+  metadata: Json;
+  createdAt: string;
+  finishedAt: string | null;
+};
+
+export type AdminAiUsageSummaryRow = {
+  dimension: "day" | "model" | "purpose" | "total";
+  bucket: string;
+  request_count: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+  unpriced_count: number;
+};
+
+export type AdminAiPromptVariable = {
+  name: string;
+  label: string;
+};
+
+export type AdminAiPromptDefinition = {
+  key: string;
+  purpose: string;
+  title: string;
+  description: string;
+  area: string;
+  modelFallback: string;
+  maxTokens: number;
+  usedBy: string[];
+  variables: AdminAiPromptVariable[];
+  defaultSystemPrompt: string;
+  defaultUserTemplate: string;
+  protectedInstruction: string;
+};
+
+export type AdminAiPromptVersion = {
+  id: string;
+  promptKey: string;
+  version: number;
+  status: "draft" | "published" | "archived";
+  systemPrompt: string;
+  userTemplate: string;
+  model: string | null;
+  maxTokens: number | null;
+  changeNote: string | null;
+  checksum: string;
+  createdAt: string;
+  publishedAt: string | null;
+};
+
+export type AdminAiPromptVersionSummary = Omit<
+  AdminAiPromptVersion,
+  "systemPrompt" | "userTemplate"
+>;
+
+export type AdminAiPromptItem = {
+  definition: AdminAiPromptDefinition;
+  published: AdminAiPromptVersion | null;
+  latestDraft: AdminAiPromptVersion | null;
+  history: AdminAiPromptVersionSummary[];
+};
+
+export type AdminOpenRouterModel = {
+  id: string;
+  name: string;
+  contextLength: number | null;
+  maxCompletionTokens: number | null;
+  promptPricePerMillion: number | null;
+  completionPricePerMillion: number | null;
+};
+
+export type AdminAiBudget = {
+  scope: "default" | "social_x";
+  daily_limit_usd: number;
+  monthly_limit_usd: number;
+  updated_at: string | null;
+};

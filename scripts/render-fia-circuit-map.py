@@ -121,7 +121,7 @@ def darken_document(image: Image.Image) -> Image.Image:
     output[:, :, 1] = 15
     output[:, :, 2] = 21
 
-    # Neutral document ink becomes a readable cool white on the dark RaceMate
+    # Neutral document ink becomes a readable cool white on the dark RaceSide
     # surface. Mid-gray antialiasing stays smooth instead of turning binary.
     neutral_strength = np.clip((248 - maximum) / 190, 0, 1)
     light_ink = 116 + neutral_strength * 132

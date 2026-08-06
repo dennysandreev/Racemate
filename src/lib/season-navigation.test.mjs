@@ -29,7 +29,7 @@ test("season navigation preserves unrelated query parameters and replaces the ye
     table: "constructors",
     filter: ["wet", "sprint"],
   });
-  const url = new URL(href, "https://racemate.ru");
+  const url = new URL(href, "https://raceside.online");
 
   assert.equal(url.pathname, "/leaderboard");
   assert.equal(url.searchParams.get("season"), "2023");

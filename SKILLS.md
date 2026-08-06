@@ -1,6 +1,6 @@
-# RaceMate Skill Stack
+# RaceSide Skill Stack
 
-This file records the default skill stack for building RaceMate. It is a project rule for future Codex work in this repository.
+This file records the default skill stack for building RaceSide. It is a project rule for future Codex work in this repository.
 
 ## Always Use For Frontend
 
@@ -11,7 +11,7 @@ Use for visual direction and anti-template discipline. In this environment it is
 Apply it when:
 - designing public pages, app shells, dashboards, admin screens, or reusable UI;
 - choosing layout, typography, motion, density, and component composition;
-- checking that RaceMate does not drift into generic AI/SaaS visual patterns.
+- checking that RaceSide does not drift into generic AI/SaaS visual patterns.
 
 ### `impeccable`
 
@@ -51,13 +51,13 @@ Default component strategy:
 
 Use for design-system research, stack-specific UI guidance, chart guidance, accessibility guidance, and product surface review.
 
-For RaceMate, use it as an input, not an override. If its recommendations conflict with `PRODUCT.md`, `DESIGN.md`, `design-taste-frontend`, or `impeccable`, the project documents and mandatory frontend skills win.
+For RaceSide, use it as an input, not an override. If its recommendations conflict with `PRODUCT.md`, `DESIGN.md`, `design-taste-frontend`, or `impeccable`, the project documents and mandatory frontend skills win.
 
 ### `content-design`
 
 Use for user-facing copy, onboarding, empty states, buttons, validation, errors, confirmations, admin labels, and i18n strings.
 
-RaceMate copy rules:
+RaceSide copy rules:
 - Russian by default.
 - Natural product language over technical labels.
 - Short action verbs for buttons.
@@ -86,11 +86,11 @@ Prefer the Browser plugin for local interactive app inspection when available. U
 
 ### `imagegen`
 
-Use only when RaceMate needs generated bitmap assets such as covers, driver-style avatars, helmet concepts, editorial imagery, or promotional visuals.
+Use only when RaceSide needs generated bitmap assets such as covers, driver-style avatars, helmet concepts, editorial imagery, or promotional visuals.
 
 ### `brandkit`
 
-Use when creating or revising RaceMate's logo system, brand board, identity guide, or visual-world deck.
+Use when creating or revising RaceSide's logo system, brand board, identity guide, or visual-world deck.
 
 ### `figma` And `figma-implement-design`
 
@@ -102,11 +102,11 @@ Use only after GitHub Actions, pull requests, or CI failures exist.
 
 ### `openai-docs`
 
-Use only for OpenAI product/API questions. RaceMate's planned AI provider is OpenRouter, so do not use this skill for OpenRouter unless the task explicitly involves OpenAI.
+Use only for OpenAI product/API questions. RaceSide's planned AI provider is OpenRouter, so do not use this skill for OpenRouter unless the task explicitly involves OpenAI.
 
 ## Not Default
 
-Do not use these as standing RaceMate defaults:
+Do not use these as standing RaceSide defaults:
 - `frontend-design`
 - `high-end-visual-design`
 - `frontend-skill`

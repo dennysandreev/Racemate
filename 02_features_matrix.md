@@ -102,4 +102,4 @@
 
 ### Resend/Postmark/SendGrid
 
-Для production email OTP через custom SMTP.
+Для писем подтверждения почты и восстановления пароля через custom SMTP.

@@ -51,6 +51,7 @@ const patchBody = {
   external_email_enabled: true,
   mailer_secure_email_change_enabled: true,
   mailer_autoconfirm: false,
+  password_min_length: 8,
   ...rateLimits,
 };
 
@@ -114,6 +115,7 @@ console.log(
       smtpPort: shouldConfigureSmtp ? Number(process.env.SMTP_PORT) : null,
       from: shouldConfigureSmtp ? process.env.SMTP_ADMIN_EMAIL : null,
       senderName: shouldConfigureSmtp ? process.env.SMTP_SENDER_NAME : null,
+      passwordMinLength: patchBody.password_min_length,
       rateLimits,
     },
     null,

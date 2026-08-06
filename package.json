@@ -1,11 +1,15 @@
 {
-  "name": "racemate",
+  "name": "raceside",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.11.0",
   "pnpm": {
     "overrides": {
-      "postcss": "8.5.10"
+      "brace-expansion@1.1.15": "1.1.16",
+      "brace-expansion@5.0.6": "5.0.7",
+      "js-yaml@4.2.0": "4.3.0",
+      "postcss": "8.5.10",
+      "sharp": "0.35.3"
     }
   },
   "scripts": {
@@ -25,6 +29,9 @@
     "worker:ai:retry-fallback": "node worker/index.mjs ai.reprocess_fallback_news",
     "worker:rehighlight": "node worker/index.mjs ai.rehighlight_news",
     "worker:source-images": "node worker/index.mjs news.backfill_source_images",
+    "worker:news:audit": "node worker/index.mjs news.audit_recent --limit 50",
+    "worker:news:audit:apply": "node worker/index.mjs news.audit_recent --limit 50 --apply",
+    "worker:news:retry": "node worker/index.mjs news.retry_dedup",
     "worker:retag": "node worker/index.mjs ai.retag_news",
     "worker:digest": "node worker/index.mjs ai.generate_daily_digest",
     "worker:polls": "node worker/index.mjs polls.generate_next_race",
@@ -39,6 +46,8 @@
     "worker:history:prepare": "node worker/index.mjs jolpica.prepare_history",
     "worker:history:publish": "node worker/index.mjs jolpica.publish_history",
     "worker:weather": "node worker/index.mjs weather.sync_weekend",
+    "worker:openf1-results": "node worker/index.mjs openf1.sync_results",
+    "worker:openf1-check-current": "node worker/index.mjs openf1.check_current_sessions",
     "worker:laps": "node worker/index.mjs openf1.sync_laps",
     "worker:score": "node worker/index.mjs predictions.score",
     "worker:notifications": "node worker/index.mjs notifications.enqueue",
@@ -53,10 +62,15 @@
     "telegram:authorize": "node scripts/telegram-authorize.mjs",
     "lint": "eslint .",
     "test:fantasy-scoring": "node scripts/check-fantasy-scoring.mjs",
-    "test:notifications": "node --test worker/notification-rules.test.mjs",
+    "test:notifications": "node --test worker/notification-rules.test.mjs worker/job-run-policy.test.mjs",
+    "test:ai-usage": "node --test worker/ai-usage.test.mjs",
+    "test:openf1-results": "node --test worker/openf1-session-results.test.mjs",
+    "test:news-dedup": "node --test worker/news-deduplication.test.mjs",
     "test:historical-seasons": "node --test worker/historical-seasons.test.mjs src/data/historical-preview.test.mjs",
     "test:season-navigation": "node --experimental-strip-types --experimental-default-type=module --test src/lib/season-navigation.test.mjs",
     "test:season-points": "node --experimental-strip-types --experimental-default-type=module --test src/lib/f1-points.test.mjs",
+    "test:security": "node --experimental-strip-types --experimental-default-type=module --test src/lib/admin-security-boundary.test.mjs src/lib/social-media-storage.test.mjs",
+    "test:admin": "node --experimental-strip-types --experimental-default-type=module --test src/lib/admin-operations.test.mjs src/lib/admin-security-boundary.test.mjs src/lib/admin-ai-prompts.test.mjs worker/adaptive-job-schedule.test.mjs worker/ai-prompt-registry.test.mjs worker/ai-usage.test.mjs",
     "assets:history:teams": "node scripts/check-f1-historical-team-assets.mjs",
     "assets:history:circuits": "python3 scripts/review-f1-circuit-maps.py --require-approved",
     "assets:history:avatars": "node scripts/check-f1-driver-avatars.mjs",
@@ -71,13 +85,18 @@
     "@supabase/supabase-js": "^2.108.1",
     "class-variance-authority": "latest",
     "clsx": "latest",
+    "cmdk": "^1.1.1",
     "geist": "latest",
     "lucide-react": "latest",
     "next": "latest",
+    "next-themes": "^0.4.6",
+    "radix-ui": "^1.6.5",
     "react": "latest",
     "react-dom": "latest",
+    "sonner": "^2.0.7",
     "tailwind-merge": "latest",
-    "telegram": "^2.26.22"
+    "telegram": "^2.26.22",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "latest",

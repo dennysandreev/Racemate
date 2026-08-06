@@ -1,11 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ChevronRight, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
+import { JsonLd } from "@/components/racemate/json-ld";
 import { PageTitle } from "@/components/racemate/page-title";
+import { RaceFlag } from "@/components/racemate/race-flag";
 import { SeasonProgress } from "@/components/racemate/season-progress";
 import { SeasonSwitcher } from "@/components/racemate/season-switcher";
 import { SyncedHorizontalScroller } from "@/components/racemate/synced-horizontal-scroller";
@@ -24,10 +27,62 @@ import {
   resolvePublishedSeason,
   type SeasonSearchParams,
 } from "@/lib/season-navigation";
+import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
 import type { ChampionshipRound } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SeasonSearchParams>;
+}): Promise<Metadata> {
+  const query = await searchParams;
+  const table = Array.isArray(query.table) ? query.table[0] : query.table;
+  const activeTable = table === "constructors" ? "constructors" : "drivers";
+  const publishedSeasons = await getPublishedSeasons();
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+
+  if (!season) {
+    return createPageMetadata({
+      description: "Таблица запрошенного сезона пока недоступна.",
+      noIndex: true,
+      path: "/leaderboard",
+      title: "Чемпионат не найден",
+    });
+  }
+
+  const isConstructors = activeTable === "constructors";
+
+  return createPageMetadata({
+    description: isConstructors
+      ? `Кубок конструкторов Формулы-1 ${season}: позиции команд, очки, победы и результаты по каждому этапу сезона.`
+      : `Личный зачет Формулы-1 ${season}: позиции пилотов, очки, победы, подиумы и результаты по каждому этапу сезона.`,
+    path: getLeaderboardPath(season, activeTable),
+    title: isConstructors
+      ? `Кубок конструкторов Формулы-1 ${season}`
+      : `Личный зачет Формулы-1 ${season}`,
+  });
+}
+
+function getLeaderboardPath(
+  season: number,
+  table: "constructors" | "drivers",
+) {
+  const search = new URLSearchParams();
+
+  if (season !== CURRENT_F1_SEASON) {
+    search.set("season", String(season));
+  }
+
+  if (table === "constructors") {
+    search.set("table", "constructors");
+  }
+
+  const query = search.toString();
+  return query ? `/leaderboard?${query}` : "/leaderboard";
+}
 
 type StandingEntry = {
   position: number;
@@ -150,6 +205,26 @@ export default async function LeaderboardPage({
 
   return (
     <AppShell leaderboardTable={activeTable}>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          hasPart: {
+            "@type": "ItemList",
+            itemListElement: entries.map((entry) => ({
+              "@type": "ListItem",
+              item: entry.href ? absoluteUrl(entry.href) : absoluteUrl(getLeaderboardPath(season, activeTable)),
+              name: entry.name,
+              position: entry.position,
+            })),
+          },
+          inLanguage: "ru-RU",
+          name: activeTable === "drivers"
+            ? `Личный зачет Формулы-1 ${season}`
+            : `Кубок конструкторов Формулы-1 ${season}`,
+          url: absoluteUrl(getLeaderboardPath(season, activeTable)),
+        }}
+      />
       <section className="grid gap-4 pb-6 sm:gap-5 sm:pb-8">
         <section className="stitch-panel relative overflow-hidden p-0 lg:h-40">
           <Image
@@ -579,7 +654,7 @@ function RoundStrip({
           const finishPosition = entry.positionByRound?.[round.round];
           const podium = entry.podiumByRound?.[round.round];
           const roundMax = Math.max(roundMaxPoints[round.round] ?? 0, 1);
-          const title = `${round.flag} ${round.raceName}${
+          const title = `${round.raceName}${
             finishPosition ? ` · P${finishPosition}` : ""
           }`;
 
@@ -614,7 +689,12 @@ function RoundStrip({
                 aria-hidden="true"
                 className="grid h-5 place-items-center rounded-sm border border-border/60 bg-background/65 text-sm leading-none lg:hidden"
               >
-                {round.flag}
+                <RaceFlag
+                  className="h-3.5"
+                  countryCode={round.countryCode}
+                  label={round.raceName}
+                  value={round.flag}
+                />
               </span>
               <span
                 aria-hidden="true"
@@ -644,7 +724,12 @@ function RoundHeaderStrip({ rounds }: { rounds: ChampionshipRound[] }) {
           key={round.round}
           title={`${round.raceName} · раунд ${round.round}`}
         >
-          {round.flag}
+          <RaceFlag
+            className="h-4"
+            countryCode={round.countryCode}
+            label={round.raceName}
+            value={round.flag}
+          />
         </span>
       ))}
     </div>

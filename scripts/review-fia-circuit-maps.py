@@ -98,7 +98,7 @@ def build_contact_sheet(
     draw = ImageDraw.Draw(sheet)
     title_font = load_font(25)
     label_font = load_font(15)
-    draw.text((18, 15), f"RaceMate FIA circuit maps - {season}", fill=(244, 247, 250), font=title_font)
+    draw.text((18, 15), f"RaceSide FIA circuit maps - {season}", fill=(244, 247, 250), font=title_font)
 
     for index, source in enumerate(sources):
         round_number = int(source["round"])
@@ -165,14 +165,14 @@ def review_season(
             source["manualReview"] = {
                 "status": "approved",
                 "reviewedAt": reviewed_at,
-                "reviewer": "RaceMate visual QA",
+                "reviewer": "RaceSide visual QA",
                 "note": "Compared on the season contact sheet with the named FIA event map.",
             }
         manifest["sources"] = sources
         manifest["manualReview"] = {
             "status": "approved",
             "reviewedAt": reviewed_at,
-            "reviewer": "RaceMate visual QA",
+            "reviewer": "RaceSide visual QA",
         }
         manifest_path.write_text(
             json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",

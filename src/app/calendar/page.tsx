@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CalendarDays, Trophy, Zap } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { JsonLd } from "@/components/racemate/json-ld";
 import { PageTitle } from "@/components/racemate/page-title";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { SeasonProgress } from "@/components/racemate/season-progress";
@@ -18,11 +20,37 @@ import {
   shouldMuteCalendarRaceMap,
   type SeasonSearchParams,
 } from "@/lib/season-navigation";
+import { absoluteUrl, buildSeasonPath, createPageMetadata } from "@/lib/seo";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SeasonSearchParams>;
+}): Promise<Metadata> {
+  const query = await searchParams;
+  const publishedSeasons = await getPublishedSeasons();
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+
+  if (!season) {
+    return createPageMetadata({
+      description: "Запрошенный сезон пока недоступен в архиве RaceSide.",
+      noIndex: true,
+      path: "/calendar",
+      title: "Сезон не найден",
+    });
+  }
+
+  return createPageMetadata({
+    description: `Календарь Формулы-1 ${season}: даты Гран-при, трассы, расписание этапов, статусы и результаты завершенных гонок.`,
+    path: buildSeasonPath("/calendar", season, CURRENT_F1_SEASON),
+    title: `Календарь Формулы-1 ${season}`,
+  });
+}
 
 export default async function CalendarPage({
   searchParams,
@@ -48,6 +76,24 @@ export default async function CalendarPage({
 
   return (
     <AppShell>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          hasPart: {
+            "@type": "ItemList",
+            itemListElement: calendarEvents.map((event, index) => ({
+              "@type": "ListItem",
+              item: absoluteUrl(`/calendar/${event.season}/${event.round}`),
+              name: event.race,
+              position: index + 1,
+            })),
+          },
+          inLanguage: "ru-RU",
+          name: `Календарь Формулы-1 ${season}`,
+          url: absoluteUrl(buildSeasonPath("/calendar", season, CURRENT_F1_SEASON)),
+        }}
+      />
       <section className="relative overflow-hidden rounded-xl border border-border bg-card lg:h-40">
         <CalendarHero
           completedCount={completedCount}
@@ -104,7 +150,7 @@ function CalendarHero({
             Календарь · сезон {season}
           </p>
           <PageTitle className="mt-2 max-w-4xl">
-            Календарь сезона
+            Календарь Формулы-1
           </PageTitle>
           <SeasonSwitcher
             activeSeason={season}

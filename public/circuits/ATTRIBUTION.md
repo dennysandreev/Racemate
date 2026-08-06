@@ -1,6 +1,6 @@
 # Circuit SVG Attribution
 
-RaceMate uses local SVG circuit maps from Wikimedia Commons. Files are kept in `public/circuits` so the UI shows verified track layouts instead of generated approximations.
+RaceSide uses local SVG circuit maps from Wikimedia Commons. Files are kept in `public/circuits` so the UI shows verified track layouts instead of generated approximations.
 
 | Local file | Source | License / author |
 | --- | --- | --- |

@@ -146,7 +146,7 @@ function similarity(left, right) {
 
 async function fetchResponse(url) {
   const response = await fetch(url, {
-    headers: { "user-agent": "RaceMateFiaCircuitAssetSync/1.0" },
+    headers: { "user-agent": "RaceSideFiaCircuitAssetSync/1.0" },
     signal: AbortSignal.timeout(30_000),
   });
 

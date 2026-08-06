@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { SITE_URL } from "@/lib/seo";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
@@ -7,13 +9,13 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: [
         "/admin",
-        "/account",
-        "/auth",
-        "/onboarding",
-        "/predictions",
-        "/news?",
+        "/api",
+        "/auth/callback",
+        "/race-replay/",
+        "/s/",
       ],
     },
-    sitemap: "https://racemate.ru/sitemap.xml",
+    host: SITE_URL,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

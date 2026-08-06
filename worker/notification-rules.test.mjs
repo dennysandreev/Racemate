@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   escapeTelegramHtml,
   getFantasyDeadlineReminders,
+  getRemainingNewsNotificationBudget,
   getSessionNotificationKey,
   getSessionNotificationSetting,
   hasSessionStartChanged,
@@ -86,6 +87,13 @@ test("rejects queued events created before Telegram was connected", () => {
     true,
   );
   assert.equal(isNotificationFreshForConnection("2026-07-13T14:25:00Z", null), true);
+});
+
+test("limits all-news notifications over a rolling day", () => {
+  assert.equal(getRemainingNewsNotificationBudget(0, 30), 30);
+  assert.equal(getRemainingNewsNotificationBudget(24, 30), 6);
+  assert.equal(getRemainingNewsNotificationBudget(30, 30), 0);
+  assert.equal(getRemainingNewsNotificationBudget(45, 30), 0);
 });
 
 test("uses independent fantasy deadline reminder settings", () => {

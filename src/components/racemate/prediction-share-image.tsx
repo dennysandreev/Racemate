@@ -193,19 +193,25 @@ function ShareLogo({ compact }: { compact: boolean }) {
       <svg
         aria-hidden="true"
         height={compact ? 38 : 48}
-        viewBox="0 0 96 56"
-        width={compact ? 65 : 82}
+        viewBox="0 0 136 64"
+        width={compact ? 81 : 102}
       >
-        <defs>
-          <mask id="racemate-share-mark-mask">
-            <rect fill="white" height="56" width="96" />
-            <path d="M39 36h8l-3 19Z" fill="black" />
-          </mask>
-        </defs>
-        <g fill={colors.primary} mask="url(#racemate-share-mark-mask)">
-          <path d="M6 10 16 0h29c12 0 20 7 20 18 0 12-8 19-20 19h-7l12 15-7 4-14-19h-3c-5 0-8 2-11 6L5 56H0l16-23c3-4 7-6 13-6h16c6 0 10-3 10-8.5S51 10 45 10Z" />
-          <path d="M44 56 86 0h10v56H86V17L54 56Z" />
-        </g>
+        <path
+          d="M5 59 18 7h27c12 0 19 6 19 15 0 10-8 17-20 17H27l23 20"
+          fill="none"
+          stroke={colors.primary}
+          strokeLinecap="square"
+          strokeLinejoin="round"
+          strokeWidth="10"
+        />
+        <path
+          d="M129 8H95c-10 0-16 5-16 13 0 7 6 11 15 11h19c10 0 16 5 16 13 0 8-6 13-16 13H76"
+          fill="none"
+          stroke={colors.primary}
+          strokeLinecap="square"
+          strokeLinejoin="round"
+          strokeWidth="10"
+        />
       </svg>
       <div style={{ display: "flex", flexDirection: "column" }}>
         <span
@@ -216,7 +222,7 @@ function ShareLogo({ compact }: { compact: boolean }) {
             lineHeight: 1,
           }}
         >
-          RaceMate
+          RaceSide
         </span>
         <span
           style={{
@@ -1125,12 +1131,12 @@ function AcquisitionFooter({ story }: { story: boolean }) {
           Сможешь точнее?
         </span>
         <span style={{ display: "flex", fontSize: story ? 19 : 15, fontWeight: 700, marginTop: story ? 11 : 7 }}>
-          Собери свой прогноз на RaceMate
+          Собери свой прогноз на RaceSide
         </span>
       </div>
       <div style={{ alignItems: "flex-end", display: "flex", flexDirection: "column" }}>
         <span style={{ display: "flex", fontFamily: monoFont, fontSize: story ? 22 : 17, fontWeight: 900 }}>
-          racemate.ru/fantasy
+          raceside.online/fantasy
         </span>
         <span style={{ display: "flex", fontFamily: monoFont, fontSize: story ? 13 : 10, fontWeight: 700, letterSpacing: story ? 1.6 : 1.2, marginTop: story ? 8 : 5, opacity: 0.76 }}>
           СРАВНИ ПИКИ С ДРУЗЬЯМИ

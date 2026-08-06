@@ -25,7 +25,7 @@ async function readJson(filePath) {
 
 async function fetchJson(url) {
   const response = await fetch(url, {
-    headers: { "user-agent": "RaceMateSeasonAssetCheck/1.0" },
+    headers: { "user-agent": "RaceSideSeasonAssetCheck/1.0" },
   });
   if (!response.ok) throw new Error(`${url} returned ${response.status}`);
   return response.json();

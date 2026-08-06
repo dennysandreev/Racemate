@@ -1,22 +1,49 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ChevronRight, Flag, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { JsonLd } from "@/components/racemate/json-ld";
 import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
 import { PageTitle } from "@/components/racemate/page-title";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { SeasonSwitcher } from "@/components/racemate/season-switcher";
 import { TeamLogo } from "@/components/racemate/team-logo";
 import { getPublishedSeasons, getTeamProfiles } from "@/data/racemate-repository";
-import { resolvePublishedSeason, type SeasonSearchParams } from "@/lib/season-navigation";
+import {
+  CURRENT_F1_SEASON,
+  resolvePublishedSeason,
+  type SeasonSearchParams,
+} from "@/lib/season-navigation";
+import { absoluteUrl, buildSeasonPath, createPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Команды · RaceMate",
-  description: "Команды Формулы-1 по сезонам: составы, положение в чемпионате, очки и результаты.",
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SeasonSearchParams>;
+}): Promise<Metadata> {
+  const query = await searchParams;
+  const publishedSeasons = await getPublishedSeasons();
+  const season = resolvePublishedSeason(query.season, publishedSeasons);
+
+  if (!season) {
+    return createPageMetadata({
+      description: "Команды запрошенного сезона пока недоступны.",
+      noIndex: true,
+      path: "/teams",
+      title: "Команды не найдены",
+    });
+  }
+
+  return createPageMetadata({
+    description: `Команды Формулы-1 сезона ${season}: составы пилотов, положение в Кубке конструкторов, очки, победы и результаты по этапам.`,
+    path: buildSeasonPath("/teams", season, CURRENT_F1_SEASON),
+    title: `Команды Формулы-1 ${season}`,
+  });
+}
 
 export default async function TeamsPage({
   searchParams,
@@ -35,6 +62,28 @@ export default async function TeamsPage({
 
   return (
     <AppShell>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          hasPart: {
+            "@type": "ItemList",
+            itemListElement: teams.map((team, index) => ({
+              "@type": "ListItem",
+              item: absoluteUrl(
+                season === CURRENT_F1_SEASON
+                  ? `/teams/${team.slug}`
+                  : `/teams/${team.slug}?season=${season}`,
+              ),
+              name: team.shortName,
+              position: index + 1,
+            })),
+          },
+          inLanguage: "ru-RU",
+          name: `Команды Формулы-1 ${season}`,
+          url: absoluteUrl(buildSeasonPath("/teams", season, CURRENT_F1_SEASON)),
+        }}
+      />
       <div className="grid gap-5 pb-6 sm:pb-8">
         <header className="stitch-panel relative overflow-hidden p-4 sm:p-5 lg:h-40">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgb(225_6_0_/_0.2),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.04),transparent_48%)]" />
@@ -45,7 +94,7 @@ export default async function TeamsPage({
                 Команды · сезон {season}
               </p>
               <PageTitle className="mt-2">
-                Команды чемпионата
+                Команды Формулы-1
               </PageTitle>
               <SeasonSwitcher
                 activeSeason={season}
@@ -134,7 +183,7 @@ export default async function TeamsPage({
         ) : (
           <div className="stitch-panel p-8 text-center">
             <p className="font-display text-xl font-bold">Команды появятся после обновления чемпионата</p>
-            <p className="mt-2 text-sm text-muted-foreground">RaceMate уже готов показать данные, как только они будут синхронизированы.</p>
+            <p className="mt-2 text-sm text-muted-foreground">RaceSide уже готов показать данные, как только они будут синхронизированы.</p>
           </div>
         )}
       </div>

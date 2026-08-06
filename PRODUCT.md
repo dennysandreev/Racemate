@@ -6,7 +6,7 @@ product
 
 ## Users
 
-RaceMate is for Russian-speaking Formula 1 fans who want one place to follow the season without jumping between feeds, tables, calendars, and chats. They may open it quickly before a session, read the latest stories during the day, check standings after a race, or submit predictions with friends before a weekend starts.
+RaceSide is for Russian-speaking Formula 1 fans who want one place to follow the season without jumping between feeds, tables, calendars, and chats. They may open it quickly before a session, read the latest stories during the day, check standings after a race, or submit predictions with friends before a weekend starts.
 
 Core user groups:
 - Casual fans who need clear news, calendar, standings, and race context.
@@ -16,7 +16,7 @@ Core user groups:
 
 ## Product Purpose
 
-RaceMate is a premium motorsport companion for the F1 season. It combines cached official and third-party F1 data, RSS/API news ingestion, Russian AI summaries, race weekend context, favorites, predictions, leagues, polls, reactions, and an operational admin surface.
+RaceSide is a premium motorsport companion for the F1 season. It combines cached official and third-party F1 data, RSS/API news ingestion, Russian AI summaries, race weekend context, favorites, predictions, leagues, polls, reactions, and an operational admin surface.
 
 Success means a user can:
 - understand what matters in F1 today in under a minute;
@@ -30,7 +30,7 @@ Success means a user can:
 
 Fast, sharp, and composed.
 
-RaceMate should feel like a serious sport product, not a meme page or a generic dashboard. It can be energetic, but the energy should come from timing, contrast, data, motorsport texture, and confident hierarchy rather than noisy decoration.
+RaceSide should feel like a serious sport product, not a meme page or a generic dashboard. It can be energetic, but the energy should come from timing, contrast, data, motorsport texture, and confident hierarchy rather than noisy decoration.
 
 Voice:
 - Russian-first, concise, human, and editorial.
@@ -40,7 +40,7 @@ Voice:
 
 ## Anti-references
 
-RaceMate must not look like:
+RaceSide must not look like:
 - a generic dark SaaS dashboard with purple gradients;
 - an overloaded racing game HUD;
 - a crypto/fintech leaderboard clone;
@@ -80,7 +80,7 @@ Required:
 Included in V1:
 - public news, AI summaries, digests, calendar, race hub, results, standings, teams, drivers, circuits;
 - published Formula 1 season archives from 2020 onward: calendar, session results, standings, season-specific driver/team profiles, cars, logos, and race-specific track maps;
-- email OTP/passwordless auth;
+- email/password auth через Supabase с подтверждением почты и восстановлением доступа;
 - onboarding, favorites, personal feed;
 - predictions, mini-leagues, leaderboards, polls, reactions;
 - operational admin for sources, jobs, articles, AI usage, and sync tasks;

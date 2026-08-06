@@ -15,6 +15,7 @@ import {
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
+import { JsonLd } from "@/components/racemate/json-ld";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { SeasonSwitcher } from "@/components/racemate/season-switcher";
 import { TeamCumulativePointsChart } from "@/components/racemate/team-cumulative-points-chart";
@@ -28,6 +29,7 @@ import {
   resolvePublishedSeason,
   type SeasonSearchParams,
 } from "@/lib/season-navigation";
+import { absoluteUrl, buildSeasonPath, createPageMetadata, SITE_URL } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import type { TeamProfile, TeamRaceResultRow } from "@/types/racemate";
 
@@ -48,13 +50,22 @@ export async function generateMetadata({ params, searchParams }: TeamPageProps):
   const team = season ? await getTeamProfileBySlug(slug, season) : null;
 
   if (!team) {
-    return { title: "Команда не найдена · RaceMate" };
+    return createPageMetadata({
+      description: "Профиль команды не найден в опубликованном архиве RaceSide.",
+      noIndex: true,
+      path: `/teams/${slug}`,
+      title: "Команда не найдена",
+    });
   }
 
-  return {
-    title: `${team.shortName} · RaceMate`,
-    description: `${team.shortName}: состав, статистика сезона ${team.season} и результаты по этапам.`,
-  };
+  return createPageMetadata({
+    description: `${team.shortName} в сезоне Формулы-1 ${team.season}: состав пилотов, положение в чемпионате, статистика и результаты по этапам.`,
+    image: team.carImageUrl || team.logo,
+    path: team.season === CURRENT_F1_SEASON
+      ? `/teams/${team.slug}`
+      : `/teams/${team.slug}?season=${team.season}`,
+    title: `${team.shortName} в Формуле-1 ${team.season}`,
+  });
 }
 
 export default async function TeamProfilePage({ params, searchParams }: TeamPageProps) {
@@ -81,6 +92,62 @@ export default async function TeamProfilePage({ params, searchParams }: TeamPage
 
   return (
     <AppShell>
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                item: SITE_URL,
+                name: "Главная",
+                position: 1,
+              },
+              {
+                "@type": "ListItem",
+                item: absoluteUrl(buildSeasonPath("/teams", team.season, CURRENT_F1_SEASON)),
+                name: `Команды ${team.season}`,
+                position: 2,
+              },
+              {
+                "@type": "ListItem",
+                item: absoluteUrl(
+                  team.season === CURRENT_F1_SEASON
+                    ? `/teams/${team.slug}`
+                    : `/teams/${team.slug}?season=${team.season}`,
+                ),
+                name: team.shortName,
+                position: 3,
+              },
+            ],
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "SportsTeam",
+            athlete: team.drivers.map((driver) => ({
+              "@type": "Person",
+              name: driver.fullName,
+              url: driver.slug
+                ? absoluteUrl(
+                    team.season === CURRENT_F1_SEASON
+                      ? `/drivers/${driver.slug}`
+                      : `/drivers/${driver.slug}?season=${team.season}`,
+                  )
+                : undefined,
+            })),
+            image: team.carImageUrl ? absoluteUrl(team.carImageUrl) : undefined,
+            logo: team.logo ? absoluteUrl(team.logo) : undefined,
+            name: team.name,
+            sport: "Автоспорт",
+            url: absoluteUrl(
+              team.season === CURRENT_F1_SEASON
+                ? `/teams/${team.slug}`
+                : `/teams/${team.slug}?season=${team.season}`,
+            ),
+          },
+        ]}
+      />
       <div className="grid min-w-0 gap-5 pb-6 sm:gap-6 sm:pb-8">
         <TeamHero availableSeasons={availableSeasons} query={query} team={team} />
 
@@ -462,7 +529,7 @@ function TeamNews({ team }: { team: TeamProfile }) {
       {team.news.length ? (
         <div className="divide-y divide-border">
           {team.news.map((item) => (
-            <Link className="group grid gap-2 p-4 hover:bg-accent/35 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:items-start sm:p-5" href={item.href ?? `/news/${item.slug}`} key={item.slug} prefetch={false}>
+            <Link className="group grid gap-2 p-4 hover:bg-accent/35 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:items-start sm:p-5" href={`/news/${item.slug}`} key={item.slug} prefetch={false}>
               <p className="text-xs font-semibold text-muted-foreground">{item.source} · {item.time}</p>
               <div className="min-w-0">
                 <p className="font-display text-base font-extrabold group-hover:text-primary">{item.title}</p>
@@ -475,7 +542,7 @@ function TeamNews({ team }: { team: TeamProfile }) {
       ) : (
         <div className="p-7 text-center">
           <p className="font-bold">Свежих материалов пока нет</p>
-          <p className="mt-1 text-sm text-muted-foreground">Новые публикации появятся после обработки ленты RaceMate.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Новые публикации появятся после обработки ленты RaceSide.</p>
         </div>
       )}
       <div className="border-t border-border p-4">

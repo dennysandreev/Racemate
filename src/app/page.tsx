@@ -20,6 +20,7 @@ import {
 import { HomeSessionStrip } from "@/components/racemate/home-session-strip";
 import { NewsImage } from "@/components/racemate/news-image";
 import { NewsTagBadge } from "@/components/racemate/news-tag-badge";
+import { RaceFlag } from "@/components/racemate/race-flag";
 import type { SessionWithResults } from "@/components/racemate/session-results-dialog";
 import { TrackMap } from "@/components/racemate/track-map";
 import { Badge } from "@/components/ui/badge";
@@ -156,20 +157,36 @@ export default async function Home({
 
   return (
     <AppShell>
+      <header className="sr-only">
+        <h1>RaceSide - Формула-1 на русском</h1>
+        <p>
+          Новости, календарь, результаты и статистика чемпионата Формулы-1.
+        </p>
+      </header>
       <section className="grid gap-5 pb-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
-        <div className="grid min-w-0 gap-5">
-          <CurrentRaceCard
-            currentRace={currentRace}
-            nextSession={nextSession}
-            sessions={sessionResults}
-          />
-          <NewsCard items={newsItems} />
+        <div className="contents xl:grid xl:min-w-0 xl:gap-5">
+          <div className="order-1 xl:order-none">
+            <CurrentRaceCard
+              currentRace={currentRace}
+              nextSession={nextSession}
+              sessions={sessionResults}
+            />
+          </div>
+          <div className="order-5 xl:order-none">
+            <NewsCard items={newsItems} />
+          </div>
         </div>
 
-        <aside className="grid gap-5">
-          <LatestReportCard driverSlugByName={driverSlugByName} report={latestReport} />
-          <HomeStandingsCarousel slides={standingSlides} />
-          <HomeSidebarCarousels marketSlides={marketSlides} polls={polls} />
+        <aside className="contents xl:grid xl:gap-5">
+          <div className="order-2 xl:order-none">
+            <LatestReportCard driverSlugByName={driverSlugByName} report={latestReport} />
+          </div>
+          <div className="order-3 xl:order-none">
+            <HomeStandingsCarousel slides={standingSlides} />
+          </div>
+          <div className="order-4 grid gap-5 xl:order-none">
+            <HomeSidebarCarousels marketSlides={marketSlides} polls={polls} />
+          </div>
         </aside>
       </section>
       <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
@@ -238,62 +255,62 @@ function CurrentRaceCard({
   nextSession: NextSession;
   sessions: SessionWithResults[];
 }) {
+  const raceTitleLength = Array.from(nextSession.race).length;
+  const raceTitleSizeClass = raceTitleLength > 32
+    ? "text-[1.6rem] sm:text-[1.9rem] lg:text-[2rem]"
+    : raceTitleLength > 22
+      ? "text-[1.75rem] sm:text-[2.1rem] lg:text-[2.25rem]"
+      : "text-3xl sm:text-4xl lg:text-[2.75rem]";
+
   return (
-    <div className="stitch-panel relative min-h-[34rem] overflow-hidden p-0">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgb(225_6_0_/_0.18),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.05),transparent_38%)]" />
-      <div className="relative grid gap-4 p-4 sm:p-5">
-        <div className="min-w-0">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <p className="font-telemetry flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
-              <Gauge aria-hidden="true" data-icon="inline-start" />
-              Следующий этап
-            </p>
-            <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
-              <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
-                {nextSession.status}
-              </Badge>
-              <span
-                aria-label="Сезон 2026"
-                className="hidden h-5 items-center gap-2 sm:inline-flex"
-              >
-                <span aria-hidden="true" className="h-4 w-px bg-primary/65" />
-                <span className="text-[0.62rem] font-semibold leading-none text-muted-foreground">Сезон</span>
-                <span aria-hidden="true" className="size-1 rounded-full bg-primary/70" />
-                <span className="font-telemetry text-xs font-extrabold leading-none text-foreground">2026</span>
-              </span>
-            </div>
-          </div>
-          <h1 className="font-display max-w-4xl text-balance text-2xl font-extrabold leading-tight tracking-[-0.04em] sm:text-3xl lg:text-4xl">
-            {formatSessionName(nextSession.session)}
-          </h1>
-          <p className="mt-2 flex min-w-0 items-center gap-2 text-sm font-semibold text-muted-foreground sm:text-base">
-            <MapPin aria-hidden="true" className="size-4 shrink-0 text-primary" />
-            <span className="shrink-0 font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em]">
-              На трассе
-            </span>
-            <span className="min-w-0 truncate">{nextSession.circuit}</span>
-          </p>
+    <section className="stitch-panel overflow-hidden p-0" aria-labelledby="next-race-title">
+      <header className="flex min-h-12 items-center justify-between gap-3 border-b border-border/70 px-4 py-3 sm:px-5">
+        <p className="font-telemetry flex shrink-0 items-center gap-2 whitespace-nowrap text-[0.66rem] font-bold uppercase tracking-[0.08em] text-primary sm:text-xs sm:tracking-[0.12em]">
+          <Gauge aria-hidden="true" className="size-4 shrink-0" />
+          <span>Следующий этап</span>
+        </p>
+        <div className="flex shrink-0 items-center gap-2">
+          <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
+            {nextSession.status}
+          </Badge>
+          <span className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
+            <span className="h-3 w-px bg-primary/70" aria-hidden="true" />
+            Сезон <span className="font-telemetry font-bold text-foreground">2026</span>
+          </span>
         </div>
+      </header>
 
-        <HomeSessionStrip activeSessionName={nextSession.session} sessions={sessions} />
-
-        <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,15rem)]">
-          <div className="h-[14rem] min-w-0 max-w-full overflow-hidden sm:h-[15.5rem] lg:h-[16.5rem]">
-            <TrackMap compact fill circuit={nextSession.circuit} label={nextSession.race} layout={currentRace?.layout} unframed />
-          </div>
-          <div className="grid min-w-0 content-between justify-items-center gap-3 px-1 py-2 text-center lg:justify-items-stretch lg:py-3 lg:text-left">
-            <div>
-              <p className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                {currentRace?.country ?? "Гран-при"}
-              </p>
-              <p className="mt-2 font-display text-xl font-bold leading-tight">
-                {nextSession.race}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {nextSession.startsAt}
-              </p>
+      <div className="grid min-w-0 lg:grid-cols-[minmax(16rem,0.82fr)_minmax(0,1.18fr)]">
+        <div className="order-1 min-w-0 px-4 pb-2 pt-5 sm:px-6 sm:pt-6 lg:col-start-1 lg:row-start-1 lg:border-r lg:pb-6">
+          <div className="grid gap-3">
+            <div className="flex items-center gap-2 font-telemetry text-[0.7rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+              <RaceFlag
+                className="h-4 w-6"
+                countryCode={currentRace?.countryCode}
+                label={currentRace?.country ?? nextSession.race}
+                value={currentRace?.countryFlag}
+              />
+              <span>Раунд {currentRace?.round ?? "—"}</span>
             </div>
-            <Button asChild className="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none" variant="secondary">
+            <h2
+              className={`max-w-3xl text-balance font-display font-extrabold leading-[1.04] ${raceTitleSizeClass}`}
+              id="next-race-title"
+            >
+              {nextSession.race}
+            </h2>
+            <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-muted-foreground sm:text-base">
+              <MapPin aria-hidden="true" className="size-4 shrink-0 text-primary" />
+              <span className="min-w-0 truncate">{nextSession.circuit}</span>
+            </p>
+          </div>
+          <div className="mt-6 hidden border-t border-border/70 pt-4 lg:block">
+            <p className="font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.1em] text-primary">
+              Следующая сессия
+            </p>
+            <p className="mt-1.5 text-sm font-bold text-foreground">
+              {formatSessionName(nextSession.session)}
+            </p>
+            <Button asChild className="mt-5 w-full" variant="secondary">
               <Link href="/weekend" prefetch={false}>
                 Перейти к этапу
                 <ArrowRight aria-hidden="true" data-icon="inline-end" />
@@ -301,8 +318,34 @@ function CurrentRaceCard({
             </Button>
           </div>
         </div>
+
+        <div className="order-2 min-w-0 px-4 pb-5 sm:px-6 lg:col-span-2 lg:row-start-2 lg:border-t lg:px-4 lg:pb-4">
+          <HomeSessionStrip activeSessionName={nextSession.session} embedded sessions={sessions} />
+        </div>
+
+        <div className="order-3 h-[13rem] min-w-0 border-t border-border/70 p-3 sm:h-[16rem] sm:p-4 lg:col-start-2 lg:row-start-1 lg:h-auto lg:min-h-[18rem] lg:border-l lg:border-t-0 lg:p-5">
+          <TrackMap compact fill circuit={nextSession.circuit} label={nextSession.race} layout={currentRace?.layout} unframed />
+        </div>
+
+        <div className="order-4 flex flex-col gap-3 border-t border-border/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:hidden">
+          <div className="min-w-0">
+            <p className="font-telemetry text-[0.64rem] font-bold uppercase tracking-[0.1em] text-primary">
+              Ближайшая сессия
+            </p>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <p className="text-sm font-bold text-foreground">{formatSessionName(nextSession.session)}</p>
+              <p className="text-xs text-muted-foreground">{nextSession.startsAt}</p>
+            </div>
+          </div>
+          <Button asChild className="w-full shrink-0 sm:w-auto lg:w-full" variant="secondary">
+            <Link href="/weekend" prefetch={false}>
+              Перейти к этапу
+              <ArrowRight aria-hidden="true" data-icon="inline-end" />
+            </Link>
+          </Button>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -322,30 +365,24 @@ function NewsCard({ items }: { items: NewsItem[] }) {
           <div className="divide-y divide-border/70">
             {items.map((item) => (
               <Link
-                className="group grid min-w-0 grid-cols-[minmax(0,1fr)_6.5rem] gap-3 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_10rem] sm:gap-5 sm:p-5"
+                className="group grid min-w-0 grid-cols-[minmax(0,1fr)_5.25rem] gap-x-3 gap-y-2.5 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_8rem] sm:gap-x-5 sm:p-5"
                 href={`/news/${item.slug}`}
                 key={item.slug}
                 prefetch={false}
               >
-                <div className="min-w-0 self-center">
+                <div className="col-span-2 min-w-0">
                   <NewsMeta item={item} />
-                  <div className="mt-3 flex min-w-0 items-start gap-2">
-                    <h2 className="min-w-0 flex-1 text-base font-semibold leading-6 transition-colors group-hover:text-primary sm:text-lg">
-                      {item.title}
-                    </h2>
-                    <ArrowRight
-                      aria-hidden="true"
-                      className="mt-1 hidden size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary sm:block"
-                    />
-                  </div>
-                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
-                    {item.summary}
-                  </p>
                 </div>
+                <h2 className="col-span-2 min-w-0 text-base font-semibold leading-6 transition-colors group-hover:text-primary sm:text-lg">
+                  {item.title}
+                </h2>
+                <p className="line-clamp-3 min-w-0 self-center text-sm leading-6 text-muted-foreground sm:line-clamp-4">
+                  {item.summary}
+                </p>
                 {item.imageUrl ? (
                   <NewsImage
-                    alt=""
-                    className="relative aspect-[4/3] self-center overflow-hidden rounded-md bg-muted"
+                    alt={item.title}
+                    className="relative aspect-square self-center overflow-hidden rounded-md bg-muted sm:aspect-[4/3]"
                     src={item.imageUrl}
                   />
                 ) : (
@@ -367,7 +404,7 @@ function NewsCard({ items }: { items: NewsItem[] }) {
 }
 
 function NewsMeta({ item }: { item: NewsItem }) {
-  const visibleTag = item.tags.find((tag) => tag.type === "team") ?? item.tags.find((tag) => tag.type === "race") ?? item.tags[0];
+  const visibleTag = item.tags.find((tag) => tag.type === "race");
 
   return (
     <div className="flex flex-wrap items-center gap-2">

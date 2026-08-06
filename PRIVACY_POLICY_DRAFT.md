@@ -8,7 +8,7 @@ Last updated: 2026-06-30
 
 RaceMate may collect:
 
-- email address used for passwordless sign-in;
+- email address used for sign-in and account recovery;
 - display name;
 - timezone;
 - favorite Formula 1 teams and drivers;
@@ -16,7 +16,7 @@ RaceMate may collect:
 - basic auth/session data handled by Supabase;
 - operational logs needed to keep the service reliable.
 
-RaceMate does not store passwords in the application database. Authentication is handled through Supabase email OTP/passwordless login.
+RaceMate does not store passwords in the application database. Supabase Auth handles password hashing, verification, email confirmation, sessions, and account recovery.
 
 ## How data is used
 
@@ -43,7 +43,7 @@ Private profile data, favorites, private league membership, and non-public predi
 RaceMate uses or may use:
 
 - Supabase for authentication, database, and storage;
-- an SMTP/email provider such as Resend/Postmark/SendGrid for login emails;
+- an SMTP/email provider such as Resend/Postmark/SendGrid for confirmation and password-recovery emails;
 - Cloudflare Turnstile for bot protection on public forms, if enabled in production;
 - OpenRouter for server-side AI processing of news, reports, digests, and polls;
 - external motorsport/data sources such as Jolpica, OpenF1, Open-Meteo, RSS sources, RSSHub/X, Reddit RSS, Jina reader, and Polymarket data endpoints;

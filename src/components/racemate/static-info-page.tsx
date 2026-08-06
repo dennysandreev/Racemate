@@ -17,7 +17,7 @@ export function StaticDocumentPageView({ page }: { page: StaticDocumentPage }) {
               На главную
             </Link>
           </Button>
-          <p className="stitch-label mb-3 text-primary">Документы RaceMate</p>
+          <p className="stitch-label mb-3 text-primary">Документы RaceSide</p>
           <h1 className="font-display text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
             {page.title}
           </h1>
@@ -231,7 +231,7 @@ function renderInline(value: string) {
       );
     }
 
-    if (part === "RaceMate") {
+    if (part === "RaceSide") {
       return (
         <span className="font-semibold text-foreground" key={index}>
           {part}

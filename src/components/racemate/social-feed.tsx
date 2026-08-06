@@ -67,13 +67,13 @@ export function SocialFeed({ initialResult, platform, mode, filters, personaliza
           ? {
               actionHref: "/onboarding",
               actionLabel: "Выбрать команду и пилотов",
-              description: "Выберите любимую команду и до двух пилотов. RaceMate соберет их публикации в одной ленте.",
+              description: "Выберите любимую команду и до двух пилотов. RaceSide соберет их публикации в одной ленте.",
               title: "Настройте свою ленту",
             }
           : {
               actionHref: "/onboarding",
               actionLabel: "Изменить выбор",
-              description: "Новых публикаций о ваших фаворитах пока нет. Они появятся здесь после проверки RaceMate.",
+              description: "Новых публикаций о ваших фаворитах пока нет. Они появятся здесь после проверки RaceSide.",
               title: "Пока нет новых публикаций",
             }
       : null;

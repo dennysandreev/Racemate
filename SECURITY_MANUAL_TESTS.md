@@ -23,10 +23,13 @@ Use two real test users: `user_a` and `user_b`. Do not use production personal a
 
 ## 3. Auth Failure Cases
 
-- [ ] Request login link for an existing email and a non-existing email. Expected: user-facing response stays generic.
-- [ ] Repeatedly request OTP for the same email and IP. Expected: throttled by Supabase/dashboard or edge limiter.
-- [ ] In production with Turnstile keys configured, submit login without a valid Turnstile token. Expected: generic failure and no OTP email.
-- [ ] Open an already-used or expired email link. Expected: graceful redirect, no stack trace, no provider error leak.
+- [ ] Try login with a wrong password and with an unknown email. Expected: the same generic error.
+- [ ] Repeatedly submit login for the same email and IP. Expected: throttled by the app and Supabase/dashboard or edge limiter.
+- [ ] Try signup with an existing email. Expected: the UI does not reveal whether the account already exists.
+- [ ] Request password recovery for existing and non-existing emails. Expected: the same user-facing result.
+- [ ] In production with Turnstile keys configured, submit login, signup, and recovery without a valid Turnstile token. Expected: generic failure and no email.
+- [ ] Open an already-used or expired confirmation/recovery link. Expected: graceful redirect, no stack trace, no provider error leak.
+- [ ] Set a password shorter than 8 characters or submit mismatched passwords. Expected: rejected server-side.
 - [ ] Sign out, then open `/account`, `/fantasy`, `/leagues`, `/polls` write flows. Expected: redirected to auth or action blocked server-side.
 - [ ] Inspect auth cookies in production browser devtools. Expected: Secure, HttpOnly where applicable, SameSite appropriate.
 
@@ -43,7 +46,7 @@ Use two real test users: `user_a` and `user_b`. Do not use production personal a
 
 - [ ] Fetch production `/` headers. Expected: CSP, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy.
 - [ ] Confirm no route returns `Access-Control-Allow-Origin: *` for sensitive endpoints.
-- [ ] Open core pages after CSP header change: `/`, `/auth`, `/fantasy`, `/news`, `/calendar`, `/admin` as admin.
+- [ ] Open core pages after CSP header change: `/`, `/auth`, `/auth/forgot-password`, `/auth/update-password`, `/fantasy`, `/news`, `/calendar`, `/admin` as admin.
 - [ ] Check browser console for CSP violations that break functionality.
 
 ## 6. Secrets And Deployment

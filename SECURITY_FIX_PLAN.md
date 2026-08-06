@@ -10,7 +10,7 @@
 1. Configure strict Supabase Auth limits.
    - Current repo defaults in `.env.example` are permissive (`AUTH_RATE_LIMIT_* = 10000`).
    - Confirm actual production values in Supabase dashboard.
-   - Keep OTP/login errors generic.
+   - Keep login, signup, and recovery errors generic.
 
 2. Replace in-memory rate limits with shared production limits when needed.
    - Implemented now: auth email submit, prediction saves, league create/join, poll vote, article reaction, public GET APIs, image routes, and admin job triggers.
@@ -20,7 +20,7 @@
    - Verify profiles, favorites, predictions, private leagues, poll votes, hidden reports, draft digests/articles.
    - Use `SECURITY_MANUAL_TESTS.md`.
 
-4. Configure Cloudflare Turnstile for email OTP request flow.
+4. Configure Cloudflare Turnstile for password auth forms.
    - Code support is implemented with `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`.
    - Remaining: create keys in Cloudflare dashboard and set production env vars.
 
@@ -59,7 +59,7 @@
 
 - Added baseline security headers in `next.config.ts`.
 - Added in-memory rate limits for auth, write actions, admin job triggers, and public API/image routes.
-- Added optional Cloudflare Turnstile verification for email OTP.
+- Added optional Cloudflare Turnstile verification for login, signup, and password recovery.
 - Removed email from check-email URL.
 - Replaced league invite/share suffix randomness with Node crypto.
 - Added length/enum validation for onboarding, league names, admin social/report fields.

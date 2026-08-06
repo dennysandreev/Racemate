@@ -17,7 +17,7 @@ export default function NotFound() {
               Страница не найдена
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-muted-foreground">
-              Похоже, этот поворот не вошел в календарь RaceMate. Вернитесь на главную страницу или откройте календарь ближайших этапов.
+              Похоже, этот поворот не вошел в календарь RaceSide. Вернитесь на главную страницу или откройте календарь ближайших этапов.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Button asChild>

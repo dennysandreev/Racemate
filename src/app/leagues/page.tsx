@@ -1,5 +1,6 @@
 import { Users } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { createLeague, joinLeague } from "@/app/leagues/actions";
 import { AppShell } from "@/components/racemate/app-shell";
@@ -15,11 +16,34 @@ import {
 } from "@/components/ui/card";
 import { getLeagues } from "@/data/racemate-repository";
 import { getSessionUser } from "@/lib/auth";
+import { createPageMetadata } from "@/lib/seo";
+
+type LeagueSearchParams = {
+  created?: string;
+  joined?: string;
+  message?: string;
+};
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<LeagueSearchParams>;
+}): Promise<Metadata> {
+  const query = await searchParams;
+
+  return createPageMetadata({
+    description:
+      "Мини-лиги прогнозов Формулы-1: создай лигу для друзей, вступи по приглашению и сравнивай результаты по ходу сезона.",
+    noIndex: Object.values(query).some(Boolean),
+    path: "/leagues",
+    title: "Мини-лиги прогнозов Формулы-1",
+  });
+}
 
 export default async function LeaguesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ created?: string; joined?: string; message?: string }>;
+  searchParams: Promise<LeagueSearchParams>;
 }) {
   const status = await searchParams;
   const user = await getSessionUser();

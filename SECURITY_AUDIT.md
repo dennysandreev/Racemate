@@ -1,7 +1,7 @@
-# RaceMate Security Audit
+# RaceSide Security Audit
 
 Audit date: 2026-06-30  
-Scope: local repository audit for RaceMate MVP launch baseline. Secrets are intentionally masked and not printed.
+Scope: local repository audit for RaceSide MVP launch baseline. Secrets are intentionally masked and not printed.
 
 ## 1. Project Inventory
 
@@ -11,10 +11,10 @@ Scope: local repository audit for RaceMate MVP launch baseline. Secrets are inte
 | Backend | Next.js route handlers and server actions |
 | Worker | Node worker in `worker/index.mjs`; optional Python/FastF1 helper |
 | Database | Supabase Postgres with SQL migrations in `supabase/migrations` |
-| Auth provider | Supabase Auth email OTP/passwordless |
+| Auth provider | Supabase Auth email/password with email confirmation and recovery |
 | Storage | Supabase Storage buckets for news images and driver avatars |
-| Deploy target | Docker standalone Next.js app plus worker/cron services; known production domain `racemate.ru` |
-| Public domains | `racemate.ru`, `www.racemate.ru` if DNS/reverse proxy enables it, localhost for development |
+| Deploy target | Docker standalone Next.js app plus worker/cron services; known production domain `raceside.online` |
+| Public domains | `raceside.online`, `www.raceside.online` if DNS/reverse proxy enables it, localhost for development |
 | Env storage | `.env.local` for local secrets, `.env.example` for contract, `.env` in Docker compose runtime |
 | Paid services | Supabase, OpenRouter, hosting/VPS; Resend/SMTP possible for auth mail |
 | Free/external data | Jolpica, OpenF1, Open-Meteo, RSS sources, RSSHub/X, Reddit RSS, Jina reader, Polymarket gamma API |
@@ -98,7 +98,8 @@ Notes:
 
 | Endpoint/Form/Action | Server-side validation | Auth check | Ownership check | Sanitization | Risk | Fix |
 |---|---:|---:|---:|---:|---|---|
-| `signInWithEmail` | Good | N/A | N/A | Email trim/lowercase, Turnstile when configured | Low | Confirm Supabase dashboard limits |
+| `signInWithPassword` / `signUpWithPassword` | Good | N/A | N/A | Email normalize, password checks, rate limits, Turnstile when configured | Low | Confirm Supabase password policy and dashboard limits |
+| `requestPasswordReset` / `updatePassword` | Good | Recovery session for update | Own user | Generic recovery response, password confirmation | Low | Test used and expired links in production |
 | `saveOnboarding` | Good | Yes | Yes | Display name length and timezone allowlist | Low | Validate team/driver IDs live via RLS/manual test |
 | `saveFantasyPrediction` | Good | Yes | Yes | ID normalization | Low | In-memory rate limit added |
 | `savePrediction` | Good | Yes | Yes | ID normalization | Low | In-memory rate limit added |
@@ -125,8 +126,8 @@ No SQL injection pattern was found; Supabase query builder is used instead of st
 
 Fixed in this audit:
 - Added production security headers in `next.config.ts`.
-- Added in-memory rate limits for OTP requests, write actions, admin job triggers, and public API/image routes.
-- Added optional Cloudflare Turnstile verification for the email OTP form.
+- Added in-memory rate limits for login, signup, recovery requests, write actions, admin job triggers, and public API/image routes.
+- Added optional Cloudflare Turnstile verification for password auth forms.
 - Removed email from the check-email URL.
 
 Required:
@@ -134,14 +135,15 @@ Required:
 
 ## 6. Auth Failure-case Audit
 
-RaceMate uses passwordless Supabase email OTP; password lockout tests are not applicable.
+RaceSide uses Supabase email/password authentication with email confirmation and password recovery.
 
 | Case | Status | Notes |
 |---|---|---|
-| Login with existing/non-existing email | Needs manual confirmation | Supabase Auth dashboard behavior and SMTP responses must not enumerate accounts |
-| Repeated OTP requests | Partially fixed | App-level per-IP/per-email limits added; Supabase dashboard limits still need confirmation |
-| Repeated verification/callback link | Needs manual test | Callback ignores missing/invalid code and redirects generically |
-| Signup with existing email | N/A/Needs confirmation | OTP flow should stay generic |
+| Login with wrong password or unknown email | Partially fixed | UI uses the same generic error; Supabase dashboard limits still need confirmation |
+| Repeated password attempts | Partially fixed | App-level per-IP/per-email limits and optional Turnstile added; shared production limits still need confirmation |
+| Signup with existing email | Needs manual confirmation | User-facing result must not reveal whether the account already exists |
+| Password recovery for existing/non-existing email | Partially fixed | UI is generic; verify SMTP/provider behavior and delivery limits |
+| Reused or expired confirmation/recovery link | Needs manual test | Callback redirects to a generic recovery/auth error without provider details |
 | Logout | Implemented | Calls `supabase.auth.signOut()` and redirects |
 | Protected routes | Mostly server-side | Sensitive pages/actions use `requireUser`/`requireAdmin`; `proxy.ts` protected route list is empty |
 | Cookie settings | Supabase-managed | Needs browser/dashboard confirmation in production |
@@ -165,12 +167,12 @@ Residual risk:
 | OWASP Category | Status | Evidence | Risk | Fix |
 |---|---|---|---|---|
 | A01 Broken Access Control | Needs manual confirmation | RLS present; actions use auth checks | Medium | Run two-user RLS/IDOR tests |
-| A02 Cryptographic Failures | Mostly pass | No passwords stored; Supabase Auth | Low | Confirm HTTPS/HSTS in production |
+| A02 Cryptographic Failures | Mostly pass | No plaintext passwords in app storage; Supabase Auth hashes passwords | Low | Confirm HTTPS/HSTS and password policy in production |
 | A03 Injection | Mostly pass | Query builder; no raw request SQL | Low | Keep validating admin URLs and text lengths |
 | A04 Insecure Design | Partially fixed | App-level in-memory limits and optional Turnstile added | Medium | Use Redis/edge limiter for multi-instance production |
 | A05 Security Misconfiguration | Partially fixed | Headers added; dashboard unknown | Medium | Confirm CORS/Auth/Storage/API exposure in dashboards |
 | A06 Vulnerable Components | Pass local audit | `pnpm audit --audit-level high` clean | Low | Re-run before release |
-| A07 Identification/Auth Failures | Needs work | OTP rates dashboard-dependent | High | Configure strict Supabase auth limits and generic copy |
+| A07 Identification/Auth Failures | Needs work | App limits exist; Supabase/dashboard and shared limits remain deployment-dependent | High | Configure password policy, strict Auth limits, and generic copy |
 | A08 Software/Data Integrity | Mostly pass | Lockfile committed; Docker build from lockfile | Low | Avoid `latest` dependencies before launch if reproducibility matters |
 | A09 Logging/Monitoring Failures | Needs work | Worker logs exist; no alerting found | Medium | Add alerts for auth, AI spend, worker failures |
 | A10 SSRF | Needs review | Worker fetches admin-configured RSS/URLs; image optimizer allows any HTTPS host | Medium | Restrict/proxy remote fetch targets |
@@ -209,7 +211,7 @@ Local `.env.local` contains configured values for public Supabase URL/anon key, 
 
 | Endpoint | Paid API / DB cost | Current rate limit | Recommended limit | Implemented? |
 |---|---|---|---|---:|
-| Supabase OTP login | Email/Auth | App per-IP/per-email; dashboard unknown | Strict per IP/email | Partial |
+| Supabase password login/signup/recovery | Email/Auth | App per-IP/per-email + optional Turnstile; dashboard unknown | Strict per IP/email with shared production limiter | Partial |
 | Server actions writing predictions/leagues/polls/reactions | DB write | In-memory per-user | Per user/IP, persistent/shared in prod | Partial |
 | Public GET API routes | DB read | In-memory per-IP | ~100/min/IP with cache | Partial |
 | Admin job trigger actions | Worker/AI/API cost | Admin-only + in-memory per-admin | Per admin/IP + audit log | Partial |
@@ -222,7 +224,7 @@ P1 follow-up: replace or supplement in-memory limits with Redis/edge/reverse-pro
 
 | Public form / endpoint | CAPTCHA/Bot protection | Risk | Required fix |
 |---|---:|---|---|
-| Email sign-in form | Optional Turnstile + rate limit | OTP/email abuse if keys are not configured | Configure Turnstile keys in production |
+| Login, signup, and recovery forms | Optional Turnstile + rate limit | Credential stuffing and email abuse if keys are not configured | Configure Turnstile keys and Supabase password policy in production |
 | Invite/join league | Rate limit | Invite code enumeration | Consider challenge after repeated failures |
 | Poll voting | Auth required + rate limit | Automated vote abuse from signed-in accounts | Consider stronger shared limiter |
 | Article reactions | Auth required + rate limit | Spam reactions | Consider stronger shared limiter |

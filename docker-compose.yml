@@ -14,6 +14,20 @@ services:
     command: ["node", "worker/index.mjs", "rss.fetch_all"]
     restart: "no"
 
+  admin-job-runner:
+    build: .
+    env_file:
+      - .env
+    command:
+      - sh
+      - -lc
+      - |
+        while true; do
+          node worker/index.mjs jobs.consume_queued --limit 3 || true
+          sleep 3
+        done
+    restart: unless-stopped
+
   cron:
     build: .
     env_file:
@@ -22,49 +36,8 @@ services:
       - sh
       - -lc
       - |
-        tick=0
         while true; do
-          node worker/index.mjs social.fetch_all || true
-          node worker/index.mjs social.process_ai || true
-          node worker/index.mjs polls.generate_next_race || true
-          if [ $((tick % 6)) -eq 0 ]; then
-            node worker/index.mjs social.refresh_metrics || true
-          fi
-          if [ $((tick % 6)) -eq 0 ]; then
-            node worker/index.mjs rss.fetch_all || true
-            node worker/index.mjs ai.process_news || true
-            node worker/index.mjs jolpica.sync_calendar || true
-            node worker/index.mjs jolpica.sync_results || true
-            node worker/index.mjs jolpica.sync_standings || true
-            node worker/index.mjs openf1.sync_sessions || true
-            node worker/index.mjs openf1.sync_laps || true
-            node worker/index.mjs weather.sync_weekend || true
-            node worker/index.mjs predictions.score || true
-            node worker/index.mjs circuit_stats.sync_all || true
-            node worker/index.mjs reports.check_latest || true
-            node worker/index.mjs reports.refresh_due || true
-          fi
-          tick=$((tick + 1))
-          sleep 300
-        done
-    restart: unless-stopped
-
-  digest-scheduler:
-    build: .
-    env_file:
-      - .env
-    command:
-      - sh
-      - -lc
-      - |
-        last_run=""
-        while true; do
-          day="$(date -u +%F)"
-          clock="$(date -u +%H:%M)"
-          if [ "$clock" = "12:00" ] && [ "$last_run" != "$day" ]; then
-            node worker/index.mjs ai.generate_daily_digest || true
-            last_run="$day"
-          fi
-          sleep 20
+          node worker/index.mjs jobs.enqueue_schedules --limit 20 || true
+          sleep 15
         done
     restart: unless-stopped

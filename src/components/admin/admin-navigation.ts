@@ -1,0 +1,31 @@
+import {
+  Activity,
+  Bell,
+  Bot,
+  ClipboardList,
+  Clock3,
+  FileText,
+  Gauge,
+  Newspaper,
+  Radio,
+  ScrollText,
+  ServerCog,
+  ShieldCheck,
+  Trophy,
+} from "lucide-react";
+
+export const adminNavigation = [
+  { href: "/admin", label: "Обзор", icon: Gauge },
+  { href: "/admin/news", label: "Новости", icon: Newspaper },
+  { href: "/admin/social", label: "Соцсети", icon: Radio },
+  { href: "/admin/reports", label: "Отчёты", icon: FileText },
+  { href: "/admin/sport", label: "Спорт", icon: Trophy },
+  { href: "/admin/community", label: "Сообщество", icon: Activity },
+  { href: "/admin/users", label: "Пользователи", icon: ShieldCheck },
+  { href: "/admin/notifications", label: "Уведомления", icon: Bell },
+  { href: "/admin/jobs", label: "Задачи", icon: ClipboardList },
+  { href: "/admin/schedules", label: "Расписания", icon: Clock3 },
+  { href: "/admin/systems", label: "Системы", icon: ServerCog },
+  { href: "/admin/ai", label: "AI и бюджет", icon: Bot },
+  { href: "/admin/audit", label: "Аудит", icon: ScrollText },
+] as const;

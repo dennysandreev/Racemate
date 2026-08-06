@@ -1,8 +1,8 @@
-# RaceMate F1 Assets Attribution
+# RaceSide F1 Assets Attribution
 
 ## Circuit Images
 
-Downloaded on 2026-07-01 from the official Formula1.com 2026 race pages / media.formula1.com for local display in RaceMate.
+Downloaded on 2026-07-01 from the official Formula1.com 2026 race pages / media.formula1.com for local display in RaceSide.
 
 Historical 2020–2025 circuit maps were refreshed on 2026-07-18 from the
 official Formula1.com race-page assets and their archived event versions. Each
@@ -28,6 +28,7 @@ source and checksum explicitly.
 - Netherlands: https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackzandvoortdetailed.webp (page: https://www.formula1.com/en/racing/2026/netherlands)
 - Italy: https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmonzadetailed.webp (page: https://www.formula1.com/en/racing/2026/italy)
 - Azerbaijan/Baku: https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackbakudetailed.webp (page: https://www.formula1.com/en/racing/2026/azerbaijan)
+- Malaysia/Sepang: https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackkualalumpurdetailed.webp (page: https://www.formula1.com/en/racing/2026/bahrain)
 - Singapore: https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026tracksingaporedetailed.webp (page: https://www.formula1.com/en/racing/2026/singapore)
 - United States/COTA: https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackaustindetailed.webp (page: https://www.formula1.com/en/racing/2026/united-states)
 - Mexico: https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmexicocitydetailed.webp (page: https://www.formula1.com/en/racing/2026/mexico)

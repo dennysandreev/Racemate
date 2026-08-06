@@ -9,8 +9,9 @@
 - [ ] Confirm anon key has no access beyond intended public reads.
 - [ ] Confirm service role key is only in server/worker env.
 - [ ] Confirm Storage policies for `news-images` and `driver-avatars`.
-- [ ] Confirm Auth email OTP errors do not enumerate accounts.
-- [ ] Confirm strict Auth rate limits for OTP, verify, token refresh, and email sends.
+- [ ] Confirm login, signup, and recovery errors do not enumerate accounts.
+- [ ] Confirm minimum password length is at least 8 characters and review leaked-password protection availability.
+- [ ] Confirm strict Auth rate limits for password attempts, signup, verify, token refresh, and email sends.
 - [ ] Confirm SMTP provider is configured for production.
 - [ ] Confirm email templates do not include secrets or unsafe redirect URLs.
 
@@ -35,7 +36,7 @@
 
 ## Hosting / Reverse proxy
 
-- [ ] Confirm production domain(s): `racemate.ru`, optional `www.racemate.ru`.
+- [ ] Confirm production domain(s): `raceside.online`, optional `www.raceside.online`.
 - [ ] Confirm TLS is valid and redirects HTTP to HTTPS.
 - [ ] Confirm reverse proxy does not add permissive CORS.
 - [ ] Confirm production headers are present after deploy.
@@ -44,16 +45,16 @@
 
 ## Cloudflare Turnstile
 
-- [ ] Create a Turnstile site key for `racemate.ru`.
+- [ ] Create a Turnstile site key for `raceside.online`.
 - [ ] Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in production web env.
 - [ ] Set `TURNSTILE_SECRET_KEY` in production server env.
 - [ ] Confirm `/auth` renders the challenge in production.
-- [ ] Confirm OTP request fails when a Turnstile token is missing/invalid.
+- [ ] Confirm login, signup, and recovery fail when a Turnstile token is missing/invalid.
 
 ## Monitoring
 
 - [ ] Alert on worker failures.
-- [ ] Alert on repeated auth failures/OTP requests.
+- [ ] Alert on repeated auth failures, signup attempts, and recovery requests.
 - [ ] Alert on unusual public API volume.
 - [ ] Alert on OpenRouter usage spikes.
 - [ ] Define secret rotation owner/process.

@@ -131,7 +131,7 @@ async function fetchOfficialAsset(season, candidates, kind) {
     const urls = sourcePaths(season, assetSlug, kind);
     try {
       const response = await fetch(urls.sourceUrl, {
-        headers: { "user-agent": "RaceMateHistoricalAssetSync/1.0" },
+        headers: { "user-agent": "RaceSideHistoricalAssetSync/1.0" },
       });
       if (!response.ok) {
         errors.push(`${assetSlug}: ${response.status}`);

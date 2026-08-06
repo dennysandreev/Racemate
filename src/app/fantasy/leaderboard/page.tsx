@@ -6,8 +6,16 @@ import { PageTitle } from "@/components/racemate/page-title";
 import { GlobalFantasyLeaderboardPanel } from "@/components/racemate/global-fantasy-leaderboard";
 import { Button } from "@/components/ui/button";
 import { getGlobalFantasyLeaderboard } from "@/data/racemate-repository";
+import { createPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = createPageMetadata({
+  description:
+    "Общий рейтинг прогнозов RaceSide: позиции участников, очки за этапы и результаты фентази-сезона Формулы-1.",
+  path: "/fantasy/leaderboard",
+  title: "Рейтинг прогнозов Формулы-1",
+});
 
 export default async function GlobalFantasyLeaderboardPage() {
   const leaderboard = await getGlobalFantasyLeaderboard();
@@ -24,7 +32,7 @@ export default async function GlobalFantasyLeaderboardPage() {
               Общий рейтинг
             </PageTitle>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-              Все личные прогнозы RaceMate в одной таблице. Очки обновляются после
+              Все личные прогнозы RaceSide в одной таблице. Очки обновляются после
               подсчёта результатов этапа.
             </p>
           </div>

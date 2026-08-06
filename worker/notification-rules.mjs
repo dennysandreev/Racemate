@@ -129,6 +129,17 @@ export function isNotificationFreshForConnection(notificationCreatedAt, connecte
   return notificationTimestamp >= connectedTimestamp;
 }
 
+export function getRemainingNewsNotificationBudget(alreadyQueued, dailyLimit = 30) {
+  const limit = Number.isFinite(Number(dailyLimit))
+    ? Math.max(0, Math.floor(Number(dailyLimit)))
+    : 30;
+  const queued = Number.isFinite(Number(alreadyQueued))
+    ? Math.max(0, Math.floor(Number(alreadyQueued)))
+    : 0;
+
+  return Math.max(0, limit - queued);
+}
+
 export function getFantasyDeadlineReminders(preference) {
   return [
     {

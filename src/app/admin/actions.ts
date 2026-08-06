@@ -25,12 +25,14 @@ const allowedJobs = new Set([
   "ai.process_news",
   "ai.reprocess_fallback_news",
   "ai.retag_news",
+  "news.retry_dedup",
   "circuit_stats.sync_all",
   "circuit_stats.sync",
   "jolpica.sync_calendar",
   "jolpica.sync_results",
   "jolpica.sync_standings",
   "openf1.sync_sessions",
+  "openf1.check_current_sessions",
   "openf1.sync_laps",
   "weather.sync_weekend",
   "predictions.score",
@@ -82,6 +84,76 @@ export async function toggleSource(formData: FormData) {
 
   revalidatePath("/admin");
   redirect("/admin?source=1");
+}
+
+export async function publishDuplicateNewsManually(formData: FormData) {
+  const user = await requireAdmin();
+  const supabase = createSupabaseAdminClient();
+  const articleId = String(formData.get("articleId") ?? "");
+
+  if (!supabase || !articleId) {
+    redirect("/admin");
+  }
+
+  const { data: article } = await supabase
+    .from("news_articles")
+    .select("id, publication_status, duplicate_of, duplicate_confidence, duplicate_relation, duplicate_reason, dedup_decision_history")
+    .eq("id", articleId)
+    .maybeSingle();
+
+  if (!article || article.publication_status !== "duplicate") {
+    redirect("/admin");
+  }
+
+  const previousHistory = Array.isArray(article.dedup_decision_history)
+    ? article.dedup_decision_history
+    : [];
+  const publishedAt = new Date().toISOString();
+  const previousDecision = {
+    duplicateOf: article.duplicate_of,
+    confidence: article.duplicate_confidence,
+    relation: article.duplicate_relation,
+    reason: article.duplicate_reason,
+    overriddenAt: publishedAt,
+    overriddenBy: user.id,
+  };
+  const { error } = await supabase
+    .from("news_articles")
+    .update({
+      publication_status: "published",
+      dedup_status: "unique",
+      published_at: publishedAt,
+      duplicate_of: null,
+      duplicate_confidence: null,
+      duplicate_relation: null,
+      duplicate_reason: null,
+      published_manually: true,
+      manual_published_at: publishedAt,
+      manual_published_by: user.id,
+      dedup_decision_history: [...previousHistory.slice(-19), previousDecision],
+    })
+    .eq("id", articleId);
+
+  if (error) {
+    throw error;
+  }
+
+  await supabase.from("news_dedup_decisions").insert({
+    article_id: articleId,
+    duplicate_of: article.duplicate_of,
+    candidate_count: article.duplicate_of ? 1 : 0,
+    is_duplicate: false,
+    confidence: article.duplicate_confidence,
+    relation: article.duplicate_relation,
+    reason: "Редактор опубликовал материал вручную.",
+    dedup_status: "unique",
+    publication_status: "published",
+    decision_source: "manual_override",
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/news");
+  revalidatePath(`/news/${articleId}`);
 }
 
 export async function toggleSocialSource(formData: FormData) {

@@ -52,7 +52,7 @@ export async function AppShell({
     <div className="min-h-dvh">
       <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/82 px-4 backdrop-blur-xl shadow-[0_2px_18px_rgb(225_6_0_/_0.12)] sm:px-6 lg:px-8 xl:hidden">
         <Link
-          aria-label="RaceMate, на главную"
+          aria-label="RaceSide, на главную"
           className="group flex items-center rounded-md pr-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           href="/"
           prefetch={false}
@@ -93,7 +93,7 @@ export async function AppShell({
       <aside className="fixed bottom-0 left-0 top-0 z-30 hidden w-64 flex-col border-r border-border bg-background/72 py-6 backdrop-blur-xl xl:flex">
         <div className="px-6 pb-5">
           <Link
-            aria-label="RaceMate, на главную"
+            aria-label="RaceSide, на главную"
             className="group flex items-center rounded-md p-2 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             href="/"
             prefetch={false}

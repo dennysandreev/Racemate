@@ -1,0 +1,3 @@
+-- Production migration receipt created by the Supabase migration API.
+-- The ordered, idempotent migration remains in 20260724130000 so a fresh
+-- database applies it after 20260724120000_admin_ai_prompt_versions.sql.

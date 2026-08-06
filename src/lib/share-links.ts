@@ -9,13 +9,27 @@ const CREATE_ATTEMPTS = 6;
 
 type ShareLinkTarget =
   | { kind: "news"; newsArticleId: string }
-  | { kind: "prediction"; predictionId: string; predictionScope: PredictionShareScope };
+  | {
+      kind: "prediction";
+      predictionId: string;
+      predictionScope: PredictionShareScope;
+      shareImageVersion: number;
+    };
 
 type ShareLinkRow = {
   code: string;
   news_article_id: string | null;
   prediction_id: string | null;
   prediction_scope: string | null;
+  share_image_version: number | null;
+};
+
+type NewsShareArticleRow = {
+  ai_model: string | null;
+  duplicate_of: string | null;
+  id: string;
+  slug?: string | null;
+  status: string;
 };
 
 export async function getOrCreateNewsShareUrl(
@@ -28,9 +42,15 @@ export async function getOrCreateNewsShareUrl(
 export async function getOrCreatePredictionShareUrl(
   predictionId: string,
   predictionScope: PredictionShareScope,
+  shareImageVersion: number,
   fallbackUrl: string,
 ): Promise<string> {
-  return getOrCreateShareUrl({ kind: "prediction", predictionId, predictionScope }, fallbackUrl);
+  return getOrCreateShareUrl({
+    kind: "prediction",
+    predictionId,
+    predictionScope,
+    shareImageVersion,
+  }, fallbackUrl);
 }
 
 export async function resolveShareLink(code: string): Promise<string | null> {
@@ -46,7 +66,7 @@ export async function resolveShareLink(code: string): Promise<string | null> {
 
   const { data, error } = await admin
     .from("share_links")
-    .select("code, news_article_id, prediction_id, prediction_scope")
+    .select("code, news_article_id, prediction_id, prediction_scope, share_image_version")
     .eq("code", code)
     .maybeSingle();
 
@@ -57,23 +77,36 @@ export async function resolveShareLink(code: string): Promise<string | null> {
   const link = data as ShareLinkRow;
 
   if (link.news_article_id) {
-    const { data: article, error: articleError } = await admin
+    let { data: article, error: articleError } = await admin
       .from("news_articles")
-      .select("id, status, ai_model, duplicate_of")
+      .select("id, slug, status, ai_model, duplicate_of")
       .eq("id", link.news_article_id)
       .maybeSingle();
 
+    if (articleError && isMissingNewsSlugError(articleError)) {
+      const fallback = await admin
+        .from("news_articles")
+        .select("id, status, ai_model, duplicate_of")
+        .eq("id", link.news_article_id)
+        .maybeSingle();
+
+      article = fallback.data as typeof article;
+      articleError = fallback.error;
+    }
+
+    const newsArticle = article as NewsShareArticleRow | null;
+
     if (
       articleError
-      || !article
-      || article.status !== "processed"
-      || article.ai_model === "fallback"
-      || article.duplicate_of !== null
+      || !newsArticle
+      || newsArticle.status !== "processed"
+      || newsArticle.ai_model === "fallback"
+      || newsArticle.duplicate_of !== null
     ) {
       return null;
     }
 
-    return `/news/${article.id}`;
+    return `/news/${newsArticle.slug ?? newsArticle.id}`;
   }
 
   if (link.prediction_id) {
@@ -87,12 +120,25 @@ export async function resolveShareLink(code: string): Promise<string | null> {
       return null;
     }
 
-    return link.prediction_scope === "qualification"
-      ? `/prediction/${prediction.share_slug}?scope=qualification`
-      : `/prediction/${prediction.share_slug}`;
+    const query = new URLSearchParams();
+
+    if (link.prediction_scope === "qualification") {
+      query.set("scope", "qualification");
+    }
+    query.set("v", String(link.share_image_version ?? 1));
+
+    return `/prediction/${prediction.share_slug}?${query.toString()}`;
   }
 
   return null;
+}
+
+function isMissingNewsSlugError(error: unknown) {
+  const message = error && typeof error === "object" && "message" in error
+    ? String((error as { message?: unknown }).message ?? "")
+    : String(error ?? "");
+
+  return /news_articles\.slug|Could not find.*slug/i.test(message);
 }
 
 async function getOrCreateShareUrl(
@@ -120,6 +166,7 @@ async function getOrCreateShareUrl(
         news_article_id: target.kind === "news" ? target.newsArticleId : null,
         prediction_id: target.kind === "prediction" ? target.predictionId : null,
         prediction_scope: target.kind === "prediction" ? target.predictionScope : null,
+        share_image_version: target.kind === "prediction" ? target.shareImageVersion : null,
       })
       .select("code")
       .single();
@@ -153,7 +200,8 @@ async function findShareLinkCode(
   } else {
     query = query
       .eq("prediction_id", target.predictionId)
-      .eq("prediction_scope", target.predictionScope);
+      .eq("prediction_scope", target.predictionScope)
+      .eq("share_image_version", target.shareImageVersion);
   }
 
   const { data, error } = await query.maybeSingle();

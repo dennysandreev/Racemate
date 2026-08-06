@@ -8,9 +8,9 @@ export function normalizeAuthNext(value: FormDataEntryValue | string | null | un
   }
 
   try {
-    const parsed = new URL(next, "https://racemate.ru");
+    const parsed = new URL(next, "https://raceside.online");
 
-    if (parsed.origin !== "https://racemate.ru") {
+    if (parsed.origin !== "https://raceside.online") {
       return DEFAULT_AUTH_NEXT;
     }
 

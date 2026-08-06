@@ -849,6 +849,7 @@ function getCircuitCountryCode(country: string | null | undefined) {
     austria: "at",
     azerbaijan: "az",
     bahrain: "bh",
+    malaysia: "my",
     belgium: "be",
     brazil: "br",
     canada: "ca",

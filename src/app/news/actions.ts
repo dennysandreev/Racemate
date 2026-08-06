@@ -24,11 +24,16 @@ export async function reactToArticle(formData: FormData) {
   }
 
   const articleId = String(formData.get("articleId") ?? "");
+  const articleSlug = String(formData.get("articleSlug") ?? "");
   const reaction = String(formData.get("reaction") ?? "");
 
   if (!articleId || !allowedReactions.has(reaction)) {
     redirect("/news");
   }
+
+  const articlePath = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(articleSlug)
+    ? `/news/${articleSlug}`
+    : `/news/${articleId}`;
 
   const { data: existing } = await supabase
     .from("article_reactions")
@@ -54,6 +59,6 @@ export async function reactToArticle(formData: FormData) {
   }
 
   revalidatePath("/news");
-  revalidatePath(`/news/${articleId}`);
-  redirect(`/news/${articleId}`);
+  revalidatePath(articlePath);
+  redirect(articlePath);
 }

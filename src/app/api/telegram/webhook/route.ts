@@ -224,8 +224,8 @@ async function handleMessage(
     }
 
     await sendTelegramMessage(botToken, message.chat.id, {
-      text: "Привет! Я бот RaceMate. Напомню о ближайшей сессии, прогнозе и важных новостях. Подключите Telegram в личном кабинете RaceMate, чтобы выбрать уведомления.",
-      reply_markup: siteKeyboard("Открыть RaceMate", "/account#telegram"),
+      text: "Привет! Я бот RaceSide. Напомню о ближайшей сессии, прогнозе и важных новостях. Подключите Telegram в личном кабинете RaceSide, чтобы выбрать уведомления.",
+      reply_markup: siteKeyboard("Открыть RaceSide", "/account#telegram"),
     });
     return;
   }
@@ -241,7 +241,7 @@ async function handleMessage(
 
   if (!account) {
     await sendTelegramMessage(botToken, message.chat.id, {
-      text: "Сначала подключите Telegram в личном кабинете RaceMate.",
+      text: "Сначала подключите Telegram в личном кабинете RaceSide.",
       reply_markup: siteKeyboard("Подключить", "/account#telegram"),
     });
     return;
@@ -284,14 +284,14 @@ async function handleMessage(
       .maybeSingle();
 
     await sendTelegramMessage(botToken, message.chat.id, digest
-      ? { text: `${digest.title}\n\n${stripMarkdown(digest.body_md).slice(0, 3500)}`, reply_markup: siteKeyboard("Читать на RaceMate", "/") }
+      ? { text: `${digest.title}\n\n${stripMarkdown(digest.body_md).slice(0, 3500)}`, reply_markup: siteKeyboard("Читать на RaceSide", "/") }
       : { text: "Свежая сводка ещё готовится." });
     return;
   }
 
   if (command === "/settings") {
     await sendTelegramMessage(botToken, message.chat.id, {
-      text: "Выберите, о чём и когда писать, в личном кабинете RaceMate.",
+      text: "Выберите, о чём и когда писать, в личном кабинете RaceSide.",
       reply_markup: siteKeyboard("Настроить уведомления", "/account#telegram"),
     });
     return;
@@ -308,7 +308,7 @@ async function handleMessage(
         .upsert({ user_id: account.user_id, telegram_enabled: false }, { onConflict: "user_id" }),
     ]);
     await sendTelegramMessage(botToken, message.chat.id, {
-      text: "Уведомления отключены. Подключить их снова можно в личном кабинете RaceMate.",
+      text: "Уведомления отключены. Подключить их снова можно в личном кабинете RaceSide.",
       reply_markup: siteKeyboard("Открыть настройки", "/account#telegram"),
     });
     return;
@@ -337,7 +337,7 @@ async function linkAccount(
 
   if (!token || !message.from) {
     await sendTelegramMessage(botToken, message.chat.id, {
-      text: "Ссылка уже использована или устарела. Создайте новую в личном кабинете RaceMate.",
+      text: "Ссылка уже использована или устарела. Создайте новую в личном кабинете RaceSide.",
       reply_markup: siteKeyboard("Получить новую ссылку", "/account#telegram"),
     });
     return;
@@ -347,7 +347,7 @@ async function linkAccount(
 
   if (existingOwner && existingOwner.user_id !== token.user_id) {
     await sendTelegramMessage(botToken, message.chat.id, {
-      text: "Этот Telegram уже связан с другим аккаунтом RaceMate. Сначала отключите его в прежнем профиле.",
+      text: "Этот Telegram уже связан с другим аккаунтом RaceSide. Сначала отключите его в прежнем профиле.",
     });
     return;
   }
@@ -372,7 +372,7 @@ async function linkAccount(
 
   if (accountError || preferencesError) {
     await sendTelegramMessage(botToken, message.chat.id, {
-      text: "Не удалось завершить подключение. Создайте новую ссылку в RaceMate и попробуйте ещё раз.",
+      text: "Не удалось завершить подключение. Создайте новую ссылку в RaceSide и попробуйте ещё раз.",
     });
     return;
   }
@@ -399,7 +399,7 @@ async function handleCallback(
   const account = await findAccount(admin, callback.from.id);
 
   if (!account) {
-    await answerCallback(botToken, callback.id, "Сначала подключите RaceMate");
+    await answerCallback(botToken, callback.id, "Сначала подключите RaceSide");
     return;
   }
 
@@ -494,7 +494,7 @@ async function answerCallback(botToken: string, callbackQueryId: string, text: s
 }
 
 function siteKeyboard(text: string, path: string) {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://racemate.ru").replace(/\/$/, "");
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://raceside.online").replace(/\/$/, "");
   return { inline_keyboard: [[{ text, url: `${baseUrl}${path}` }]] };
 }
 

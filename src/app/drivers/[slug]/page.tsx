@@ -19,6 +19,7 @@ import {
 import { addFavoriteDriver } from "@/app/drivers/[slug]/actions";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverCumulativePointsChart } from "@/components/racemate/driver-cumulative-points-chart";
+import { JsonLd } from "@/components/racemate/json-ld";
 import {
   getDriverInitials,
   getHistoricalDriverFallbackSrc,
@@ -45,6 +46,7 @@ import {
   resolvePublishedSeason,
   type SeasonSearchParams,
 } from "@/lib/season-navigation";
+import { absoluteUrl, createPageMetadata, SITE_URL } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import type { DriverProfile, DriverRaceResultRow } from "@/types/racemate";
 
@@ -64,21 +66,37 @@ export async function generateMetadata({ params, searchParams }: DriverPageProps
   const season = resolvePublishedSeason(query.season, publishedSeasons);
 
   if (!season) {
-    return { title: "Гонщик не найден · RaceMate" };
+    return createPageMetadata({
+      description: "Профиль гонщика не найден в опубликованном архиве RaceSide.",
+      noIndex: true,
+      path: `/drivers/${slug}`,
+      title: "Гонщик не найден",
+    });
   }
 
   const profile = await getDriverProfileBySlug(slug, season);
 
   if (!profile) {
-    return {
-      title: "Гонщик не найден · RaceMate",
-    };
+    return createPageMetadata({
+      description: "Профиль гонщика не найден в опубликованном архиве RaceSide.",
+      noIndex: true,
+      path: `/drivers/${slug}`,
+      title: "Гонщик не найден",
+    });
   }
 
-  return {
-    title: `${profile.fullName} · RaceMate`,
-    description: `Профиль гонщика ${profile.fullName}: сезон ${profile.season}, результаты, форма и сравнение с напарником.`,
-  };
+  const image = profile.aiAvatarUrl
+    || getLocalDriverAvatarSrc(profile.slug, profile.season)
+    || getHistoricalDriverFallbackSrc(profile.season);
+
+  return createPageMetadata({
+    description: `${profile.fullName} в сезоне Формулы-1 ${profile.season}: результаты, очки, форма, статистика по этапам и сравнение с напарником.`,
+    image,
+    path: profile.season === CURRENT_F1_SEASON
+      ? `/drivers/${profile.slug}`
+      : `/drivers/${profile.slug}?season=${profile.season}`,
+    title: `${profile.fullName} в Формуле-1 ${profile.season}`,
+  });
 }
 
 export default async function DriverProfilePage({ params, searchParams }: DriverPageProps) {
@@ -103,9 +121,69 @@ export default async function DriverProfilePage({ params, searchParams }: Driver
   const availableSeasons = [...new Set([profile.season, ...(profile.availableSeasons ?? [])])]
     .filter((item) => publishedSeasons.includes(item));
   const isCurrentSeason = profile.season === CURRENT_F1_SEASON;
+  const profileUrl = absoluteUrl(
+    isCurrentSeason
+      ? `/drivers/${profile.slug}`
+      : `/drivers/${profile.slug}?season=${profile.season}`,
+  );
+  const profileImage = profile.aiAvatarUrl
+    || getLocalDriverAvatarSrc(profile.slug, profile.season)
+    || getHistoricalDriverFallbackSrc(profile.season);
 
   return (
     <AppShell>
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                item: SITE_URL,
+                name: "Главная",
+                position: 1,
+              },
+              {
+                "@type": "ListItem",
+                item: absoluteUrl(
+                  profile.season === CURRENT_F1_SEASON
+                    ? "/leaderboard"
+                    : `/leaderboard?season=${profile.season}`,
+                ),
+                name: `Чемпионат ${profile.season}`,
+                position: 2,
+              },
+              {
+                "@type": "ListItem",
+                item: profileUrl,
+                name: profile.fullName,
+                position: 3,
+              },
+            ],
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Person",
+            affiliation: {
+              "@type": "SportsTeam",
+              name: profile.team.name,
+              url: profile.team.slug
+                ? absoluteUrl(
+                    profile.season === CURRENT_F1_SEASON
+                      ? `/teams/${profile.team.slug}`
+                      : `/teams/${profile.team.slug}?season=${profile.season}`,
+                  )
+                : undefined,
+            },
+            image: profileImage ? absoluteUrl(profileImage) : undefined,
+            jobTitle: "Гонщик Формулы-1",
+            name: profile.fullName,
+            nationality: profile.country ?? undefined,
+            url: profileUrl,
+          },
+        ]}
+      />
       <div className="grid gap-4 pb-6 sm:gap-5">
         <DriverHero
           availableSeasons={availableSeasons}
@@ -711,7 +789,7 @@ function DriverNewsPanel({ profile }: { profile: DriverProfile }) {
       ) : (
         <div className="p-7 text-center">
           <p className="font-bold">Свежих материалов пока нет</p>
-          <p className="mt-1 text-sm text-muted-foreground">Новости появятся после обновления ленты RaceMate.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Новости появятся после обновления ленты RaceSide.</p>
         </div>
       )}
       <div className="border-t border-border p-4">

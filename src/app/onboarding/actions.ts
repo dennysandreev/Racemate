@@ -35,7 +35,7 @@ export async function saveOnboarding(formData: FormData) {
     .upsert({
       id: user.id,
       email: user.email ?? null,
-      display_name: displayName || user.email?.split("@")[0] || "Гость RaceMate",
+      display_name: displayName || user.email?.split("@")[0] || "Гость RaceSide",
       timezone: timezone || "Europe/Moscow",
       onboarding_completed: true,
     });

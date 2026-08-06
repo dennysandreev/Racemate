@@ -6,8 +6,9 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { getPredictionLocksForRace } from "@/lib/prediction-locks";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
-import { getSiteUrl } from "@/lib/env";
+import { getSiteUrl, getSupabaseEnv } from "@/lib/env";
 import { getRoundResultPoints } from "@/lib/f1-points";
+import { getSocialMediaDeliveryUrl } from "@/lib/social-media-storage";
 import { getOrCreatePredictionShareUrl } from "@/lib/share-links";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { getDriverSeasonNumberOverride } from "@/lib/driver-season-number";
@@ -23,6 +24,7 @@ import {
 import { getTeamAsset, getTeamMatchNames, getTeamProfileAsset } from "@/data/f1-assets";
 import type {
   AdminJob,
+  AdminDuplicateNews,
   AdminSocialPost,
   AdminDriver,
   AdminGrandPrixReport,
@@ -94,6 +96,7 @@ import type {
 } from "@/types/racemate";
 
 type SourceRelation = { name: string } | { name: string }[] | null;
+type SupabaseAdminClient = ReturnType<typeof createSupabaseAdminClient>;
 type SocialPostDbRow = {
   id: string;
   platform: "x" | "reddit" | "telegram";
@@ -208,6 +211,7 @@ type NewsTagAllowlist = {
 
 type ArticleRow = {
   id: string;
+  slug?: string | null;
   canonical_url: string;
   original_title: string;
   original_description: string | null;
@@ -854,9 +858,11 @@ let polymarketEventsCache: { events: PolymarketEvent[]; expiresAt: number } | nu
 let polymarketEventsInFlight: Promise<PolymarketEvent[]> | null = null;
 
 const NEWS_ARTICLE_SELECT =
-  "id, canonical_url, original_title, original_description, published_at, ai_title_ru, ai_summary_ru, ai_summary_long_ru, ai_key_points_ru, ai_highlights_ru, image_url, source_image_url, raw_payload, related_race_id, news_sources(name), news_article_tags(tags(name, slug, type)), races:related_race_id(race_name, season_year, round)";
+  "id, slug, canonical_url, original_title, original_description, published_at, ai_title_ru, ai_summary_ru, ai_summary_long_ru, ai_key_points_ru, ai_highlights_ru, image_url, source_image_url, raw_payload, related_race_id, news_sources(name), news_article_tags(tags(name, slug, type)), races:related_race_id(race_name, season_year, round)";
 const LEGACY_NEWS_ARTICLE_SELECT =
   "id, canonical_url, original_title, original_description, published_at, ai_title_ru, ai_summary_ru, ai_summary_long_ru, ai_key_points_ru, related_race_id, news_sources(name), news_article_tags(tags(name, slug, type)), races:related_race_id(race_name, season_year, round)";
+const NEWS_ARTICLE_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const GRAND_PRIX_REPORT_SELECT =
   "id, season, round, race_slug, race_name, circuit_name, country, race_date, status, summary_status, ai_summary, weather, race_statistics, results, key_events, pit_stops, strategies, teammate_comparisons, highlights, championship_impact, news_summary, source_errors, generated_at";
 
@@ -867,6 +873,63 @@ type NewsItemsOptions = {
   tagSlugs?: string[];
   race?: string;
 };
+
+export async function getSitemapNewsEntries(): Promise<
+  Array<{ publishedAt: string | null; slug: string }>
+> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const entries: Array<{ publishedAt: string | null; slug: string }> = [];
+  const pageSize = 1_000;
+
+  for (let from = 0; from < 48_000; from += pageSize) {
+    let { data, error } = await supabase
+      .from("news_articles")
+      .select("id, slug, published_at")
+      .eq("status", "processed")
+      .eq("publication_status", "published")
+      .or("ai_model.is.null,ai_model.neq.fallback")
+      .is("duplicate_of", null)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .range(from, from + pageSize - 1);
+
+    if (error && isMissingNewsArticleColumnsError(error)) {
+      const fallback = await supabase
+        .from("news_articles")
+        .select("id, published_at")
+        .eq("status", "processed")
+        .eq("publication_status", "published")
+        .or("ai_model.is.null,ai_model.neq.fallback")
+        .is("duplicate_of", null)
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .range(from, from + pageSize - 1);
+
+      data = fallback.data as typeof data;
+      error = fallback.error;
+    }
+
+    if (error || !data?.length) {
+      break;
+    }
+
+    entries.push(
+      ...data.map((row) => ({
+        publishedAt: row.published_at,
+        slug: row.slug ?? row.id,
+      })),
+    );
+
+    if (data.length < pageSize) {
+      break;
+    }
+  }
+
+  return entries;
+}
 
 export async function getNewsItems(
   input: number | NewsItemsOptions = {},
@@ -963,6 +1026,7 @@ export async function getNewsItems(
       .from("news_articles")
       .select(select, { count: "exact" })
       .eq("status", "processed")
+      .eq("publication_status", "published")
       .or("ai_model.is.null,ai_model.neq.fallback")
       .is("duplicate_of", null)
       .order("published_at", { ascending: false, nullsFirst: false });
@@ -984,7 +1048,7 @@ export async function getNewsItems(
     from + pageSize - 1,
   );
 
-  if (error && isMissingNewsImageColumnsError(error)) {
+  if (error && isMissingNewsArticleColumnsError(error)) {
     const fallback = await buildQuery(LEGACY_NEWS_ARTICLE_SELECT).range(
       from,
       from + pageSize - 1,
@@ -1018,9 +1082,10 @@ export async function getNewsDriverTags(): Promise<{ name: string; slug: string 
 
   const { data, error } = await supabase
     .from("news_article_tags")
-    .select("tags!inner(name, slug, type), news_articles!inner(status, duplicate_of)")
+    .select("tags!inner(name, slug, type), news_articles!inner(status, publication_status, duplicate_of)")
     .eq("tags.type", "driver")
     .eq("news_articles.status", "processed")
+    .eq("news_articles.publication_status", "published")
     .is("news_articles.duplicate_of", null)
     .limit(300);
 
@@ -1048,9 +1113,10 @@ export async function getNewsTeamTags(): Promise<{ name: string; slug: string }[
 
   const { data, error } = await supabase
     .from("news_article_tags")
-    .select("tags!inner(name, slug, type), news_articles!inner(status, duplicate_of)")
+    .select("tags!inner(name, slug, type), news_articles!inner(status, publication_status, duplicate_of)")
     .eq("tags.type", "team")
     .eq("news_articles.status", "processed")
+    .eq("news_articles.publication_status", "published")
     .is("news_articles.duplicate_of", null)
     .limit(300);
 
@@ -3659,23 +3725,34 @@ async function getPreviousPredictionResult(
     .is("league_id", null)
     .not("score", "is", null)
     .order("scored_at", { ascending: false, nullsFirst: false })
-    .limit(20);
+    .limit(100);
 
   const currentRaceStart = getTimeMs(currentRace?.race_start_at ?? null);
-  const rows = ((data ?? []) as unknown as PreviousPredictionDbRow[]).filter((prediction) => {
-    if (!currentRace?.id) {
-      return true;
-    }
+  const rows = ((data ?? []) as unknown as PreviousPredictionDbRow[])
+    .filter((prediction) => {
+      if (!currentRace?.id) {
+        return true;
+      }
 
-    if (prediction.race_id === currentRace.id) {
-      return false;
-    }
+      if (prediction.race_id === currentRace.id) {
+        return false;
+      }
 
-    const race = getRelationObject(prediction.races);
-    const raceStart = getTimeMs(race?.race_start_at ?? null);
+      const race = getRelationObject(prediction.races);
+      const raceStart = getTimeMs(race?.race_start_at ?? null);
 
-    return currentRaceStart === null || raceStart === null || raceStart < currentRaceStart;
-  });
+      return currentRaceStart === null || raceStart === null || raceStart < currentRaceStart;
+    })
+    .sort((left, right) => {
+      const leftRaceStart = getTimeMs(getRelationObject(left.races)?.race_start_at ?? null) ?? 0;
+      const rightRaceStart = getTimeMs(getRelationObject(right.races)?.race_start_at ?? null) ?? 0;
+
+      if (leftRaceStart !== rightRaceStart) {
+        return rightRaceStart - leftRaceStart;
+      }
+
+      return (getTimeMs(right.scored_at) ?? 0) - (getTimeMs(left.scored_at) ?? 0);
+    });
   const prediction = rows[0];
 
   if (!prediction || prediction.score === null || prediction.score === undefined) {
@@ -3797,8 +3874,8 @@ export function buildPredictionShareUrls(
 ) {
   const baseUrl = getSiteUrl().replace(/\/+$/, "");
   const publicQuery = scope === "qualification"
-    ? `?scope=qualification&preview=${PREDICTION_SHARE_IMAGE_LAYOUT_VERSION}`
-    : `?preview=${PREDICTION_SHARE_IMAGE_LAYOUT_VERSION}`;
+    ? `?scope=qualification&v=${version}&preview=${PREDICTION_SHARE_IMAGE_LAYOUT_VERSION}`
+    : `?v=${version}&preview=${PREDICTION_SHARE_IMAGE_LAYOUT_VERSION}`;
   const imageQuery = `?scope=${scope}&v=${version}&layout=${PREDICTION_SHARE_IMAGE_LAYOUT_VERSION}`;
 
   return {
@@ -3881,6 +3958,7 @@ export async function getPublicPredictionShareBySlug(
   const shareUrl = await getOrCreatePredictionShareUrl(
     prediction.id,
     scope,
+    version,
     urls.publicUrl,
   );
   const profile = getRelationObject(prediction.profiles);
@@ -3911,7 +3989,7 @@ export async function getPublicPredictionShareBySlug(
   return {
     authorUserId: prediction.user_id,
     id: prediction.id,
-    displayName: profile?.display_name?.trim() || "Участник RaceMate",
+    displayName: profile?.display_name?.trim() || "Участник RaceSide",
     heroColor,
     heroDriver,
     heroTeam,
@@ -4353,6 +4431,72 @@ export async function getAdminSignals(): Promise<AdminSignal[]> {
   ];
 }
 
+export async function getAdminDuplicateNews(): Promise<AdminDuplicateNews[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("news_articles")
+    .select("id, ai_title_ru, original_title, main_fact, original_url, canonical_url, duplicate_of, duplicate_confidence, duplicate_reason, dedup_checked_at, ingested_at, news_sources(name)")
+    .eq("publication_status", "duplicate")
+    .order("dedup_checked_at", { ascending: false, nullsFirst: false })
+    .limit(20);
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  const duplicateRows = data as unknown as Array<{
+    id: string;
+    ai_title_ru: string | null;
+    original_title: string;
+    main_fact: string | null;
+    original_url: string | null;
+    canonical_url: string;
+    duplicate_of: string | null;
+    duplicate_confidence: number | null;
+    duplicate_reason: string | null;
+    dedup_checked_at: string | null;
+    ingested_at: string;
+    news_sources: SourceRelation;
+  }>;
+  const duplicateIds = [...new Set(duplicateRows.map((article) => article.duplicate_of).filter(Boolean))] as string[];
+  const { data: originals } = duplicateIds.length
+    ? await supabase
+        .from("news_articles")
+        .select("id, ai_title_ru, original_title")
+        .in("id", duplicateIds)
+    : { data: [] };
+  const originalsById = new Map(
+    (originals ?? []).map((article) => [
+      article.id,
+      article.ai_title_ru ?? article.original_title,
+    ]),
+  );
+
+  return duplicateRows.map((article) => ({
+    id: article.id,
+    title: article.ai_title_ru ?? article.original_title,
+    mainFact: article.main_fact ?? undefined,
+    source: getRelationName(article.news_sources, "Источник"),
+    checkedAt: formatRelativeTime(article.dedup_checked_at ?? article.ingested_at),
+    confidence: article.duplicate_confidence === null
+      ? undefined
+      : Number(article.duplicate_confidence),
+    reason: article.duplicate_reason ?? undefined,
+    originalUrl: article.original_url ?? article.canonical_url,
+    duplicateOf: article.duplicate_of && originalsById.has(article.duplicate_of)
+      ? {
+          id: article.duplicate_of,
+          title: originalsById.get(article.duplicate_of)!,
+        }
+      : undefined,
+  }));
+}
+
 export async function getAdminJobs(): Promise<AdminJob[]> {
   const supabase = await createSupabaseServerClient();
 
@@ -4407,9 +4551,7 @@ export async function getAdminSources(): Promise<AdminSource[]> {
   }));
 }
 
-export async function getAdminSocialSources(): Promise<AdminSocialSource[]> {
-  const supabase = createSupabaseAdminClient();
-
+export async function getAdminSocialSources(supabase: SupabaseAdminClient): Promise<AdminSocialSource[]> {
   if (!supabase) {
     return [];
   }
@@ -4447,8 +4589,7 @@ export async function getAdminSocialSources(): Promise<AdminSocialSource[]> {
   }));
 }
 
-export async function getAdminSocialPosts(): Promise<AdminSocialPost[]> {
-  const supabase = createSupabaseAdminClient();
+export async function getAdminSocialPosts(supabase: SupabaseAdminClient): Promise<AdminSocialPost[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("social_posts")
@@ -5345,6 +5486,7 @@ async function buildRaceDetail(race: RaceRow): Promise<RaceDetail> {
     countryCode: getCountryCode(circuit?.country ?? ""),
     locality: circuit?.locality ?? "Город уточняется",
     startsAt: formatDateTime(race.race_start_at),
+    startsAtIso: race.race_start_at ?? undefined,
     status: mapRaceStatus(
       race.status,
       race.race_start_at,
@@ -5675,8 +5817,105 @@ export async function getRaceReplaySummaryByRaceId(
   };
 }
 
+type RaceReplayCacheEntry = {
+  expiresAt: number;
+  value: Promise<RaceReplaySnapshot | null>;
+};
+
+const RACE_REPLAY_CACHE_TTL_MS = 24 * 60 * 60_000;
+const MAX_RACE_REPLAY_CACHE_ENTRIES = 3;
+const replaySnapshotCacheGlobal = globalThis as typeof globalThis & {
+  __raceMateReplaySnapshotCache?: Map<string, RaceReplayCacheEntry>;
+};
+const replaySnapshotCache =
+  replaySnapshotCacheGlobal.__raceMateReplaySnapshotCache ??
+  new Map<string, RaceReplayCacheEntry>();
+
+replaySnapshotCacheGlobal.__raceMateReplaySnapshotCache = replaySnapshotCache;
+
 export async function getRaceReplayBySessionKey(
   sessionKey: number,
+  targetSeason: number,
+): Promise<RaceReplaySnapshot | null> {
+  const descriptor = await withServerTtlCache(
+    `race-replay:descriptor:${targetSeason}:${sessionKey}`,
+    60_000,
+    async () => {
+      const supabase = createSupabaseAdminClient() ?? await createSupabaseServerClient();
+
+      if (!supabase) {
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from("race_replay_sessions")
+        .select("id, source_session_key, updated_at, races!inner(season_year)")
+        .eq("source_session_key", sessionKey)
+        .eq("races.season_year", targetSeason)
+        .eq("status", "ready")
+        .maybeSingle();
+
+      if (error || !data) {
+        return null;
+      }
+
+      return {
+        id: data.id,
+        sourceSessionKey: data.source_session_key,
+        updatedAt: data.updated_at,
+      };
+    },
+  );
+
+  if (!descriptor) {
+    return null;
+  }
+
+  const cacheKey = `${descriptor.id}:${descriptor.updatedAt}`;
+  const now = Date.now();
+  const cached = replaySnapshotCache.get(cacheKey);
+
+  if (cached && cached.expiresAt > now) {
+    replaySnapshotCache.delete(cacheKey);
+    replaySnapshotCache.set(cacheKey, cached);
+    return cached.value;
+  }
+
+  if (cached) {
+    replaySnapshotCache.delete(cacheKey);
+  }
+
+  const value = loadRaceReplaySnapshot(
+    descriptor.id,
+    descriptor.sourceSessionKey,
+    targetSeason,
+  );
+  const entry: RaceReplayCacheEntry = {
+    expiresAt: now + RACE_REPLAY_CACHE_TTL_MS,
+    value,
+  };
+
+  replaySnapshotCache.set(cacheKey, entry);
+  pruneRaceReplaySnapshotCache();
+  void value.then(
+    (snapshot) => {
+      if (!snapshot && replaySnapshotCache.get(cacheKey) === entry) {
+        replaySnapshotCache.delete(cacheKey);
+      }
+    },
+    () => {
+      if (replaySnapshotCache.get(cacheKey) === entry) {
+        replaySnapshotCache.delete(cacheKey);
+      }
+    },
+  );
+
+  return value;
+}
+
+async function loadRaceReplaySnapshot(
+  replaySessionId: string,
+  sourceSessionKey: number,
   targetSeason: number,
 ): Promise<RaceReplaySnapshot | null> {
   const supabase = createSupabaseAdminClient() ?? await createSupabaseServerClient();
@@ -5688,7 +5927,8 @@ export async function getRaceReplayBySessionKey(
   const { data, error } = await supabase
     .from("race_replay_sessions")
     .select("id, source_session_key, snapshot, races!inner(season_year)")
-    .eq("source_session_key", sessionKey)
+    .eq("id", replaySessionId)
+    .eq("source_session_key", sourceSessionKey)
     .eq("races.season_year", targetSeason)
     .eq("status", "ready")
     .maybeSingle();
@@ -5698,6 +5938,18 @@ export async function getRaceReplayBySessionKey(
   }
 
   return normalizeRaceReplaySnapshot(data.snapshot, data.id, data.source_session_key);
+}
+
+function pruneRaceReplaySnapshotCache() {
+  while (replaySnapshotCache.size > MAX_RACE_REPLAY_CACHE_ENTRIES) {
+    const oldestKey = replaySnapshotCache.keys().next().value;
+
+    if (typeof oldestKey !== "string") {
+      break;
+    }
+
+    replaySnapshotCache.delete(oldestKey);
+  }
 }
 
 function normalizeRaceReplaySnapshot(value: unknown, replaySessionId: string, sourceSessionKey: number): RaceReplaySnapshot | null {
@@ -6046,17 +6298,19 @@ export async function getRaceNews(raceId: string, limit = 5): Promise<NewsItem[]
     .from("news_articles")
     .select(NEWS_ARTICLE_SELECT)
     .eq("status", "processed")
+    .eq("publication_status", "published")
     .or("ai_model.is.null,ai_model.neq.fallback")
     .eq("related_race_id", raceId)
     .is("duplicate_of", null)
     .order("published_at", { ascending: false, nullsFirst: false })
     .limit(limit);
 
-  if (error && isMissingNewsImageColumnsError(error)) {
+  if (error && isMissingNewsArticleColumnsError(error)) {
     const fallback = await supabase
       .from("news_articles")
       .select(LEGACY_NEWS_ARTICLE_SELECT)
       .eq("status", "processed")
+      .eq("publication_status", "published")
       .or("ai_model.is.null,ai_model.neq.fallback")
       .eq("related_race_id", raceId)
       .is("duplicate_of", null)
@@ -6107,32 +6361,34 @@ export async function getLatestDailyDigest(): Promise<DailyDigest | null> {
   };
 }
 
-export async function getNewsArticle(id: string) {
+export async function getNewsArticle(slugOrId: string) {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return null;
   }
 
-  let { data, error } = await supabase
-    .from("news_articles")
-    .select(NEWS_ARTICLE_SELECT)
-    .eq("id", id)
-    .eq("status", "processed")
-    .or("ai_model.is.null,ai_model.neq.fallback")
-    .is("duplicate_of", null)
-    .maybeSingle();
-
-  if (error && isMissingNewsImageColumnsError(error)) {
-    const fallback = await supabase
+  const normalizedLookup = slugOrId.trim().toLowerCase();
+  const lookupColumn = NEWS_ARTICLE_ID_PATTERN.test(normalizedLookup) ? "id" : "slug";
+  const buildQuery = (select: string, column: "id" | "slug") =>
+    supabase
       .from("news_articles")
-      .select(LEGACY_NEWS_ARTICLE_SELECT)
-      .eq("id", id)
+      .select(select)
+      .eq(column, normalizedLookup)
       .eq("status", "processed")
+      .eq("publication_status", "published")
       .or("ai_model.is.null,ai_model.neq.fallback")
       .is("duplicate_of", null)
       .maybeSingle();
 
+  let { data, error } = await buildQuery(NEWS_ARTICLE_SELECT, lookupColumn);
+
+  if (error && isMissingNewsArticleColumnsError(error)) {
+    if (lookupColumn === "slug") {
+      return null;
+    }
+
+    const fallback = await buildQuery(LEGACY_NEWS_ARTICLE_SELECT, "id");
     data = fallback.data;
     error = fallback.error;
   }
@@ -6182,7 +6438,8 @@ function mapArticleRow(row: ArticleRow, tagAllowlist?: NewsTagAllowlist): NewsIt
   const imageUrl = getNewsImageUrl(row);
 
   return {
-    slug: row.id,
+    id: row.id,
+    slug: row.slug ?? row.id,
     href: row.canonical_url,
     source: getRelationName(row.news_sources, "Источник"),
     title,
@@ -6196,24 +6453,41 @@ function mapArticleRow(row: ArticleRow, tagAllowlist?: NewsTagAllowlist): NewsIt
     raceTag,
     raceTagSlug,
     raceFilter,
+    publishedAt: row.published_at ?? undefined,
     time: formatRelativeTime(row.published_at),
   };
 }
 
 function mapSocialPostRow(row: SocialPostDbRow): SocialPost {
   const source = getRelationObject(row.social_sources);
+  const supabaseUrl = getSupabaseEnv()?.url;
   const media = [...(row.social_post_media ?? [])]
     .sort((left, right) => left.sort_order - right.sort_order)
     .filter((item) => item.media_type === "image" || item.media_type === "video" || item.media_type === "gif" || item.media_type === "link")
-    .map((item) => ({
-      id: item.id,
-      type: item.media_type as SocialPost["media"][number]["type"],
-      url: item.url,
-      previewUrl: item.preview_url ?? undefined,
-      altText: item.alt_text ?? undefined,
-      width: item.width ?? undefined,
-      height: item.height ?? undefined,
-    }));
+    .map((item) => {
+      const url = getSocialMediaDeliveryUrl({
+        mediaId: item.id,
+        storedUrl: item.url,
+        supabaseUrl,
+      });
+      const previewUrl = item.preview_url
+        ? getSocialMediaDeliveryUrl({
+            mediaId: item.id,
+            storedUrl: item.preview_url,
+            supabaseUrl,
+          })
+        : undefined;
+
+      return {
+        id: item.id,
+        type: item.media_type as SocialPost["media"][number]["type"],
+        url,
+        previewUrl,
+        altText: item.alt_text ?? undefined,
+        width: item.width ?? undefined,
+        height: item.height ?? undefined,
+      };
+    });
   const tags = (row.social_post_tags ?? []).flatMap((relation) =>
     getRelationList(relation.tags).map((tag) => ({
       name: tag.name,
@@ -7904,6 +8178,15 @@ function getCountryFlag(country: string) {
     canada: "🇨🇦",
     cn: "🇨🇳",
     china: "🇨🇳",
+    ch: "🇨🇭",
+    switzerland: "🇨🇭",
+    swiss: "🇨🇭",
+    dk: "🇩🇰",
+    denmark: "🇩🇰",
+    danish: "🇩🇰",
+    fi: "🇫🇮",
+    finland: "🇫🇮",
+    finnish: "🇫🇮",
     gb: "🇬🇧",
     uk: "🇬🇧",
     "u k": "🇬🇧",
@@ -7921,15 +8204,31 @@ function getCountryFlag(country: string) {
     mc: "🇲🇨",
     mx: "🇲🇽",
     mexico: "🇲🇽",
+    my: "🇲🇾",
+    malaysia: "🇲🇾",
     monaco: "🇲🇨",
     nl: "🇳🇱",
     netherlands: "🇳🇱",
+    pl: "🇵🇱",
+    poland: "🇵🇱",
+    polish: "🇵🇱",
+    pt: "🇵🇹",
+    portugal: "🇵🇹",
+    portuguese: "🇵🇹",
     qa: "🇶🇦",
     qatar: "🇶🇦",
+    ru: "🇷🇺",
+    russia: "🇷🇺",
+    russian: "🇷🇺",
     sa: "🇸🇦",
     "saudi arabia": "🇸🇦",
     sg: "🇸🇬",
     singapore: "🇸🇬",
+    tr: "🇹🇷",
+    turkey: "🇹🇷",
+    turkiye: "🇹🇷",
+    "türkiye": "🇹🇷",
+    turkish: "🇹🇷",
     es: "🇪🇸",
     spain: "🇪🇸",
     uae: "🇦🇪",
@@ -7987,6 +8286,18 @@ function getCountryCode(country: string) {
     cn: "cn",
     china: "cn",
     chinese: "cn",
+    ch: "ch",
+    che: "ch",
+    switzerland: "ch",
+    swiss: "ch",
+    dk: "dk",
+    dnk: "dk",
+    denmark: "dk",
+    danish: "dk",
+    fi: "fi",
+    fin: "fi",
+    finland: "fi",
+    finnish: "fi",
     de: "de",
     deu: "de",
     germany: "de",
@@ -8014,15 +8325,37 @@ function getCountryCode(country: string) {
     monegasque: "mc",
     mx: "mx",
     mexico: "mx",
+    my: "my",
+    mys: "my",
+    malaysia: "my",
+    malaysian: "my",
     nl: "nl",
     netherlands: "nl",
     dutch: "nl",
+    pl: "pl",
+    pol: "pl",
+    poland: "pl",
+    polish: "pl",
+    pt: "pt",
+    prt: "pt",
+    portugal: "pt",
+    portuguese: "pt",
     qa: "qa",
     qatar: "qa",
+    ru: "ru",
+    rus: "ru",
+    russia: "ru",
+    russian: "ru",
     sa: "sa",
     "saudi arabia": "sa",
     sg: "sg",
     singapore: "sg",
+    tr: "tr",
+    tur: "tr",
+    turkey: "tr",
+    turkiye: "tr",
+    "türkiye": "tr",
+    turkish: "tr",
     es: "es",
     spain: "es",
     spanish: "es",
@@ -8083,6 +8416,7 @@ function getCircuitTimezone(country: string, circuitName = "") {
     italy: "Europe/Rome",
     japan: "Asia/Tokyo",
     mexico: "America/Mexico_City",
+    malaysia: "Asia/Kuala_Lumpur",
     monaco: "Europe/Monaco",
     netherlands: "Europe/Amsterdam",
     qatar: "Asia/Qatar",
@@ -8521,7 +8855,10 @@ async function getDriversByIds(ids: string[]) {
     return new Map<string, { fullName: string; slug?: string | null; currentTeamId?: string | null }>();
   }
 
-  const supabase = await createSupabaseServerClient();
+  // Historical drivers can be inactive and therefore hidden by the public
+  // current-grid RLS policy. Circuit history exposes only safe display fields,
+  // so resolve those relations through the server-only client.
+  const supabase = createSupabaseAdminClient() ?? await createSupabaseServerClient();
 
   if (!supabase) {
     return new Map<string, { fullName: string; slug?: string | null; currentTeamId?: string | null }>();
@@ -8549,7 +8886,7 @@ async function getTeamsByIds(ids: string[]) {
     return new Map<string, { name: string; color?: string | null }>();
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient() ?? await createSupabaseServerClient();
 
   if (!supabase) {
     return new Map<string, { name: string; color?: string | null }>();
@@ -8981,13 +9318,13 @@ function formatRelativeTime(value: string | null) {
   return `${diffDays} дн назад`;
 }
 
-function isMissingNewsImageColumnsError(error: unknown) {
+function isMissingNewsArticleColumnsError(error: unknown) {
   const message =
     error && typeof error === "object" && "message" in error
       ? String((error as { message?: unknown }).message ?? "")
       : String(error ?? "");
 
-  return /news_articles\.(?:image_url|source_image_url|image_prompt|ai_highlights_ru)|Could not find.*(?:image_url|source_image_url|image_prompt|ai_highlights_ru)/i.test(
+  return /news_articles\.(?:slug|image_url|source_image_url|image_prompt|ai_highlights_ru)|Could not find.*(?:slug|image_url|source_image_url|image_prompt|ai_highlights_ru)/i.test(
     message,
   );
 }

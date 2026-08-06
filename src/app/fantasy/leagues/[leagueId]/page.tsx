@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getLeagueDetail } from "@/data/racemate-repository";
 import { getSessionUser } from "@/lib/auth";
+import { createPageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import type {
   FantasyScoreBreakdown,
@@ -30,6 +31,14 @@ import type {
   PredictionResultPick,
   PreviousPredictionTop10Pick,
 } from "@/types/racemate";
+
+export const metadata = createPageMetadata({
+  description: "Приватная страница фентази-лиги RaceSide.",
+  noFollow: true,
+  noIndex: true,
+  path: "/fantasy/leagues",
+  title: "Фентази-лига",
+});
 
 type LeaguePageSearchParams = {
   created?: string;

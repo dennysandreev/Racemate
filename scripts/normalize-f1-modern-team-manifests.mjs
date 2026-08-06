@@ -55,7 +55,7 @@ function canonicalArchiveUrl(sourceUrl) {
 async function downloadLogo(sourceUrl) {
   const highResolutionUrl = sourceUrl.replace("c_fit,h_96", "c_fit,h_412");
   const response = await fetch(highResolutionUrl, {
-    headers: { "user-agent": "RaceMateModernAssetNormalizer/1.0" },
+    headers: { "user-agent": "RaceSideModernAssetNormalizer/1.0" },
   });
   if (!response.ok) throw new Error(`${highResolutionUrl} returned ${response.status}.`);
   if (!(response.headers.get("content-type") ?? "").startsWith("image/webp")) {

@@ -23,7 +23,7 @@ const ARCHIVE_PREFERENCE_WINDOW_DAYS = 270;
 const RIGHTS_REVIEW = {
   status: "approved",
   reviewedAt: "2026-07-18",
-  reviewer: "RaceMate product owner",
+  reviewer: "RaceSide product owner",
   note: "Use of the official Formula1.com circuit images was confirmed before release.",
 };
 const ARCHIVE_SOURCE_CACHE_DIR = path.join(tmpdir(), "racemate-f1-circuit-map-cache");
@@ -46,6 +46,7 @@ const eventSlugOverrides = {
   "Austrian Grand Prix": "austria",
   "Azerbaijan Grand Prix": "azerbaijan",
   "Bahrain Grand Prix": "bahrain",
+  "Bahrain Grand Prix in Malaysia": "bahrain",
   "Barcelona Grand Prix": "barcelona-catalunya",
   "Belgian Grand Prix": "belgium",
   "Brazilian Grand Prix": "brazil",
@@ -237,7 +238,7 @@ async function fetchArchiveCaptureIndex(originalUrl) {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       try {
         const response = await fetch(cdxUrl, {
-          headers: { "user-agent": "Mozilla/5.0 RaceMateHistoricalCircuitSync/1.0" },
+          headers: { "user-agent": "Mozilla/5.0 RaceSideHistoricalCircuitSync/1.0" },
           signal: AbortSignal.timeout(60_000),
         });
         if (response.ok) {
@@ -348,7 +349,7 @@ async function fetchArchivedCircuitImage(originalUrl, raceDate, override) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     try {
       const response = await fetch(archiveRequestUrl, {
-        headers: { "user-agent": "Mozilla/5.0 RaceMateHistoricalCircuitSync/1.0" },
+        headers: { "user-agent": "Mozilla/5.0 RaceSideHistoricalCircuitSync/1.0" },
         redirect: "follow",
         signal: AbortSignal.timeout(60_000),
       });
@@ -488,7 +489,7 @@ async function normalizeCircuitImage(buffer, label, transform = null) {
 async function fetchResponse(url) {
   const response = await fetch(url, {
     headers: {
-      "user-agent": "Mozilla/5.0 RaceMateSeasonAssetSync/1.0",
+      "user-agent": "Mozilla/5.0 RaceSideSeasonAssetSync/1.0",
     },
   });
 

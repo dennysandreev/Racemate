@@ -25,7 +25,7 @@ const client = new TelegramClient(new StringSession(""), apiId, apiHash, {
 client.setLogLevel("none");
 
 try {
-  console.log("Telegram-аккаунт RaceMate будет авторизован только в этой сессии терминала.");
+  console.log("Telegram-аккаунт RaceSide будет авторизован только в этой сессии терминала.");
   await client.start({
     phoneNumber: () => readHiddenLine("Номер телефона с кодом страны: "),
     phoneCode: () => readHiddenLine("Код из Telegram: "),

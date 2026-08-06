@@ -59,7 +59,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
             <div className="max-w-3xl">
               <p className="stitch-label flex items-center gap-2 text-primary">
                 <UserRound aria-hidden="true" className="size-4" />
-                Профиль RaceMate
+                Профиль RaceSide
               </p>
               <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight tracking-normal sm:text-4xl">
                 Настройка профиля

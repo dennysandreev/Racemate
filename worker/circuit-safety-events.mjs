@@ -94,6 +94,67 @@ export function countOpenF1SafetyEvents(messages) {
   };
 }
 
+export function filterRaceControlForSession(messages, sessionKey) {
+  const expectedSessionKey = Number(sessionKey);
+
+  if (!Number.isFinite(expectedSessionKey)) {
+    return [];
+  }
+
+  return (Array.isArray(messages) ? messages : []).filter(
+    (row) => Number(row?.session_key) === expectedSessionKey,
+  );
+}
+
+export function formatSafetyEventSummary(counts) {
+  const safetyCarCount = normalizeCount(counts?.safetyCarCount);
+  const vscCount = normalizeCount(counts?.vscCount);
+  const redFlagCount = normalizeCount(counts?.redFlagCount);
+
+  if (!safetyCarCount && !vscCount && !redFlagCount) {
+    return null;
+  }
+
+  return [
+    safetyCarCount ? `SC: ${safetyCarCount}` : null,
+    vscCount ? `VSC: ${vscCount}` : null,
+    redFlagCount ? `красные флаги: ${redFlagCount}` : null,
+  ].filter(Boolean).join(" · ");
+}
+
+export function isImportantRaceControlMessage(text, category) {
+  const haystack = `${category ?? ""} ${text ?? ""}`.toLowerCase();
+
+  return /safety car|virtual safety car|\bvsc\b|\bred flag\b|penalt|investigat|collision|incident|stopp|retir|black and white|drive through|time penalty/.test(
+    haystack,
+  );
+}
+
+export function getRaceControlEventTitle(text, category) {
+  const haystack = `${category ?? ""} ${text ?? ""}`.toLowerCase();
+
+  if (/penalt|drive through|time penalty/.test(haystack)) {
+    return "Штраф";
+  }
+  if (/investigat|incident|collision/.test(haystack)) {
+    return "Инцидент";
+  }
+  if (/\bred flag\b/.test(haystack)) {
+    return "Красный флаг";
+  }
+  if (/virtual safety car|\bvsc\b/.test(haystack)) {
+    return "Virtual Safety Car";
+  }
+  if (
+    /safety car/.test(haystack) &&
+    (/safetycar/.test(String(category ?? "").toLowerCase()) || /deployed|in this lap|ending/.test(haystack))
+  ) {
+    return "Safety Car";
+  }
+
+  return "Сообщение дирекции гонки";
+}
+
 export function countReportSafetyEvents(events) {
   const rows = Array.isArray(events) ? events : [];
 
@@ -102,6 +163,11 @@ export function countReportSafetyEvents(events) {
     vscCount: countDistinctEvents(rows, (row) => matchesReportEvent(row, "vsc")),
     redFlagCount: countDistinctEvents(rows, (row) => matchesReportEvent(row, "red_flag")),
   };
+}
+
+function normalizeCount(value) {
+  const count = Number(value);
+  return Number.isInteger(count) && count > 0 ? count : 0;
 }
 
 export function countContiguousPeriods(values) {

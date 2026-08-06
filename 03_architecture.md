@@ -31,7 +31,7 @@
 flowchart TD
   U[User] --> WEB[Next.js Web App]
   WEB --> API[API Layer]
-  WEB --> AUTH[Supabase Auth Email OTP]
+  WEB --> AUTH[Supabase Auth Email + Password]
   API --> DB[(Supabase Postgres)]
 
   WORKER[Background Worker] --> RSS[RSS Sources]
@@ -70,6 +70,7 @@ Worker -> external API -> DB -> API -> Frontend
 - `digests.generate_daily`
 - `jolpica.sync_calendar`
 - `jolpica.sync_results`
+- `openf1.sync_results`
 - `openf1.sync_historical_session`
 - `weather.sync_circuits`
 - `predictions.lock`

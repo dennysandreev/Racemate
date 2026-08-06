@@ -2,35 +2,35 @@
 
 ## Product
 
-RaceMate is a product UI for a premium Formula 1 companion: public fan surfaces, authenticated prediction workflows, and operational admin. The default visual register is product, with occasional brand-led moments on the public home and race weekend pages.
+RaceSide is a product UI for a premium Formula 1 companion: public fan surfaces, authenticated prediction workflows, and operational admin. The default visual register is product, with occasional brand-led moments on the public home and race weekend pages.
 
 ## Stitch Source Of Truth
 
-The current visual source of truth is the Google Stitch project `RaceMate Premium UI System`, design system `Apex Performance`.
+The current visual source of truth is the Google Stitch project `RaceSide Premium UI System`, design system `Apex Performance`.
 
 Canonical screen mapping:
-- `/` — `RaceMate Dashboard`
-- `/weekend` — `RaceMate Austrian GP Weekend`
-- `/news` — `RaceMate News Hub`
-- `/news/[slug]` — `RaceMate Article Detail`
-- `/calendar` — `RaceMate Season Calendar`
+- `/` — `RaceSide Dashboard`
+- `/weekend` — `RaceSide Austrian GP Weekend`
+- `/news` — `RaceSide News Hub`
+- `/news/[slug]` — `RaceSide Article Detail`
+- `/calendar` — `RaceSide Season Calendar`
 - `/calendar/[season]/[round]` and report popup — Barcelona GP results/report screens
-- `/leaderboard` — `RaceMate Championship Leaderboard Only`
+- `/leaderboard` — `RaceSide Championship Leaderboard Only`
 - `/teams`, `/drivers/[slug]`, and `/teams/[lineageSlug]` — season-aware sporting profiles
-- `/fantasy` — `RaceMate Fantasy League`
-- `/social` — `RaceMate Social Networks Feed`
-- `/polls` — `RaceMate Polls`
-- `/auth` and `/auth/check-email` — `RaceMate Auth Flow`
-- `/onboarding` — `RaceMate Onboarding`
-- `/admin` — `RaceMate Admin Operations`
+- `/fantasy` — `RaceSide Fantasy League`
+- `/social` — `RaceSide Social Networks Feed`
+- `/polls` — `RaceSide Polls`
+- `/auth`, `/auth/forgot-password`, `/auth/check-email`, and `/auth/update-password` — `RaceSide Auth Flow`
+- `/onboarding` — `RaceSide Onboarding`
+- `/admin` — `RaceSide Admin Operations`
 
-Implementation rule: static Stitch HTML is a visual specification, not production code. Production code must keep RaceMate's Next.js App Router, Server Components by default, existing repositories/actions, and Russian product copy.
+Implementation rule: static Stitch HTML is a visual specification, not production code. Production code must keep RaceSide's Next.js App Router, Server Components by default, existing repositories/actions, and Russian product copy.
 
 ## Design Direction
 
-Reading this as: a motorsport product for engaged Russian-speaking F1 fans, with a premium sport-app language, leaning toward Stitch's dark `Apex Performance` cockpit system: obsidian surfaces, Ferrari red active states, neon-green live status, sharp editorial hierarchy, dense race-control modules, shadcn/ui primitives, and custom RaceMate tokens.
+Reading this as: a motorsport product for engaged Russian-speaking F1 fans, with a premium sport-app language, leaning toward Stitch's dark `Apex Performance` cockpit system: obsidian surfaces, Ferrari red active states, neon-green live status, sharp editorial hierarchy, dense race-control modules, shadcn/ui primitives, and custom RaceSide tokens.
 
-Scene sentence: a fan opens RaceMate on a phone or laptop in the hour before a race session, wants the key story, the next start time, and their prediction status immediately, and should feel the product is fast, current, and composed.
+Scene sentence: a fan opens RaceSide on a phone or laptop in the hour before a race session, wants the key story, the next start time, and their prediction status immediately, and should feel the product is fast, current, and composed.
 
 Design dials:
 - Design variance: 7/10.
@@ -82,7 +82,7 @@ Recommended stack:
 - UI and display: Geist Sans in production, tuned to match Stitch's Hanken Grotesk proportions.
 - Timing, codes, session labels, and technical metadata: Geist Mono.
 
-Stitch references may mention Hanken Grotesk, Inter, and JetBrains Mono. In this repo, use `geist` via `next/font` unless a local font file is added explicitly. Avoid serif as the default product font; RaceMate should feel sharp and modern, not magazine-vintage.
+Stitch references may mention Hanken Grotesk, Inter, and JetBrains Mono. In this repo, use `geist` via `next/font` unless a local font file is added explicitly. Avoid serif as the default product font; RaceSide should feel sharp and modern, not magazine-vintage.
 
 Type rules:
 - H1/H2 use balanced wrapping.
@@ -116,6 +116,22 @@ Historical season surfaces:
 Admin surfaces:
 - Quiet, high-density operational layout.
 - Tables, filters, job status badges, retry actions, and audit metadata are more important than visual drama.
+- Admin uses its own `src/app/admin/layout.tsx` and never renders the public navigation, next-session rail, or public footer.
+- Desktop uses a collapsible shadcn Sidebar. Mobile uses the Sidebar Sheet drawer. `Cmd+K` and `Ctrl+K` open the section command palette.
+- Admin density dials are fixed at variance 3/10, motion 2/10, and density 9/10.
+- The page header, metric strip, filters, dense table or mobile rows, and inline action feedback form the standard screen rhythm.
+- Status is always communicated with a word and semantic color. Decorative status dots are not used.
+- Technical metadata uses Geist Mono inside a bounded scroll area. Secrets, raw payload, and personal Telegram identifiers are never rendered.
+- Destructive or publication-wide actions require AlertDialog. Reversible pause, hide, draft, and reject actions are preferred over deletion.
+- Admin tables are real shadcn Table components at desktop and readable stacked rows below the table breakpoint.
+- Forms use shadcn Field, Input, Select or native select with the same tokens, Textarea, Checkbox, and inline `useActionState` feedback.
+- Loading uses layout-matched Skeleton blocks. Empty states explain the next safe action. Errors preserve the user’s data and offer a retry.
+- The AI prompt registry is a dense operational list rather than a card grid. Editing opens a titled Dialog with the instruction, task template, allowed variables, protected response contract, and recent version history.
+- Each AI prompt version includes its OpenRouter model and response-token limit. Model selection is searchable, shows safe context/pricing metadata, and never exposes provider credentials.
+- Saving a prompt creates a draft. Publishing requires AlertDialog confirmation and clearly states that only future processing uses the new version.
+- `/admin/systems` groups external APIs, RSS/social sources, and scheduled checks by service. It shows the last real check, next expected check, pause/error state, and a direct path to the relevant settings.
+- `/admin/schedules` edits only timing, pause state, and retry count for allowlisted jobs. Cron expressions, shell commands, secrets, and arbitrary worker arguments are never editable.
+- The overview section is called `Что требует внимания`; it contains only active failures, pauses, and genuinely stale checks. A healthy state is an explicit empty state, not a list of manual repair jobs.
 
 ## Components
 

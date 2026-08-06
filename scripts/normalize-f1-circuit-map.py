@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Normalize an official Formula1 circuit map to the RaceMate WebP canvas."""
+"""Normalize an official Formula1 circuit map to the RaceSide WebP canvas."""
 
 from __future__ import annotations
 

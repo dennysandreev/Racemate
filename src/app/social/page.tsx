@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { Radio } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
@@ -16,9 +17,35 @@ import {
   normalizeSocialPlatform,
 } from "@/data/racemate-repository";
 import { getSessionUser } from "@/lib/auth";
+import { createPageMetadata } from "@/lib/seo";
 import type { SocialMode, SocialPlatform } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
+
+type SocialSearchParams = {
+  platform?: string;
+  mode?: string;
+  topic?: string;
+  team?: string;
+  driver?: string;
+  race?: string;
+};
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SocialSearchParams>;
+}): Promise<Metadata> {
+  const query = await searchParams;
+
+  return createPageMetadata({
+    description:
+      "Публикации команд, пилотов и сообщества Формулы-1 из X, Reddit и Telegram с короткими сводками на русском.",
+    noIndex: Object.values(query).some(Boolean),
+    path: "/social",
+    title: "Соцсети Формулы-1 на русском",
+  });
+}
 
 const platformFilters: { label: string; value: SocialPlatform }[] = [
   { label: "Все", value: "all" },
@@ -35,14 +62,7 @@ const modeFilters: { label: string; value: SocialMode }[] = [
 export default async function SocialPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    platform?: string;
-    mode?: string;
-    topic?: string;
-    team?: string;
-    driver?: string;
-    race?: string;
-  }>;
+  searchParams: Promise<SocialSearchParams>;
 }) {
   const params = await searchParams;
   const platform = normalizeSocialPlatform(params.platform);
@@ -90,7 +110,7 @@ export default async function SocialPage({
             </p>
             <PageTitle className="mt-2 max-w-4xl">Лента соцсетей</PageTitle>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Публикации команд, пилотов и сообщества с короткой сводкой RaceMate.
+              Публикации команд, пилотов и сообщества с короткой сводкой RaceSide.
             </p>
           </div>
           <div className="mt-auto w-full lg:absolute lg:right-0 lg:top-1/2 lg:mt-0 lg:w-auto lg:-translate-y-1/2">

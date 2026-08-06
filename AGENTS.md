@@ -1,4 +1,4 @@
-# RaceMate Agent Instructions
+# RaceSide Agent Instructions
 
 Read these files before planning or changing the project:
 - `PRODUCT.md`
@@ -8,7 +8,7 @@ Read these files before planning or changing the project:
 
 ## Product Defaults
 
-- Product name: RaceMate.
+- Product name: RaceSide.
 - UI language: Russian by default.
 - Primary register: product UI.
 - Frontend direction: premium motorsport app, restrained and task-focused.

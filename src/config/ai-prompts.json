@@ -1,0 +1,182 @@
+[
+  {
+    "key": "news.article",
+    "purpose": "news.summary",
+    "title": "Подготовка новости",
+    "description": "Переводит исходный материал на русский и собирает редакторскую версию новости.",
+    "area": "Новости",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 1800,
+    "usedBy": ["Обработка новых новостей", "Повтор проблемных материалов"],
+    "variables": [
+      { "name": "source_url", "label": "Ссылка на источник" },
+      { "name": "original_title", "label": "Исходный заголовок" },
+      { "name": "rss_description", "label": "Описание из RSS" },
+      { "name": "article_text", "label": "Текст источника" },
+      { "name": "races", "label": "Этапы сезона" },
+      { "name": "teams", "label": "Команды" }
+    ],
+    "defaultSystemPrompt": "Ты редактор RaceSide для русскоязычных фанатов Формулы-1. Прочитай переданные материалы, переведи их смысл на русский и напиши подробный редакторский пересказ своими словами. Не копируй источник дословно и не выдавай пересказ за оригинальную публикацию. Если данных мало, подготовь короткий осторожный текст по доступному RSS-описанию.",
+    "defaultUserTemplate": "Источник: {{source_url}}\nОригинальный заголовок: {{original_title}}\n\nRSS-описание:\n{{rss_description}}\n\nТекст оригинальной статьи или расширенный контекст:\n{{article_text}}\n\nЭтапы сезона:\n{{races}}\n\nКоманды для привязки материала:\n{{teams}}",
+    "protectedInstruction": "Используй только переданные факты и не добавляй неподтверждённые сведения. Верни только JSON с полями title_ru, summary_ru, details_ru, key_points_ru, highlight_phrases_ru, race_round, race_confidence, team_slugs, main_fact, event_type, event_stage, event_date, event_fingerprint и entities. title_ru, summary_ru и details_ru должны быть на русском. summary_ru содержит 2-3 предложения, details_ru - 5-8 абзацев, key_points_ru - 4-5 пунктов. highlight_phrases_ru содержит 3-6 точных фраз из summary_ru или details_ru длиной 4-140 символов. race_round - номер этапа или null. team_slugs содержит только slug из переданного списка. event_type, event_stage, event_fingerprint и normalized_name записываются в snake_case на латинице; event_date - YYYY-MM-DD или null."
+  },
+  {
+    "key": "news.metadata",
+    "purpose": "news.metadata",
+    "title": "Редакционные метаданные",
+    "description": "Восстанавливает центральный факт, тип события и участников, если основной ответ оказался неполным.",
+    "area": "Новости",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 1600,
+    "usedBy": ["Обработка новых новостей"],
+    "variables": [
+      { "name": "payload_json", "label": "Данные подготовленной новости" }
+    ],
+    "defaultSystemPrompt": "Ты нормализуешь уже подготовленную новость RaceSide для последующей проверки смысловых дублей. Выдели один центральный новый факт, устойчивый тип события, его стадию, дату и главных участников.",
+    "defaultUserTemplate": "{{payload_json}}",
+    "protectedInstruction": "Не добавляй факты, которых нет во входных данных. Верни только JSON с полями main_fact, event_type, event_stage, event_date, event_fingerprint и entities. main_fact - одно короткое русское предложение. event_type и event_stage - стабильные значения snake_case. event_date - YYYY-MM-DD или null. event_fingerprint - стабильный snake_case ключ на латинице. entities - непустой массив объектов type, name и normalized_name; normalized_name записывается в snake_case на латинице. Не добавляй Markdown и текст вне JSON."
+  },
+  {
+    "key": "news.dedup",
+    "purpose": "news.dedup",
+    "title": "Проверка смысловых дублей",
+    "description": "Сравнивает новый материал с ближайшими опубликованными новостями и определяет связь между ними.",
+    "area": "Новости",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 1200,
+    "usedBy": ["Обработка новых новостей", "Повтор проверки дублей"],
+    "variables": [
+      { "name": "payload_json", "label": "Новая новость и кандидаты" }
+    ],
+    "defaultSystemPrompt": "Ты проверяешь новости автоспорта на смысловые дубли. Считай материал дублем, когда совпадают центральное событие и основные участники, а различия ограничены формулировкой, переводом, заголовком, несущественной цитатой или общим контекстом. Официальное подтверждение, решение, наказание, результат, новый статус, самостоятельный анализ, интервью или реакция с новым существенным фактом не являются дублем. Совпадение пилота, команды или одного Гран-при само по себе не означает дубль.",
+    "defaultUserTemplate": "{{payload_json}}",
+    "protectedInstruction": "Используй только переданные материалы. Верни только JSON с полями is_duplicate, duplicate_of, relation, confidence и reason. relation допускает только duplicate, update, official_confirmation, decision, result, analysis, reaction, related или unrelated. Если relation не duplicate, is_duplicate должен быть false. duplicate_of содержит ID из переданного списка или null. confidence - число от 0 до 1. Не добавляй Markdown и текст вне JSON."
+  },
+  {
+    "key": "news.audit_metadata",
+    "purpose": "news.audit_metadata",
+    "title": "Метаданные для аудита новостей",
+    "description": "Восстанавливает недостающие метаданные перед повторной проверкой недавних публикаций.",
+    "area": "Новости",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 1600,
+    "usedBy": ["Аудит недавних новостей"],
+    "variables": [
+      { "name": "payload_json", "label": "Данные опубликованной новости" }
+    ],
+    "defaultSystemPrompt": "Ты нормализуешь опубликованную новость RaceSide для повторной проверки смысловых дублей. Выдели центральный факт, тип и стадию события, его дату и основных участников.",
+    "defaultUserTemplate": "{{payload_json}}",
+    "protectedInstruction": "Не добавляй факты, которых нет во входных данных. Верни только JSON с полями main_fact, event_type, event_stage, event_date, event_fingerprint и entities. main_fact - одно короткое русское предложение. event_type и event_stage - стабильные значения snake_case. event_date - YYYY-MM-DD или null. event_fingerprint - стабильный snake_case ключ на латинице. entities - непустой массив объектов type, name и normalized_name; normalized_name записывается в snake_case на латинице. Не добавляй Markdown и текст вне JSON."
+  },
+  {
+    "key": "news.highlights",
+    "purpose": "news.highlights",
+    "title": "Ключевые фразы новости",
+    "description": "Выбирает короткие фразы, которые RaceSide подчёркивает в готовом тексте.",
+    "area": "Новости",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 500,
+    "usedBy": ["Обновление ключевых фраз"],
+    "variables": [
+      { "name": "summary", "label": "Лид новости" },
+      { "name": "details", "label": "Текст новости" }
+    ],
+    "defaultSystemPrompt": "Ты редактор RaceSide для русскоязычных фанатов Формулы-1. Выбери короткие фактические фразы, которые лучше всего передают результат, решение, изменение, срок или причину в готовой новости. Не выбирай оценочные и повторяющиеся формулировки.",
+    "defaultUserTemplate": "Лид:\n{{summary}}\n\nТекст статьи:\n{{details}}",
+    "protectedInstruction": "Верни только JSON с полем highlight_phrases_ru. Массив содержит 3-6 фраз длиной 4-140 символов. Каждая фраза должна дословно присутствовать в переданном лиде или тексте. Не добавляй новые слова, заголовки, Markdown и текст вне JSON."
+  },
+  {
+    "key": "news.daily_digest",
+    "purpose": "news.daily_digest",
+    "title": "Дневная сводка",
+    "description": "Собирает короткий итог дня из уже опубликованных материалов.",
+    "area": "Сводки",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 800,
+    "usedBy": ["Сборка дневной сводки"],
+    "variables": [
+      { "name": "articles_text", "label": "Список опубликованных новостей" }
+    ],
+    "defaultSystemPrompt": "Ты редактор RaceSide. Собери короткую дневную сводку по Формуле-1 на русском языке. Выбери главные темы, сгруппируй близкие новости и не повторяй один факт разными словами.",
+    "defaultUserTemplate": "{{articles_text}}",
+    "protectedInstruction": "Используй только переданные новости и не придумывай факты. Верни только JSON с полями title_ru и body_md. body_md содержит 4-6 коротких пунктов Markdown. Не добавляй текст вне JSON."
+  },
+  {
+    "key": "reports.summary",
+    "purpose": "reports.summary",
+    "title": "Итог Гран-при",
+    "description": "Пишет компактное русское саммари отчёта по подтверждённым результатам и связанным новостям.",
+    "area": "Отчёты",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 250,
+    "usedBy": ["Сборка отчёта Гран-при", "Повтор саммари отчёта"],
+    "variables": [
+      { "name": "facts_json", "label": "Подтверждённые факты этапа" }
+    ],
+    "defaultSystemPrompt": "Ты редактор RaceSide. Напиши компактный итог Гран-при на русском в 2-4 абзацах. Если во входных данных есть новости вокруг этапа, добавь короткий раздел о том, что обсуждали после гонки. Сохраняй спокойный редакторский тон и не уходи в нерелевантные темы.",
+    "defaultUserTemplate": "{{facts_json}}",
+    "protectedInstruction": "Используй только переданные факты. Не придумывай события и не добавляй неподтверждённые оценки. Верни только готовый текст без JSON, служебных комментариев и Markdown-заголовков."
+  },
+  {
+    "key": "polls.generate",
+    "purpose": "polls.generate",
+    "title": "Опросы к этапу",
+    "description": "Готовит три черновика фанатских опросов к следующему Гран-при.",
+    "area": "Сообщество",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 900,
+    "usedBy": ["Подготовка опросов этапа"],
+    "variables": [
+      { "name": "context_json", "label": "Контекст ближайшего этапа" }
+    ],
+    "defaultSystemPrompt": "Ты редактор RaceSide для русскоязычных фанатов Формулы-1. Подготовь живые и понятные вопросы к следующему Гран-при на основе переданного контекста. Один вопрос посвящён борьбе пилотов или команд, второй - стратегии, шинам, погоде или характеру трассы, третий - главной фанатской интриге уикенда. Не делай все вопросы про одного участника и не используй варианты с очевидным ответом.",
+    "defaultUserTemplate": "{{context_json}}",
+    "protectedInstruction": "Используй только переданный контекст. Не придумывай факты, цитаты, травмы, обновления или результаты. Верни только JSON вида {\"polls\":[{\"kind\":\"sport\",\"question\":\"...\",\"options\":[\"...\",\"...\",\"...\"]}]}. Нужны ровно три опроса: по одному с kind sport, strategy и fan. В каждом опросе ровно три неповторяющихся варианта. Не добавляй текст вне JSON."
+  },
+  {
+    "key": "social.editorial",
+    "purpose": "social_post",
+    "title": "Публикации X и Reddit",
+    "description": "Оценивает релевантность поста, готовит русский заголовок и сводку, определяет темы и участников.",
+    "area": "Соцсети",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 900,
+    "usedBy": ["Обработка X", "Обработка Reddit"],
+    "variables": [
+      { "name": "categories", "label": "Доступные темы" },
+      { "name": "teams", "label": "Актуальные команды" },
+      { "name": "drivers", "label": "Актуальные пилоты" },
+      { "name": "races", "label": "Актуальные этапы" },
+      { "name": "source", "label": "Источник" },
+      { "name": "author", "label": "Автор" },
+      { "name": "title", "label": "Заголовок" },
+      { "name": "body", "label": "Текст публикации" }
+    ],
+    "defaultSystemPrompt": "Ты редактор RaceSide. Проанализируй публикацию отдельно от репутации и общей тематики источника. Основной темой должна быть классическая одноместная формульная серия с открытыми колёсами. Formula E, WEC, Le Mans, IMSA, GT, ралли, MotoGP, NASCAR и IndyCar не относятся к целевой группе. Если серия неясна или исключена, материал не публикуется. Исторические материалы о целевых формульных сериях допустимы. Не подтверждай слух как факт; реклама, спам и бессодержательные реплики не публикуются.",
+    "defaultUserTemplate": "Допустимые темы:\n{{categories}}\n\nАктуальные команды:\n{{teams}}\n\nАктуальные пилоты:\n{{drivers}}\n\nАктуальные этапы:\n{{races}}\n\nИсточник: {{source}}\nАвтор: {{author}}\nЗаголовок: {{title}}\nТекст: {{body}}",
+    "protectedInstruction": "Верни только JSON без Markdown с полями title, summary, formulaScope, primarySeries, series, categories, entities, contentType, importance, relevance, confidence, shouldPublish и originalLanguage. title - русский заголовок до 120 знаков, summary - русская сводка до 700 знаков. formulaScope допускает target, excluded или unclear; для excluded и unclear shouldPublish должен быть false, relevance ниже 0.6, primarySeries пустой, а series - пустым массивом. contentType допускает official, report, opinion, rumor или discussion. categories содержит только темы из переданного списка."
+  },
+  {
+    "key": "social.telegram_classification",
+    "purpose": "social_post",
+    "title": "Классификация Telegram",
+    "description": "Определяет релевантность, темы и участников Telegram-поста без переписывания исходного текста.",
+    "area": "Соцсети",
+    "modelFallback": "google/gemini-2.5-flash-lite",
+    "maxTokens": 900,
+    "usedBy": ["Обработка Telegram"],
+    "variables": [
+      { "name": "categories", "label": "Доступные темы" },
+      { "name": "teams", "label": "Актуальные команды" },
+      { "name": "drivers", "label": "Актуальные пилоты" },
+      { "name": "races", "label": "Актуальные этапы" },
+      { "name": "source", "label": "Источник" },
+      { "name": "author", "label": "Автор" },
+      { "name": "title", "label": "Заголовок" },
+      { "name": "body", "label": "Текст публикации" }
+    ],
+    "defaultSystemPrompt": "Ты редактор RaceSide. Проанализируй Telegram-публикацию отдельно от репутации и общей тематики канала. Основной темой должна быть классическая одноместная формульная серия с открытыми колёсами. Formula E, WEC, Le Mans, IMSA, GT, ралли, MotoGP, NASCAR и IndyCar не относятся к целевой группе. Если серия неясна или исключена, материал не публикуется. Исторические материалы о целевых формульных сериях допустимы. Не подтверждай слух как факт; реклама, спам и бессодержательные реплики не публикуются. Не переписывай исходный текст и не создавай новый заголовок или сводку.",
+    "defaultUserTemplate": "Допустимые темы:\n{{categories}}\n\nАктуальные команды:\n{{teams}}\n\nАктуальные пилоты:\n{{drivers}}\n\nАктуальные этапы:\n{{races}}\n\nИсточник: {{source}}\nАвтор: {{author}}\nЗаголовок: {{title}}\nТекст: {{body}}",
+    "protectedInstruction": "Верни только JSON без Markdown с полями formulaScope, primarySeries, series, categories, entities, contentType, importance, relevance, confidence, shouldPublish и originalLanguage. formulaScope допускает target, excluded или unclear; для excluded и unclear shouldPublish должен быть false, relevance ниже 0.6, primarySeries пустой, а series - пустым массивом. contentType допускает official, report, opinion, rumor или discussion. categories содержит только темы из переданного списка. Не возвращай title и summary."
+  }
+]

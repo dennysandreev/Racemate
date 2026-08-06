@@ -13,4 +13,8 @@ __pycache__/
 output/playwright
 output/circuit-map-review
 .playwright-mcp
+.playwright-cli
+supabase/.temp
+/*.png
 racemate-*.png
+raceside-*.png

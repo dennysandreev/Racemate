@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   CalendarDays,
   ExternalLink,
   MapPin,
@@ -7,13 +8,16 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { JsonLd } from "@/components/racemate/json-ld";
 import { PageTitle } from "@/components/racemate/page-title";
 import { CircuitStatsSection } from "@/components/racemate/circuit-stats-section";
 import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
+import { NewsImage } from "@/components/racemate/news-image";
 import { RaceFlag } from "@/components/racemate/race-flag";
 import { TeamColorProgress } from "@/components/racemate/team-color";
 import { TrackLocalTimeBadge } from "@/components/racemate/track-local-time-badge";
@@ -37,21 +41,43 @@ import { getTeamAssetForMarketOutcome } from "@/data/f1-assets";
 import { getSessionUser } from "@/lib/auth";
 import { formatSessionName } from "@/lib/session-display";
 import { CURRENT_F1_SEASON, getSearchParam } from "@/lib/season-navigation";
+import { absoluteUrl, createPageMetadata, SITE_URL } from "@/lib/seo";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
 import { cn } from "@/lib/utils";
 import type { PredictionState, RaceDetail, RaceWinnerOdds, StandingRow } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
 
+type WeekendSearchParams = {
+  season?: string | string[];
+  session?: string | string[];
+};
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<WeekendSearchParams>;
+}): Promise<Metadata> {
+  const [query, nextSession] = await Promise.all([
+    searchParams,
+    getNextSession(),
+  ]);
+  const raceName = nextSession.race;
+
+  return createPageMetadata({
+    description: `${raceName}: расписание сессий, время старта, погода, новости, результаты и прогнозы на текущий гоночный уикенд.`,
+    noIndex: Boolean(query.season || query.session),
+    path: "/weekend",
+    title: `${raceName}: гоночный уикенд`,
+  });
+}
+
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
 export default async function WeekendPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    season?: string | string[];
-    session?: string | string[];
-  }>;
+  searchParams: Promise<WeekendSearchParams>;
 }) {
   const query = await searchParams;
   const requestedSeason = getSearchParam(query.season);
@@ -106,6 +132,54 @@ export default async function WeekendPage({
 
   return (
     <AppShell>
+      {currentRace ? (
+        <JsonLd
+          data={[
+            {
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  item: SITE_URL,
+                  name: "Главная",
+                  position: 1,
+                },
+                {
+                  "@type": "ListItem",
+                  item: `${SITE_URL}/weekend`,
+                  name: currentRace.race,
+                  position: 2,
+                },
+              ],
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "SportsEvent",
+              description: `${currentRace.race}, текущий этап сезона Формулы-1 ${currentRace.season}.`,
+              eventStatus: currentRace.status === "Завершен"
+                ? "https://schema.org/EventCompleted"
+                : "https://schema.org/EventScheduled",
+              image: currentRace.trackMapUrl
+                ? absoluteUrl(currentRace.trackMapUrl)
+                : undefined,
+              inLanguage: "ru-RU",
+              location: {
+                "@type": "Place",
+                address: {
+                  "@type": "PostalAddress",
+                  addressCountry: currentRace.country,
+                  addressLocality: currentRace.locality,
+                },
+                name: currentRace.circuit,
+              },
+              name: `${currentRace.race} ${currentRace.season}`,
+              startDate: currentRace.startsAtIso,
+              url: `${SITE_URL}/weekend`,
+            },
+          ]}
+        />
+      ) : null}
       <section className="grid gap-4 pb-5 sm:gap-5">
         <WeekendHero
           circuitStats={circuitStats}
@@ -214,13 +288,9 @@ function WeekendHero({
       <div className="relative grid gap-3 px-5 pb-4 pt-3 sm:px-6 sm:pb-5 sm:pt-3.5">
         <div className="flex items-start justify-between gap-3">
           <div className="grid min-w-0 gap-2">
-            <p className="font-telemetry flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
-              <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
-              <span className="truncate">{currentRace?.circuit ?? "Трасса этапа"}</span>
-            </p>
-            <div className="flex min-w-0 items-start gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               {currentRace ? (
-                <span className="shrink-0">
+                <span className="inline-flex shrink-0 items-center">
                   <RaceFlag
                     className="text-xl"
                     countryCode={currentRace.countryCode}
@@ -231,6 +301,10 @@ function WeekendHero({
               ) : null}
               <Badge variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
             </div>
+            <p className="font-telemetry flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+              <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
+              <span className="truncate">{currentRace?.circuit ?? "Трасса этапа"}</span>
+            </p>
           </div>
           <div className="ml-auto flex flex-col items-end gap-1.5">
             <Badge className="shrink-0" variant={weekendStatus === "Live" ? "success" : "warning"}>
@@ -243,11 +317,18 @@ function WeekendHero({
           <PageTitle className="max-w-4xl">
             {nextRace}
           </PageTitle>
-          <p className="mt-2 text-sm font-semibold text-muted-foreground">
-            {isWeekendDone
-              ? "Этап завершен — смотри результаты сессий и повтор гонки."
-              : `Ближайшая сессия: ${formatSessionName(nextSession.session)} · ${nextSession.startsAt}`}
-          </p>
+          {isWeekendDone ? (
+            <p className="mt-2 text-sm font-semibold text-muted-foreground">
+              Этап завершен — смотри результаты сессий и повтор гонки.
+            </p>
+          ) : (
+            <p className="mt-2 flex flex-col text-sm font-semibold text-muted-foreground sm:flex-row sm:items-baseline sm:gap-1.5">
+              <span>Ближайшая сессия</span>
+              <span className="text-foreground sm:text-muted-foreground">
+                {formatSessionName(nextSession.session)} · {nextSession.startsAt}
+              </span>
+            </p>
+          )}
         </div>
 
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end">
@@ -352,31 +433,86 @@ function StageNewsPanel({
     <section className="order-4 stitch-panel overflow-hidden p-0 xl:order-3">
       <PanelHeader
         action={
-          <Button asChild size="sm" variant="secondary">
-            <Link href={href}>Все новости</Link>
-          </Button>
+          <Link
+            className="group/action inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={href}
+          >
+            Все новости
+            <ArrowRight
+              aria-hidden="true"
+              className="size-3.5 transition-transform group-hover/action:translate-x-0.5"
+            />
+          </Link>
         }
         icon={Newspaper}
-        meta="Материалы, привязанные к этому гран-при"
+        meta="Главное вокруг этого Гран-при"
         title="Новости этапа"
       />
-      <div className="grid gap-3 p-4 sm:grid-cols-2">
+      <div className="divide-y divide-border/70">
         {items.length ? (
-          items.map((item) => (
+          items.map((item, index) => (
             <Link
-              className="group flex min-w-0 flex-col rounded-md border border-border/70 bg-background/30 p-4 transition-colors hover:border-primary/40 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className={cn(
+                "group grid min-w-0 items-center gap-3 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:gap-5 sm:p-5",
+                index === 0
+                  ? "grid-cols-[minmax(0,1fr)_7.5rem] sm:grid-cols-[minmax(0,1fr)_13rem]"
+                  : "grid-cols-[minmax(0,1fr)_5.5rem] sm:grid-cols-[minmax(0,1fr)_8rem]",
+              )}
               href={`/news/${item.slug}`}
               key={item.slug}
+              prefetch={false}
             >
-              <Badge className="self-start" variant="secondary">{item.source}</Badge>
-              <p className="mt-3 text-sm font-bold leading-5 transition-colors group-hover:text-primary">
-                {item.title}
-              </p>
-              <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">{item.summary}</p>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-xs font-semibold text-foreground">{item.source}</span>
+                  <span aria-hidden="true" className="size-1 rounded-full bg-primary" />
+                  <span className="font-telemetry text-[0.68rem] font-bold uppercase text-muted-foreground">
+                    {item.time}
+                  </span>
+                </div>
+                <div className="mt-2 flex min-w-0 items-start gap-2 sm:mt-2.5">
+                  <h3
+                    className={cn(
+                      "min-w-0 flex-1 font-semibold transition-colors group-hover:text-primary",
+                      index === 0 ? "text-base leading-6 sm:text-xl sm:leading-7" : "text-sm leading-5 sm:text-base sm:leading-6",
+                    )}
+                  >
+                    {item.title}
+                  </h3>
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="mt-1 hidden size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary sm:block"
+                  />
+                </div>
+                <p
+                  className={cn(
+                    "mt-1.5 text-muted-foreground",
+                    index === 0
+                      ? "line-clamp-2 text-sm leading-6"
+                      : "line-clamp-1 text-xs leading-5 sm:line-clamp-2",
+                  )}
+                >
+                  {item.summary}
+                </p>
+              </div>
+              {item.imageUrl ? (
+                <NewsImage
+                  alt={item.title}
+                  className={cn(
+                    "relative overflow-hidden rounded-md bg-muted",
+                    index === 0 ? "aspect-[4/3]" : "aspect-[3/2]",
+                  )}
+                  src={item.imageUrl}
+                />
+              ) : (
+                <span className="grid h-full min-h-16 place-items-center border-l border-border/70 text-muted-foreground transition-colors group-hover:text-primary">
+                  <ArrowRight aria-hidden="true" className="size-5 transition-transform group-hover:translate-x-1" />
+                </span>
+              )}
             </Link>
           ))
         ) : (
-          <p className="rounded-md border border-border/70 p-4 text-sm leading-6 text-muted-foreground sm:col-span-2">
+          <p className="px-4 py-7 text-sm leading-6 text-muted-foreground sm:px-5">
             Пока нет новостей, привязанных к этому этапу.
           </p>
         )}

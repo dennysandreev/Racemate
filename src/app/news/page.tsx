@@ -1,11 +1,14 @@
-import { ListFilter, Newspaper, Sparkles } from "lucide-react";
+import { ChevronDown, ListFilter, Newspaper, Sparkles } from "lucide-react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 import { AppShell } from "@/components/racemate/app-shell";
+import { JsonLd } from "@/components/racemate/json-ld";
 import { PageTitle } from "@/components/racemate/page-title";
 import { NewsImage } from "@/components/racemate/news-image";
 import { NewsQuickFilters } from "@/components/racemate/news-quick-filters";
+import { MobileNewsDigestDialog } from "@/components/racemate/mobile-news-digest-dialog";
 import {
   StitchMetric,
   StitchPanel,
@@ -21,14 +24,44 @@ import {
   getNewsTeamTags,
 } from "@/data/racemate-repository";
 import { getSessionUser } from "@/lib/auth";
+import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
+import type { DailyDigest, NewsTagFilter } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
+
+type NewsSearchParams = {
+  filter?: string;
+  page?: string;
+  race?: string;
+  tag?: string;
+};
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<NewsSearchParams>;
+}): Promise<Metadata> {
+  const query = await searchParams;
+  const page = Math.max(1, Number(query.page ?? 1) || 1);
+  const isFiltered = Boolean(query.filter || query.race || query.tag);
+  const path = !isFiltered && page > 1 ? `/news?page=${page}` : "/news";
+
+  return createPageMetadata({
+    description:
+      "Свежие новости Формулы-1 на русском: короткие сводки, главные события сезона, команды, пилоты и разборы гоночных этапов.",
+    noIndex: isFiltered,
+    path,
+    title: page > 1 && !isFiltered
+      ? `Новости Формулы-1 - страница ${page}`
+      : "Новости Формулы-1 на русском",
+  });
+}
 
 export default async function NewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string; page?: string; tag?: string; race?: string }>;
+  searchParams: Promise<NewsSearchParams>;
 }) {
   const { filter, page, tag, race } = await searchParams;
   const currentPage = Math.max(1, Number(page ?? 1) || 1);
@@ -76,9 +109,33 @@ export default async function NewsPage({
     }),
   ]);
   const [featured, ...restItems] = newsResult.items;
+  const isIndexableList = !activeFavoriteFilter && !tag && !race;
+  const listPath = currentPage > 1 ? `/news?page=${currentPage}` : "/news";
 
   return (
     <AppShell>
+      {isIndexableList ? (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            hasPart: {
+              "@type": "ItemList",
+              itemListElement: newsResult.items.map((item, index) => ({
+                "@type": "ListItem",
+                item: absoluteUrl(`/news/${item.slug}`),
+                name: item.title,
+                position: (currentPage - 1) * 21 + index + 1,
+              })),
+            },
+            inLanguage: "ru-RU",
+            name: currentPage > 1
+              ? `Новости Формулы-1, страница ${currentPage}`
+              : "Новости Формулы-1",
+            url: absoluteUrl(listPath),
+          }}
+        />
+      ) : null}
       <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 lg:h-40">
         <Image
           alt=""
@@ -92,12 +149,15 @@ export default async function NewsPage({
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgb(255_255_255_/_0.06),transparent_44%)]" />
         <div className="relative grid gap-5 lg:h-full lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
           <div className="min-w-0 lg:absolute lg:left-0 lg:top-0 lg:max-w-[calc(100%-20rem)]">
-            <p className="stitch-label flex items-center gap-2 text-primary">
-              <Newspaper aria-hidden="true" className="size-3.5" />
-              Новости · сезон {new Date().getUTCFullYear()}
-            </p>
+            <div className="flex items-center justify-between gap-3 lg:block">
+              <p className="stitch-label flex items-center gap-2 text-primary">
+                <Newspaper aria-hidden="true" className="size-3.5" />
+                Новости · сезон {new Date().getUTCFullYear()}
+              </p>
+              <MobileNewsDigestDialog digest={digest} />
+            </div>
             <PageTitle className="mt-2 max-w-4xl">
-              Новостной блог
+              Новости Формулы-1
             </PageTitle>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               Всё главное из мира Формулы-1 в одном месте, свежие новости и разбор этапов
@@ -110,8 +170,19 @@ export default async function NewsPage({
         </div>
       </section>
 
-      <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="grid content-start gap-5">
+      <section className="grid gap-4 py-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-5 lg:py-8">
+        <div className="order-1 lg:hidden">
+          <PersonalNewsPanel
+            activeFavoriteFilter={activeFavoriteFilter}
+            activeTag={tag}
+            collapsible
+            drivers={driverTags}
+            isAuthenticated={Boolean(user)}
+            teams={teamTags}
+          />
+        </div>
+
+        <div className="order-2 grid content-start gap-5 lg:col-start-1 lg:row-span-2 lg:row-start-1">
           {tag || race || activeFavoriteFilter ? (
             <div className="stitch-panel flex flex-wrap items-center justify-between gap-3 p-3">
               <span className="text-sm text-muted-foreground">
@@ -139,7 +210,7 @@ export default async function NewsPage({
                   {featured.summary}
                 </p>
                 <NewsImage
-                  alt=""
+                  alt={featured.title}
                   className="relative mt-4 aspect-video overflow-hidden rounded-lg border border-border/70 bg-muted"
                   priority
                   src={featured.imageUrl}
@@ -155,21 +226,21 @@ export default async function NewsPage({
           {restItems.length ? (
             <div className="grid gap-3 md:grid-cols-2">
               {restItems.map((item) => (
-              <Link
-                className="group stitch-panel grid content-between gap-4 p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                href={`/news/${item.slug}`}
-                key={item.slug}
-                prefetch={false}
-              >
-                <NewsMeta item={item} />
-                <h2 className="line-clamp-3 text-lg font-semibold leading-6 transition-colors group-hover:text-primary">
-                  {item.title}
-                </h2>
-                <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
-                  {item.summary}
-                </p>
-                <NewsImage alt="" src={item.imageUrl} />
-              </Link>
+                <Link
+                  className="group stitch-panel grid content-between gap-4 p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  href={`/news/${item.slug}`}
+                  key={item.slug}
+                  prefetch={false}
+                >
+                  <NewsMeta item={item} />
+                  <h2 className="line-clamp-3 text-lg font-semibold leading-6 transition-colors group-hover:text-primary">
+                    {item.title}
+                  </h2>
+                  <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                    {item.summary}
+                  </p>
+                  <NewsImage alt={item.title} src={item.imageUrl} />
+                </Link>
               ))}
             </div>
           ) : null}
@@ -213,59 +284,137 @@ export default async function NewsPage({
           </div>
         </div>
 
-        <aside className="grid content-start gap-5">
-          <StitchPanel>
-            <div className="grid gap-4 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                    <ListFilter aria-hidden="true" className="size-4" />
-                  </span>
-                  <p className="font-display text-sm font-bold text-foreground">
-                    Персональная лента
-                  </p>
-                </div>
-                {user ? (
-                  <Button
-                    asChild
-                    className="shrink-0"
-                    size="sm"
-                    variant={activeFavoriteFilter ? "default" : "secondary"}
-                  >
-                    <Link href={activeFavoriteFilter ? "/news" : "/news?filter=favorites"}>
-                      Мои новости
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button asChild className="shrink-0" size="sm" variant="secondary">
-                    <Link href="/auth">Войти</Link>
-                  </Button>
-                )}
-              </div>
-              <NewsQuickFilters activeTag={tag} drivers={driverTags} teams={teamTags} />
-            </div>
-          </StitchPanel>
-
-          <StitchPanel>
-            <StitchPanelHeader
-              icon={Sparkles}
-              title="AI-сводка за день"
-            />
-            <div className="p-4">
-              {digest ? (
-                <p className="whitespace-pre-line text-sm leading-6 text-muted-foreground">
-                  {digest.body}
-                </p>
-              ) : (
-                <p className="text-sm leading-6 text-muted-foreground">
-                  Сводка за прошедшие сутки появится после 12:00 UTC.
-                </p>
-              )}
-            </div>
-          </StitchPanel>
+        <aside className="order-3 hidden content-start gap-5 lg:order-2 lg:col-start-2 lg:row-start-1 lg:grid">
+          <PersonalNewsPanel
+            activeFavoriteFilter={activeFavoriteFilter}
+            activeTag={tag}
+            drivers={driverTags}
+            isAuthenticated={Boolean(user)}
+            teams={teamTags}
+          />
+          <DailyDigestPanel digest={digest} />
         </aside>
       </section>
     </AppShell>
+  );
+}
+
+function PersonalNewsPanel({
+  activeFavoriteFilter,
+  activeTag,
+  collapsible = false,
+  drivers,
+  isAuthenticated,
+  teams,
+}: {
+  activeFavoriteFilter: boolean;
+  activeTag?: string;
+  collapsible?: boolean;
+  drivers: NewsTagFilter[];
+  isAuthenticated: boolean;
+  teams: NewsTagFilter[];
+}) {
+  const filters = (
+    <>
+      <div className="flex justify-end">
+        {isAuthenticated ? (
+          <Button
+            asChild
+            className="shrink-0"
+            size="sm"
+            variant={activeFavoriteFilter ? "default" : "secondary"}
+          >
+            <Link href={activeFavoriteFilter ? "/news" : "/news?filter=favorites"}>
+              Мои новости
+            </Link>
+          </Button>
+        ) : (
+          <Button asChild className="shrink-0" size="sm" variant="secondary">
+            <Link href="/auth">Войти</Link>
+          </Button>
+        )}
+      </div>
+      <NewsQuickFilters activeTag={activeTag} drivers={drivers} teams={teams} />
+    </>
+  );
+
+  if (collapsible) {
+    return (
+      <StitchPanel>
+        <details className="group">
+          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+            <span className="flex min-w-0 items-center gap-2.5">
+              <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                <ListFilter aria-hidden="true" className="size-4" />
+              </span>
+              <span className="font-display text-sm font-bold text-foreground">
+                Персональная лента
+              </span>
+            </span>
+            <ChevronDown
+              aria-hidden="true"
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+            />
+          </summary>
+          <div className="grid gap-3 border-t border-border/70 p-3">
+            {filters}
+          </div>
+        </details>
+      </StitchPanel>
+    );
+  }
+
+  return (
+    <StitchPanel>
+      <div className="grid gap-4 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+              <ListFilter aria-hidden="true" className="size-4" />
+            </span>
+            <p className="font-display text-sm font-bold text-foreground">
+              Персональная лента
+            </p>
+          </div>
+          {isAuthenticated ? (
+            <Button
+              asChild
+              className="shrink-0"
+              size="sm"
+              variant={activeFavoriteFilter ? "default" : "secondary"}
+            >
+              <Link href={activeFavoriteFilter ? "/news" : "/news?filter=favorites"}>
+                Мои новости
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild className="shrink-0" size="sm" variant="secondary">
+              <Link href="/auth">Войти</Link>
+            </Button>
+          )}
+        </div>
+        <NewsQuickFilters activeTag={activeTag} drivers={drivers} teams={teams} />
+      </div>
+    </StitchPanel>
+  );
+}
+
+function DailyDigestPanel({ digest }: { digest: DailyDigest | null }) {
+  return (
+    <StitchPanel>
+      <StitchPanelHeader icon={Sparkles} title="AI-сводка за день" />
+      <div className="p-4">
+        {digest ? (
+          <p className="whitespace-pre-line text-sm leading-6 text-muted-foreground">
+            {digest.body}
+          </p>
+        ) : (
+          <p className="text-sm leading-6 text-muted-foreground">
+            Сводка за прошедшие сутки появится после 12:00 UTC.
+          </p>
+        )}
+      </div>
+    </StitchPanel>
   );
 }
 

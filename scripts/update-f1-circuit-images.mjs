@@ -21,6 +21,7 @@ const racePages = [
   ["netherlands", "netherlands"],
   ["italy", "italy"],
   ["azerbaijan", "baku"],
+  ["bahrain", "malaysia"],
   ["singapore", "singapore"],
   ["united-states", "usa"],
   ["mexico", "mexico"],
@@ -46,6 +47,7 @@ const displayNames = {
   netherlands: "Netherlands",
   italy: "Italy",
   baku: "Azerbaijan/Baku",
+  malaysia: "Malaysia/Sepang",
   singapore: "Singapore",
   usa: "United States/COTA",
   mexico: "Mexico",
@@ -87,7 +89,7 @@ async function fetchText(url) {
   const response = await fetch(url, {
     headers: {
       "user-agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 RaceMateAssetSync/1.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 RaceSideAssetSync/1.0",
     },
   });
 
@@ -102,7 +104,7 @@ async function fetchBytes(url) {
   const response = await fetch(url, {
     headers: {
       "user-agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 RaceMateAssetSync/1.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 RaceSideAssetSync/1.0",
     },
   });
 
@@ -140,11 +142,11 @@ await writeFile(
 );
 
 const circuitAttributionLines = [
-  "# RaceMate F1 Assets Attribution",
+  "# RaceSide F1 Assets Attribution",
   "",
   "## Circuit Images",
   "",
-  `Downloaded on ${downloadedDate} from the official Formula1.com 2026 race pages / media.formula1.com for local display in RaceMate.`,
+  `Downloaded on ${downloadedDate} from the official Formula1.com 2026 race pages / media.formula1.com for local display in RaceSide.`,
   "",
   ...manifest.map((source) => {
     const slug = source.file.split("/").pop()?.replace(".webp", "") ?? source.file;

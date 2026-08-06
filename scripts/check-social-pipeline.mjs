@@ -5,6 +5,7 @@ import {
   createSocialContentHash,
   getSocialAiEditorialFields,
   getSocialInitialBackfillDays,
+  getSocialPostWriteDecision,
   getTelegramFloodWaitSeconds,
   isSocialFormulaScopeAllowed,
   isTelegramStorageSizeError,
@@ -24,6 +25,14 @@ test("content hash normalizes URLs and whitespace", () => {
     createSocialContentHash({ platform: "telegram", author: "F1", title: "Новый болид", body: "Подробнее" }),
     right,
   );
+});
+
+test("unchanged social posts are not counted as newly processed", () => {
+  const contentHash = createSocialContentHash({ title: "Пост", body: "Без изменений" });
+
+  assert.equal(getSocialPostWriteDecision(null, contentHash), "created");
+  assert.equal(getSocialPostWriteDecision({ content_hash: contentHash }, contentHash), "unchanged");
+  assert.equal(getSocialPostWriteDecision({ content_hash: "old" }, contentHash), "updated");
 });
 
 test("social backfill uses metadata before the dedicated column is migrated", () => {

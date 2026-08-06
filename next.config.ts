@@ -42,6 +42,23 @@ const securityHeaders = [
   },
 ];
 
+const noIndexHeaders = [
+  {
+    key: "X-Robots-Tag",
+    value: "noindex, nofollow, noarchive",
+  },
+];
+
+const noIndexPaths = [
+  "/account/:path*",
+  "/admin/:path*",
+  "/api/:path*",
+  "/auth/:path*",
+  "/onboarding/:path*",
+  "/predictions/:path*",
+  "/s/:path*",
+];
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -49,6 +66,10 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      ...noIndexPaths.map((source) => ({
+        headers: noIndexHeaders,
+        source,
+      })),
     ];
   },
   images: {

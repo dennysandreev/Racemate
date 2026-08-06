@@ -4,8 +4,17 @@ import { AppShell } from "@/components/racemate/app-shell";
 import { RaceReplayPlayer } from "@/features/race-replay/components/race-replay-player";
 import { getRaceReplayBySessionKey } from "@/data/racemate-repository";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
+import { createPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = createPageMetadata({
+  description: "Интерактивный повтор завершенной гонки RaceSide.",
+  noFollow: true,
+  noIndex: true,
+  path: "/race-replay",
+  title: "Повтор гонки",
+});
 
 type RaceReplayPageProps = {
   params: Promise<{ sessionKey: string }>;

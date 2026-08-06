@@ -213,7 +213,7 @@ export async function TelegramSettings({ userId }: { userId: string | null }) {
       ) : (
         <div className="p-5 sm:p-6">
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-            Нажмите «Подключить Telegram», затем запустите бота. Ссылка действует 10 минут и привязывает только текущий аккаунт RaceMate.
+            Нажмите «Подключить Telegram», затем запустите бота. Ссылка действует 10 минут и привязывает только текущий аккаунт RaceSide.
           </p>
         </div>
       )}

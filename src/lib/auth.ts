@@ -71,7 +71,7 @@ async function loadSessionProfileSummary(user: SessionUser) {
   const fallbackName =
     typeof user.user_metadata?.display_name === "string" && user.user_metadata.display_name.trim()
       ? user.user_metadata.display_name.trim()
-      : user.email?.split("@")[0] ?? "Гость RaceMate";
+      : user.email?.split("@")[0] ?? "Гость RaceSide";
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -129,7 +129,7 @@ export async function ensureProfile() {
           ? user.user_metadata.display_name
           : null) ??
         user.email?.split("@")[0] ??
-        "Гость RaceMate",
+        "Гость RaceSide",
     })
     .select("id, email, display_name, timezone, onboarding_completed")
     .single();
