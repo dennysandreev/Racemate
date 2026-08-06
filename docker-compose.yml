@@ -22,8 +22,14 @@ services:
       - sh
       - -lc
       - |
+        heartbeat_count=0
         while true; do
+          if [ "$heartbeat_count" -le 0 ]; then
+            node worker/index.mjs ops.heartbeat --service admin-job-runner || true
+            heartbeat_count=10
+          fi
           node worker/index.mjs jobs.consume_queued --limit 3 || true
+          heartbeat_count=$((heartbeat_count - 1))
           sleep 3
         done
     restart: unless-stopped
@@ -37,6 +43,7 @@ services:
       - -lc
       - |
         while true; do
+          node worker/index.mjs ops.heartbeat --service cron || true
           node worker/index.mjs jobs.enqueue_schedules --limit 20 || true
           sleep 15
         done

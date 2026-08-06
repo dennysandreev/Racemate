@@ -83,6 +83,7 @@ import {
 } from "./admin-job-queue.mjs";
 import { buildOpenRouterUsageLog } from "./ai-usage.mjs";
 import { resolveWorkerAiPrompt } from "./ai-prompt-registry.mjs";
+import { upsertServiceHeartbeat } from "./ops-heartbeat.mjs";
 
 loadEnvFiles([".env", ".env.local"]);
 
@@ -133,6 +134,7 @@ const commands = new Map([
   ["race_replay.prepare_completed", prepareCompletedRaceReplays],
   ["jobs.consume_queued", consumeQueuedAdminJobs],
   ["jobs.enqueue_schedules", enqueueDueAdminSchedules],
+  ["ops.heartbeat", recordServiceHeartbeatCommand],
 ]);
 
 const command = process.argv[2];
@@ -223,8 +225,12 @@ if (isMainModule) {
       await consumeQueuedAdminJobs();
     } else if (command === "jobs.enqueue_schedules") {
       await enqueueDueAdminSchedules();
+    } else if (command === "ops.heartbeat") {
+      await recordServiceHeartbeatCommand();
     } else {
+      await recordServiceHeartbeatSafely("worker", { phase: "started" });
       await runJob(command, commands.get(command));
+      await recordServiceHeartbeatSafely("worker", { phase: "finished" });
     }
   } finally {
     await disconnectTelegramClient();
@@ -758,6 +764,30 @@ async function enqueueDueAdminSchedules() {
     `${JSON.stringify({ jobName: "jobs.enqueue_schedules", itemsProcessed })}\n`,
   );
   return { itemsProcessed };
+}
+
+async function recordServiceHeartbeatCommand() {
+  const serviceName = getCliOption("service");
+  const row = await upsertServiceHeartbeat(supabase, {
+    serviceName,
+    summary: { source: "service-loop" },
+  });
+
+  process.stdout.write(
+    `${JSON.stringify({ checkedAt: row.checked_at, serviceName: row.service_name })}\n`,
+  );
+  return { itemsProcessed: 1 };
+}
+
+async function recordServiceHeartbeatSafely(serviceName, summary) {
+  try {
+    await upsertServiceHeartbeat(supabase, { serviceName, summary });
+  } catch (error) {
+    logWorkerWarning("ops.heartbeat.failed", {
+      serviceName,
+      reason: getSafeErrorMessage(error),
+    });
+  }
 }
 
 function spawnAttachedJob(job, workerArguments) {

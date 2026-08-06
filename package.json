@@ -71,6 +71,7 @@
     "test:season-points": "node --experimental-strip-types --experimental-default-type=module --test src/lib/f1-points.test.mjs",
     "test:security": "node --experimental-strip-types --experimental-default-type=module --test src/lib/admin-security-boundary.test.mjs src/lib/social-media-storage.test.mjs",
     "test:admin": "node --experimental-strip-types --experimental-default-type=module --test src/lib/admin-operations.test.mjs src/lib/admin-security-boundary.test.mjs src/lib/admin-ai-prompts.test.mjs worker/adaptive-job-schedule.test.mjs worker/ai-prompt-registry.test.mjs worker/ai-usage.test.mjs",
+    "test:ops": "node --experimental-strip-types --experimental-default-type=module --test src/lib/admin-agent/findings.test.mjs src/lib/admin-agent/health.test.mjs src/lib/admin-agent/schema.test.mjs worker/ops-heartbeat.test.mjs",
     "assets:history:teams": "node scripts/check-f1-historical-team-assets.mjs",
     "assets:history:circuits": "python3 scripts/review-f1-circuit-maps.py --require-approved",
     "assets:history:avatars": "node scripts/check-f1-driver-avatars.mjs",

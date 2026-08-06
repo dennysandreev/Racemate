@@ -34,4 +34,6 @@ COPY --from=builder /app/package.json ./package.json
 RUN python3 -m venv /opt/fastf1 \
   && /opt/fastf1/bin/pip install --no-cache-dir -r worker/fastf1/requirements.txt
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=6s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))"
 CMD ["node", "server.js"]

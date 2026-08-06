@@ -1,19 +1,54 @@
 import { NextResponse } from "next/server";
 
-import { hasSupabaseEnv } from "@/lib/env";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  buildPublicHealthPayload,
+  getPublicHealthStatus,
+} from "@/lib/admin-agent/health";
+import {
+  getRuntimeInstanceId,
+  getRuntimeReleaseSha,
+} from "@/lib/admin-agent/runtime";
+import { getSupabaseServiceEnv } from "@/lib/env";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
-  const database = supabase
-    ? await supabase.from("seasons").select("year", { count: "exact", head: true })
-    : null;
+  const checkedAt = new Date().toISOString();
+  const release = getRuntimeReleaseSha();
+  const supabase = createSupabaseAdminClient();
+  let databaseHealthy = false;
 
-  return NextResponse.json({
-    ok: Boolean(hasSupabaseEnv() && !database?.error),
-    app: "RaceSide",
-    supabase: hasSupabaseEnv() ? "configured" : "missing",
-    database: database?.error ? "unhealthy" : "healthy",
-    checkedAt: new Date().toISOString(),
+  if (supabase) {
+    try {
+      const heartbeat = await supabase
+        .from("ops_service_heartbeats")
+        .upsert(
+          {
+            service_name: "web",
+            instance_id: getRuntimeInstanceId("web"),
+            release_sha: release,
+            status: "healthy",
+            summary: { source: "public-health" },
+            checked_at: checkedAt,
+            updated_at: checkedAt,
+          },
+          { onConflict: "service_name,instance_id" },
+        )
+        .abortSignal(AbortSignal.timeout(4_000));
+
+      databaseHealthy = !heartbeat.error;
+    } catch {
+      databaseHealthy = false;
+    }
+  }
+
+  const payload = buildPublicHealthPayload({
+    checkedAt,
+    databaseHealthy,
+    release,
+    supabaseConfigured: getSupabaseServiceEnv() !== null,
   });
+
+  return NextResponse.json(payload, { status: getPublicHealthStatus(payload) });
 }
