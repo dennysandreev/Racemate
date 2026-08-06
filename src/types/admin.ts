@@ -182,3 +182,92 @@ export type AdminAiBudget = {
   monthly_limit_usd: number;
   updated_at: string | null;
 };
+
+export type AdminAgentRunKind =
+  | "watcher"
+  | "browser_smoke"
+  | "editorial"
+  | "bug_triage"
+  | "weekly_audit";
+
+export type AdminAgentRunStatus = "running" | "succeeded" | "partial" | "failed";
+
+export type AdminFindingCategory =
+  | "availability"
+  | "data"
+  | "job"
+  | "content"
+  | "browser"
+  | "security"
+  | "cost"
+  | "ux"
+  | "seo";
+
+export type AdminFindingSeverity = "P0" | "P1" | "P2" | "P3";
+
+export type AdminFindingStatus =
+  | "open"
+  | "acknowledged"
+  | "action_pending"
+  | "fixing"
+  | "monitoring"
+  | "resolved"
+  | "ignored";
+
+export type AdminFinding = {
+  id: string;
+  fingerprint: string;
+  category: AdminFindingCategory;
+  severity: AdminFindingSeverity;
+  status: AdminFindingStatus;
+  title: string;
+  description: string;
+  evidence: Json;
+  route: string | null;
+  entityType: string | null;
+  entityId: string | null;
+  jobRunId: string | null;
+  releaseSha: string | null;
+  ownerKind: "agent" | "human";
+  ownerUserId: string | null;
+  githubIssueUrl: string | null;
+  githubPrUrl: string | null;
+  resolution: string | null;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  occurrenceCount: number;
+  lastAlertedAt: string | null;
+  alertCount: number;
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminFindingEvent = {
+  id: string;
+  findingId: string;
+  eventType: string;
+  actorKind: "agent" | "human" | "system";
+  actorUserId: string | null;
+  payload: Json;
+  createdAt: string;
+};
+
+export type AdminAgentSettings = {
+  isEnabled: boolean;
+  mode: "shadow" | "recommend" | "limited";
+  telegramAlertsEnabled: boolean;
+  r2ActionsEnabled: boolean;
+  shadowStartedAt: string;
+  updatedAt: string;
+};
+
+export type OpsServiceHeartbeat = {
+  serviceName: "web" | "worker" | "cron" | "admin-job-runner" | "watcher";
+  instanceId: string;
+  releaseSha: string | null;
+  status: "healthy" | "degraded" | "unhealthy";
+  summary: Json;
+  checkedAt: string;
+  updatedAt: string;
+};

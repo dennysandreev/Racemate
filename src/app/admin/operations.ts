@@ -24,6 +24,99 @@ import type { AdminActionResult } from "@/types/admin";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+export async function transitionAdminFindingAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const user = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const findingId = uuid(formData, "findingId");
+  const status = enumValue(formData, "status", ["acknowledged", "resolved", "ignored"]);
+  const resolution = optionalText(formData, "resolution", 1_000);
+
+  if (!admin || !findingId || !status) return { ok: false, message: "Находка не найдена." };
+  const { data: before, error } = await admin
+    .from("admin_findings")
+    .select("id, status, severity, title")
+    .eq("id", findingId)
+    .maybeSingle();
+  if (error || !before) return { ok: false, message: "Находка не найдена." };
+  const auditId = await startAdminAudit(admin, {
+    actorUserId: user.id,
+    action: `finding.${status}`,
+    entityType: "admin_finding",
+    entityId: findingId,
+    beforeData: before,
+  });
+
+  try {
+    const { error: transitionError } = await admin.rpc("transition_admin_finding", {
+      p_finding_id: findingId,
+      p_status: status,
+      p_actor_kind: "human",
+      p_actor_user_id: user.id,
+      p_resolution: resolution,
+    });
+    if (transitionError) throw transitionError;
+    await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: { status, resolution } });
+    revalidateAdminPaths(["/admin", "/admin/findings"]);
+    return {
+      ok: true,
+      message: status === "acknowledged"
+        ? "Находка принята в работу."
+        : status === "resolved"
+          ? "Находка отмечена как исправленная."
+          : "Находка больше не требует действий.",
+    };
+  } catch (transitionError) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error: transitionError });
+    return actionError(transitionError, "Не удалось обновить находку.");
+  }
+}
+
+export async function saveAdminAgentSettingsAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const user = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const mode = enumValue(formData, "mode", ["shadow", "recommend"]);
+  const isEnabled = text(formData, "isEnabled", 8) === "true";
+  const telegramAlertsEnabled = text(formData, "telegramAlertsEnabled", 8) === "true";
+  if (!admin || !mode) return { ok: false, message: "Проверь настройки наблюдения." };
+  const { data: before, error } = await admin
+    .from("admin_agent_settings")
+    .select("is_enabled, mode, telegram_alerts_enabled, r2_actions_enabled, shadow_started_at")
+    .eq("singleton", true)
+    .single();
+  if (error) return { ok: false, message: "Настройки наблюдения недоступны." };
+  const auditId = await startAdminAudit(admin, {
+    actorUserId: user.id,
+    action: "agent.settings.update",
+    entityType: "admin_agent_settings",
+    entityId: "singleton",
+    beforeData: before,
+  });
+  const after = {
+    is_enabled: isEnabled,
+    mode,
+    telegram_alerts_enabled: telegramAlertsEnabled,
+    updated_by: user.id,
+    updated_at: new Date().toISOString(),
+  };
+  const { error: updateError } = await admin
+    .from("admin_agent_settings")
+    .update(after)
+    .eq("singleton", true);
+  if (updateError) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error: updateError });
+    return actionError(updateError, "Не удалось сохранить настройки.");
+  }
+  await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: after });
+  revalidateAdminPaths(["/admin/findings"]);
+  return { ok: true, message: isEnabled ? "Наблюдение включено." : "Наблюдение остановлено." };
+}
+
 export async function runAdminJobAction(
   _previousState: AdminActionResult,
   formData: FormData,

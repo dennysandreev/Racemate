@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
@@ -15,6 +14,7 @@ import { scoreFantasyPrediction } from "./fantasy-scoring.mjs";
 import {
   escapeTelegramHtml,
   getFantasyDeadlineReminders,
+  getNewsNotificationPublishedAt,
   getRemainingNewsNotificationBudget,
   getSessionNotificationSetting,
   hasSessionStartChanged,
@@ -83,8 +83,13 @@ import {
 } from "./admin-job-queue.mjs";
 import { buildOpenRouterUsageLog } from "./ai-usage.mjs";
 import { resolveWorkerAiPrompt } from "./ai-prompt-registry.mjs";
-
-loadEnvFiles([".env", ".env.local"]);
+import { upsertServiceHeartbeat } from "./ops-heartbeat.mjs";
+import { runOpsWatcher } from "./ops-watcher.mjs";
+import "./load-env.mjs";
+import {
+  captureWorkerException,
+  flushWorkerTelemetry,
+} from "./instrumentation.mjs";
 
 const commands = new Map([
   ["rss.fetch_all", fetchAllRss],
@@ -133,15 +138,12 @@ const commands = new Map([
   ["race_replay.prepare_completed", prepareCompletedRaceReplays],
   ["jobs.consume_queued", consumeQueuedAdminJobs],
   ["jobs.enqueue_schedules", enqueueDueAdminSchedules],
+  ["ops.heartbeat", recordServiceHeartbeatCommand],
+  ["ops.watch", runOpsWatcherCommand],
 ]);
 
 const command = process.argv[2];
 const isMainModule = Boolean(process.argv[1]) && pathToFileURL(process.argv[1]).href === import.meta.url;
-
-if (isMainModule && !commands.has(command)) {
-  console.log(`Usage: node worker/index.mjs ${Array.from(commands.keys()).join("|")}`);
-  process.exit(command ? 1 : 0);
-}
 
 let supabase = null;
 let jolpicaFetchQueue = Promise.resolve();
@@ -215,7 +217,13 @@ const teamSeasonColorsByExternalId = Object.freeze({
   sauber: "#52E252",
   williams: "#64C4FF",
 });
-if (isMainModule) {
+export async function runWorkerCli() {
+  if (!commands.has(command)) {
+    console.log(`Usage: node worker/cli.mjs ${Array.from(commands.keys()).join("|")}`);
+    process.exitCode = command ? 1 : 0;
+    return;
+  }
+
   supabase = createWorkerClient();
 
   try {
@@ -223,36 +231,22 @@ if (isMainModule) {
       await consumeQueuedAdminJobs();
     } else if (command === "jobs.enqueue_schedules") {
       await enqueueDueAdminSchedules();
+    } else if (command === "ops.heartbeat") {
+      await recordServiceHeartbeatCommand();
+    } else if (command === "ops.watch") {
+      await runOpsWatcherCommand();
     } else {
+      await recordServiceHeartbeatSafely("worker", { phase: "started" });
       await runJob(command, commands.get(command));
+      await recordServiceHeartbeatSafely("worker", { phase: "finished" });
     }
   } finally {
     await disconnectTelegramClient();
   }
 }
 
-function loadEnvFiles(paths) {
-  for (const path of paths) {
-    if (!existsSync(path)) {
-      continue;
-    }
-
-    for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
-      const trimmed = line.trim();
-
-      if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) {
-        continue;
-      }
-
-      const index = trimmed.indexOf("=");
-      const name = trimmed.slice(0, index).trim();
-      const value = trimmed.slice(index + 1).trim().replace(/^['"]|['"]$/g, "");
-
-      if (name && process.env[name] === undefined) {
-        process.env[name] = value;
-      }
-    }
-  }
+if (isMainModule) {
+  await runWorkerCli();
 }
 
 function createWorkerClient() {
@@ -487,6 +481,11 @@ async function runJob(jobName, runner) {
     if (persistence.error) {
       throw persistence.error;
     }
+
+    captureWorkerException(jobError, {
+      jobName,
+      runId: job?.id,
+    });
 
     throw jobError;
   }
@@ -737,6 +736,11 @@ async function consumeQueuedAdminJobs() {
           error_message: getSafeErrorMessage(spawnError).slice(0, 2_000),
         })
         .eq("id", job.id);
+      captureWorkerException(spawnError, {
+        jobName: job.job_name,
+        runId: job.id,
+      });
+      await flushWorkerTelemetry();
       process.stderr.write(`Admin job ${job.id} could not start\n`);
     }
     itemsProcessed += 1;
@@ -760,12 +764,42 @@ async function enqueueDueAdminSchedules() {
   return { itemsProcessed };
 }
 
+async function recordServiceHeartbeatCommand() {
+  const serviceName = getCliOption("service");
+  const row = await upsertServiceHeartbeat(supabase, {
+    serviceName,
+    summary: { source: "service-loop" },
+  });
+
+  process.stdout.write(
+    `${JSON.stringify({ checkedAt: row.checked_at, serviceName: row.service_name })}\n`,
+  );
+  return { itemsProcessed: 1 };
+}
+
+async function runOpsWatcherCommand() {
+  const result = await runOpsWatcher(supabase);
+  process.stdout.write(`${JSON.stringify({ jobName: "ops.watch", ...result })}\n`);
+  return result;
+}
+
+async function recordServiceHeartbeatSafely(serviceName, summary) {
+  try {
+    await upsertServiceHeartbeat(supabase, { serviceName, summary });
+  } catch (error) {
+    logWorkerWarning("ops.heartbeat.failed", {
+      serviceName,
+      reason: getSafeErrorMessage(error),
+    });
+  }
+}
+
 function spawnAttachedJob(job, workerArguments) {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(
       process.execPath,
       [
-        fileURLToPath(import.meta.url),
+        fileURLToPath(new URL("./cli.mjs", import.meta.url)),
         job.job_name,
         ...workerArguments,
         "--attached-run-id",
@@ -1949,7 +1983,7 @@ async function processSocialWithAi() {
     .is("duplicate_of", null)
     .or(`next_retry_at.is.null,next_retry_at.lte.${nowIso}`)
     .lt("processing_attempts", 8)
-    .order("ingested_at", { ascending: true })
+    .order("created_at", { ascending: true })
     .limit(limit);
   if (postId) {
     postsQuery = postsQuery.eq("id", postId);
@@ -12947,11 +12981,11 @@ async function enqueueNotifications() {
       .order("start_at", { ascending: true }),
     supabase
       .from("news_articles")
-      .select("id, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, image_url, source_image_url, news_sources(name), news_article_tags(tags(type,slug,name))")
+      .select("id, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, published_at, image_url, source_image_url, news_sources(name), news_article_tags(tags(type,slug,name))")
       .eq("status", "processed")
       .eq("publication_status", "published")
-      .gte("ai_processed_at", newsSince)
-      .order("ai_processed_at", { ascending: false })
+      .gte("published_at", newsSince)
+      .order("published_at", { ascending: false })
       .limit(60),
     supabase
       .from("races")
@@ -13140,7 +13174,7 @@ async function enqueueNotifications() {
         : Number.POSITIVE_INFINITY;
 
       for (const article of news ?? []) {
-        if (!isNotificationFreshForConnection(article.ai_processed_at, connectedAt)) {
+        if (!isNotificationFreshForConnection(getNewsNotificationPublishedAt(article), connectedAt)) {
           continue;
         }
 

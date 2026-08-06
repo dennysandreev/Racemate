@@ -16,6 +16,7 @@ const adminPageSources = [
   "audit/page.tsx",
   "schedules/page.tsx",
   "systems/page.tsx",
+  "findings/page.tsx",
 ].map((path) => ({
   path,
   source: readFileSync(new URL(`../app/admin/${path}`, import.meta.url), "utf8"),

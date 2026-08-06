@@ -7,6 +7,8 @@ import type {
   AdminAiUsageSummaryRow,
   AdminAuditEntry,
   AdminJobRun,
+  AdminFinding,
+  AdminFindingEvent,
   AdminSchedule,
   AdminSystemSignal,
   AdminSystemStatus,
@@ -46,6 +48,7 @@ export async function loadAdminOverview(admin: AdminClient) {
     notificationFailedResult,
     notificationQueuedResult,
     aiResult,
+    findingsResult,
   ] = await Promise.all([
     admin
       .from("job_runs")
@@ -60,6 +63,7 @@ export async function loadAdminOverview(admin: AdminClient) {
     admin.from("notification_queue").select("id", { count: "exact", head: true }).eq("status", "failed"),
     admin.from("notification_queue").select("id", { count: "exact", head: true }).eq("status", "queued"),
     admin.rpc("get_admin_ai_usage_summary", { p_since: thirtyDaysAgo }),
+    admin.from("admin_findings").select("id, severity, status", { count: "exact" }).in("status", ["open", "acknowledged", "action_pending", "fixing", "monitoring"]),
   ]);
   throwFirstError([
     jobsResult.error,
@@ -71,6 +75,7 @@ export async function loadAdminOverview(admin: AdminClient) {
     notificationFailedResult.error,
     notificationQueuedResult.error,
     aiResult.error,
+    findingsResult.error,
   ]);
 
   const jobs = (jobsResult.data ?? []).map(mapAdminJobRun);
@@ -100,9 +105,106 @@ export async function loadAdminOverview(admin: AdminClient) {
       queuedJobs: jobs.filter((job) => job.status === "queued").length,
       aiCost,
       aiRuns: Number(aiTotal?.request_count ?? 0),
+      activeFindings: findingsResult.count ?? 0,
+      urgentFindings: (findingsResult.data ?? []).filter((finding) => finding.severity === "P0" || finding.severity === "P1").length,
     },
   };
 }
+
+export async function loadAdminFindings(admin: AdminClient, query: AdminTableQuery) {
+  const from = (query.page - 1) * query.pageSize;
+  let request = admin
+    .from("admin_findings")
+    .select("id, fingerprint, category, severity, status, title, description, evidence, route, entity_type, entity_id, job_run_id, release_sha, owner_kind, owner_user_id, github_issue_url, github_pr_url, resolution, first_seen_at, last_seen_at, occurrence_count, last_alerted_at, alert_count, resolved_at, created_at, updated_at", { count: "exact" })
+    .order("last_seen_at", { ascending: false })
+    .range(from, from + query.pageSize - 1);
+
+  if (query.search) request = request.or(`title.ilike.%${query.search}%,description.ilike.%${query.search}%`);
+  if (query.status && query.status !== "all" && ["open", "acknowledged", "action_pending", "fixing", "monitoring", "resolved", "ignored"].includes(query.status)) {
+    request = request.eq("status", query.status as AdminFinding["status"]);
+  }
+
+  const [findingsResult, settingsResult, runsResult, heartbeatsResult] = await Promise.all([
+    request,
+    admin.from("admin_agent_settings").select("is_enabled, mode, telegram_alerts_enabled, r2_actions_enabled, shadow_started_at, updated_at").eq("singleton", true).single(),
+    admin.from("admin_agent_runs").select("id, status, counters, started_at, finished_at, duration_ms, error_code").eq("run_kind", "watcher").order("started_at", { ascending: false }).limit(12),
+    admin.from("ops_service_heartbeats").select("service_name, status, summary, checked_at").order("checked_at", { ascending: false }).limit(30),
+  ]);
+  throwFirstError([findingsResult.error, settingsResult.error, runsResult.error, heartbeatsResult.error]);
+  if (!settingsResult.data) throw new Error("Настройки наблюдения недоступны");
+  const settings = settingsResult.data;
+
+  const findingIds = (findingsResult.data ?? []).map((finding) => finding.id);
+  const eventsResult = findingIds.length
+    ? await admin.from("admin_finding_events").select("id, finding_id, event_type, actor_kind, actor_user_id, payload, created_at").in("finding_id", findingIds).order("created_at", { ascending: false }).limit(500)
+    : { data: [], error: null };
+  throwFirstError([eventsResult.error]);
+  const eventsByFinding = new Map<string, AdminFindingEvent[]>();
+  for (const event of eventsResult.data ?? []) {
+    const mapped: AdminFindingEvent = {
+      id: event.id,
+      findingId: event.finding_id,
+      eventType: event.event_type,
+      actorKind: event.actor_kind,
+      actorUserId: event.actor_user_id,
+      payload: event.payload,
+      createdAt: event.created_at,
+    };
+    eventsByFinding.set(event.finding_id, [...(eventsByFinding.get(event.finding_id) ?? []), mapped]);
+  }
+
+  return {
+    items: (findingsResult.data ?? []).map((finding) => ({
+      finding: mapAdminFinding(finding),
+      events: eventsByFinding.get(finding.id) ?? [],
+    })),
+    total: findingsResult.count ?? 0,
+    query,
+    settings: {
+      isEnabled: settings.is_enabled,
+      mode: settings.mode,
+      telegramAlertsEnabled: settings.telegram_alerts_enabled,
+      r2ActionsEnabled: settings.r2_actions_enabled,
+      shadowStartedAt: settings.shadow_started_at,
+      updatedAt: settings.updated_at,
+    },
+    runs: runsResult.data ?? [],
+    heartbeats: heartbeatsResult.data ?? [],
+  };
+}
+
+function mapAdminFinding(row: DatabaseFindingRow): AdminFinding {
+  return {
+    id: row.id,
+    fingerprint: row.fingerprint,
+    category: row.category,
+    severity: row.severity,
+    status: row.status,
+    title: row.title,
+    description: row.description,
+    evidence: row.evidence,
+    route: row.route,
+    entityType: row.entity_type,
+    entityId: row.entity_id,
+    jobRunId: row.job_run_id,
+    releaseSha: row.release_sha,
+    ownerKind: row.owner_kind,
+    ownerUserId: row.owner_user_id,
+    githubIssueUrl: row.github_issue_url,
+    githubPrUrl: row.github_pr_url,
+    resolution: row.resolution,
+    firstSeenAt: row.first_seen_at,
+    lastSeenAt: row.last_seen_at,
+    occurrenceCount: row.occurrence_count,
+    lastAlertedAt: row.last_alerted_at,
+    alertCount: row.alert_count,
+    resolvedAt: row.resolved_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+type DatabaseFindingRow = import("@/types/supabase").Database["public"]["Tables"]["admin_findings"]["Row"];
 
 export async function loadAdminNews(admin: AdminClient, query: AdminTableQuery) {
   const from = (query.page - 1) * query.pageSize;

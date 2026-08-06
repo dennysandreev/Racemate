@@ -177,6 +177,99 @@ export type Database = {
         created_at: string;
         updated_at: string;
       }>;
+      ops_service_heartbeats: TableDefinition<{
+        service_name: "web" | "worker" | "cron" | "admin-job-runner" | "watcher";
+        instance_id: string;
+        release_sha: string | null;
+        status: "healthy" | "degraded" | "unhealthy";
+        summary: Json;
+        checked_at: string;
+        updated_at: string;
+      }>;
+      admin_agent_runs: TableDefinition<{
+        id: string;
+        run_kind: "watcher" | "browser_smoke" | "editorial" | "bug_triage" | "weekly_audit";
+        trigger_kind: "schedule" | "deploy" | "manual" | "finding";
+        trigger_finding_id: string | null;
+        status: "running" | "succeeded" | "partial" | "failed";
+        counters: Json;
+        ruleset_version: string | null;
+        release_sha: string | null;
+        error_code: string | null;
+        error_message: string | null;
+        ai_cost_usd: number;
+        started_at: string;
+        finished_at: string | null;
+        duration_ms: number | null;
+        created_at: string;
+      }>;
+      admin_findings: TableDefinition<{
+        id: string;
+        fingerprint: string;
+        category: "availability" | "data" | "job" | "content" | "browser" | "security" | "cost" | "ux" | "seo";
+        severity: "P0" | "P1" | "P2" | "P3";
+        status: "open" | "acknowledged" | "action_pending" | "fixing" | "monitoring" | "resolved" | "ignored";
+        title: string;
+        description: string;
+        evidence: Json;
+        route: string | null;
+        entity_type: string | null;
+        entity_id: string | null;
+        job_run_id: string | null;
+        release_sha: string | null;
+        owner_kind: "agent" | "human";
+        owner_user_id: string | null;
+        github_issue_url: string | null;
+        github_pr_url: string | null;
+        resolution: string | null;
+        first_seen_at: string;
+        last_seen_at: string;
+        occurrence_count: number;
+        last_alerted_at: string | null;
+        alert_count: number;
+        resolved_at: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      admin_finding_events: TableDefinition<{
+        id: string;
+        finding_id: string;
+        event_type: "detected" | "repeated" | "severity_changed" | "action_requested" | "action_started" | "action_succeeded" | "action_failed" | "fix_pr_opened" | "acknowledged" | "resolved" | "ignored" | "reopened" | "alert_sent";
+        actor_kind: "agent" | "human" | "system";
+        actor_user_id: string | null;
+        payload: Json;
+        created_at: string;
+      }>;
+      admin_action_requests: TableDefinition<{
+        id: string;
+        finding_id: string;
+        action_name: string;
+        action_args: Json;
+        risk_class: "R1" | "R2" | "R3" | "R4" | "R5";
+        status: "proposed" | "approved" | "running" | "succeeded" | "failed" | "rejected";
+        idempotency_key: string;
+        requested_by_kind: "agent" | "human" | "system";
+        requested_by_user_id: string | null;
+        approved_by_user_id: string | null;
+        job_run_id: string | null;
+        result: Json;
+        error_code: string | null;
+        created_at: string;
+        approved_at: string | null;
+        started_at: string | null;
+        finished_at: string | null;
+        updated_at: string;
+      }>;
+      admin_agent_settings: TableDefinition<{
+        singleton: boolean;
+        is_enabled: boolean;
+        mode: "shadow" | "recommend" | "limited";
+        telegram_alerts_enabled: boolean;
+        r2_actions_enabled: boolean;
+        shadow_started_at: string;
+        updated_by: string | null;
+        updated_at: string;
+      }>;
       teams: TableDefinition<{
         id: string;
         external_id: string | null;
@@ -908,6 +1001,41 @@ export type Database = {
           p_worker_id: string;
         };
         Returns: Database["public"]["Tables"]["job_runs"]["Row"][];
+      };
+      record_admin_finding: {
+        Args: {
+          p_fingerprint: string;
+          p_category: string;
+          p_severity: string;
+          p_title: string;
+          p_description: string;
+          p_evidence?: Json;
+          p_route?: string | null;
+          p_entity_type?: string | null;
+          p_entity_id?: string | null;
+          p_job_run_id?: string | null;
+          p_release_sha?: string | null;
+        };
+        Returns: {
+          finding_id: string;
+          was_created: boolean;
+          current_status: string;
+          current_occurrence_count: number;
+        }[];
+      };
+      transition_admin_finding: {
+        Args: {
+          p_finding_id: string;
+          p_status: string;
+          p_actor_kind?: string;
+          p_actor_user_id?: string | null;
+          p_resolution?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["admin_findings"]["Row"];
+      };
+      mark_admin_finding_alerted: {
+        Args: { p_finding_id: string };
+        Returns: undefined;
       };
       get_admin_ai_usage_summary: {
         Args: {

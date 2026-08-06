@@ -36,6 +36,7 @@ export default async function AdminOverviewPage() {
 
   const overview = await loadAdminOverview(admin);
   const urgentSignals = overview.signals.filter((signal) => signal.status === "failed" || signal.status === "stale");
+  const urgentCount = urgentSignals.length + overview.metrics.urgentFindings;
 
   return (
     <AdminPage>
@@ -54,23 +55,22 @@ export default async function AdminOverviewPage() {
         title="Операционный обзор"
       />
 
-      {urgentSignals.length ? (
+      {urgentCount ? (
         <Alert variant="destructive">
           <AlertTriangle aria-hidden="true" />
           <AlertTitle>Нужна проверка</AlertTitle>
           <AlertDescription>
-            {urgentSignals.length} проверок не обновились вовремя или завершились
-            с ошибкой. Подробности и время следующего запуска — ниже.
+            Требуют внимания проверки или находки: {urgentCount}. Подробности доступны в операционных разделах.
           </AlertDescription>
         </Alert>
       ) : null}
 
       <section className="grid grid-cols-2 gap-x-0 gap-y-5 border-b border-border pb-5 lg:grid-cols-4">
         <AdminMetric
-          helper={`${overview.metrics.socialReview} постов`}
-          label="На проверке"
-          tone={overview.metrics.duplicateNews + overview.metrics.socialReview ? "warning" : "success"}
-          value={String(overview.metrics.duplicateNews + overview.metrics.socialReview)}
+          helper={`${overview.metrics.urgentFindings} срочных`}
+          label="Находки"
+          tone={overview.metrics.activeFindings ? "warning" : "success"}
+          value={String(overview.metrics.activeFindings)}
         />
         <AdminMetric
           helper={`${overview.metrics.failedJobs} с ошибкой`}
