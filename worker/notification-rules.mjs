@@ -129,6 +129,10 @@ export function isNotificationFreshForConnection(notificationCreatedAt, connecte
   return notificationTimestamp >= connectedTimestamp;
 }
 
+export function getNewsNotificationPublishedAt(article) {
+  return article?.published_at ?? article?.ai_processed_at ?? null;
+}
+
 export function getRemainingNewsNotificationBudget(alreadyQueued, dailyLimit = 30) {
   const limit = Number.isFinite(Number(dailyLimit))
     ? Math.max(0, Math.floor(Number(dailyLimit)))

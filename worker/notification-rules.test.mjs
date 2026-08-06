@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   escapeTelegramHtml,
   getFantasyDeadlineReminders,
+  getNewsNotificationPublishedAt,
   getRemainingNewsNotificationBudget,
   getSessionNotificationKey,
   getSessionNotificationSetting,
@@ -94,6 +95,16 @@ test("limits all-news notifications over a rolling day", () => {
   assert.equal(getRemainingNewsNotificationBudget(24, 30), 6);
   assert.equal(getRemainingNewsNotificationBudget(30, 30), 0);
   assert.equal(getRemainingNewsNotificationBudget(45, 30), 0);
+});
+
+test("uses the publication timestamp for news notifications", () => {
+  assert.equal(
+    getNewsNotificationPublishedAt({
+      ai_processed_at: "2026-08-03T07:42:06Z",
+      published_at: "2026-08-06T16:09:26Z",
+    }),
+    "2026-08-06T16:09:26Z",
+  );
 });
 
 test("uses independent fantasy deadline reminder settings", () => {

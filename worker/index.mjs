@@ -14,6 +14,7 @@ import { scoreFantasyPrediction } from "./fantasy-scoring.mjs";
 import {
   escapeTelegramHtml,
   getFantasyDeadlineReminders,
+  getNewsNotificationPublishedAt,
   getRemainingNewsNotificationBudget,
   getSessionNotificationSetting,
   hasSessionStartChanged,
@@ -12980,11 +12981,11 @@ async function enqueueNotifications() {
       .order("start_at", { ascending: true }),
     supabase
       .from("news_articles")
-      .select("id, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, image_url, source_image_url, news_sources(name), news_article_tags(tags(type,slug,name))")
+      .select("id, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, published_at, image_url, source_image_url, news_sources(name), news_article_tags(tags(type,slug,name))")
       .eq("status", "processed")
       .eq("publication_status", "published")
-      .gte("ai_processed_at", newsSince)
-      .order("ai_processed_at", { ascending: false })
+      .gte("published_at", newsSince)
+      .order("published_at", { ascending: false })
       .limit(60),
     supabase
       .from("races")
@@ -13173,7 +13174,7 @@ async function enqueueNotifications() {
         : Number.POSITIVE_INFINITY;
 
       for (const article of news ?? []) {
-        if (!isNotificationFreshForConnection(article.ai_processed_at, connectedAt)) {
+        if (!isNotificationFreshForConnection(getNewsNotificationPublishedAt(article), connectedAt)) {
           continue;
         }
 
