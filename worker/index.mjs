@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
@@ -84,8 +83,11 @@ import {
 import { buildOpenRouterUsageLog } from "./ai-usage.mjs";
 import { resolveWorkerAiPrompt } from "./ai-prompt-registry.mjs";
 import { upsertServiceHeartbeat } from "./ops-heartbeat.mjs";
-
-loadEnvFiles([".env", ".env.local"]);
+import "./load-env.mjs";
+import {
+  captureWorkerException,
+  flushWorkerTelemetry,
+} from "./instrumentation.mjs";
 
 const commands = new Map([
   ["rss.fetch_all", fetchAllRss],
@@ -139,11 +141,6 @@ const commands = new Map([
 
 const command = process.argv[2];
 const isMainModule = Boolean(process.argv[1]) && pathToFileURL(process.argv[1]).href === import.meta.url;
-
-if (isMainModule && !commands.has(command)) {
-  console.log(`Usage: node worker/index.mjs ${Array.from(commands.keys()).join("|")}`);
-  process.exit(command ? 1 : 0);
-}
 
 let supabase = null;
 let jolpicaFetchQueue = Promise.resolve();
@@ -217,7 +214,13 @@ const teamSeasonColorsByExternalId = Object.freeze({
   sauber: "#52E252",
   williams: "#64C4FF",
 });
-if (isMainModule) {
+export async function runWorkerCli() {
+  if (!commands.has(command)) {
+    console.log(`Usage: node worker/cli.mjs ${Array.from(commands.keys()).join("|")}`);
+    process.exitCode = command ? 1 : 0;
+    return;
+  }
+
   supabase = createWorkerClient();
 
   try {
@@ -237,28 +240,8 @@ if (isMainModule) {
   }
 }
 
-function loadEnvFiles(paths) {
-  for (const path of paths) {
-    if (!existsSync(path)) {
-      continue;
-    }
-
-    for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
-      const trimmed = line.trim();
-
-      if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) {
-        continue;
-      }
-
-      const index = trimmed.indexOf("=");
-      const name = trimmed.slice(0, index).trim();
-      const value = trimmed.slice(index + 1).trim().replace(/^['"]|['"]$/g, "");
-
-      if (name && process.env[name] === undefined) {
-        process.env[name] = value;
-      }
-    }
-  }
+if (isMainModule) {
+  await runWorkerCli();
 }
 
 function createWorkerClient() {
@@ -493,6 +476,11 @@ async function runJob(jobName, runner) {
     if (persistence.error) {
       throw persistence.error;
     }
+
+    captureWorkerException(jobError, {
+      jobName,
+      runId: job?.id,
+    });
 
     throw jobError;
   }
@@ -743,6 +731,11 @@ async function consumeQueuedAdminJobs() {
           error_message: getSafeErrorMessage(spawnError).slice(0, 2_000),
         })
         .eq("id", job.id);
+      captureWorkerException(spawnError, {
+        jobName: job.job_name,
+        runId: job.id,
+      });
+      await flushWorkerTelemetry();
       process.stderr.write(`Admin job ${job.id} could not start\n`);
     }
     itemsProcessed += 1;
@@ -795,7 +788,7 @@ function spawnAttachedJob(job, workerArguments) {
     const child = spawn(
       process.execPath,
       [
-        fileURLToPath(import.meta.url),
+        fileURLToPath(new URL("./cli.mjs", import.meta.url)),
         job.job_name,
         ...workerArguments,
         "--attached-run-id",
