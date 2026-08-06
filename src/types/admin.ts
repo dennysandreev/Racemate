@@ -236,8 +236,29 @@ export type AdminFinding = {
   firstSeenAt: string;
   lastSeenAt: string;
   occurrenceCount: number;
+  lastAlertedAt: string | null;
+  alertCount: number;
   resolvedAt: string | null;
   createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminFindingEvent = {
+  id: string;
+  findingId: string;
+  eventType: string;
+  actorKind: "agent" | "human" | "system";
+  actorUserId: string | null;
+  payload: Json;
+  createdAt: string;
+};
+
+export type AdminAgentSettings = {
+  isEnabled: boolean;
+  mode: "shadow" | "recommend" | "limited";
+  telegramAlertsEnabled: boolean;
+  r2ActionsEnabled: boolean;
+  shadowStartedAt: string;
   updatedAt: string;
 };
 

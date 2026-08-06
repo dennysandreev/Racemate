@@ -225,6 +225,8 @@ export type Database = {
         first_seen_at: string;
         last_seen_at: string;
         occurrence_count: number;
+        last_alerted_at: string | null;
+        alert_count: number;
         resolved_at: string | null;
         created_at: string;
         updated_at: string;
@@ -232,7 +234,7 @@ export type Database = {
       admin_finding_events: TableDefinition<{
         id: string;
         finding_id: string;
-        event_type: "detected" | "repeated" | "severity_changed" | "action_requested" | "action_started" | "action_succeeded" | "action_failed" | "fix_pr_opened" | "acknowledged" | "resolved" | "reopened";
+        event_type: "detected" | "repeated" | "severity_changed" | "action_requested" | "action_started" | "action_succeeded" | "action_failed" | "fix_pr_opened" | "acknowledged" | "resolved" | "ignored" | "reopened" | "alert_sent";
         actor_kind: "agent" | "human" | "system";
         actor_user_id: string | null;
         payload: Json;
@@ -256,6 +258,16 @@ export type Database = {
         approved_at: string | null;
         started_at: string | null;
         finished_at: string | null;
+        updated_at: string;
+      }>;
+      admin_agent_settings: TableDefinition<{
+        singleton: boolean;
+        is_enabled: boolean;
+        mode: "shadow" | "recommend" | "limited";
+        telegram_alerts_enabled: boolean;
+        r2_actions_enabled: boolean;
+        shadow_started_at: string;
+        updated_by: string | null;
         updated_at: string;
       }>;
       teams: TableDefinition<{
@@ -1010,6 +1022,20 @@ export type Database = {
           current_status: string;
           current_occurrence_count: number;
         }[];
+      };
+      transition_admin_finding: {
+        Args: {
+          p_finding_id: string;
+          p_status: string;
+          p_actor_kind?: string;
+          p_actor_user_id?: string | null;
+          p_resolution?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["admin_findings"]["Row"];
+      };
+      mark_admin_finding_alerted: {
+        Args: { p_finding_id: string };
+        Returns: undefined;
       };
       get_admin_ai_usage_summary: {
         Args: {

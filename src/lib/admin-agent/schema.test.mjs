@@ -9,6 +9,13 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const watcherMigration = readFileSync(
+  new URL(
+    "../../../supabase/migrations/20260806155159_autonomous_admin_watcher.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 const operationalTables = [
   "ops_service_heartbeats",
@@ -67,4 +74,12 @@ test("high-risk action requests require a human approver", () => {
     migration,
     /risk_class in \('R1', 'R2'\)[\s\S]*or status = 'proposed'[\s\S]*or approved_by_user_id is not null/i,
   );
+});
+
+test("watcher settings and lifecycle functions stay service-role only", () => {
+  assert.match(watcherMigration, /alter table public\.admin_agent_settings enable row level security/i);
+  assert.match(watcherMigration, /revoke all on table public\.admin_agent_settings from public, anon, authenticated/i);
+  assert.match(watcherMigration, /grant execute on function public\.transition_admin_finding[\s\S]*to service_role/i);
+  assert.match(watcherMigration, /grant execute on function public\.mark_admin_finding_alerted[\s\S]*to service_role/i);
+  assert.match(watcherMigration, /r2_actions_enabled boolean not null default false/i);
 });

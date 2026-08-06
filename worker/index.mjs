@@ -83,6 +83,7 @@ import {
 import { buildOpenRouterUsageLog } from "./ai-usage.mjs";
 import { resolveWorkerAiPrompt } from "./ai-prompt-registry.mjs";
 import { upsertServiceHeartbeat } from "./ops-heartbeat.mjs";
+import { runOpsWatcher } from "./ops-watcher.mjs";
 import "./load-env.mjs";
 import {
   captureWorkerException,
@@ -137,6 +138,7 @@ const commands = new Map([
   ["jobs.consume_queued", consumeQueuedAdminJobs],
   ["jobs.enqueue_schedules", enqueueDueAdminSchedules],
   ["ops.heartbeat", recordServiceHeartbeatCommand],
+  ["ops.watch", runOpsWatcherCommand],
 ]);
 
 const command = process.argv[2];
@@ -230,6 +232,8 @@ export async function runWorkerCli() {
       await enqueueDueAdminSchedules();
     } else if (command === "ops.heartbeat") {
       await recordServiceHeartbeatCommand();
+    } else if (command === "ops.watch") {
+      await runOpsWatcherCommand();
     } else {
       await recordServiceHeartbeatSafely("worker", { phase: "started" });
       await runJob(command, commands.get(command));
@@ -770,6 +774,12 @@ async function recordServiceHeartbeatCommand() {
     `${JSON.stringify({ checkedAt: row.checked_at, serviceName: row.service_name })}\n`,
   );
   return { itemsProcessed: 1 };
+}
+
+async function runOpsWatcherCommand() {
+  const result = await runOpsWatcher(supabase);
+  process.stdout.write(`${JSON.stringify({ jobName: "ops.watch", ...result })}\n`);
+  return result;
 }
 
 async function recordServiceHeartbeatSafely(serviceName, summary) {

@@ -12,10 +12,12 @@ import {
   ServerCog,
   ShieldCheck,
   Trophy,
+  TriangleAlert,
 } from "lucide-react";
 
 export const adminNavigation = [
   { href: "/admin", label: "Обзор", icon: Gauge },
+  { href: "/admin/findings", label: "Находки", icon: TriangleAlert },
   { href: "/admin/news", label: "Новости", icon: Newspaper },
   { href: "/admin/social", label: "Соцсети", icon: Radio },
   { href: "/admin/reports", label: "Отчёты", icon: FileText },
