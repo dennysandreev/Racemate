@@ -22,6 +22,8 @@ services:
     env_file:
       - .env
     command: ["node", "worker/cli.mjs", "rss.fetch_all"]
+    healthcheck:
+      disable: true
     restart: "no"
 
   admin-job-runner:
@@ -42,6 +44,8 @@ services:
           heartbeat_count=$$((heartbeat_count - 1))
           sleep 3
         done
+    healthcheck:
+      disable: true
     restart: unless-stopped
 
   cron:
@@ -57,4 +61,6 @@ services:
           node worker/cli.mjs jobs.enqueue_schedules --limit 20 || true
           sleep 15
         done
+    healthcheck:
+      disable: true
     restart: unless-stopped
