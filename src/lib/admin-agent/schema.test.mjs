@@ -31,11 +31,11 @@ test("autonomous administration tables use RLS and deny anonymous access", () =>
   }
 });
 
-test("admins can only read operational tables directly", () => {
+test("operational tables are available only through the privileged backend", () => {
   for (const table of operationalTables) {
     assert.match(
       migration,
-      new RegExp(`grant select on table public\\.${table} to authenticated`, "i"),
+      new RegExp(`revoke select on table public\\.${table} from authenticated`, "i"),
     );
     assert.match(
       migration,

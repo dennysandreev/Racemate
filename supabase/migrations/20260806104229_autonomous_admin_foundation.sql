@@ -37,7 +37,7 @@ revoke all on table public.ops_service_heartbeats from public, anon;
 revoke insert, update, delete, truncate, references, trigger
 on table public.ops_service_heartbeats
 from authenticated;
-grant select on table public.ops_service_heartbeats to authenticated;
+revoke select on table public.ops_service_heartbeats from authenticated;
 grant select, insert, update, delete on table public.ops_service_heartbeats to service_role;
 
 create table if not exists public.admin_agent_runs (
@@ -78,6 +78,10 @@ create index if not exists idx_admin_agent_runs_started
 create index if not exists idx_admin_agent_runs_status_started
   on public.admin_agent_runs (status, started_at desc);
 
+create index if not exists idx_admin_agent_runs_trigger_finding
+  on public.admin_agent_runs (trigger_finding_id)
+  where trigger_finding_id is not null;
+
 alter table public.admin_agent_runs enable row level security;
 
 drop policy if exists "Admins can read agent runs"
@@ -92,7 +96,7 @@ revoke all on table public.admin_agent_runs from public, anon;
 revoke insert, update, delete, truncate, references, trigger
 on table public.admin_agent_runs
 from authenticated;
-grant select on table public.admin_agent_runs to authenticated;
+revoke select on table public.admin_agent_runs from authenticated;
 grant select, insert, update, delete on table public.admin_agent_runs to service_role;
 
 create table if not exists public.admin_findings (
@@ -136,11 +140,14 @@ create table if not exists public.admin_findings (
   resolved_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint admin_findings_resolution_check check (
+  constraint admin_findings_status_resolution_check check (
     (status in ('resolved', 'ignored') and resolved_at is not null)
     or (status not in ('resolved', 'ignored') and resolved_at is null)
   )
 );
+
+alter table public.admin_agent_runs
+  drop constraint if exists admin_agent_runs_trigger_finding_fkey;
 
 alter table public.admin_agent_runs
   add constraint admin_agent_runs_trigger_finding_fkey
@@ -158,6 +165,14 @@ create index if not exists idx_admin_findings_status_severity_seen
 create index if not exists idx_admin_findings_category_seen
   on public.admin_findings (category, last_seen_at desc);
 
+create index if not exists idx_admin_findings_job_run
+  on public.admin_findings (job_run_id)
+  where job_run_id is not null;
+
+create index if not exists idx_admin_findings_owner_user
+  on public.admin_findings (owner_user_id)
+  where owner_user_id is not null;
+
 alter table public.admin_findings enable row level security;
 
 drop policy if exists "Admins can read findings"
@@ -172,7 +187,7 @@ revoke all on table public.admin_findings from public, anon;
 revoke insert, update, delete, truncate, references, trigger
 on table public.admin_findings
 from authenticated;
-grant select on table public.admin_findings to authenticated;
+revoke select on table public.admin_findings from authenticated;
 grant select, insert, update, delete on table public.admin_findings to service_role;
 
 create table if not exists public.admin_finding_events (
@@ -203,6 +218,10 @@ create table if not exists public.admin_finding_events (
 create index if not exists idx_admin_finding_events_finding_created
   on public.admin_finding_events (finding_id, created_at desc);
 
+create index if not exists idx_admin_finding_events_actor_user
+  on public.admin_finding_events (actor_user_id)
+  where actor_user_id is not null;
+
 alter table public.admin_finding_events enable row level security;
 
 drop policy if exists "Admins can read finding events"
@@ -217,7 +236,7 @@ revoke all on table public.admin_finding_events from public, anon;
 revoke insert, update, delete, truncate, references, trigger
 on table public.admin_finding_events
 from authenticated;
-grant select on table public.admin_finding_events to authenticated;
+revoke select on table public.admin_finding_events from authenticated;
 grant select, insert on table public.admin_finding_events to service_role;
 
 create table if not exists public.admin_action_requests (
@@ -263,6 +282,18 @@ create index if not exists idx_admin_action_requests_finding_created
 create index if not exists idx_admin_action_requests_status_created
   on public.admin_action_requests (status, created_at desc);
 
+create index if not exists idx_admin_action_requests_requested_by
+  on public.admin_action_requests (requested_by_user_id)
+  where requested_by_user_id is not null;
+
+create index if not exists idx_admin_action_requests_approved_by
+  on public.admin_action_requests (approved_by_user_id)
+  where approved_by_user_id is not null;
+
+create index if not exists idx_admin_action_requests_job_run
+  on public.admin_action_requests (job_run_id)
+  where job_run_id is not null;
+
 alter table public.admin_action_requests enable row level security;
 
 drop policy if exists "Admins can read action requests"
@@ -277,7 +308,7 @@ revoke all on table public.admin_action_requests from public, anon;
 revoke insert, update, delete, truncate, references, trigger
 on table public.admin_action_requests
 from authenticated;
-grant select on table public.admin_action_requests to authenticated;
+revoke select on table public.admin_action_requests from authenticated;
 grant select, insert, update, delete on table public.admin_action_requests to service_role;
 
 create or replace function public.record_admin_finding(
