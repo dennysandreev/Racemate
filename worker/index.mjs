@@ -1972,7 +1972,7 @@ async function processSocialWithAi() {
     .is("duplicate_of", null)
     .or(`next_retry_at.is.null,next_retry_at.lte.${nowIso}`)
     .lt("processing_attempts", 8)
-    .order("ingested_at", { ascending: true })
+    .order("created_at", { ascending: true })
     .limit(limit);
   if (postId) {
     postsQuery = postsQuery.eq("id", postId);
