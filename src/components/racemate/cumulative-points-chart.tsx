@@ -5,6 +5,7 @@ import { useId, useState, type PointerEvent } from "react";
 import { TrendingUp } from "lucide-react";
 
 import { StitchPanel, StitchPanelHeader } from "@/components/racemate/stitch-primitives";
+import { cn } from "@/lib/utils";
 import type { DriverChartPoint } from "@/types/racemate";
 
 export type CumulativePointsChartSeries = {
@@ -24,10 +25,12 @@ type HoveredPoint = {
 export function CumulativePointsChart({
   ariaLabel,
   emptyLabel,
+  mode = "context",
   series,
 }: {
   ariaLabel: string;
   emptyLabel: string;
+  mode?: "context" | "comparison";
   series: CumulativePointsChartSeries[];
 }) {
   const router = useRouter();
@@ -87,7 +90,7 @@ export function CumulativePointsChart({
   return (
     <StitchPanel className="min-w-0 overflow-hidden">
       <StitchPanelHeader
-        action={lastPoint ? (
+        action={lastPoint && mode === "context" ? (
           <div className="shrink-0 text-right">
             <p className="stitch-label text-muted-foreground">После этапа {lastPoint.round}</p>
             <p className="mt-1 font-telemetry text-base font-bold text-foreground">
@@ -101,6 +104,26 @@ export function CumulativePointsChart({
 
       {rounds.length ? (
         <div className="grid min-w-0 gap-0">
+          {mode === "comparison" ? (
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border px-4 py-3">
+              {preparedSeries.map((item, index) => (
+                <div className="flex min-w-0 items-center gap-2" key={item.id}>
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "h-0 w-7 border-t-2",
+                      index % 2 === 1 && "border-dashed",
+                    )}
+                    style={{ borderColor: getSeriesColor(item) }}
+                  />
+                  <span className="truncate text-xs font-bold text-foreground">{item.name}</span>
+                  <span className="font-telemetry text-xs font-bold text-muted-foreground">
+                    {formatPoints(getLastPoint(item.points)?.value)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
           <div className="relative h-[17rem] min-w-0 select-none bg-muted/10 sm:h-[20rem]">
             <div className="absolute bottom-9 left-11 right-4 top-4 sm:left-12 sm:right-5 sm:top-5">
               <svg
@@ -143,7 +166,7 @@ export function CumulativePointsChart({
                   );
                 })}
 
-                {primarySeries ? (
+                {primarySeries && mode === "context" ? (
                   <path
                     d={getAreaPath(primarySeries.points, max)}
                     fill={`url(#${gradientId}-area)`}
@@ -169,15 +192,15 @@ export function CumulativePointsChart({
                 {renderedSeries.map((item, seriesIndex) => {
                   const isHovered = hovered?.seriesId === item.id;
                   const hasHover = Boolean(hovered);
-                  const color = isHovered || item.primary
+                  const color = mode === "comparison" || isHovered || item.primary
                     ? getSeriesColor(item)
                     : "var(--muted-foreground)";
                   const opacity = isHovered
                     ? 1
                     : hasHover
-                      ? item.primary ? 0.34 : 0.1
-                      : item.primary ? 1 : 0.25;
-                  const lineWidth = isHovered ? 3.1 : item.primary ? 2.7 : 1.65;
+                      ? mode === "comparison" ? 0.28 : item.primary ? 0.34 : 0.1
+                      : mode === "comparison" ? 1 : item.primary ? 1 : 0.25;
+                  const lineWidth = isHovered ? 3.1 : mode === "comparison" || item.primary ? 2.7 : 1.65;
                   const hitPath = (
                     <path
                       className={item.href ? "cursor-pointer" : undefined}
@@ -199,7 +222,7 @@ export function CumulativePointsChart({
                       opacity={opacity}
                       style={{ transition: "opacity 180ms ease" }}
                     >
-                      {isHovered || item.primary ? (
+                      {isHovered || item.primary || mode === "comparison" ? (
                         <path
                           d={getLinePath(item.points, max)}
                           fill="none"
@@ -217,7 +240,11 @@ export function CumulativePointsChart({
                         fill="none"
                         pointerEvents="none"
                         stroke={color}
-                        strokeDasharray={seriesIndex > 0 && !item.primary && seriesIndex % 3 === 0 ? "5 3" : undefined}
+                        strokeDasharray={mode === "comparison" && seriesIndex % 2 === 1
+                          ? "6 4"
+                          : seriesIndex > 0 && !item.primary && seriesIndex % 3 === 0
+                            ? "5 3"
+                            : undefined}
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={lineWidth}
@@ -242,18 +269,19 @@ export function CumulativePointsChart({
                 })}
               </svg>
 
-              {primarySeries ? (
+              {(mode === "comparison" ? preparedSeries : primarySeries ? [primarySeries] : []).map((item) => (
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background shadow-[0_0_0_3px_color-mix(in_srgb,currentColor_18%,transparent)]"
+                  key={`last-${item.id}`}
                   style={{
-                    backgroundColor: getSeriesColor(primarySeries),
-                    color: getSeriesColor(primarySeries),
-                    left: `${getX(primarySeries.points.length - 1, primarySeries.points.length)}%`,
-                    top: `${getY(getPointValue(primarySeries.points, primarySeries.points.length - 1) ?? 0, max)}%`,
+                    backgroundColor: getSeriesColor(item),
+                    color: getSeriesColor(item),
+                    left: `${getX(item.points.length - 1, item.points.length)}%`,
+                    top: `${getY(getPointValue(item.points, item.points.length - 1) ?? 0, max)}%`,
                   }}
                 />
-              ) : null}
+              ))}
 
               {hoveredSeries && hoveredPoint && hoveredValue !== null ? (
                 <>

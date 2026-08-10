@@ -148,10 +148,10 @@ export default async function DriverProfilePage({ params, searchParams }: Driver
                 "@type": "ListItem",
                 item: absoluteUrl(
                   profile.season === CURRENT_F1_SEASON
-                    ? "/leaderboard"
-                    : `/leaderboard?season=${profile.season}`,
+                    ? "/drivers"
+                    : `/drivers?season=${profile.season}`,
                 ),
-                name: `Чемпионат ${profile.season}`,
+                name: `Пилоты ${profile.season}`,
                 position: 2,
               },
               {

@@ -1,4 +1,5 @@
 node_modules
+.pnpm-store
 .next
 out
 dist
@@ -14,6 +15,7 @@ output/playwright
 output/circuit-map-review
 .playwright-mcp
 .playwright-cli
+.track-model-build
 supabase/.temp
 /*.png
 racemate-*.png

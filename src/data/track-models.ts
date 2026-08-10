@@ -1,0 +1,130 @@
+export const TRACK_MODEL_ALIASES = {
+  "albert-park": [
+    "albert park circuit",
+    "albert park grand prix circuit",
+    "albert park",
+    "melbourne",
+    "мельбурн",
+    "australian grand prix",
+    "гран-при австралии",
+  ],
+  shanghai: [
+    "shanghai international circuit",
+    "shanghai circuit",
+    "shanghai",
+    "шанхай",
+    "chinese grand prix",
+    "гран-при китая",
+  ],
+  suzuka: [
+    "suzuka international racing course",
+    "suzuka circuit",
+    "suzuka",
+    "сузука",
+    "japanese grand prix",
+    "гран-при японии",
+  ],
+  miami: [
+    "miami international autodrome",
+    "miami autodrome",
+    "miami",
+    "майами",
+    "miami grand prix",
+    "гран-при майами",
+  ],
+  montreal: [
+    "circuit gilles-villeneuve",
+    "circuit gilles villeneuve",
+    "gilles-villeneuve",
+    "gilles villeneuve",
+    "montreal",
+    "монреаль",
+    "жиль вильнев",
+    "canadian grand prix",
+    "гран-при канады",
+  ],
+  monaco: [
+    "circuit de monaco",
+    "monaco circuit",
+    "monte carlo",
+    "monaco",
+    "монте-карло",
+    "монте карло",
+    "монако",
+    "monaco grand prix",
+    "гран-при монако",
+  ],
+  catalunya: [
+    "circuit de barcelona-catalunya",
+    "circuit de barcelona catalunya",
+    "barcelona-catalunya",
+    "barcelona catalunya",
+    "catalunya",
+    "каталунья",
+    "барселона-каталунья",
+    "барселона каталунья",
+    "spanish grand prix",
+    "гран-при испании",
+    "barcelona grand prix",
+    "гран-при барселоны",
+  ],
+  "red-bull-ring": ["red bull ring", "ред булл ринг", "spielberg", "шпильберг"],
+  silverstone: [
+    "silverstone circuit",
+    "silverstone",
+    "сильверстоун",
+    "british grand prix",
+    "гран-при великобритании",
+    "great britain",
+  ],
+  spa: [
+    "circuit de spa-francorchamps",
+    "circuit de spa francorchamps",
+    "spa-francorchamps",
+    "spa francorchamps",
+    "spa",
+    "спа-франкоршам",
+    "спа франкоршам",
+    "belgian grand prix",
+    "гран-при бельгии",
+  ],
+  hungaroring: [
+    "hungaroring",
+    "хунгароринг",
+    "hungarian grand prix",
+    "гран-при венгрии",
+    "budapest",
+    "будапешт",
+  ],
+  zandvoort: [
+    "circuit zandvoort",
+    "zandvoort",
+    "зандворт",
+    "dutch grand prix",
+    "гран-при нидерландов",
+    "netherlands",
+    "нидерланды",
+  ],
+} as const;
+
+export type TrackModelId = keyof typeof TRACK_MODEL_ALIASES;
+
+const TRACK_MODEL_IDS = Object.keys(TRACK_MODEL_ALIASES) as TrackModelId[];
+
+export function getThreeDimensionalTrackModelId(circuit: string): TrackModelId | null {
+  const normalized = normalizeCircuitName(circuit);
+
+  return TRACK_MODEL_IDS.find((modelId) =>
+    TRACK_MODEL_ALIASES[modelId].some((alias) =>
+      normalized.includes(normalizeCircuitName(alias)),
+    ),
+  ) ?? null;
+}
+
+export function hasThreeDimensionalTrackModel(circuit: string) {
+  return getThreeDimensionalTrackModelId(circuit) !== null;
+}
+
+function normalizeCircuitName(value: string) {
+  return value.toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
+}

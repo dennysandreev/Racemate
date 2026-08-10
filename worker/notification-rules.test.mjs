@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildNewsArticlePath,
   escapeTelegramHtml,
   getFantasyDeadlineReminders,
   getRemainingNewsNotificationBudget,
@@ -12,6 +13,17 @@ import {
   isReminderDue,
   isNotificationFreshForConnection,
 } from "./notification-rules.mjs";
+
+test("builds Telegram news links from the public article slug", () => {
+  assert.equal(
+    buildNewsArticlePath({ id: "article-id", slug: "novyy-reglament-formuly-1" }),
+    "/news/novyy-reglament-formuly-1",
+  );
+  assert.equal(
+    buildNewsArticlePath({ id: "legacy-article-id", slug: null }),
+    "/news/legacy-article-id",
+  );
+});
 
 test("maps every supported session to a preference group", () => {
   assert.equal(getSessionNotificationKey("fp1"), "practice");

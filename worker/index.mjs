@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
@@ -13,6 +12,7 @@ import { getPeerId } from "telegram/Utils.js";
 
 import { scoreFantasyPrediction } from "./fantasy-scoring.mjs";
 import {
+  buildNewsArticlePath,
   escapeTelegramHtml,
   getFantasyDeadlineReminders,
   getRemainingNewsNotificationBudget,
@@ -83,8 +83,13 @@ import {
 } from "./admin-job-queue.mjs";
 import { buildOpenRouterUsageLog } from "./ai-usage.mjs";
 import { resolveWorkerAiPrompt } from "./ai-prompt-registry.mjs";
-
-loadEnvFiles([".env", ".env.local"]);
+import { upsertServiceHeartbeat } from "./ops-heartbeat.mjs";
+import { runOpsWatcher } from "./ops-watcher.mjs";
+import "./load-env.mjs";
+import {
+  captureWorkerException,
+  flushWorkerTelemetry,
+} from "./instrumentation.mjs";
 
 const commands = new Map([
   ["rss.fetch_all", fetchAllRss],
@@ -133,6 +138,8 @@ const commands = new Map([
   ["race_replay.prepare_completed", prepareCompletedRaceReplays],
   ["jobs.consume_queued", consumeQueuedAdminJobs],
   ["jobs.enqueue_schedules", enqueueDueAdminSchedules],
+  ["ops.heartbeat", recordServiceHeartbeatCommand],
+  ["ops.watch", runOpsWatcherCommand],
 ]);
 
 const command = process.argv[2];
@@ -215,7 +222,13 @@ const teamSeasonColorsByExternalId = Object.freeze({
   sauber: "#52E252",
   williams: "#64C4FF",
 });
-if (isMainModule) {
+export async function runWorkerCli() {
+  if (!commands.has(command)) {
+    console.log(`Usage: node worker/cli.mjs ${Array.from(commands.keys()).join("|")}`);
+    process.exitCode = command ? 1 : 0;
+    return;
+  }
+
   supabase = createWorkerClient();
 
   try {
@@ -223,36 +236,22 @@ if (isMainModule) {
       await consumeQueuedAdminJobs();
     } else if (command === "jobs.enqueue_schedules") {
       await enqueueDueAdminSchedules();
+    } else if (command === "ops.heartbeat") {
+      await recordServiceHeartbeatCommand();
+    } else if (command === "ops.watch") {
+      await runOpsWatcherCommand();
     } else {
+      await recordServiceHeartbeatSafely("worker", { phase: "started" });
       await runJob(command, commands.get(command));
+      await recordServiceHeartbeatSafely("worker", { phase: "finished" });
     }
   } finally {
     await disconnectTelegramClient();
   }
 }
 
-function loadEnvFiles(paths) {
-  for (const path of paths) {
-    if (!existsSync(path)) {
-      continue;
-    }
-
-    for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
-      const trimmed = line.trim();
-
-      if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) {
-        continue;
-      }
-
-      const index = trimmed.indexOf("=");
-      const name = trimmed.slice(0, index).trim();
-      const value = trimmed.slice(index + 1).trim().replace(/^['"]|['"]$/g, "");
-
-      if (name && process.env[name] === undefined) {
-        process.env[name] = value;
-      }
-    }
-  }
+if (isMainModule) {
+  await runWorkerCli();
 }
 
 function createWorkerClient() {
@@ -487,6 +486,11 @@ async function runJob(jobName, runner) {
     if (persistence.error) {
       throw persistence.error;
     }
+
+    captureWorkerException(jobError, {
+      jobName,
+      runId: job?.id,
+    });
 
     throw jobError;
   }
@@ -737,6 +741,11 @@ async function consumeQueuedAdminJobs() {
           error_message: getSafeErrorMessage(spawnError).slice(0, 2_000),
         })
         .eq("id", job.id);
+      captureWorkerException(spawnError, {
+        jobName: job.job_name,
+        runId: job.id,
+      });
+      await flushWorkerTelemetry();
       process.stderr.write(`Admin job ${job.id} could not start\n`);
     }
     itemsProcessed += 1;
@@ -760,12 +769,42 @@ async function enqueueDueAdminSchedules() {
   return { itemsProcessed };
 }
 
+async function recordServiceHeartbeatCommand() {
+  const serviceName = getCliOption("service");
+  const row = await upsertServiceHeartbeat(supabase, {
+    serviceName,
+    summary: { source: "service-loop" },
+  });
+
+  process.stdout.write(
+    `${JSON.stringify({ checkedAt: row.checked_at, serviceName: row.service_name })}\n`,
+  );
+  return { itemsProcessed: 1 };
+}
+
+async function runOpsWatcherCommand() {
+  const result = await runOpsWatcher(supabase);
+  process.stdout.write(`${JSON.stringify({ jobName: "ops.watch", ...result })}\n`);
+  return result;
+}
+
+async function recordServiceHeartbeatSafely(serviceName, summary) {
+  try {
+    await upsertServiceHeartbeat(supabase, { serviceName, summary });
+  } catch (error) {
+    logWorkerWarning("ops.heartbeat.failed", {
+      serviceName,
+      reason: getSafeErrorMessage(error),
+    });
+  }
+}
+
 function spawnAttachedJob(job, workerArguments) {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(
       process.execPath,
       [
-        fileURLToPath(import.meta.url),
+        fileURLToPath(new URL("./cli.mjs", import.meta.url)),
         job.job_name,
         ...workerArguments,
         "--attached-run-id",
@@ -1949,7 +1988,7 @@ async function processSocialWithAi() {
     .is("duplicate_of", null)
     .or(`next_retry_at.is.null,next_retry_at.lte.${nowIso}`)
     .lt("processing_attempts", 8)
-    .order("ingested_at", { ascending: true })
+    .order("created_at", { ascending: true })
     .limit(limit);
   if (postId) {
     postsQuery = postsQuery.eq("id", postId);
@@ -9804,9 +9843,13 @@ async function getCurrentRaceForWorker(select) {
 }
 
 async function prepareCurrentRaceReplay() {
-  const currentRace = await getCurrentRaceForWorker(
-    "id, season_year, round, race_name, circuit_id, circuits(id, external_id, name, country, locality)",
-  );
+  const requestedSeason = numberOrNull(getCliOption("season"));
+  const requestedRound = numberOrNull(getCliOption("round"));
+  const currentRace = requestedSeason && requestedRound
+    ? await getRaceForReplay(requestedSeason, requestedRound)
+    : await getCurrentRaceForWorker(
+        "id, season_year, round, race_name, circuit_id, circuits(id, external_id, name, country, locality)",
+      );
 
   if (!currentRace) {
     return {
@@ -9815,7 +9858,9 @@ async function prepareCurrentRaceReplay() {
     };
   }
 
-  return prepareRaceReplayForRace(currentRace, { sourceSeason: Number(currentRace.season_year) - 1 });
+  const sourceSeason = numberOrNull(getCliOption("source-season")) ?? Number(currentRace.season_year) - 1;
+
+  return prepareRaceReplayForRace(currentRace, { sourceSeason });
 }
 
 async function prepareCompletedRaceReplays() {
@@ -10044,7 +10089,7 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
     weatherPayload,
   });
 
-  const replaySession = await upsertReplaySessionWithRetry({
+  const replayRow = {
     circuit_id: circuit.id,
     duration_ms: replayPayload.durationMs,
     prepared_at: new Date().toISOString(),
@@ -10061,9 +10106,39 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
     title: `${currentRace.race_name}: повтор гонки ${sourceSeason}`,
     total_laps: replayPayload.totalLaps,
     track_map_id: trackMap.id,
-  });
+  };
+  const existingReadyBeforeWrite = await getExistingReadyReplayForRace(currentRace.id, sourceSeason);
+  let replaySession;
+  let snapshotWrite = "updated";
 
-  const eventIndexing = await replaceReplayEvents(replaySession.id, replayPayload);
+  try {
+    replaySession = await upsertReplaySessionWithRetry(replayRow, existingReadyBeforeWrite ? 1 : 3);
+  } catch (error) {
+    const existingReady = error?.code === "57014" ? existingReadyBeforeWrite : null;
+
+    if (!existingReady || Number(existingReady.source_session_key) !== sourceSessionKey) {
+      throw error;
+    }
+
+    replaySession = existingReady;
+    snapshotWrite = "preserved_after_timeout";
+
+    const { error: touchError } = await supabase
+      .from("race_replay_sessions")
+      .update({ prepared_at: replayRow.prepared_at })
+      .eq("id", replaySession.id);
+
+    if (touchError) {
+      logWorkerWarning("race_replay.snapshot_touch_failed", {
+        message: getSafeErrorMessage(touchError),
+        replaySessionId: replaySession.id,
+      });
+    }
+  }
+
+  const eventIndexing = snapshotWrite === "updated"
+    ? await replaceReplayEvents(replaySession.id, replayPayload)
+    : await replaceReplayLapTimingEvents(replaySession.id, replayPayload);
 
   return {
     itemsProcessed: replayPayload.positions.length + replayPayload.raceEvents.length,
@@ -10076,6 +10151,7 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
       sourceErrors,
       sourceSeason,
       sourceSessionKey,
+      snapshotWrite,
     },
   };
 }
@@ -10358,18 +10434,30 @@ function simplifyReplayTrackPoints(points, maxPoints) {
   return smoothReplayTrackPoints(sampled.length >= 3 ? sampled : source);
 }
 
-function smoothReplayTrackPoints(points) {
-  return points.map((point, index) => {
-    const previous = points[Math.max(0, index - 1)];
-    const next = points[Math.min(points.length - 1, index + 1)];
+export function smoothReplayTrackPoints(points) {
+  if ((points?.length ?? 0) < 3) {
+    return points ?? [];
+  }
 
-    return {
-      ...point,
-      x: (previous.x + point.x * 2 + next.x) / 4,
-      y: (previous.y + point.y * 2 + next.y) / 4,
-      z: (previous.z + point.z * 2 + next.z) / 4,
-    };
-  });
+  let smoothed = points;
+
+  // A circuit is a closed loop. Treating the first and last samples as hard
+  // endpoints creates an artificial corner exactly at the start/finish seam.
+  for (let pass = 0; pass < 2; pass += 1) {
+    smoothed = smoothed.map((point, index) => {
+      const previous = smoothed[(index - 1 + smoothed.length) % smoothed.length];
+      const next = smoothed[(index + 1) % smoothed.length];
+
+      return {
+        ...point,
+        x: (previous.x + point.x * 2 + next.x) / 4,
+        y: (previous.y + point.y * 2 + next.y) / 4,
+        z: (previous.z + point.z * 2 + next.z) / 4,
+      };
+    });
+  }
+
+  return smoothed;
 }
 
 function countReplayTrackIntersections(points) {
@@ -10414,13 +10502,7 @@ function buildTrackDefinitionFromPoints({ circuit, driverNumber, lapNumber, meet
   const scale = Math.min((viewBox.width - padding * 2) / sourceWidth, (viewBox.height - padding * 2) / sourceHeight);
   const offsetX = (viewBox.width - sourceWidth * scale) / 2;
   const offsetY = (viewBox.height - sourceHeight * scale) / 2;
-  const distances = [0];
-
-  for (let index = 1; index < centerSource.length; index += 1) {
-    distances.push(distances[index - 1] + distanceBetween(centerSource[index - 1], centerSource[index]));
-  }
-
-  const totalDistance = distances.at(-1) || 1;
+  const { distances, totalDistance } = getReplayClosedTrackDistances(centerSource);
   const centerline = centerSource.map((point, index) => {
     const svg = replayWorldToSvg(point, bounds, { scale, offsetX, offsetY });
     return {
@@ -10478,6 +10560,22 @@ function buildTrackDefinitionFromPoints({ circuit, driverNumber, lapNumber, meet
       scale,
     },
     worldBounds: bounds,
+  };
+}
+
+export function getReplayClosedTrackDistances(points) {
+  const distances = [0];
+
+  for (let index = 1; index < points.length; index += 1) {
+    distances.push(distances[index - 1] + distanceBetween(points[index - 1], points[index]));
+  }
+
+  const closingDistance = points.length >= 2 ? distanceBetween(points.at(-1), points[0]) : 0;
+
+  return {
+    closingDistance,
+    distances,
+    totalDistance: (distances.at(-1) ?? 0) + closingDistance || 1,
   };
 }
 
@@ -10550,7 +10648,7 @@ function buildReplaySnapshot({
   for (const [driverNumber, locations] of locationByDriver.entries()) {
     const points = normalizeOpenF1LocationPoints(locations)
       .filter((point) => point.dateMs >= raceStartMs && point.dateMs <= raceEndMs);
-    const sampleMs = Number(process.env.RACE_REPLAY_SAMPLE_MS ?? 6000);
+    const sampleMs = Number(process.env.RACE_REPLAY_SAMPLE_MS ?? 8000);
     let lastEmitted = -Infinity;
     let previousEmittedPoint = null;
     let previousSnapped = null;
@@ -10629,6 +10727,7 @@ function buildReplaySnapshot({
   }
 
   replayPositions.sort((a, b) => a.offsetMs - b.offsetMs || a.driverNumber - b.driverNumber);
+  const lapTimings = buildReplayLapTimings(timedLapsPayload, raceStartMs);
   const durationMs = Math.max(
     ...replayPositions.map((event) => event.offsetMs),
     1,
@@ -10679,6 +10778,7 @@ function buildReplaySnapshot({
     circuitName: circuit.name,
     drivers,
     durationMs,
+    lapTimings,
     positions: replayPositions,
     raceEvents,
     raceName: currentRace.race_name,
@@ -10689,6 +10789,40 @@ function buildReplaySnapshot({
     track: trackDefinition,
     weather: buildReplayWeather(weatherPayload),
   };
+}
+
+function buildReplayLapTimings(timedLapsPayload, raceStartMs) {
+  return (timedLapsPayload ?? [])
+    .map((lap) => {
+      const driverNumber = Number(lap?.driver_number);
+      const lapNumber = Number(lap?.lap_number);
+      const startMs = Number(lap?.dateMs);
+      const durationSeconds = Number(lap?.lap_duration);
+
+      if (
+        !Number.isFinite(driverNumber) ||
+        !Number.isFinite(lapNumber) ||
+        lapNumber <= 0 ||
+        !Number.isFinite(startMs)
+      ) {
+        return null;
+      }
+
+      return [
+        driverNumber,
+        lapNumber,
+        Math.round(startMs - raceStartMs),
+        Number.isFinite(durationSeconds) && durationSeconds > 0
+          ? Math.round(durationSeconds * 1000)
+          : 0,
+      ];
+    })
+    .filter(Boolean)
+    .sort((a, b) =>
+      a[0] - b[0] ||
+      a[1] - b[1] ||
+      a[2] - b[2],
+    );
 }
 
 function getReplayLapTiming(lap) {
@@ -11067,6 +11201,12 @@ function interpolateNullableNumber(previous, current, ratio) {
 }
 
 function buildReplayPitLaneDefinition({ locationByDriver, pitsPayload, trackDefinition }) {
+  const officialLayout = getReplayPitLaneGeometryOverride(trackDefinition?.circuitName);
+
+  if (officialLayout) {
+    return buildReplayPitLaneFromOfficialLayout(trackDefinition, officialLayout);
+  }
+
   const candidates = [];
 
   for (const pit of pitsPayload ?? []) {
@@ -11106,6 +11246,80 @@ function buildReplayPitLaneDefinition({ locationByDriver, pitsPayload, trackDefi
     .sort((a, b) => scoreReplayPitLaneSvgCandidate(b, trackDefinition) - scoreReplayPitLaneSvgCandidate(a, trackDefinition))[0];
 
   return validated ?? buildReplayPitLaneFromPitAnchors({ locationByDriver, pitsPayload, trackDefinition });
+}
+
+export function getReplayPitLaneGeometryOverride(circuitName) {
+  const key = String(circuitName ?? "").toLowerCase();
+
+  if (key.includes("spa-francorchamps") || key.includes("belgian")) {
+    return {
+      endProgress: 0.052,
+      entryLabel: "after_turn_19",
+      exitLabel: "after_turn_1",
+      offset: 19,
+      referenceUrl: "https://www.fia.com/system/files/decision-document/2026_belgian_grand_prix_-_competition_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_and_red_zone.pdf",
+      sideSign: 1,
+      startProgress: 0.952,
+    };
+  }
+
+  if (key.includes("hungaroring") || key.includes("hungarian")) {
+    return {
+      endProgress: 0.045,
+      entryLabel: "after_turn_14",
+      exitLabel: "turn_1_exit",
+      offset: 25,
+      referenceUrl: "https://www.fia.com/system/files/decision-document/2026_hungarian_grand_prix_-_competition_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_and_red_zone.pdf",
+      sideSign: 1,
+      startProgress: 0.948,
+    };
+  }
+
+  return null;
+}
+
+function buildReplayPitLaneFromOfficialLayout(trackDefinition, layout) {
+  if (!trackDefinition?.centerline?.length) {
+    return null;
+  }
+
+  const count = 96;
+  const endProgress = layout.endProgress <= layout.startProgress
+    ? layout.endProgress + 1
+    : layout.endProgress;
+  const source = Array.from({ length: count }, (_, index) => {
+    const ratio = count <= 1 ? 0 : index / (count - 1);
+    return interpolateReplayCenterlineByProgress(
+      trackDefinition.centerline,
+      layout.startProgress + (endProgress - layout.startProgress) * ratio,
+    );
+  });
+  const svgPoints = source.map((point, index) => {
+    const previous = source[Math.max(0, index - 1)];
+    const next = source[Math.min(source.length - 1, index + 1)];
+    const tangentX = next.svgX - previous.svgX;
+    const tangentY = next.svgY - previous.svgY;
+    const length = Math.hypot(tangentX, tangentY) || 1;
+    const ratio = count <= 1 ? 0 : index / (count - 1);
+    const entryFade = smoothReplayPitOffset(Math.min(1, ratio / 0.16));
+    const exitFade = smoothReplayPitOffset(Math.min(1, (1 - ratio) / 0.16));
+    const pointOffset = layout.offset * Math.min(entryFade, exitFade);
+
+    return {
+      svgX: point.svgX + (-tangentY / length) * layout.sideSign * pointOffset,
+      svgY: point.svgY + (tangentX / length) * layout.sideSign * pointOffset,
+      worldX: point.worldX,
+      worldY: point.worldY,
+      worldZ: point.worldZ,
+    };
+  });
+
+  return buildReplayPitLaneFromSvgPoints(svgPoints, {
+    entry: layout.entryLabel,
+    exit: layout.exitLabel,
+    referenceUrl: layout.referenceUrl,
+    source: "official_circuit_layout",
+  });
 }
 
 function getReplayPitLaneDuration(pit) {
@@ -11767,6 +11981,7 @@ async function insertReplayEvents(replaySessionId, replayPayload) {
       payload: event,
       replay_session_id: replaySessionId,
     })),
+    ...buildReplayLapTimingEventRows(replaySessionId, replayPayload),
   ];
 
   for (let index = 0; index < rows.length; index += 60) {
@@ -11777,6 +11992,46 @@ async function insertReplayEvents(replaySessionId, replayPayload) {
       throw error;
     }
   }
+}
+
+function buildReplayLapTimingEventRows(replaySessionId, replayPayload) {
+  const firstPosition = replayPayload.positions[0];
+  const raceStartMs = firstPosition
+    ? new Date(firstPosition.timestamp).getTime() - firstPosition.offsetMs
+    : Date.now();
+
+  return (replayPayload.lapTimings ?? []).map((timing) => ({
+    driver_number: timing[0],
+    event_time: new Date(raceStartMs + timing[2]).toISOString(),
+    event_type: "lap_timing",
+    offset_ms: timing[2],
+    payload: timing,
+    replay_session_id: replaySessionId,
+  }));
+}
+
+async function replaceReplayLapTimingEvents(replaySessionId, replayPayload) {
+  const { error: deleteError } = await supabase
+    .from("race_replay_events")
+    .delete()
+    .eq("replay_session_id", replaySessionId)
+    .eq("event_type", "lap_timing");
+
+  if (deleteError) {
+    return { message: getSafeErrorMessage(deleteError), status: "skipped" };
+  }
+
+  const rows = buildReplayLapTimingEventRows(replaySessionId, replayPayload);
+
+  for (let index = 0; index < rows.length; index += 100) {
+    const { error } = await supabase.from("race_replay_events").insert(rows.slice(index, index + 100));
+
+    if (error) {
+      return { message: getSafeErrorMessage(error), status: "skipped" };
+    }
+  }
+
+  return { rows: rows.length, status: "indexed" };
 }
 
 async function replaceReplayEvents(replaySessionId, replayPayload) {
@@ -12947,7 +13202,7 @@ async function enqueueNotifications() {
       .order("start_at", { ascending: true }),
     supabase
       .from("news_articles")
-      .select("id, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, image_url, source_image_url, news_sources(name), news_article_tags(tags(type,slug,name))")
+      .select("id, slug, ai_title_ru, original_title, ai_summary_ru, ai_processed_at, image_url, source_image_url, news_sources(name), news_article_tags(tags(type,slug,name))")
       .eq("status", "processed")
       .eq("publication_status", "published")
       .gte("ai_processed_at", newsSince)
@@ -13164,7 +13419,7 @@ async function enqueueNotifications() {
             parseMode: "HTML",
             photoUrl: article.image_url ?? article.source_image_url ?? null,
             buttonText: "Читать подробнее",
-            buttonUrl: `/news/${article.id}`,
+            buttonUrl: buildNewsArticlePath(article),
           },
         });
         itemsProcessed += inserted;
@@ -13310,6 +13565,14 @@ async function dispatchNotifications() {
         }),
         supabase.from("telegram_accounts").update({ is_active: blocked ? false : true, last_error: message.slice(0, 500) }).eq("user_id", notification.user_id),
       ]);
+
+      if (!blocked && nextAttempt >= 3) {
+        captureWorkerException(
+          new Error(`Telegram notification delivery failed after ${nextAttempt} attempts: ${getSafeErrorMessage(deliveryError)}`),
+          { jobName: "notifications.dispatch" },
+        );
+        await flushWorkerTelemetry();
+      }
     }
   }
 

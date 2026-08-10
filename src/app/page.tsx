@@ -31,7 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getTeamAssetForMarketOutcome, getTeamProfileAsset } from "@/data/f1-assets";
+import { getCircuitAsset, getTeamAssetForMarketOutcome, getTeamProfileAsset } from "@/data/f1-assets";
 import {
   getConstructorStandings,
   getConstructorChampionOdds,
@@ -324,7 +324,15 @@ function CurrentRaceCard({
         </div>
 
         <div className="order-3 h-[13rem] min-w-0 border-t border-border/70 p-3 sm:h-[16rem] sm:p-4 lg:col-start-2 lg:row-start-1 lg:h-auto lg:min-h-[18rem] lg:border-l lg:border-t-0 lg:p-5">
-          <TrackMap compact fill circuit={nextSession.circuit} label={nextSession.race} layout={currentRace?.layout} unframed />
+          <TrackMap
+            assetSrc={currentRace?.trackMapUrl ?? getCircuitAsset(nextSession.circuit)?.src ?? null}
+            compact
+            fill
+            circuit={nextSession.circuit}
+            label={nextSession.race}
+            layout={currentRace?.layout}
+            unframed
+          />
         </div>
 
         <div className="order-4 flex flex-col gap-3 border-t border-border/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:hidden">

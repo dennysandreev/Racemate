@@ -202,6 +202,7 @@ export default async function RaceCalendarPage({
             circuit={race.circuit}
             label={race.country}
             layout={race.layout}
+            showModel3d={isCurrentSeason}
           />
           <Card>
             <CardHeader>

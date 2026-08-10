@@ -45,6 +45,7 @@ type DriverAvatarBadgeProps = {
   color?: string | null;
   fallbackClassName?: string;
   fallbackLabel?: string | number | null;
+  imageClassName?: string;
   name: string;
   sizes?: string;
   slug?: string | null;
@@ -57,6 +58,7 @@ export function DriverAvatarBadge({
   color,
   fallbackClassName,
   fallbackLabel,
+  imageClassName,
   name,
   sizes = "3rem",
   slug,
@@ -81,7 +83,10 @@ export function DriverAvatarBadge({
       {avatarSrc ? (
         <Image
           alt=""
-          className={usesHistoricalFallback ? "object-contain object-center p-[6%]" : "object-cover object-top"}
+          className={cn(
+            usesHistoricalFallback ? "object-contain object-center p-[6%]" : "object-cover object-top",
+            imageClassName,
+          )}
           fill
           sizes={sizes}
           src={avatarSrc}

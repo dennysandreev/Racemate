@@ -20,6 +20,7 @@ const staticPaths = [
   "/calendar",
   "/weekend",
   "/leaderboard",
+  "/drivers",
   "/teams",
   "/fantasy",
   "/fantasy/leaderboard",
@@ -70,6 +71,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       entries.push(
         { url: absoluteUrl(`/calendar${seasonQuery}`) },
         { url: absoluteUrl(`/leaderboard${seasonQuery}`) },
+        { url: absoluteUrl(`/drivers${seasonQuery}`) },
         {
           url: absoluteUrl(
             season === CURRENT_F1_SEASON

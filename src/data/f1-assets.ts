@@ -233,7 +233,7 @@ export function getTeamAsset(
 
   const normalized = normalizeAssetKey(teamNameOrCode);
   const match = teamAssets.find((asset) =>
-    asset.aliases.some((alias) => normalized.includes(normalizeAssetKey(alias))),
+    asset.aliases.some((alias) => matchesTeamAlias(normalized, normalizeAssetKey(alias))),
   );
 
   if (!match) {
@@ -362,4 +362,16 @@ function normalizeAssetKey(value: string) {
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function matchesTeamAlias(normalizedValue: string, normalizedAlias: string) {
+  if (normalizedValue === normalizedAlias) {
+    return true;
+  }
+
+  if (normalizedAlias.includes(" ") || normalizedAlias.length > 3) {
+    return normalizedValue.includes(normalizedAlias);
+  }
+
+  return normalizedValue.split(" ").includes(normalizedAlias);
 }

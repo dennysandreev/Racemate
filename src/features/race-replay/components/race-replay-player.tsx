@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   Activity,
   ArrowLeft,
@@ -20,12 +21,15 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { TrackOrientationSphere } from "@/components/racemate/track-orientation-sphere";
+import type { ZandvoortReplayCar } from "@/features/race-replay/components/race-replay-zandvoort-3d";
 import {
   buildDriverMotion,
   pitLaneParamAt,
   trackProgressAt,
   type DriverMotion,
 } from "@/features/race-replay/lib/motion";
+import { layoutTimelineMarkers } from "@/features/race-replay/lib/timeline-layout";
 import {
   buildPitGeometry,
   buildTrackGeometry,
@@ -33,6 +37,24 @@ import {
   type PitGeometry,
   type TrackGeometry,
 } from "@/features/race-replay/lib/track-geometry";
+import {
+  clampTrackModelPan,
+  normalizeDegrees,
+  orbitTrackModelCamera,
+  pinchTrackModelCamera,
+  TRACK_MODEL_MAX_ZOOM,
+  TRACK_MODEL_MIN_ZOOM,
+  TRACK_MODEL_ZOOM_STEP,
+  type TrackModelCameraState,
+  type TrackModelPan,
+  zoomTrackModelAtPoint,
+} from "@/lib/track-model-camera";
+import {
+  TRACK_MODEL_ROTATION_STEP,
+  TRACK_MODEL_TILT_MAX,
+  TRACK_MODEL_TILT_MIN,
+  TRACK_MODEL_TILT_STEP,
+} from "@/lib/track-model-renderer";
 import { cn } from "@/lib/utils";
 import type {
   RaceReplaySnapshot,
@@ -47,11 +69,28 @@ type RaceReplayPlayerProps = {
   replay: RaceReplaySnapshot;
 };
 
+const RaceReplayZandvoort3D = dynamic(
+  () => import("@/features/race-replay/components/race-replay-zandvoort-3d")
+    .then((module) => module.RaceReplayZandvoort3D),
+  {
+    loading: () => (
+      <div className="grid size-full place-items-center rounded-lg border border-border/70 bg-black/35">
+        <p className="font-telemetry text-xs font-bold text-muted-foreground">Готовим 3D-повтор…</p>
+      </div>
+    ),
+    ssr: false,
+  },
+);
+
 const speeds = [1, 2, 5, 10];
 const staleTelemetryMs = 90_000;
+const ZANDVOORT_INITIAL_ROTATION_DEG = 0;
+const ZANDVOORT_INITIAL_TILT_DEG = 10;
 
 type CurrentReplayPosition = ReplayPositionEvent & {
   isStale?: boolean;
+  lateralOffset?: number;
+  pitLaneProgress?: number | null;
   trailD?: string | null;
 };
 
@@ -135,8 +174,26 @@ type TyrePaceSummary = {
   count: number;
 };
 
+type ZandvoortMapDrag = {
+  mode: "orbit" | "pan";
+  pointerId: number;
+  startPan: TrackModelPan;
+  startRotation: number;
+  startTilt: number;
+  startX: number;
+  startY: number;
+};
+
+type ZandvoortMapPinch = {
+  startAngle: number;
+  startCenter: TrackModelPan;
+  startDistance: number;
+  startState: TrackModelCameraState;
+};
+
 export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProps) {
-  const [elapsedMs, setElapsedMs] = useState(0);
+  const playbackStartMs = getReplayPlaybackStartMs(replay);
+  const [elapsedMs, setElapsedMs] = useState(playbackStartMs);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<number | null>(
     replay.drivers[0]?.driverNumber ?? null,
@@ -144,11 +201,24 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
   const [speed, setSpeed] = useState(2);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [rotationDeg, setRotationDeg] = useState(ZANDVOORT_INITIAL_ROTATION_DEG);
+  const [tiltDeg, setTiltDeg] = useState(ZANDVOORT_INITIAL_TILT_DEG);
   const [followMode, setFollowMode] = useState(false);
   const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const zandvoortViewportRef = useRef<HTMLDivElement>(null);
+  const zandvoortDragRef = useRef<ZandvoortMapDrag | null>(null);
+  const zandvoortPointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const zandvoortPinchRef = useRef<ZandvoortMapPinch | null>(null);
+  const zandvoortCameraStateRef = useRef<TrackModelCameraState>({ pan, rotationDeg, zoom });
+  const zandvoortTiltRef = useRef(tiltDeg);
   const lastTickRef = useRef<number | null>(null);
   const duration = Math.max(replay.durationMs, 1);
   const viewBox = replay.track.svg.viewBox;
+
+  useEffect(() => {
+    zandvoortCameraStateRef.current = { pan, rotationDeg, zoom };
+    zandvoortTiltRef.current = tiltDeg;
+  }, [pan, rotationDeg, tiltDeg, zoom]);
 
   useEffect(() => {
     if (!isPlaying) {
@@ -186,11 +256,11 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
         return false;
       }
 
-      setElapsedMs((current) => (current >= duration - 250 ? 0 : current));
+      setElapsedMs((current) => (current >= duration - 250 ? playbackStartMs : current));
       lastTickRef.current = null;
       return true;
     });
-  }, [duration]);
+  }, [duration, playbackStartMs]);
 
   const seekTo = useCallback((targetMs: number) => {
     setElapsedMs(clamp(targetMs, 0, duration));
@@ -229,10 +299,31 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     () => groupReplayPositionsByDriver(replay.positions),
     [replay.positions],
   );
+  const useZandvoort3dReplay = isZandvoort3dReplay(replay);
+  const lapTimingsByDriver = useMemo(() => {
+    const grouped = new Map<number, NonNullable<RaceReplaySnapshot["lapTimings"]>>();
+
+    if (!useZandvoort3dReplay) {
+      return grouped;
+    }
+
+    for (const timing of replay.lapTimings ?? []) {
+      const timings = grouped.get(timing.driverNumber) ?? [];
+      timings.push(timing);
+      grouped.set(timing.driverNumber, timings);
+    }
+
+    return grouped;
+  }, [replay.lapTimings, useZandvoort3dReplay]);
   const pitLane = replay.track.pitLane ?? null;
   const displayPitLane = useMemo(
-    () => buildDisplayPitLane(replay.track.centerline, pitLane?.points ?? [], replay.circuitName),
-    [pitLane?.points, replay.circuitName, replay.track.centerline],
+    () => buildDisplayPitLane(
+      replay.track.centerline,
+      pitLane?.points ?? [],
+      replay.circuitName,
+      pitLane?.source ?? pitLane?.metadata?.source ?? null,
+    ),
+    [pitLane?.metadata?.source, pitLane?.points, pitLane?.source, replay.circuitName, replay.track.centerline],
   );
   const geometry = useMemo(
     () => buildTrackGeometry(replay.track.centerline, replay.track.startFinish?.progress ?? 0),
@@ -243,11 +334,13 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     const map = new Map<number, DriverMotion>();
 
     for (const [driverNumber, events] of positionsByDriver.entries()) {
-      map.set(driverNumber, buildDriverMotion(events));
+      map.set(driverNumber, buildDriverMotion(events, {
+        lapTimings: lapTimingsByDriver.get(driverNumber),
+      }));
     }
 
     return map;
-  }, [positionsByDriver]);
+  }, [lapTimingsByDriver, positionsByDriver]);
   const pitWindows = useMemo(
     () => buildPitWindows(replay.positions),
     [replay.positions],
@@ -257,6 +350,29 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     () => getCurrentPositions(motionByDriver, elapsedMs, geometry, pitWindows, pitGeometry, lateralOffsets),
     [elapsedMs, geometry, lateralOffsets, motionByDriver, pitGeometry, pitWindows],
   );
+  const driversByNumber = useMemo(
+    () => new Map(replay.drivers.map((driver) => [driver.driverNumber, driver])),
+    [replay.drivers],
+  );
+  const zandvoortCars = useMemo<ZandvoortReplayCar[]>(() => (
+    [...currentPositions.values()]
+      .filter((position) => !position.isStale)
+      .map((position) => {
+        const driver = driversByNumber.get(position.driverNumber);
+
+        return {
+          abbreviation: driver?.abbreviation ?? String(position.driverNumber),
+          driverNumber: position.driverNumber,
+          fullName: driver?.fullName ?? String(position.driverNumber),
+          isPitLane: Boolean(position.isPitLane),
+          isSelected: selectedDriver === position.driverNumber,
+          lateralOffset: position.lateralOffset ?? 0,
+          pitLaneProgress: position.pitLaneProgress ?? null,
+          progress: position.progress,
+          teamColor: driver?.teamColor ?? "#e10600",
+        };
+      })
+  ), [currentPositions, driversByNumber, selectedDriver]);
   const timingRows = useMemo(
     () => buildTimingRows(replay.drivers, currentPositions),
     [currentPositions, replay.drivers],
@@ -277,10 +393,6 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
 
     return laps.length ? Math.max(...laps) : null;
   }, [timingRows]);
-  const retiredRows = useMemo(
-    () => timingRows.filter((row) => row.status === "OUT"),
-    [timingRows],
-  );
   const pitNotifications = useMemo(
     () => getPitNotifications(pitWindows, replay.drivers, elapsedMs),
     [elapsedMs, pitWindows, replay.drivers],
@@ -322,7 +434,92 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     : pan.y;
   const svgViewBox = `${viewX} ${viewY} ${scaledWidth} ${scaledHeight}`;
 
-  const handlePointerDown = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
+  const zoomZandvoortTo = useCallback(
+    (requestedZoom: number, focalPoint: TrackModelPan = { x: 0, y: 0 }) => {
+      const current = zandvoortCameraStateRef.current;
+      const nextZoom = clamp(requestedZoom, TRACK_MODEL_MIN_ZOOM, TRACK_MODEL_MAX_ZOOM);
+
+      if (nextZoom === current.zoom) {
+        return;
+      }
+
+      const next = zoomTrackModelAtPoint(current, nextZoom, focalPoint);
+      zandvoortCameraStateRef.current = { ...current, ...next };
+      setPan(next.pan);
+      setZoom(next.zoom);
+    },
+    [],
+  );
+
+  const changeZandvoortZoom = useCallback(
+    (delta: number, focalPoint: TrackModelPan = { x: 0, y: 0 }) => {
+      zoomZandvoortTo(zandvoortCameraStateRef.current.zoom + delta, focalPoint);
+    },
+    [zoomZandvoortTo],
+  );
+
+  const setZandvoortOrbit = useCallback((nextRotationDeg: number, nextTiltDeg: number) => {
+    zandvoortCameraStateRef.current = {
+      ...zandvoortCameraStateRef.current,
+      rotationDeg: nextRotationDeg,
+    };
+    zandvoortTiltRef.current = nextTiltDeg;
+    setRotationDeg(nextRotationDeg);
+    setTiltDeg(nextTiltDeg);
+  }, []);
+
+  const resetMap = useCallback(() => {
+    const reset = {
+      pan: { x: 0, y: 0 },
+      rotationDeg: ZANDVOORT_INITIAL_ROTATION_DEG,
+      zoom: 1,
+    };
+
+    zandvoortCameraStateRef.current = reset;
+    zandvoortTiltRef.current = ZANDVOORT_INITIAL_TILT_DEG;
+    setPan(reset.pan);
+    setRotationDeg(reset.rotationDeg);
+    setTiltDeg(ZANDVOORT_INITIAL_TILT_DEG);
+    setZoom(reset.zoom);
+    setFollowMode(false);
+  }, []);
+
+  useEffect(() => {
+    if (!useZandvoort3dReplay) {
+      return;
+    }
+
+    const viewport = zandvoortViewportRef.current;
+
+    if (!viewport) {
+      return;
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      if (event.deltaY === 0) {
+        return;
+      }
+
+      event.preventDefault();
+      const bounds = viewport.getBoundingClientRect();
+      const deltaUnit = event.deltaMode === WheelEvent.DOM_DELTA_LINE
+        ? 16
+        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+          ? bounds.height
+          : 1;
+      const zoomFactor = Math.exp(-event.deltaY * deltaUnit * 0.0015);
+      zoomZandvoortTo(zandvoortCameraStateRef.current.zoom * zoomFactor, {
+        x: (event.clientX - bounds.left) / bounds.width - 0.5,
+        y: (event.clientY - bounds.top) / bounds.height - 0.5,
+      });
+    };
+
+    viewport.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => viewport.removeEventListener("wheel", handleWheel);
+  }, [useZandvoort3dReplay, zoomZandvoortTo]);
+
+  const handlePointerDown = useCallback((event: React.PointerEvent<HTMLElement | SVGSVGElement>) => {
     if (followMode) {
       setFollowMode(false);
       return;
@@ -337,7 +534,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     };
   }, [followMode, pan.x, pan.y]);
 
-  const handlePointerMove = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
+  const handlePointerMove = useCallback((event: React.PointerEvent<HTMLElement | SVGSVGElement>) => {
     const drag = dragRef.current;
 
     if (!drag) {
@@ -355,6 +552,177 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
   const stopDrag = useCallback(() => {
     dragRef.current = null;
   }, []);
+
+  function rotateZandvoort(delta: number) {
+    setZandvoortOrbit(
+      normalizeDegrees(zandvoortCameraStateRef.current.rotationDeg + delta),
+      zandvoortTiltRef.current,
+    );
+  }
+
+  function beginZandvoortDrag(
+    pointerId: number,
+    pointer: { x: number; y: number },
+    mode: "orbit" | "pan",
+  ) {
+    const current = zandvoortCameraStateRef.current;
+    zandvoortDragRef.current = {
+      mode,
+      pointerId,
+      startPan: current.pan,
+      startRotation: current.rotationDeg,
+      startTilt: zandvoortTiltRef.current,
+      startX: pointer.x,
+      startY: pointer.y,
+    };
+  }
+
+  function endZandvoortPointer(pointerId: number, element: HTMLDivElement) {
+    if (element.hasPointerCapture(pointerId)) {
+      element.releasePointerCapture(pointerId);
+    }
+
+    zandvoortPointersRef.current.delete(pointerId);
+    zandvoortPinchRef.current = null;
+    zandvoortDragRef.current = null;
+
+    if (zandvoortPointersRef.current.size === 1) {
+      const [remainingId, remainingPointer] = zandvoortPointersRef.current.entries().next().value as [
+        number,
+        { x: number; y: number },
+      ];
+      beginZandvoortDrag(remainingId, remainingPointer, "pan");
+    }
+  }
+
+  function handleZandvoortPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (
+      (event.pointerType === "mouse" && event.button !== 0 && event.button !== 2) ||
+      (event.target as HTMLElement).closest("button, a")
+    ) {
+      return;
+    }
+
+    if (followMode) {
+      setFollowMode(false);
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    zandvoortPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (zandvoortPointersRef.current.size >= 2) {
+      const gesture = readZandvoortPointerGesture(
+        zandvoortPointersRef.current,
+        event.currentTarget.getBoundingClientRect(),
+      );
+      zandvoortPinchRef.current = {
+        startAngle: gesture.angle,
+        startCenter: gesture.center,
+        startDistance: gesture.distance,
+        startState: zandvoortCameraStateRef.current,
+      };
+      zandvoortDragRef.current = null;
+      return;
+    }
+
+    beginZandvoortDrag(
+      event.pointerId,
+      { x: event.clientX, y: event.clientY },
+      event.pointerType === "mouse" && (event.button === 2 || event.shiftKey)
+        ? "orbit"
+        : "pan",
+    );
+  }
+
+  function handleZandvoortPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!zandvoortPointersRef.current.has(event.pointerId)) {
+      return;
+    }
+
+    zandvoortPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (zandvoortPointersRef.current.size >= 2 && zandvoortPinchRef.current) {
+      const gesture = readZandvoortPointerGesture(
+        zandvoortPointersRef.current,
+        event.currentTarget.getBoundingClientRect(),
+      );
+      const next = pinchTrackModelCamera({
+        currentAngle: gesture.angle,
+        currentCenter: gesture.center,
+        currentDistance: gesture.distance,
+        maximumZoom: TRACK_MODEL_MAX_ZOOM,
+        minimumZoom: TRACK_MODEL_MIN_ZOOM,
+        startAngle: zandvoortPinchRef.current.startAngle,
+        startCenter: zandvoortPinchRef.current.startCenter,
+        startDistance: zandvoortPinchRef.current.startDistance,
+        startState: zandvoortPinchRef.current.startState,
+      });
+      zandvoortCameraStateRef.current = next;
+      setPan(next.pan);
+      setRotationDeg(next.rotationDeg);
+      setZoom(next.zoom);
+      return;
+    }
+
+    const drag = zandvoortDragRef.current;
+
+    if (!drag || drag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    if (drag.mode === "pan") {
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const nextPan = clampTrackModelPan(
+        {
+          x: drag.startPan.x + (event.clientX - drag.startX) / bounds.width,
+          y: drag.startPan.y + (event.clientY - drag.startY) / bounds.height,
+        },
+        zandvoortCameraStateRef.current.zoom,
+      );
+      zandvoortCameraStateRef.current = { ...zandvoortCameraStateRef.current, pan: nextPan };
+      setPan(nextPan);
+      return;
+    }
+
+    const next = orbitTrackModelCamera({
+      deltaX: event.clientX - drag.startX,
+      deltaY: event.clientY - drag.startY,
+      maximumTiltDeg: TRACK_MODEL_TILT_MAX,
+      minimumTiltDeg: TRACK_MODEL_TILT_MIN,
+      startRotationDeg: drag.startRotation,
+      startTiltDeg: drag.startTilt,
+    });
+    setZandvoortOrbit(next.rotationDeg, next.tiltDeg);
+  }
+
+  function handleZandvoortKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "+", "=", "-"].includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (event.key === "ArrowLeft") {
+      rotateZandvoort(-TRACK_MODEL_ROTATION_STEP);
+    } else if (event.key === "ArrowRight") {
+      rotateZandvoort(TRACK_MODEL_ROTATION_STEP);
+    } else if (event.key === "ArrowUp") {
+      setZandvoortOrbit(
+        zandvoortCameraStateRef.current.rotationDeg,
+        Math.max(TRACK_MODEL_TILT_MIN, zandvoortTiltRef.current - TRACK_MODEL_TILT_STEP),
+      );
+    } else if (event.key === "ArrowDown") {
+      setZandvoortOrbit(
+        zandvoortCameraStateRef.current.rotationDeg,
+        Math.min(TRACK_MODEL_TILT_MAX, zandvoortTiltRef.current + TRACK_MODEL_TILT_STEP),
+      );
+    } else if (event.key === "Home") {
+      resetMap();
+    } else if (event.key === "+" || event.key === "=") {
+      changeZandvoortZoom(TRACK_MODEL_ZOOM_STEP);
+    } else if (event.key === "-") {
+      changeZandvoortZoom(-TRACK_MODEL_ZOOM_STEP);
+    }
+  }
 
   return (
     <div className="grid gap-4">
@@ -385,14 +753,21 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
         <section className="stitch-panel min-w-0 overflow-hidden p-0">
           <div className="relative h-[26rem] overflow-hidden bg-[radial-gradient(circle_at_20%_12%,rgb(225_6_0_/_0.14),transparent_24rem)] p-3 sm:h-[30rem] xl:h-[34rem]">
             <SelectedDriverOverlay driver={selected} followMode={followMode} />
-            <RetiredDriversPanel rows={retiredRows} setSelectedDriver={setSelectedDriver} />
             <PitNotificationStack items={pitNotifications} />
-            <TrackLegend />
+            <TrackLegend useTrackModelPalette={useZandvoort3dReplay} />
             <div className="absolute right-5 top-5 z-10 grid gap-1.5">
               <Button
-                aria-label="Увеличить карту"
+                aria-label={useZandvoort3dReplay ? "Приблизить трассу" : "Увеличить карту"}
                 className="size-8"
-                onClick={() => setZoom((value) => Math.min(2.5, value + 0.25))}
+                disabled={useZandvoort3dReplay && zoom >= TRACK_MODEL_MAX_ZOOM}
+                onClick={() => {
+                  if (useZandvoort3dReplay) {
+                    changeZandvoortZoom(TRACK_MODEL_ZOOM_STEP);
+                    return;
+                  }
+
+                  setZoom((value) => Math.min(2.5, value + 0.25));
+                }}
                 size="icon"
                 type="button"
                 variant="secondary"
@@ -400,9 +775,17 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
                 <ZoomIn aria-hidden="true" />
               </Button>
               <Button
-                aria-label="Уменьшить карту"
+                aria-label={useZandvoort3dReplay ? "Отдалить трассу" : "Уменьшить карту"}
                 className="size-8"
-                onClick={() => setZoom((value) => Math.max(1, value - 0.25))}
+                disabled={useZandvoort3dReplay && zoom <= TRACK_MODEL_MIN_ZOOM}
+                onClick={() => {
+                  if (useZandvoort3dReplay) {
+                    changeZandvoortZoom(-TRACK_MODEL_ZOOM_STEP);
+                    return;
+                  }
+
+                  setZoom((value) => Math.max(1, value - 0.25));
+                }}
                 size="icon"
                 type="button"
                 variant="secondary"
@@ -412,11 +795,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
               <Button
                 aria-label="Сбросить карту"
                 className="size-8"
-                onClick={() => {
-                  setPan({ x: 0, y: 0 });
-                  setZoom(1);
-                  setFollowMode(false);
-                }}
+                onClick={resetMap}
                 size="icon"
                 type="button"
                 variant="secondary"
@@ -435,6 +814,55 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
                 <Crosshair aria-hidden="true" />
               </Button>
             </div>
+          {useZandvoort3dReplay ? (
+            <div
+              aria-label="Интерактивный 3D-повтор Гран-при Нидерландов. Перетаскивай, чтобы перемещать трассу. Колесо мыши или щипок меняют масштаб; сфера ракурса, правая кнопка или Shift и перетаскивание поворачивают модель."
+              className="race-replay-map-stage relative size-full cursor-grab touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring active:cursor-grabbing"
+              onContextMenu={(event) => event.preventDefault()}
+              onDoubleClick={(event) => {
+                if ((event.target as HTMLElement).closest("button, a")) {
+                  return;
+                }
+
+                const bounds = event.currentTarget.getBoundingClientRect();
+                changeZandvoortZoom(TRACK_MODEL_ZOOM_STEP * 2, {
+                  x: (event.clientX - bounds.left) / bounds.width - 0.5,
+                  y: (event.clientY - bounds.top) / bounds.height - 0.5,
+                });
+              }}
+              onKeyDown={handleZandvoortKeyDown}
+              onPointerCancel={(event) => endZandvoortPointer(event.pointerId, event.currentTarget)}
+              onPointerDown={handleZandvoortPointerDown}
+              onPointerMove={handleZandvoortPointerMove}
+              onPointerUp={(event) => endZandvoortPointer(event.pointerId, event.currentTarget)}
+              ref={zandvoortViewportRef}
+              tabIndex={0}
+            >
+              <RaceReplayZandvoort3D
+                cars={zandvoortCars}
+                followDriver={followMode ? selectedDriver : null}
+                onSelectDriver={setSelectedDriver}
+                panX={pan.x}
+                panY={pan.y}
+                rotationDeg={rotationDeg}
+                tiltDeg={tiltDeg}
+                zoom={effectiveZoom}
+              />
+              <div className="pointer-events-none absolute inset-0 z-20 [&>button]:pointer-events-auto">
+                <TrackOrientationSphere
+                  initialRotationDeg={ZANDVOORT_INITIAL_ROTATION_DEG}
+                  initialTiltDeg={ZANDVOORT_INITIAL_TILT_DEG}
+                  onChange={setZandvoortOrbit}
+                  rotationDeg={rotationDeg}
+                  tiltDeg={tiltDeg}
+                />
+              </div>
+              <span aria-live="polite" className="sr-only">
+                Ракурс повёрнут на {Math.round(normalizeDegrees(rotationDeg - ZANDVOORT_INITIAL_ROTATION_DEG))}°,
+                наклон {Math.round(tiltDeg)}°, масштаб {Math.round(zoom * 100)}%
+              </span>
+            </div>
+          ) : (
           <svg
             aria-label={`Повтор гонки на трассе ${replay.circuitName}`}
             className="race-replay-map-stage h-full w-full cursor-grab touch-none rounded-lg border border-border/70 active:cursor-grabbing"
@@ -518,6 +946,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
               );
             })}
           </svg>
+          )}
         </div>
           <div className="border-t stitch-divider p-3 sm:p-4">
             <div className="flex flex-wrap items-center gap-3">
@@ -901,11 +1330,12 @@ function CarMarker({
   );
 }
 
-function TrackLegend() {
+function TrackLegend({ useTrackModelPalette }: { useTrackModelPalette: boolean }) {
+  const sectorTokenPrefix = useTrackModelPalette ? "--track-model-sector" : "--race-replay-sector";
   const items = [
-    { color: "var(--race-replay-sector-1)", label: "С1" },
-    { color: "var(--race-replay-sector-2)", label: "С2" },
-    { color: "var(--race-replay-sector-3)", label: "С3" },
+    { color: `var(${sectorTokenPrefix}-1)`, label: "S1" },
+    { color: `var(${sectorTokenPrefix}-2)`, label: "S2" },
+    { color: `var(${sectorTokenPrefix}-3)`, label: "S3" },
   ];
 
   return (
@@ -920,40 +1350,6 @@ function TrackLegend() {
         <span className="h-1.5 w-4 rounded-full bg-[var(--race-replay-track-edge)]" />
         <span className="font-telemetry text-[0.55rem] font-extrabold text-muted-foreground">Пит-лейн</span>
       </span>
-    </div>
-  );
-}
-
-function RetiredDriversPanel({
-  rows,
-  setSelectedDriver,
-}: {
-  rows: TimingRow[];
-  setSelectedDriver: (driver: number) => void;
-}) {
-  if (!rows.length) {
-    return null;
-  }
-
-  return (
-    <div className="absolute left-5 top-5 z-10 w-[13rem] rounded-md border border-border/70 bg-background/88 p-2 shadow-xl backdrop-blur-md sm:w-[15rem]">
-      <p className="stitch-label text-[0.55rem] text-muted-foreground">Сходы</p>
-      <div className="mt-2 grid max-h-[9rem] grid-cols-2 gap-1 overflow-y-auto pr-1">
-        {rows.map((row) => (
-          <button
-            className="flex min-w-0 items-center justify-between gap-1.5 rounded border border-border/50 bg-secondary/30 px-1.5 py-1 text-left transition-colors hover:bg-accent/60"
-            key={row.driverNumber}
-            onClick={() => setSelectedDriver(row.driverNumber)}
-            type="button"
-          >
-            <span className="flex min-w-0 items-center gap-1">
-              <span className="size-1.5 rounded-full" style={{ backgroundColor: row.teamColor }} />
-              <span className="font-telemetry text-[0.66rem] font-extrabold">{row.abbreviation}</span>
-            </span>
-            <span className="font-telemetry text-[0.5rem] font-bold text-primary">OUT</span>
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
@@ -1214,16 +1610,20 @@ function ReplayTimeline({
     red: "bg-[#E10600]",
     yellow: "bg-[#FFD60A]",
   };
+  const positionedMarkers = layoutTimelineMarkers(markers, duration);
 
   return (
-    <div className="relative mt-5 pt-3.5">
-      {markers.map((marker) => (
+    <div className="relative mt-5 pt-10">
+      {positionedMarkers.map((marker) => (
         <button
           aria-label={`${marker.label} — ${formatClock(marker.offsetMs)}`}
           className="absolute top-0 z-10 -translate-x-1/2 p-0.5"
           key={`${marker.offsetMs}-${marker.label}`}
           onClick={() => onJump(marker.offsetMs)}
-          style={{ left: `${(clamp(marker.offsetMs / duration, 0, 1) * 100).toFixed(3)}%` }}
+          style={{
+            left: `${(clamp(marker.offsetMs / duration, 0, 1) * 100).toFixed(3)}%`,
+            top: `${marker.lane * 8}px`,
+          }}
           title={`${formatClock(marker.offsetMs)} · ${marker.label}`}
           type="button"
         >
@@ -1575,6 +1975,35 @@ function groupReplayPositionsByDriver(events: ReplayPositionEvent[]) {
   return grouped;
 }
 
+function isZandvoort3dReplay(replay: RaceReplaySnapshot) {
+  if (replay.sourceSeason !== 2025) {
+    return false;
+  }
+
+  const circuit = [
+    replay.circuitName,
+    replay.raceName,
+    replay.track.circuitKey,
+    replay.track.circuitName,
+    replay.track.countryName,
+  ].filter(Boolean).join(" ").toLocaleLowerCase("ru");
+
+  return ["zandvoort", "зандворт", "dutch", "netherlands", "нидерланд"]
+    .some((alias) => circuit.includes(alias));
+}
+
+function getReplayPlaybackStartMs(replay: RaceReplaySnapshot) {
+  if (!isZandvoort3dReplay(replay)) {
+    return 0;
+  }
+
+  const firstLapStarts = (replay.lapTimings ?? [])
+    .filter((timing) => timing.lapNumber === 1 && timing.startOffsetMs >= 0)
+    .map((timing) => timing.startOffsetMs);
+
+  return firstLapStarts.length ? Math.min(...firstLapStarts) : 0;
+}
+
 function getCurrentPositions(
   motionByDriver: Map<number, DriverMotion>,
   elapsedMs: number,
@@ -1594,7 +2023,9 @@ function getCurrentPositions(
 
     const currentIndex = findReplayEventIndexAt(driverEvents, elapsedMs);
     const stateEvent = currentIndex >= 0 ? driverEvents[currentIndex] : driverEvents[0];
-    const isRetired = currentIndex >= 0 ? isDriverRetiredOnTrack(driverEvents, elapsedMs) : false;
+    const isRetired = currentIndex >= 0
+      ? isDriverRetiredOnTrack(driverEvents, elapsedMs, motion.finalLapComplete)
+      : false;
     const pitWindow = pitWindows.find((window) =>
       window.driverNumber === driverNumber && elapsedMs >= window.startMs && elapsedMs <= window.endMs,
     ) ?? null;
@@ -1605,10 +2036,12 @@ function getCurrentPositions(
     let progress = stateEvent.progress;
     let isPitLane = false;
     let hold = true;
+    let pitLaneProgress: number | null = null;
     let trailD: string | null = null;
 
     if (pitWindow && pitGeometry) {
-      const point = pitGeometry.pointAt(pitLaneParamAt(pitWindow, elapsedMs));
+      pitLaneProgress = pitLaneParamAt(pitWindow, elapsedMs);
+      const point = pitGeometry.pointAt(pitLaneProgress);
       svgX = point.x;
       svgY = point.y;
       headingRad = point.headingRad;
@@ -1640,6 +2073,7 @@ function getCurrentPositions(
       isStale,
       offsetMs: elapsedMs,
       pitLaneDuration: pitWindow ? pitWindow.pitLaneSeconds : stateEvent.pitLaneDuration,
+      pitLaneProgress,
       pitStopDuration: pitWindow ? pitWindow.pitStopSeconds : stateEvent.pitStopDuration,
       progress,
       svgX,
@@ -1726,6 +2160,7 @@ function applyLateralSeparation(
     const current = lateralOffsets.get(position.driverNumber) ?? 0;
     const next = current + (target - current) * 0.18;
     lateralOffsets.set(position.driverNumber, next);
+    position.lateralOffset = next;
 
     if (!position.isPitLane && Math.abs(next) > 0.05) {
       position.svgX += -Math.sin(position.headingRad) * next;
@@ -1734,7 +2169,15 @@ function applyLateralSeparation(
   }
 }
 
-function isDriverRetiredOnTrack(events: ReplayPositionEvent[], elapsedMs: number) {
+function isDriverRetiredOnTrack(
+  events: ReplayPositionEvent[],
+  elapsedMs: number,
+  finalLapComplete: boolean | undefined,
+) {
+  if (finalLapComplete) {
+    return false;
+  }
+
   if (elapsedMs < 6 * 60_000 || events.length < 4) {
     return false;
   }
@@ -1753,7 +2196,7 @@ function isDriverRetiredOnTrack(events: ReplayPositionEvent[], elapsedMs: number
 
   const stoppedSince = findStoppedSinceOffset(events, currentIndex, 18);
 
-  return current.offsetMs - stoppedSince >= 120_000;
+  return current.offsetMs - stoppedSince >= 15_000;
 }
 
 function findReplayEventIndexAt(events: ReplayPositionEvent[], elapsedMs: number) {
@@ -2101,7 +2544,12 @@ function buildDisplayPitLane(
   centerline: TrackPoint[],
   snapshotPoints: PitLanePoint[],
   circuitName: string,
+  source: string | null,
 ): PitLanePoint[] {
+  if (source === "official_circuit_layout" && snapshotPoints.length >= 2) {
+    return snapshotPoints;
+  }
+
   if (centerline.length < 4) {
     return snapshotPoints ?? [];
   }
@@ -2753,6 +3201,24 @@ function formatClock(ms: number) {
 
 function formatMaybeNumber(value: number | null | undefined, suffix: string) {
   return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(1)}${suffix}` : "—";
+}
+
+function readZandvoortPointerGesture(
+  pointers: Map<number, { x: number; y: number }>,
+  bounds: DOMRect,
+) {
+  const [first, second] = Array.from(pointers.values());
+  const centerX = (first.x + second.x) / 2;
+  const centerY = (first.y + second.y) / 2;
+
+  return {
+    angle: Math.atan2(second.y - first.y, second.x - first.x),
+    center: {
+      x: (centerX - bounds.left) / bounds.width - 0.5,
+      y: (centerY - bounds.top) / bounds.height - 0.5,
+    },
+    distance: Math.hypot(second.x - first.x, second.y - first.y),
+  };
 }
 
 function clamp(value: number, min: number, max: number) {

@@ -47,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" data-scroll-behavior="smooth">
+    <html lang="ru" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <Script id="racemate-theme-init" strategy="beforeInteractive">
           {`try { document.documentElement.dataset.theme = localStorage.getItem('racemate-theme') === 'light' ? 'light' : 'dark'; } catch { document.documentElement.dataset.theme = 'dark'; }`}

@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
+
+import { resolveSentryRelease } from "./sentry-scrub.mjs";
+
+const developmentScriptPolicy = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
 
 const securityHeaders = [
   {
@@ -12,8 +17,8 @@ const securityHeaders = [
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-      "connect-src 'self' https: wss:",
+      `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${developmentScriptPolicy} https://challenges.cloudflare.com`,
+      "connect-src 'self' blob: https: wss:",
       "frame-src https://challenges.cloudflare.com",
       "worker-src 'self' blob:",
       "manifest-src 'self'",
@@ -86,4 +91,27 @@ const nextConfig: NextConfig = {
   output: "standalone",
 };
 
-export default nextConfig;
+const hasSentrySourceMapUpload = Boolean(
+  process.env.SENTRY_AUTH_TOKEN &&
+  process.env.SENTRY_ORG &&
+  process.env.SENTRY_PROJECT,
+);
+
+export default withSentryConfig(nextConfig, {
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  release: {
+    name: resolveSentryRelease(),
+  },
+  silent: !process.env.CI,
+  sourcemaps: {
+    disable: !hasSentrySourceMapUpload,
+  },
+  telemetry: false,
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
+});

@@ -1,6 +1,16 @@
+x-app-build: &app-build
+  context: .
+  args:
+    NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${NEXT_PUBLIC_SENTRY_ENVIRONMENT:-production}
+    NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE: ${NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE:-0.1}
+    SENTRY_ORG: ${SENTRY_ORG:-}
+    SENTRY_PROJECT: ${SENTRY_PROJECT:-}
+    SENTRY_RELEASE: ${SENTRY_RELEASE:-${RACESIDE_RELEASE_SHA:-}}
+
 services:
   web:
-    build: .
+    build: *app-build
     env_file:
       - .env
     ports:
@@ -8,28 +18,38 @@ services:
     restart: unless-stopped
 
   worker:
-    build: .
+    build: *app-build
     env_file:
       - .env
-    command: ["node", "worker/index.mjs", "rss.fetch_all"]
+    command: ["node", "worker/cli.mjs", "rss.fetch_all"]
+    healthcheck:
+      disable: true
     restart: "no"
 
   admin-job-runner:
-    build: .
+    build: *app-build
     env_file:
       - .env
     command:
       - sh
       - -lc
       - |
+        heartbeat_count=0
         while true; do
-          node worker/index.mjs jobs.consume_queued --limit 3 || true
+          if [ "$$heartbeat_count" -le 0 ]; then
+            node worker/cli.mjs ops.heartbeat --service admin-job-runner || true
+            heartbeat_count=10
+          fi
+          node worker/cli.mjs jobs.consume_queued --limit 3 || true
+          heartbeat_count=$$((heartbeat_count - 1))
           sleep 3
         done
+    healthcheck:
+      disable: true
     restart: unless-stopped
 
   cron:
-    build: .
+    build: *app-build
     env_file:
       - .env
     command:
@@ -37,7 +57,10 @@ services:
       - -lc
       - |
         while true; do
-          node worker/index.mjs jobs.enqueue_schedules --limit 20 || true
+          node worker/cli.mjs ops.heartbeat --service cron || true
+          node worker/cli.mjs jobs.enqueue_schedules --limit 20 || true
           sleep 15
         done
+    healthcheck:
+      disable: true
     restart: unless-stopped

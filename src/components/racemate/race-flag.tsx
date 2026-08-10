@@ -94,7 +94,7 @@ export function RaceFlag({ label, countryCode, className }: RaceFlagProps) {
     <Image
       alt={label}
       className={cn(
-        "inline-block h-[1em] shrink-0 rounded-[2px] object-cover shadow-[0_0_0_1px_rgb(255_255_255_/_0.22)]",
+        "inline-block h-auto shrink-0 rounded-[2px] object-cover shadow-[0_0_0_1px_rgb(255_255_255_/_0.22)]",
         isSquare ? "w-[1em]" : "w-[1.45em]",
         className,
       )}

@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
 import { AdminErrorState, AdminPage, AdminPageHeader } from "@/components/admin/admin-ui";
@@ -13,7 +14,7 @@ export default function AdminError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (

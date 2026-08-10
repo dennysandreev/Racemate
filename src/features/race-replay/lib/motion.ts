@@ -1,9 +1,10 @@
-import type { ReplayPositionEvent } from "@/types/racemate";
+import type { ReplayLapTiming, ReplayPositionEvent } from "@/types/racemate";
 
 export const MAX_MOTION_GAP_MS = 180_000;
 
 export type DriverMotion = {
   events: ReplayPositionEvent[];
+  finalLapComplete?: boolean;
   times: number[];
   values: number[];
   slopes: number[];
@@ -12,6 +13,10 @@ export type DriverMotion = {
 export type MotionSample = {
   unwrapped: number;
   hold: boolean;
+};
+
+type BuildDriverMotionOptions = {
+  lapTimings?: ReplayLapTiming[];
 };
 
 /*
@@ -24,8 +29,23 @@ export type MotionSample = {
  * схлопываются, а на длинных дырах потерянные круги восстанавливаются по темпу
  * пилота (фазовая развертка с приором по скорости).
  */
-export function buildDriverMotion(events: ReplayPositionEvent[]): DriverMotion {
+export function buildDriverMotion(
+  events: ReplayPositionEvent[],
+  options: BuildDriverMotionOptions = {},
+): DriverMotion {
   const sorted = [...events].sort((a, b) => a.offsetMs - b.offsetMs);
+  const officialTimingMotion = buildOfficialTimingMotion(options.lapTimings, sorted);
+
+  if (officialTimingMotion) {
+    return {
+      events: sorted,
+      finalLapComplete: officialTimingMotion.finalLapComplete,
+      slopes: fritschCarlsonSlopes(officialTimingMotion.times, officialTimingMotion.values),
+      times: officialTimingMotion.times,
+      values: officialTimingMotion.values,
+    };
+  }
+
   const trackEvents = collapseFrozenRuns(
     sorted.filter((event) => !event.isPitLane && Number.isFinite(event.progress)),
   );
@@ -80,6 +100,74 @@ export function buildDriverMotion(events: ReplayPositionEvent[]): DriverMotion {
     times: cleaned.times,
     values: cleaned.values,
   };
+}
+
+/*
+ * Координаты OpenF1 иногда замирают на десятки секунд, хотя машина продолжает
+ * круг. В подготовленном повторе точное время начала и длительность каждого
+ * круга надежнее геопозиции: оно сохраняет реальные интервалы и порядок машин.
+ */
+function buildOfficialTimingMotion(
+  lapTimings: ReplayLapTiming[] | undefined,
+  events: ReplayPositionEvent[],
+) {
+  const timings = (lapTimings ?? [])
+    .filter((timing) =>
+      Number.isFinite(timing.lapNumber) &&
+      timing.lapNumber > 0 &&
+      Number.isFinite(timing.startOffsetMs),
+    )
+    .sort((a, b) => a.startOffsetMs - b.startOffsetMs || a.lapNumber - b.lapNumber);
+
+  if (!timings.length) {
+    return null;
+  }
+
+  const knots = new Map<number, number>();
+
+  for (const timing of timings) {
+    const startValue = timing.lapNumber - 1;
+    knots.set(timing.startOffsetMs, Math.max(knots.get(timing.startOffsetMs) ?? -Infinity, startValue));
+  }
+
+  const lastTiming = timings[timings.length - 1];
+  const finalLapDurationMs = lastTiming.durationMs;
+  const finalLapComplete = finalLapDurationMs !== null &&
+    Number.isFinite(finalLapDurationMs) &&
+    finalLapDurationMs > 0;
+
+  if (finalLapDurationMs !== null && finalLapComplete) {
+    const endMs = lastTiming.startOffsetMs + finalLapDurationMs;
+    knots.set(endMs, Math.max(knots.get(endMs) ?? -Infinity, lastTiming.lapNumber));
+  } else {
+    const finalLapEvents = collapseFrozenRuns(events.filter((event) =>
+      !event.isPitLane &&
+      event.lapNumber === lastTiming.lapNumber &&
+      event.offsetMs >= lastTiming.startOffsetMs &&
+      Number.isFinite(event.progress),
+    ));
+
+    for (const event of finalLapEvents) {
+      knots.set(event.offsetMs, lastTiming.lapNumber - 1 + event.progress);
+    }
+  }
+
+  const ordered = [...knots.entries()].sort((a, b) => a[0] - b[0]);
+  const times: number[] = [];
+  const values: number[] = [];
+
+  for (const [time, value] of ordered) {
+    const previousValue = values[values.length - 1];
+
+    if (previousValue !== undefined && value < previousValue) {
+      continue;
+    }
+
+    times.push(time);
+    values.push(value);
+  }
+
+  return times.length >= 2 ? { finalLapComplete, times, values } : null;
 }
 
 function anchorLapsOf(event: ReplayPositionEvent) {

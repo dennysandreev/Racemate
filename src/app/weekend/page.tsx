@@ -332,12 +332,14 @@ function WeekendHero({
         </div>
 
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end">
-          <div className="h-[14rem] min-w-0 sm:h-[15.5rem] xl:h-[18rem]">
+          <div className="h-[18rem] min-w-0 sm:h-[20rem] xl:h-[22rem]">
             <TrackMap
+              assetSrc={currentRace?.trackMapUrl ?? undefined}
               circuit={currentRace?.circuit ?? nextRace}
               fill
               label={nextRace}
               layout={currentRace?.layout}
+              showModel3d
               unframed
             />
           </div>

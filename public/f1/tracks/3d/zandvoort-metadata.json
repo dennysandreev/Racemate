@@ -1,0 +1,1013 @@
+{
+  "boundsMeters": {
+    "depth": 1400,
+    "width": 1550
+  },
+  "coordinateReferenceSystem": "EPSG:28992 + NAP",
+  "elevationProfile": [
+    {
+      "distanceMeters": 0.0,
+      "elevationNapMeters": 7.319
+    },
+    {
+      "distanceMeters": 26.8,
+      "elevationNapMeters": 7.11
+    },
+    {
+      "distanceMeters": 53.61,
+      "elevationNapMeters": 6.806
+    },
+    {
+      "distanceMeters": 80.41,
+      "elevationNapMeters": 6.428
+    },
+    {
+      "distanceMeters": 107.21,
+      "elevationNapMeters": 6.033
+    },
+    {
+      "distanceMeters": 134.01,
+      "elevationNapMeters": 5.723
+    },
+    {
+      "distanceMeters": 160.82,
+      "elevationNapMeters": 5.496
+    },
+    {
+      "distanceMeters": 187.62,
+      "elevationNapMeters": 5.292
+    },
+    {
+      "distanceMeters": 214.42,
+      "elevationNapMeters": 5.169
+    },
+    {
+      "distanceMeters": 241.22,
+      "elevationNapMeters": 5.136
+    },
+    {
+      "distanceMeters": 268.03,
+      "elevationNapMeters": 5.143
+    },
+    {
+      "distanceMeters": 294.83,
+      "elevationNapMeters": 5.137
+    },
+    {
+      "distanceMeters": 321.63,
+      "elevationNapMeters": 5.153
+    },
+    {
+      "distanceMeters": 348.43,
+      "elevationNapMeters": 5.152
+    },
+    {
+      "distanceMeters": 375.24,
+      "elevationNapMeters": 5.191
+    },
+    {
+      "distanceMeters": 402.04,
+      "elevationNapMeters": 5.182
+    },
+    {
+      "distanceMeters": 428.84,
+      "elevationNapMeters": 5.186
+    },
+    {
+      "distanceMeters": 455.64,
+      "elevationNapMeters": 5.191
+    },
+    {
+      "distanceMeters": 482.45,
+      "elevationNapMeters": 5.194
+    },
+    {
+      "distanceMeters": 509.25,
+      "elevationNapMeters": 5.148
+    },
+    {
+      "distanceMeters": 536.05,
+      "elevationNapMeters": 5.176
+    },
+    {
+      "distanceMeters": 562.85,
+      "elevationNapMeters": 5.198
+    },
+    {
+      "distanceMeters": 589.66,
+      "elevationNapMeters": 5.29
+    },
+    {
+      "distanceMeters": 616.46,
+      "elevationNapMeters": 5.413
+    },
+    {
+      "distanceMeters": 643.26,
+      "elevationNapMeters": 5.561
+    },
+    {
+      "distanceMeters": 670.06,
+      "elevationNapMeters": 5.811
+    },
+    {
+      "distanceMeters": 696.87,
+      "elevationNapMeters": 6.322
+    },
+    {
+      "distanceMeters": 723.67,
+      "elevationNapMeters": 6.583
+    },
+    {
+      "distanceMeters": 750.47,
+      "elevationNapMeters": 6.511
+    },
+    {
+      "distanceMeters": 777.28,
+      "elevationNapMeters": 6.265
+    },
+    {
+      "distanceMeters": 804.08,
+      "elevationNapMeters": 5.801
+    },
+    {
+      "distanceMeters": 830.88,
+      "elevationNapMeters": 5.344
+    },
+    {
+      "distanceMeters": 857.68,
+      "elevationNapMeters": 4.972
+    },
+    {
+      "distanceMeters": 884.49,
+      "elevationNapMeters": 4.607
+    },
+    {
+      "distanceMeters": 911.29,
+      "elevationNapMeters": 4.586
+    },
+    {
+      "distanceMeters": 938.09,
+      "elevationNapMeters": 4.821
+    },
+    {
+      "distanceMeters": 964.89,
+      "elevationNapMeters": 4.716
+    },
+    {
+      "distanceMeters": 991.7,
+      "elevationNapMeters": 4.531
+    },
+    {
+      "distanceMeters": 1018.5,
+      "elevationNapMeters": 4.511
+    },
+    {
+      "distanceMeters": 1045.3,
+      "elevationNapMeters": 5.323
+    },
+    {
+      "distanceMeters": 1072.1,
+      "elevationNapMeters": 6.075
+    },
+    {
+      "distanceMeters": 1098.91,
+      "elevationNapMeters": 6.261
+    },
+    {
+      "distanceMeters": 1125.71,
+      "elevationNapMeters": 6.047
+    },
+    {
+      "distanceMeters": 1152.51,
+      "elevationNapMeters": 5.243
+    },
+    {
+      "distanceMeters": 1179.31,
+      "elevationNapMeters": 3.904
+    },
+    {
+      "distanceMeters": 1206.12,
+      "elevationNapMeters": 3.536
+    },
+    {
+      "distanceMeters": 1232.92,
+      "elevationNapMeters": 3.873
+    },
+    {
+      "distanceMeters": 1259.72,
+      "elevationNapMeters": 5.773
+    },
+    {
+      "distanceMeters": 1286.52,
+      "elevationNapMeters": 7.811
+    },
+    {
+      "distanceMeters": 1313.33,
+      "elevationNapMeters": 9.333
+    },
+    {
+      "distanceMeters": 1340.13,
+      "elevationNapMeters": 10.336
+    },
+    {
+      "distanceMeters": 1366.93,
+      "elevationNapMeters": 10.854
+    },
+    {
+      "distanceMeters": 1393.73,
+      "elevationNapMeters": 10.872
+    },
+    {
+      "distanceMeters": 1420.54,
+      "elevationNapMeters": 10.34
+    },
+    {
+      "distanceMeters": 1447.34,
+      "elevationNapMeters": 9.374
+    },
+    {
+      "distanceMeters": 1474.14,
+      "elevationNapMeters": 8.024
+    },
+    {
+      "distanceMeters": 1500.95,
+      "elevationNapMeters": 6.603
+    },
+    {
+      "distanceMeters": 1527.75,
+      "elevationNapMeters": 5.183
+    },
+    {
+      "distanceMeters": 1554.55,
+      "elevationNapMeters": 4.407
+    },
+    {
+      "distanceMeters": 1581.35,
+      "elevationNapMeters": 4.166
+    },
+    {
+      "distanceMeters": 1608.16,
+      "elevationNapMeters": 4.16
+    },
+    {
+      "distanceMeters": 1634.96,
+      "elevationNapMeters": 4.168
+    },
+    {
+      "distanceMeters": 1661.76,
+      "elevationNapMeters": 4.043
+    },
+    {
+      "distanceMeters": 1688.56,
+      "elevationNapMeters": 4.191
+    },
+    {
+      "distanceMeters": 1715.37,
+      "elevationNapMeters": 4.802
+    },
+    {
+      "distanceMeters": 1742.17,
+      "elevationNapMeters": 6.146
+    },
+    {
+      "distanceMeters": 1768.97,
+      "elevationNapMeters": 7.691
+    },
+    {
+      "distanceMeters": 1795.77,
+      "elevationNapMeters": 8.994
+    },
+    {
+      "distanceMeters": 1822.58,
+      "elevationNapMeters": 10.12
+    },
+    {
+      "distanceMeters": 1849.38,
+      "elevationNapMeters": 10.887
+    },
+    {
+      "distanceMeters": 1876.18,
+      "elevationNapMeters": 11.264
+    },
+    {
+      "distanceMeters": 1902.98,
+      "elevationNapMeters": 11.267
+    },
+    {
+      "distanceMeters": 1929.79,
+      "elevationNapMeters": 10.849
+    },
+    {
+      "distanceMeters": 1956.59,
+      "elevationNapMeters": 10.103
+    },
+    {
+      "distanceMeters": 1983.39,
+      "elevationNapMeters": 8.988
+    },
+    {
+      "distanceMeters": 2010.19,
+      "elevationNapMeters": 7.652
+    },
+    {
+      "distanceMeters": 2037.0,
+      "elevationNapMeters": 6.246
+    },
+    {
+      "distanceMeters": 2063.8,
+      "elevationNapMeters": 5.115
+    },
+    {
+      "distanceMeters": 2090.6,
+      "elevationNapMeters": 4.52
+    },
+    {
+      "distanceMeters": 2117.4,
+      "elevationNapMeters": 4.56
+    },
+    {
+      "distanceMeters": 2144.21,
+      "elevationNapMeters": 5.176
+    },
+    {
+      "distanceMeters": 2171.01,
+      "elevationNapMeters": 5.919
+    },
+    {
+      "distanceMeters": 2197.81,
+      "elevationNapMeters": 6.514
+    },
+    {
+      "distanceMeters": 2224.62,
+      "elevationNapMeters": 6.834
+    },
+    {
+      "distanceMeters": 2251.42,
+      "elevationNapMeters": 6.769
+    },
+    {
+      "distanceMeters": 2278.22,
+      "elevationNapMeters": 6.321
+    },
+    {
+      "distanceMeters": 2305.02,
+      "elevationNapMeters": 5.687
+    },
+    {
+      "distanceMeters": 2331.83,
+      "elevationNapMeters": 5.093
+    },
+    {
+      "distanceMeters": 2358.63,
+      "elevationNapMeters": 4.681
+    },
+    {
+      "distanceMeters": 2385.43,
+      "elevationNapMeters": 4.404
+    },
+    {
+      "distanceMeters": 2412.23,
+      "elevationNapMeters": 4.046
+    },
+    {
+      "distanceMeters": 2439.04,
+      "elevationNapMeters": 3.76
+    },
+    {
+      "distanceMeters": 2465.84,
+      "elevationNapMeters": 3.711
+    },
+    {
+      "distanceMeters": 2492.64,
+      "elevationNapMeters": 3.69
+    },
+    {
+      "distanceMeters": 2519.44,
+      "elevationNapMeters": 3.706
+    },
+    {
+      "distanceMeters": 2546.25,
+      "elevationNapMeters": 3.709
+    },
+    {
+      "distanceMeters": 2573.05,
+      "elevationNapMeters": 3.722
+    },
+    {
+      "distanceMeters": 2599.85,
+      "elevationNapMeters": 3.857
+    },
+    {
+      "distanceMeters": 2626.65,
+      "elevationNapMeters": 3.881
+    },
+    {
+      "distanceMeters": 2653.46,
+      "elevationNapMeters": 3.709
+    },
+    {
+      "distanceMeters": 2680.26,
+      "elevationNapMeters": 3.715
+    },
+    {
+      "distanceMeters": 2707.06,
+      "elevationNapMeters": 3.706
+    },
+    {
+      "distanceMeters": 2733.86,
+      "elevationNapMeters": 3.691
+    },
+    {
+      "distanceMeters": 2760.67,
+      "elevationNapMeters": 3.684
+    },
+    {
+      "distanceMeters": 2787.47,
+      "elevationNapMeters": 3.732
+    },
+    {
+      "distanceMeters": 2814.27,
+      "elevationNapMeters": 3.874
+    },
+    {
+      "distanceMeters": 2841.07,
+      "elevationNapMeters": 4.001
+    },
+    {
+      "distanceMeters": 2867.88,
+      "elevationNapMeters": 4.159
+    },
+    {
+      "distanceMeters": 2894.68,
+      "elevationNapMeters": 4.301
+    },
+    {
+      "distanceMeters": 2921.48,
+      "elevationNapMeters": 4.492
+    },
+    {
+      "distanceMeters": 2948.29,
+      "elevationNapMeters": 4.595
+    },
+    {
+      "distanceMeters": 2975.09,
+      "elevationNapMeters": 4.629
+    },
+    {
+      "distanceMeters": 3001.89,
+      "elevationNapMeters": 4.638
+    },
+    {
+      "distanceMeters": 3028.69,
+      "elevationNapMeters": 4.679
+    },
+    {
+      "distanceMeters": 3055.5,
+      "elevationNapMeters": 4.755
+    },
+    {
+      "distanceMeters": 3082.3,
+      "elevationNapMeters": 4.905
+    },
+    {
+      "distanceMeters": 3109.1,
+      "elevationNapMeters": 5.013
+    },
+    {
+      "distanceMeters": 3135.9,
+      "elevationNapMeters": 5.149
+    },
+    {
+      "distanceMeters": 3162.71,
+      "elevationNapMeters": 5.306
+    },
+    {
+      "distanceMeters": 3189.51,
+      "elevationNapMeters": 5.583
+    },
+    {
+      "distanceMeters": 3216.31,
+      "elevationNapMeters": 5.998
+    },
+    {
+      "distanceMeters": 3243.11,
+      "elevationNapMeters": 6.523
+    },
+    {
+      "distanceMeters": 3269.92,
+      "elevationNapMeters": 6.883
+    },
+    {
+      "distanceMeters": 3296.72,
+      "elevationNapMeters": 6.793
+    },
+    {
+      "distanceMeters": 3323.52,
+      "elevationNapMeters": 6.391
+    },
+    {
+      "distanceMeters": 3350.32,
+      "elevationNapMeters": 5.757
+    },
+    {
+      "distanceMeters": 3377.13,
+      "elevationNapMeters": 5.03
+    },
+    {
+      "distanceMeters": 3403.93,
+      "elevationNapMeters": 4.382
+    },
+    {
+      "distanceMeters": 3430.73,
+      "elevationNapMeters": 3.775
+    },
+    {
+      "distanceMeters": 3457.53,
+      "elevationNapMeters": 3.628
+    },
+    {
+      "distanceMeters": 3484.34,
+      "elevationNapMeters": 3.486
+    },
+    {
+      "distanceMeters": 3511.14,
+      "elevationNapMeters": 3.119
+    },
+    {
+      "distanceMeters": 3537.94,
+      "elevationNapMeters": 2.855
+    },
+    {
+      "distanceMeters": 3564.75,
+      "elevationNapMeters": 2.952
+    },
+    {
+      "distanceMeters": 3591.55,
+      "elevationNapMeters": 2.854
+    },
+    {
+      "distanceMeters": 3618.35,
+      "elevationNapMeters": 2.647
+    },
+    {
+      "distanceMeters": 3645.15,
+      "elevationNapMeters": 2.65
+    },
+    {
+      "distanceMeters": 3671.96,
+      "elevationNapMeters": 2.672
+    },
+    {
+      "distanceMeters": 3698.76,
+      "elevationNapMeters": 2.643
+    },
+    {
+      "distanceMeters": 3725.56,
+      "elevationNapMeters": 2.682
+    },
+    {
+      "distanceMeters": 3752.36,
+      "elevationNapMeters": 2.704
+    },
+    {
+      "distanceMeters": 3779.17,
+      "elevationNapMeters": 2.649
+    },
+    {
+      "distanceMeters": 3805.97,
+      "elevationNapMeters": 2.765
+    },
+    {
+      "distanceMeters": 3832.77,
+      "elevationNapMeters": 3.06
+    },
+    {
+      "distanceMeters": 3859.57,
+      "elevationNapMeters": 3.071
+    },
+    {
+      "distanceMeters": 3886.38,
+      "elevationNapMeters": 3.035
+    },
+    {
+      "distanceMeters": 3913.18,
+      "elevationNapMeters": 3.007
+    },
+    {
+      "distanceMeters": 3939.98,
+      "elevationNapMeters": 3.112
+    },
+    {
+      "distanceMeters": 3966.78,
+      "elevationNapMeters": 3.606
+    },
+    {
+      "distanceMeters": 3993.59,
+      "elevationNapMeters": 4.543
+    },
+    {
+      "distanceMeters": 4020.39,
+      "elevationNapMeters": 5.512
+    },
+    {
+      "distanceMeters": 4047.19,
+      "elevationNapMeters": 6.385
+    },
+    {
+      "distanceMeters": 4073.99,
+      "elevationNapMeters": 7.004
+    },
+    {
+      "distanceMeters": 4100.8,
+      "elevationNapMeters": 7.402
+    },
+    {
+      "distanceMeters": 4127.6,
+      "elevationNapMeters": 7.573
+    },
+    {
+      "distanceMeters": 4154.4,
+      "elevationNapMeters": 7.47
+    },
+    {
+      "distanceMeters": 4181.2,
+      "elevationNapMeters": 7.507
+    },
+    {
+      "distanceMeters": 4208.01,
+      "elevationNapMeters": 7.505
+    },
+    {
+      "distanceMeters": 4234.81,
+      "elevationNapMeters": 7.481
+    },
+    {
+      "distanceMeters": 4261.61,
+      "elevationNapMeters": 7.319
+    }
+  ],
+  "elevationsNapMeters": {
+    "high": 11.311,
+    "low": 2.607
+  },
+  "finishDistanceMeters": 354.31,
+  "generatedWith": "Blender 5.2.0 LTS",
+  "lapLength": {
+    "geometryMeters": 4261.612,
+    "officialFiaMeters": 4259,
+    "relativeErrorPercent": 0.0613
+  },
+  "layoutQuality": {
+    "buildings": {
+      "excludedTrackConflicts": 2,
+      "excludedTrackConflictIds": [
+        "0473100000009740",
+        "0473100000004757"
+      ],
+      "excludedGrandstandConflicts": 1,
+      "excludedGrandstandConflictIds": [
+        "0473100000001448"
+      ],
+      "excluded3dBagMissingFromActiveBgt": 4,
+      "replacedStale3dBagWithBgt": 50,
+      "matchedActiveBgtLoD22": 586,
+      "maximumSourceCentroidDeltaMeters": 17.626,
+      "maximumRenderedCentroidDeltaMeters": 0.0,
+      "renderedBgtFallback": 65,
+      "remainingTrackConflicts": 0,
+      "remainingGrandstandConflicts": 0,
+      "source3dBagFeatures": 642,
+      "sourceActiveBgtFootprints": 654
+    },
+    "grandstands": {
+      "candidateSections": 167,
+      "maximumPlatformStepMeters": 0.45,
+      "maximumSeatRowTwistMeters": 0.0,
+      "maximumSupportHeightMeters": 12.015,
+      "minimumTrackClearanceMeters": 4.322,
+      "rejectedBlockConflicts": 22,
+      "rejectedTrackConflicts": 7,
+      "remainingBlockOverlaps": 0,
+      "remainingTrackConflicts": 0,
+      "renderedSections": 138,
+      "verifiedTurnTenZone": "Eastside Grandstands 1, 2, 3"
+    },
+    "motorhomes": {
+      "configuredObjects": 11,
+      "renderedObjects": 11,
+      "remainingTrackConflicts": 0,
+      "trackConflictNames": [],
+      "trackConflictDetails": [],
+      "sourceResolutionMetersPerPixel": 0.62
+    },
+    "pitLane": {
+      "entryGapMeters": 0.0,
+      "exitGapMeters": 0.0,
+      "fastLaneSeparator": true,
+      "lengthMeters": 758.521,
+      "pitBoxes": 32,
+      "taperMeters": 32.0,
+      "widthMeters": 11.5,
+      "pitWall": {
+        "fenceHeightMeters": 1.15,
+        "lengthMeters": 477.868,
+        "panels": 160,
+        "wallHeightMeters": 1.05
+      }
+    },
+    "surfaceClearance": {
+      "excludedBgtFeatures": 0,
+      "remainingBgtCircuitOverlaps": 0,
+      "renderedBgtSurfaceOverlayFeatures": 0,
+      "renderedWaterOverlayFeatures": 0,
+      "surfaceFeaturesPreservedInOrthophoto": 427,
+      "waterFeaturesPreservedInOrthophoto": 63,
+      "minimumTrackTerrainClearanceMeters": 0.176,
+      "startStraightMinimumClearanceMeters": 0.235,
+      "terrainBreakthroughSamples": 0
+    }
+  },
+  "objects": {
+    "bgtSurfaceFeatures": {
+      "wegdeel": 213,
+      "onbegroeidterreindeel": 204,
+      "ondersteunendwegdeel": 131,
+      "waterdeel": 63
+    },
+    "buildingBgtFallback": 65,
+    "buildingLoD22": 586,
+    "buildingsTotal": 651,
+    "fenceSegments": 2380,
+    "grandstandBlocks": 138,
+    "lightMasts": 72,
+    "otherStructures": 41,
+    "raceMotorhomes": 11,
+    "trees": 172,
+    "turnAnchors": 14
+  },
+  "realWorldScale": "1 unit = 1 metre; no vertical exaggeration",
+  "officialSources": [
+    {
+      "role": "lap length, turns, sectors, speed trap, pit lane and DRS",
+      "url": "https://www.fia.com/system/files/decision-document/2025_dutch_grand_prix_-_event_notes_-_circuit_map_pit_lane_map_emergency_exit_map_quarantine_zone_and_red_zones_.pdf"
+    },
+    {
+      "role": "official grandstand locations, names and section numbering",
+      "url": "https://dutchgp.com/app/uploads/2025/07/2025_F1-Wayfinding-Map_Negative_Netherlands_VISUAL.pdf"
+    },
+    {
+      "role": "current 2026 grandstand catalogue and Eastside availability",
+      "url": "https://dutchgp.com/en/tribunes/"
+    }
+  ],
+  "schemaVersion": 2,
+  "sectorBoundaryDistancesMeters": [
+    1925,
+    3313
+  ],
+  "sourceManifest": {
+    "bbox": {
+      "crs": "EPSG:28992",
+      "minX": 96950,
+      "minY": 488550,
+      "maxX": 98500,
+      "maxY": 489950
+    },
+    "bgtFeatureCounts": {
+      "bak": 5,
+      "begroeidterreindeel": 155,
+      "bord": 0,
+      "gebouwinstallatie": 225,
+      "installatie": 0,
+      "kunstwerkdeel_lijn": 6,
+      "kunstwerkdeel_punt": 0,
+      "kunstwerkdeel_vlak": 0,
+      "mast": 0,
+      "onbegroeidterreindeel": 204,
+      "ondersteunendwegdeel": 131,
+      "overigbouwwerk": 41,
+      "paal": 74,
+      "pand": 654,
+      "put": 227,
+      "scheiding_lijn": 113,
+      "scheiding_vlak": 21,
+      "spoor": 0,
+      "straatmeubilair": 2,
+      "vegetatieobject_lijn": 0,
+      "vegetatieobject_punt": 172,
+      "vegetatieobject_vlak": 0,
+      "waterdeel": 63,
+      "wegdeel": 213
+    },
+    "generatedAt": "2026-08-10T07:57:24.087Z",
+    "model": "zandvoort",
+    "rasterResolutionMeters": 1,
+    "schemaVersion": 3,
+    "sources": [
+      {
+        "bytes": 36271,
+        "file": "openstreetmap-raceway.json",
+        "license": "ODbL 1.0",
+        "sha256": "3b3222a48166066a55bf82701f349e3c6df4d22107f1221299395461c2e93b93",
+        "url": "https://overpass-api.de/api/interpreter"
+      },
+      {
+        "bytes": 5203,
+        "file": "bgt/bak.geojson",
+        "license": "CC0 1.0",
+        "sha256": "fa5168b2ea6ce1ded6f7581f5c07cb75ea7daa497b3e0987b694bfd8a03c373f",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/bak/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 4714881,
+        "file": "bgt/begroeidterreindeel.geojson",
+        "license": "CC0 1.0",
+        "sha256": "001650b502cf5a480d24d6c7092f40fa0e5f277ca3bbca6a005d8da6c5fa5213",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/begroeidterreindeel/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 61,
+        "file": "bgt/bord.geojson",
+        "license": "CC0 1.0",
+        "sha256": "283c9806f7773e2860472a957a7e16092a90cac17b916ade384a39f10aae0aa5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/bord/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 258420,
+        "file": "bgt/gebouwinstallatie.geojson",
+        "license": "CC0 1.0",
+        "sha256": "89ec313bf2048728b992a95a45f1db937ddfa92b7bf47ed2bad2a9f8904deba5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/gebouwinstallatie/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 61,
+        "file": "bgt/installatie.geojson",
+        "license": "CC0 1.0",
+        "sha256": "283c9806f7773e2860472a957a7e16092a90cac17b916ade384a39f10aae0aa5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/installatie/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 6532,
+        "file": "bgt/kunstwerkdeel_lijn.geojson",
+        "license": "CC0 1.0",
+        "sha256": "656606c4eaeafeaf422f4ae9ce62d304389dc5b038691a459ffb3556e620b61d",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/kunstwerkdeel_lijn/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 61,
+        "file": "bgt/kunstwerkdeel_punt.geojson",
+        "license": "CC0 1.0",
+        "sha256": "283c9806f7773e2860472a957a7e16092a90cac17b916ade384a39f10aae0aa5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/kunstwerkdeel_punt/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 61,
+        "file": "bgt/kunstwerkdeel_vlak.geojson",
+        "license": "CC0 1.0",
+        "sha256": "283c9806f7773e2860472a957a7e16092a90cac17b916ade384a39f10aae0aa5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/kunstwerkdeel_vlak/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 61,
+        "file": "bgt/mast.geojson",
+        "license": "CC0 1.0",
+        "sha256": "283c9806f7773e2860472a957a7e16092a90cac17b916ade384a39f10aae0aa5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/mast/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 3613711,
+        "file": "bgt/onbegroeidterreindeel.geojson",
+        "license": "CC0 1.0",
+        "sha256": "dd85913408751bad273a14b974f27788bee15d97d536f0f83d4f39af7a0d8beb",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/onbegroeidterreindeel/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 813409,
+        "file": "bgt/ondersteunendwegdeel.geojson",
+        "license": "CC0 1.0",
+        "sha256": "117a59de446ab82fc3cdc7a6a1bd19ff2e76c0d07a4b743a2f56a110bfd6232f",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/ondersteunendwegdeel/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 58185,
+        "file": "bgt/overigbouwwerk.geojson",
+        "license": "CC0 1.0",
+        "sha256": "3c62a99937f6ae6320689fbe4e5c8d1b107f9560b7eb12d2d8322c1d55fc8a2b",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/overigbouwwerk/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 81070,
+        "file": "bgt/paal.geojson",
+        "license": "CC0 1.0",
+        "sha256": "4da0f8fadf51eb0e206c6724a38d3f5da70e8330f36c925a3c0869fec266d7e3",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/paal/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 650526,
+        "file": "bgt/pand.geojson",
+        "license": "CC0 1.0",
+        "sha256": "d267e28312f5cd7531620d9a710b906bdc6499c04d33ada354f54c269c5f9280",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/pand/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 231307,
+        "file": "bgt/put.geojson",
+        "license": "CC0 1.0",
+        "sha256": "8b47410f3b6aa5dcff1dff5da02faf3fb845314dc71bdabb7a43d9d80e2a1955",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/put/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 188093,
+        "file": "bgt/scheiding_lijn.geojson",
+        "license": "CC0 1.0",
+        "sha256": "7fa307ccc748f50c81039b622cd2f56bb3bd07eb44e00eab75a60bd8ef0f7f71",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/scheiding_lijn/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 82543,
+        "file": "bgt/scheiding_vlak.geojson",
+        "license": "CC0 1.0",
+        "sha256": "7c9edfcc1567f0cd173a5d7501f499291268a7fe3ff64a6b501300054add6e2b",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/scheiding_vlak/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 61,
+        "file": "bgt/spoor.geojson",
+        "license": "CC0 1.0",
+        "sha256": "283c9806f7773e2860472a957a7e16092a90cac17b916ade384a39f10aae0aa5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/spoor/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 2158,
+        "file": "bgt/straatmeubilair.geojson",
+        "license": "CC0 1.0",
+        "sha256": "759e459e1af3d365a3329994b2659a474a313b0898e405ed41373401117b537e",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/straatmeubilair/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 61,
+        "file": "bgt/vegetatieobject_lijn.geojson",
+        "license": "CC0 1.0",
+        "sha256": "283c9806f7773e2860472a957a7e16092a90cac17b916ade384a39f10aae0aa5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/vegetatieobject_lijn/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 178718,
+        "file": "bgt/vegetatieobject_punt.geojson",
+        "license": "CC0 1.0",
+        "sha256": "5d869549edefc19692cba4c538f87dc6047f4e35af7e4d9486727fb8c66ef2a9",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/vegetatieobject_punt/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 61,
+        "file": "bgt/vegetatieobject_vlak.geojson",
+        "license": "CC0 1.0",
+        "sha256": "283c9806f7773e2860472a957a7e16092a90cac17b916ade384a39f10aae0aa5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/vegetatieobject_vlak/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 221072,
+        "file": "bgt/waterdeel.geojson",
+        "license": "CC0 1.0",
+        "sha256": "56a977bf73a4e323a0ab051a1d90fe24752807d76b890e5ca2f62e45fa6683c5",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/waterdeel/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 2370700,
+        "file": "bgt/wegdeel.geojson",
+        "license": "CC0 1.0",
+        "sha256": "0706bc7b61b66c975890fa7984da74fd5708d4f8a38f2315a5bcf7cab4c0d2f2",
+        "url": "https://api.pdok.nl/lv/bgt/ogc/v1/collections/wegdeel/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F28992&f=json&limit=10000"
+      },
+      {
+        "bytes": 2959090,
+        "file": "3dbag-buildings.city.json",
+        "license": "CC BY 4.0",
+        "sha256": "a2fe330280ea5cb94eea8c5fce3888c48ddc9b2697dbbd744aa9411c856bff77",
+        "url": "https://api.3dbag.nl/collections/pand/items?bbox=96950%2C488550%2C98500%2C489950&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F7415&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F7415&limit=1000"
+      },
+      {
+        "bytes": 5937479,
+        "file": "ahn4-dtm_05m.tif",
+        "license": "CC0 1.0",
+        "sha256": "0bd27a479503db591080f889adcb49b43102e003289342d2087cb8407cb4326d",
+        "url": "https://service.pdok.nl/rws/ahn/wcs/v1_0?service=WCS&version=2.0.1&request=GetCoverage&coverageId=dtm_05m&format=image%2Ftiff&subset=x%2896950%2C98500%29&subset=y%28488550%2C489950%29&scalesize=x%281550%29%2Cy%281400%29"
+      },
+      {
+        "bytes": 6047407,
+        "file": "ahn4-dsm_05m.tif",
+        "license": "CC0 1.0",
+        "sha256": "e32d28d73398012be26ebb2cb65112882beedbcc93f4155a7e0e7046d957e0bb",
+        "url": "https://service.pdok.nl/rws/ahn/wcs/v1_0?service=WCS&version=2.0.1&request=GetCoverage&coverageId=dsm_05m&format=image%2Ftiff&subset=x%2896950%2C98500%29&subset=y%28488550%2C489950%29&scalesize=x%281550%29%2Cy%281400%29"
+      },
+      {
+        "attribution": "PDOK aerial photography, 2026 high-resolution orthophoto",
+        "bytes": 1180184,
+        "file": "pdok-2026-orthohr.jpg",
+        "license": "CC BY 4.0",
+        "sha256": "68bd0b6482c5be5f71f925c99134436760b826520395e0e2e2c7dc9c638f98ab",
+        "url": "https://service.pdok.nl/hwh/luchtfotorgb/wms/v1_0?service=WMS&version=1.3.0&request=GetMap&layers=2026_orthoHR&styles=&crs=EPSG%3A28992&bbox=96950%2C488550%2C98500%2C489950&width=2500&height=2258&format=image%2Fjpeg"
+      }
+    ]
+  }
+}

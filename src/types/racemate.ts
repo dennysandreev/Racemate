@@ -231,6 +231,84 @@ export type DriverProfile = {
   favoriteLimitReached: boolean;
 };
 
+export type DriverDirectoryDriver = {
+  id: string;
+  slug: string;
+  fullName: string;
+  code?: string;
+  number: number | null;
+  avatarUrl?: string | null;
+  starts: number;
+  championshipPosition: number | null;
+  points: number;
+  wins: number;
+  isPrimary: boolean;
+};
+
+export type DriverDirectoryTeam = {
+  id: string;
+  slug: string;
+  name: string;
+  shortName: string;
+  code: string;
+  color: string;
+  logo?: string;
+  championshipPosition: number | null;
+  drivers: DriverDirectoryDriver[];
+};
+
+export type DriverStageResult = {
+  round: number;
+  raceName: string;
+  participated: boolean;
+  qualifyingPosition: number | null;
+  sprintPosition: number | null;
+  sprintPoints: number;
+  startPosition: number | null;
+  finishPosition: number | null;
+  fastestLapTime: string | null;
+  points: number;
+  status: string | null;
+  isDnf: boolean;
+};
+
+export type DriverRoundSnapshot = {
+  round: number;
+  championshipPosition: number | null;
+  points: number;
+  wins: number;
+  podiums: number;
+  poles: number;
+  fastestLaps: number;
+  q3Appearances: number;
+  pointsFinishes: number;
+  dnfs: number;
+  averageStart: number | null;
+  averageFinish: number | null;
+  positionsGained: number;
+  starts: number;
+  stage: DriverStageResult | null;
+};
+
+export type DriverComparisonDriver = {
+  id: string;
+  slug: string;
+  fullName: string;
+  code?: string;
+  number: number | null;
+  avatarUrl?: string | null;
+  team: DriverProfileTeam;
+  snapshots: DriverRoundSnapshot[];
+};
+
+export type DriverComparisonDataset = {
+  season: number;
+  latestCompletedRound: number;
+  rounds: Array<ChampionshipRound & { completed: boolean }>;
+  options: Array<DriverDirectoryDriver & { team: DriverProfileTeam }>;
+  drivers: DriverComparisonDriver[];
+};
+
 export type ConstructorChampionshipMatrix = {
   rounds: ChampionshipRound[];
   rows: ConstructorStandingRow[];
@@ -643,6 +721,13 @@ export type TrackMapDefinition = {
     points: PitLanePoint[];
     labelX?: number | null;
     labelY?: number | null;
+    source?: string | null;
+    metadata?: {
+      entry?: string;
+      exit?: string;
+      referenceUrl?: string;
+      source?: string;
+    } | null;
   } | null;
   startFinish: {
     progress: number;
@@ -718,6 +803,13 @@ export type ReplayRaceEvent = {
   driverNumber?: number | null;
 };
 
+export type ReplayLapTiming = {
+  driverNumber: number;
+  lapNumber: number;
+  startOffsetMs: number;
+  durationMs: number | null;
+};
+
 export type RaceReplaySnapshot = {
   replaySessionId: string;
   sourceSessionKey: number;
@@ -728,6 +820,7 @@ export type RaceReplaySnapshot = {
   totalLaps: number | null;
   track: TrackMapDefinition;
   drivers: ReplayDriverState[];
+  lapTimings?: ReplayLapTiming[];
   positions: ReplayPositionEvent[];
   raceEvents: ReplayRaceEvent[];
   weather: {

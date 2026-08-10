@@ -25,7 +25,8 @@ import { formatSessionName } from "@/lib/session-display";
 const navigation = [
   { href: "/news", label: "Новости", icon: Newspaper, activePrefixes: ["/news"] },
   { href: "/social", label: "Соцсети", icon: Radio },
-  { href: "/leaderboard", label: "Чемпионат", icon: Trophy, activePrefixes: ["/leaderboard", "/drivers"] },
+  { href: "/leaderboard", label: "Чемпионат", icon: Trophy, activePrefixes: ["/leaderboard"] },
+  { href: "/drivers", label: "Пилоты", icon: UserRound, activePrefixes: ["/drivers"] },
   { href: "/teams", label: "Команды", icon: CarFront, activePrefixes: ["/teams"] },
   { href: "/calendar", label: "Календарь", icon: CalendarDays },
   { href: "/weekend", label: "Текущий этап", icon: Flag, activePrefixes: ["/weekend", "/race-replay"] },

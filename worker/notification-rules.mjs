@@ -140,6 +140,11 @@ export function getRemainingNewsNotificationBudget(alreadyQueued, dailyLimit = 3
   return Math.max(0, limit - queued);
 }
 
+export function buildNewsArticlePath(article) {
+  const routeKey = String(article?.slug ?? article?.id ?? "").trim();
+  return `/news/${encodeURIComponent(routeKey)}`;
+}
+
 export function getFantasyDeadlineReminders(preference) {
   return [
     {

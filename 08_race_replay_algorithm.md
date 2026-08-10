@@ -36,6 +36,10 @@ The normalized output is saved as replay events and a compact session snapshot.
 4. Generate an SVG path from the centerline.
 5. Store bounds, transform metadata, sectors, and pit lane geometry with the map.
 
+The centerline is always treated as a closed loop. Smoothing wraps from the last
+sample back to the first, and total distance includes that closing segment. This
+prevents an artificial sharp corner and zero-length progress span at start/finish.
+
 The UI renders the track from the cached map definition. Sectors are visual only; replay positions still come from normalized timing/location events.
 
 ## Snapping And Interpolation
@@ -53,6 +57,13 @@ Pit lane windows are built per driver:
 - `endMs`: pit lane exit, preferably from reported pit lane duration;
 - `pitLaneSeconds`: full time from pit entry to exit;
 - `pitStopSeconds`: stationary stop duration when available.
+
+Pit-lane geometry must be checked against the official FIA circuit map before a
+replay is published. OpenF1 location streams can contain interleaved or displaced
+coordinates around the garages, so a verified circuit override takes precedence
+over telemetry. The override records its FIA reference, entry and exit. For Spa
+the lane runs from after T19 to after La Source; for Hungaroring it runs from
+after T14 along the start/finish straight to the T1 exit.
 
 UI rule:
 

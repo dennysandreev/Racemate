@@ -1,6 +1,13 @@
-import Image from "next/image";
+"use client";
 
+import Image from "next/image";
+import { Box, Map } from "lucide-react";
+import { useState } from "react";
+
+import { TrackModel3DLazy } from "@/components/racemate/track-model-3d-lazy";
+import { Button } from "@/components/ui/button";
 import { getCircuitAsset } from "@/data/f1-assets";
+import { getThreeDimensionalTrackModelId } from "@/data/track-models";
 import { cn } from "@/lib/utils";
 import type { TrackLayout } from "@/types/racemate";
 
@@ -11,30 +18,80 @@ type TrackMapProps = {
   fill?: boolean;
   label?: string;
   layout?: TrackLayout | null;
+  showModel3d?: boolean;
   unframed?: boolean;
 };
 
-export function TrackMap({ assetSrc, circuit, compact, fill = false, unframed = false }: TrackMapProps) {
+export function TrackMap({
+  assetSrc,
+  circuit,
+  compact,
+  fill = false,
+  showModel3d = false,
+  unframed = false,
+}: TrackMapProps) {
   const legacyAsset = assetSrc === undefined ? getCircuitAsset(circuit) : null;
   const imageSrc = assetSrc ?? legacyAsset?.src ?? null;
+  const trackModelId = getThreeDimensionalTrackModelId(circuit);
+  const modelViewKey = trackModelId ? `${trackModelId}:${imageSrc ?? "no-image"}` : null;
+  const [activeModelView, setActiveModelView] = useState<string | null>(null);
+  const canShowModel3d = showModel3d && modelViewKey !== null;
+  const useModel3d = canShowModel3d && activeModelView === modelViewKey;
 
   return (
     <div
       className={cn(
-        "relative min-w-0 max-w-full overflow-hidden",
+        "relative flex min-w-0 max-w-full flex-col overflow-hidden",
         !unframed && "race-track-surface rounded-md",
-        fill ? "h-full w-full" : "p-3",
+        fill ? "h-full w-full" : "gap-2 p-3",
       )}
     >
       {!fill && !unframed ? (
         <div className="race-track-overlay absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgb(225_6_0_/_0.16),transparent_15rem)]" />
       ) : null}
-      {imageSrc ? (
+      {canShowModel3d ? (
+        <div className={cn("relative flex justify-end", fill && "mb-2")}>
+          <Button
+            aria-pressed={useModel3d}
+            onClick={() => setActiveModelView(useModel3d ? null : modelViewKey)}
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            {useModel3d ? (
+              <Map aria-hidden="true" data-icon="inline-start" />
+            ) : (
+              <Box aria-hidden="true" data-icon="inline-start" />
+            )}
+            {useModel3d ? "Показать схему" : "3D-визуализация"}
+          </Button>
+        </div>
+      ) : null}
+      {useModel3d && trackModelId ? (
+        <div
+          className={cn(
+            "race-track-image-stage relative min-w-0 max-w-full overflow-hidden rounded border border-white/10 bg-black/40",
+            fill
+              ? "min-h-0 w-full flex-1"
+              : compact
+                ? "h-52 sm:h-64"
+                : "h-[22rem] sm:h-[27rem]",
+          )}
+        >
+          <TrackModel3DLazy
+            circuit={circuit}
+            compact={compact}
+            fill={fill}
+            key={trackModelId}
+            modelId={trackModelId}
+          />
+        </div>
+      ) : imageSrc ? (
         <div
           className={cn(
             "race-track-image-stage relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded",
             fill || unframed ? "border-0 bg-transparent p-0" : "border border-white/10 bg-black/40 p-2",
-            fill ? "h-full min-h-0 w-full" : compact ? "h-32 sm:h-36" : "h-48",
+            fill ? "min-h-0 w-full flex-1" : compact ? "h-32 sm:h-36" : "h-48",
           )}
         >
           <Image
@@ -51,7 +108,7 @@ export function TrackMap({ assetSrc, circuit, compact, fill = false, unframed = 
           className={cn(
             "race-track-image-stage relative grid min-w-0 max-w-full place-items-center overflow-hidden rounded text-center",
             fill || unframed ? "border-0 bg-transparent" : "border border-border/70 bg-background/50",
-            fill ? "h-full min-h-0 w-full" : compact ? "h-32 sm:h-36" : "h-48",
+            fill ? "min-h-0 w-full flex-1" : compact ? "h-32 sm:h-36" : "h-48",
           )}
         >
           <div>
