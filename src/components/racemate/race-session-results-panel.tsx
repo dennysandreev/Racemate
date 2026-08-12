@@ -234,11 +234,11 @@ function getSessionStats(
   results: SessionResult[],
   includeWeather: boolean,
 ) {
-  const pointsTotal = results.reduce((sum, result) => sum + (result.points ?? 0), 0);
   const bestResult = results[0];
   const normalizedName = session.name.toLowerCase();
   const isRace = session.type === "race" || session.type === "sprint" || normalizedName.includes("гонка");
   const isQualifying = session.type === "qualifying" || normalizedName.includes("квалифика");
+  const fastestLap = isRace ? getSessionFastestLap(results) : null;
   const stats: Array<{ label: string; value: ReactNode }> = [
     {
       label: "Участников",
@@ -259,11 +259,18 @@ function getSessionStats(
   }
 
   stats.push({
-    label: isRace ? "Очки" : "Время",
-    value: (
-      <MetricValue>
-        {isRace ? (pointsTotal > 0 ? String(pointsTotal) : "—") : bestResult?.time ?? "—"}
-      </MetricValue>
+    label: isRace ? "Лучший круг" : "Время",
+    value: isRace ? (
+      <div className="grid min-w-0 gap-0.5">
+        <MetricValue>{fastestLap?.time ?? "—"}</MetricValue>
+        {fastestLap ? (
+          <span className="truncate text-xs font-semibold text-muted-foreground">
+            {fastestLap.driver}
+          </span>
+        ) : null}
+      </div>
+    ) : (
+      <MetricValue>{bestResult?.time ?? "—"}</MetricValue>
     ),
   });
 
@@ -284,6 +291,38 @@ function getSessionStats(
   }
 
   return stats;
+}
+
+function getSessionFastestLap(results: SessionResult[]) {
+  return results
+    .map((result) => ({
+      driver: result.driver,
+      milliseconds: parseLapTime(result.bestLap),
+      time: result.bestLap?.trim() ?? "",
+    }))
+    .filter(
+      (result): result is { driver: string; milliseconds: number; time: string } =>
+        result.milliseconds !== null && Boolean(result.time),
+    )
+    .sort((left, right) => left.milliseconds - right.milliseconds)[0] ?? null;
+}
+
+function parseLapTime(value?: string | null) {
+  const normalized = value?.trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const minuteMatch = normalized.match(/^(\d+):(\d{1,2})(?:\.(\d+))?$/);
+
+  if (minuteMatch) {
+    const milliseconds = Number((minuteMatch[3] ?? "").padEnd(3, "0").slice(0, 3));
+    return Number(minuteMatch[1]) * 60_000 + Number(minuteMatch[2]) * 1_000 + milliseconds;
+  }
+
+  const seconds = Number(normalized);
+  return Number.isFinite(seconds) && seconds > 0 ? Math.round(seconds * 1_000) : null;
 }
 
 function MetricValue({ children }: { children: ReactNode }) {

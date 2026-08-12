@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildDriverMotion, trackProgressAt } from "./motion.ts";
+import {
+  buildDriverMotion,
+  inferLapTimingsFromPositions,
+  mergeLapTimingsWithInferred,
+  trackProgressAt,
+} from "./motion.ts";
 
 function position(offsetMs, progress, svgX = progress * 100, driverNumber = 81) {
   return {
@@ -85,4 +90,68 @@ test("an unfinished final lap follows telemetry to the retirement point", () => 
 
   assert.ok(Math.abs(trackProgressAt(motion, 120_000).unwrapped - 1.25) < 0.001);
   assert.ok(Math.abs(trackProgressAt(motion, 160_000).unwrapped - 1.451) < 0.001);
+});
+
+test("a delayed lap counter cannot make the car jump multiple laps in one sample", () => {
+  const events = Array.from({ length: 30 }, (_, index) => ({
+    ...position(index * 10_000, (index % 9) / 9, index * 10, 16),
+    lapNumber: Math.floor(index / 9) + 1,
+  }));
+
+  events.push({
+    ...position(300_000, 0.45, 310, 16),
+    lapNumber: 6,
+  });
+
+  const motion = buildDriverMotion(events);
+  const before = trackProgressAt(motion, 299_000).unwrapped;
+  const after = trackProgressAt(motion, 300_000).unwrapped;
+
+  assert.ok(after - before < 0.05, `implausible lap-counter jump: ${after - before}`);
+  assert.ok(after >= before);
+});
+
+test("lap timings are recovered from a legacy replay snapshot", () => {
+  const timings = inferLapTimingsFromPositions([
+    { ...position(100_000, 0.02, 2, 1), lapNumber: 1, lastLapDuration: 85.123 },
+    { ...position(108_000, 0.12, 12, 1), lapNumber: 1, lastLapDuration: 85.123 },
+    { ...position(185_123, 0.01, 1, 1), lapNumber: 2, lastLapDuration: 84.456 },
+  ]);
+
+  assert.deepEqual(timings, [
+    { driverNumber: 1, durationMs: 85_123, lapNumber: 1, startOffsetMs: 14_877 },
+    { driverNumber: 1, durationMs: 84_456, lapNumber: 2, startOffsetMs: 100_000 },
+  ]);
+});
+
+test("legacy timing recovery renumbers a corrupted lap counter without a jump", () => {
+  const timings = inferLapTimingsFromPositions([
+    { ...position(100_000, 0.02, 2, 1), lapNumber: 1, lastLapDuration: 90 },
+    { ...position(190_000, 0.02, 2, 1), lapNumber: 2, lastLapDuration: 90 },
+    { ...position(280_000, 0.02, 2, 1), lapNumber: 4, lastLapDuration: 90 },
+  ]);
+
+  assert.deepEqual(timings.map(({ lapNumber }) => lapNumber), [1, 2, 3]);
+  assert.deepEqual(timings.map(({ startOffsetMs }) => startOffsetMs), [10_000, 100_000, 190_000]);
+});
+
+test("inferred laps continue an incomplete official timing feed", () => {
+  const official = Array.from({ length: 2 }, (_, index) => ({
+    driverNumber: 3,
+    durationMs: 90_000,
+    lapNumber: index + 1,
+    startOffsetMs: index * 90_000,
+  }));
+  const inferred = Array.from({ length: 5 }, (_, index) => ({
+    driverNumber: 3,
+    durationMs: 91_000,
+    lapNumber: index + 1,
+    startOffsetMs: index * 91_000,
+  }));
+
+  const merged = mergeLapTimingsWithInferred(official, inferred);
+
+  assert.deepEqual(merged.map((timing) => timing.lapNumber), [1, 2, 3, 4, 5]);
+  assert.equal(merged[0].durationMs, 90_000);
+  assert.equal(merged[2].durationMs, 91_000);
 });

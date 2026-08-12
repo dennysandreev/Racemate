@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 
 import { addFavoriteDriver } from "@/app/drivers/[slug]/actions";
-import { AppShell } from "@/components/racemate/app-shell";
 import { DriverCumulativePointsChart } from "@/components/racemate/driver-cumulative-points-chart";
 import { JsonLd } from "@/components/racemate/json-ld";
 import {
@@ -131,7 +130,7 @@ export default async function DriverProfilePage({ params, searchParams }: Driver
     || getHistoricalDriverFallbackSrc(profile.season);
 
   return (
-    <AppShell>
+    <>
       <JsonLd
         data={[
           {
@@ -214,7 +213,7 @@ export default async function DriverProfilePage({ params, searchParams }: Driver
           </div>
         ) : null}
       </div>
-    </AppShell>
+    </>
   );
 }
 

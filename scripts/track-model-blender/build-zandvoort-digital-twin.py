@@ -322,7 +322,10 @@ def estimate_polygon_volume(rings, dtm, dsm, default_height=3.2, maximum_height=
     return center, ground, height
 
 
-def add_polygon_prism(builder, rings, center, bottom_z, top_z, roof_color=None, wall_color=None):
+def add_polygon_prism(
+    builder, rings, center, bottom_z, top_z,
+    roof_color=None, wall_color=None, roof_quality=None,
+):
     vector_rings = []
     coordinate_rings = []
     for source_ring in rings:
@@ -339,8 +342,26 @@ def add_polygon_prism(builder, rings, center, bottom_z, top_z, roof_color=None, 
     except Exception:
         triangles = []
     for triangle in triangles:
-        builder.add_triangle(tuple(tuple(vertex) for vertex in triangle), color=roof_color)
-        builder.add_triangle(tuple((vertex.x, vertex.y, bottom_z) for vertex in reversed(triangle)), color=wall_color)
+        top_triangle = tuple(tuple(vertex) for vertex in triangle)
+        first, second, third = top_triangle
+        signed_normal_z = (
+            (second[0] - first[0]) * (third[1] - first[1])
+            - (second[1] - first[1]) * (third[0] - first[0])
+        )
+        if abs(signed_normal_z) <= 1e-12:
+            continue
+        if signed_normal_z < 0:
+            top_triangle = tuple(reversed(top_triangle))
+            if roof_quality is not None:
+                roof_quality["roofWindingRepairs"] = roof_quality.get("roofWindingRepairs", 0) + 1
+        if roof_quality is not None:
+            roof_quality["roofTriangles"] = roof_quality.get("roofTriangles", 0) + 1
+            roof_quality["downwardFacingRoofTriangles"] = 0
+        builder.add_triangle(top_triangle, color=roof_color)
+        builder.add_triangle(
+            tuple((vertex[0], vertex[1], bottom_z) for vertex in reversed(top_triangle)),
+            color=wall_color,
+        )
     for ring in coordinate_rings:
         for index, first in enumerate(ring):
             second = ring[(index + 1) % len(ring)]
@@ -562,6 +583,7 @@ def bank_angle(distance, total_length):
 def create_ribbon(
     name, centerline_rd, raster, center, base_elevation, width, material, collection,
     z_offset=TRACK_SURFACE_Z_OFFSET, interval=3.0, closed=True, taper_meters=0.0, banked=False,
+    minimum_start_width=0.55, minimum_end_width=0.55,
 ):
     cumulative, total = line_distance(centerline_rd)
     sample_count = max(2, math.ceil(total / interval))
@@ -571,11 +593,19 @@ def create_ribbon(
     for index in range(sample_count + 1):
         distance = total * index / sample_count
         sample_distance = min(distance, total - 1e-6) if closed else distance
-        taper = 1.0
+        current_width = width
         if not closed and taper_meters > 0:
-            taper = min(max(sample_distance / taper_meters, 0.0), max((total - sample_distance) / taper_meters, 0.0), 1.0)
-            taper = taper * taper * (3 - 2 * taper)
-        current_width = max(width * taper, 0.55)
+            start_taper = min(max(sample_distance / taper_meters, 0.0), 1.0)
+            end_taper = min(max((total - sample_distance) / taper_meters, 0.0), 1.0)
+            start_taper = start_taper * start_taper * (3 - 2 * start_taper)
+            end_taper = end_taper * end_taper * (3 - 2 * end_taper)
+            start_width = min(max(minimum_start_width, 0.0), width)
+            end_width = min(max(minimum_end_width, 0.0), width)
+            current_width = min(
+                start_width + (width - start_width) * start_taper,
+                end_width + (width - end_width) * end_taper,
+                width,
+            )
         point, tangent, normal, center_height, signed_bank = road_cross_section(
             centerline_rd, cumulative, sample_distance, raster, base_elevation, current_width,
             z_offset=z_offset, closed=closed, banked=banked,
@@ -1096,8 +1126,9 @@ def grandstand_reservation_polygons(config, centerline, cumulative):
     for stand in config["grandstands"]:
         distance = stand["start"]
         side_sign = 1 if stand["side"] == "left" else -1
+        section_length = stand.get("sectionLengthMeters", GRANDSTAND_SECTION_LENGTH_METERS)
         while distance < stand["end"]:
-            next_distance = min(distance + GRANDSTAND_SECTION_LENGTH_METERS, stand["end"])
+            next_distance = min(distance + section_length, stand["end"])
             section_start = min(distance + 0.4, next_distance)
             section_end = max(next_distance - 0.4, section_start)
             polygons.append(grandstand_strip(
@@ -1147,15 +1178,18 @@ def create_grandstands(config, centerline, cumulative, total, raster, center, ba
     minimum_clearance = math.inf
     maximum_platform_step = 0.0
     maximum_support_height = 0.0
+    maximum_support_height_by_stand = {}
 
     for stand in config["grandstands"]:
+        stand_maximum_support_height = 0.0
         stand_sections = []
         distance = stand["start"]
         side_sign = 1 if stand["side"] == "left" else -1
+        section_length = stand.get("sectionLengthMeters", GRANDSTAND_SECTION_LENGTH_METERS)
         front_offset = stand["offset"]
         back_offset = front_offset + stand["depth"]
         while distance < stand["end"]:
-            next_distance = min(distance + GRANDSTAND_SECTION_LENGTH_METERS, stand["end"])
+            next_distance = min(distance + section_length, stand["end"])
             section_start = min(distance + 0.4, next_distance)
             section_end = max(next_distance - 0.4, section_start)
             candidate_sections += 1
@@ -1185,15 +1219,28 @@ def create_grandstands(config, centerline, cumulative, total, raster, center, ba
             })
             distance = next_distance
 
+        maximum_step_for_stand = stand.get(
+            "maximumPlatformStepMeters",
+            GRANDSTAND_MAX_PLATFORM_STEP_METERS,
+        )
         platform_heights = leveled_platforms(
             [section["requiredPlatform"] for section in stand_sections],
-            GRANDSTAND_MAX_PLATFORM_STEP_METERS,
+            maximum_step_for_stand,
         )
         for first_height, second_height in zip(platform_heights, platform_heights[1:]):
             maximum_platform_step = max(maximum_platform_step, abs(second_height - first_height))
 
         for section, platform_height in zip(stand_sections, platform_heights):
             footprint = section["footprint"]
+            section_midpoint = (section["start"] + section["end"]) / 2
+            stand_progress = min(max(
+                (section_midpoint - stand["start"]) / max(stand["end"] - stand["start"], 1e-6),
+                0.0,
+            ), 1.0)
+            section_height = (
+                stand.get("heightStart", stand["height"]) * (1 - stand_progress)
+                + stand.get("heightEnd", stand["height"]) * stand_progress
+            )
             deck_bottom, deck_top = local_flat_volume_points(
                 footprint, center, platform_height - 0.28, platform_height,
             )
@@ -1204,6 +1251,7 @@ def create_grandstands(config, centerline, cumulative, total, raster, center, ba
                 support_top = platform_height - 0.28
                 support_height = max(support_top - support_bottom, 0.0)
                 maximum_support_height = max(maximum_support_height, support_height)
+                stand_maximum_support_height = max(stand_maximum_support_height, support_height)
                 if support_height > 0.08:
                     lx, ly = local_xy((x, y), center)
                     builder.add_cylinder(
@@ -1217,14 +1265,14 @@ def create_grandstands(config, centerline, cumulative, total, raster, center, ba
             )
             rear_bottom, rear_top = local_flat_volume_points(
                 rear_strip, center,
-                platform_height + stand["height"] - 0.35,
-                platform_height + stand["height"],
+                platform_height + section_height - 0.35,
+                platform_height + section_height,
             )
             builder.add_volume(rear_bottom, rear_top, 0)
             for x, y in footprint[2:]:
                 lx, ly = local_xy((x, y), center)
                 builder.add_cylinder(
-                    (lx, ly, platform_height), 0.12, stand["height"] - 0.35,
+                    (lx, ly, platform_height), 0.12, section_height - 0.35,
                     sides=6, material_index=0,
                 )
 
@@ -1238,13 +1286,14 @@ def create_grandstands(config, centerline, cumulative, total, raster, center, ba
                     centerline, cumulative, section["start"], section["end"], side_sign,
                     row_center - row_half_depth, row_center + row_half_depth,
                 )
-                row_height = 0.65 + row_fraction * (stand["height"] - 1.2)
+                row_height = 0.65 + row_fraction * (section_height - 1.2)
                 row_bottom, row_top = local_flat_volume_points(
                     row_strip, center,
                     platform_height + row_height - 0.28,
                     platform_height + row_height,
                 )
                 builder.add_volume(row_bottom, row_top, 1 + (row // 3) % 2)
+        maximum_support_height_by_stand[stand["name"]] = round(stand_maximum_support_height, 3)
 
     obj = builder.create_object("DutchGP_2026_Grandstands", materials, collection)
     obj["source"] = "Official Dutch GP wayfinding map and 2026 tribune catalogue; leveled modular real-metre stands"
@@ -1253,6 +1302,7 @@ def create_grandstands(config, centerline, cumulative, total, raster, center, ba
         "maximumPlatformStepMeters": round(maximum_platform_step, 3),
         "maximumSeatRowTwistMeters": 0.0,
         "maximumSupportHeightMeters": round(maximum_support_height, 3),
+        "maximumSupportHeightByStandMeters": maximum_support_height_by_stand,
         "minimumTrackClearanceMeters": round(minimum_clearance, 3) if math.isfinite(minimum_clearance) else None,
         "rejectedBlockConflicts": rejected_block_conflicts,
         "rejectedTrackConflicts": rejected_track_conflicts,
@@ -1268,14 +1318,20 @@ def distance_to_polyline(point, polyline):
     return min(distance_point_segment(point, first, second) for first, second in zip(polyline, polyline[1:]))
 
 
-def create_pit_lane(osm_data, pit_way_id, main_centerline, raster, center, base_elevation, materials, collection):
+def create_pit_lane(
+    osm_data, pit_way_id, main_centerline, raster, center, base_elevation,
+    materials, collection, pit_boxes=32,
+    entry_minimum_width=0.55, exit_minimum_width=0.55,
+):
     way = next(element for element in osm_data["elements"] if element.get("id") == pit_way_id)
     points = [rd_from_wgs84(point["lat"], point["lon"]) for point in way["geometry"]]
-    pit_lane, cumulative, total, _ = create_ribbon(
+    pit_lane, cumulative, total, pit_samples = create_ribbon(
         "FIA_Pit_Lane", points, raster, center, base_elevation,
         PIT_LANE_WIDTH_METERS, materials["asphalt"], collection,
         z_offset=TRACK_SURFACE_Z_OFFSET + 0.01, interval=2.5,
         closed=False, taper_meters=PIT_LANE_TAPER_METERS,
+        minimum_start_width=entry_minimum_width,
+        minimum_end_width=exit_minimum_width,
     )
     markings = MeshBuilder()
     full_width_start = PIT_LANE_TAPER_METERS + 2
@@ -1320,7 +1376,6 @@ def create_pit_lane(osm_data, pit_way_id, main_centerline, raster, center, base_
 
     pit_box_start = total * 0.23
     pit_box_end = total * 0.78
-    pit_boxes = 32
     for index in range(pit_boxes + 1):
         distance = pit_box_start + (pit_box_end - pit_box_start) * index / pit_boxes
         half_line = 0.09
@@ -1337,22 +1392,33 @@ def create_pit_lane(osm_data, pit_way_id, main_centerline, raster, center, base_
                 (distance - half_line, separator_offset - garage_side * 0.15),
             )
         ])
-    marking_obj = markings.create_object("FIA_Pit_Lane_Markings_32_Boxes", [materials["white"]], collection)
+    marking_obj = markings.create_object(
+        f"FIA_Pit_Lane_Markings_{pit_boxes}_Boxes",
+        [materials["white"]],
+        collection,
+    )
     pit_lane["source"] = "OpenStreetMap Pitstraat aligned to FIA 2025 pit-lane drawing"
     marking_obj["pit_boxes"] = pit_boxes
     quality = {
         "entryGapMeters": round(distance_to_polyline(points[0], main_centerline), 3),
+        "entryMinimumWidthMeters": round(pit_samples[0][7], 3),
+        "entrySurface": "asphalt",
         "exitGapMeters": round(distance_to_polyline(points[-1], main_centerline), 3),
+        "exitMinimumWidthMeters": round(pit_samples[-1][7], 3),
         "fastLaneSeparator": True,
         "lengthMeters": round(total, 3),
         "pitBoxes": pit_boxes,
         "taperMeters": PIT_LANE_TAPER_METERS,
+        "taperProfile": "smoothstep",
         "widthMeters": PIT_LANE_WIDTH_METERS,
     }
     return pit_lane, points, quality
 
 
-def create_pit_wall(pit_points, main_centerline, raster, center, base_elevation, materials, collection):
+def create_pit_wall(
+    pit_points, main_centerline, raster, center, base_elevation, materials, collection,
+    start_ratio=0.19, end_ratio=0.82, wall_height=1.05, fence_height=1.15,
+):
     pit_cumulative, total = line_distance(pit_points)
     main_cumulative, _ = line_distance(main_centerline)
     main_samples = sample_line_points(main_centerline, main_cumulative, 2.0)
@@ -1364,13 +1430,11 @@ def create_pit_wall(pit_points, main_centerline, raster, center, base_elevation,
     main_side = 1 if (nearest_main[0] - midpoint[0]) * normal.x + (nearest_main[1] - midpoint[1]) * normal.y >= 0 else -1
 
     builder = MeshBuilder()
-    start = total * 0.19
-    end = total * 0.82
+    start = total * start_ratio
+    end = total * end_ratio
     interval = 3.0
     wall_offset = main_side * (PIT_LANE_WIDTH_METERS / 2 + 0.18)
     wall_thickness = 0.28
-    wall_height = 1.05
-    fence_height = 1.15
     panel_count = 0
     distance = start
 
@@ -1608,12 +1672,22 @@ def create_track_annotations(config, osm_data, centerline, cumulative, total, ra
         turn_anchors.append(anchor)
 
     speed = config["officialControlPoints"]["speedTrap"]
-    speed_distance = config["model"]["turns"][speed["turn"] - 1]["distanceMeters"] - speed["beforeTurnMeters"]
+    speed_turn_distance = config["model"]["turns"][speed["turn"] - 1]["distanceMeters"]
+    speed_distance = (
+        speed_turn_distance + speed["afterTurnMeters"]
+        if "afterTurnMeters" in speed
+        else speed_turn_distance - speed["beforeTurnMeters"]
+    )
     anchor_at("SpeedTrap", speed_distance, centerline, cumulative, total, raster, center, base_elevation, collection, side=-1, offset=14, height=6)
 
     sector_distances = []
     for boundary in config["officialControlPoints"]["sectorBoundaries"]:
-        distance = config["model"]["turns"][boundary["turn"] - 1]["distanceMeters"] - boundary["beforeTurnMeters"]
+        distance = boundary.get("absoluteDistanceMeters")
+        if distance is None:
+            distance = (
+                config["model"]["turns"][boundary["turn"] - 1]["distanceMeters"]
+                - boundary["beforeTurnMeters"]
+            )
         sector_distances.append(distance)
         anchor_at(f"SectorBoundary_{boundary['sector']:02d}", distance, centerline, cumulative, total, raster, center, base_elevation, collection, side=1, offset=13, height=5)
         sector_index = boundary["sector"] - 1
@@ -1627,7 +1701,13 @@ def create_track_annotations(config, osm_data, centerline, cumulative, total, ra
         )
 
     finish_node = next((element for element in osm_data["elements"] if element.get("tags", {}).get("raceway") == "finish"), None)
-    finish_distance = nearest_distance(centerline, cumulative, rd_from_wgs84(finish_node["lat"], finish_node["lon"])) if finish_node else 335.0
+    finish_distance = config["model"].get("startFinishDistanceMeters")
+    if finish_distance is None:
+        finish_distance = (
+            nearest_distance(centerline, cumulative, rd_from_wgs84(finish_node["lat"], finish_node["lon"]))
+            if finish_node
+            else 335.0
+        )
     anchor_at("StartFinish", finish_distance, centerline, cumulative, total, raster, center, base_elevation, collection, side=-1, offset=15, height=6)
     add_cross_track_band(
         marker_builder, centerline, cumulative, finish_distance, raster, center, base_elevation,
@@ -1726,6 +1806,7 @@ def create_extrema_anchors(centerline, cumulative, total, raster, center, base_e
         obj.location = (*local_xy((x, y), center), elevation - base_elevation + 7)
         obj["distance_m"] = distance
         obj["elevation_nap_m"] = elevation
+        obj["elevation_datum_m"] = elevation
         collection.objects.link(obj)
     return low, high
 

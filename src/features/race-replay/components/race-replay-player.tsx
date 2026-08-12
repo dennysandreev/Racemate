@@ -22,13 +22,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { TrackOrientationSphere } from "@/components/racemate/track-orientation-sphere";
-import type { ZandvoortReplayCar } from "@/features/race-replay/components/race-replay-zandvoort-3d";
+import type {
+  ReplayTrackCar,
+  ReplayTrackId,
+} from "@/features/race-replay/components/race-replay-zandvoort-3d";
 import {
   buildDriverMotion,
+  inferLapTimingsFromPositions,
+  mergeLapTimingsWithInferred,
   pitLaneParamAt,
   trackProgressAt,
   type DriverMotion,
 } from "@/features/race-replay/lib/motion";
+import { orderReplayTimingRows } from "@/features/race-replay/lib/timing-order";
 import { layoutTimelineMarkers } from "@/features/race-replay/lib/timeline-layout";
 import {
   buildPitGeometry,
@@ -69,9 +75,9 @@ type RaceReplayPlayerProps = {
   replay: RaceReplaySnapshot;
 };
 
-const RaceReplayZandvoort3D = dynamic(
+const RaceReplayTrack3D = dynamic(
   () => import("@/features/race-replay/components/race-replay-zandvoort-3d")
-    .then((module) => module.RaceReplayZandvoort3D),
+    .then((module) => module.RaceReplayTrack3D),
   {
     loading: () => (
       <div className="grid size-full place-items-center rounded-lg border border-border/70 bg-black/35">
@@ -95,6 +101,8 @@ type CurrentReplayPosition = ReplayPositionEvent & {
 };
 
 type TimingRow = ReplayDriverState & {
+  displayPosition: number;
+  hasTimedPosition: boolean;
   lapDeficit: number | null;
   raceOrder: number;
 };
@@ -299,22 +307,26 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     () => groupReplayPositionsByDriver(replay.positions),
     [replay.positions],
   );
-  const useZandvoort3dReplay = isZandvoort3dReplay(replay);
+  const replay3dTrackId = getReplay3dTrackId(replay);
+  const useTrack3dReplay = replay3dTrackId !== null;
   const lapTimingsByDriver = useMemo(() => {
     const grouped = new Map<number, NonNullable<RaceReplaySnapshot["lapTimings"]>>();
 
-    if (!useZandvoort3dReplay) {
+    if (!useTrack3dReplay) {
       return grouped;
     }
 
-    for (const timing of replay.lapTimings ?? []) {
+    const inferredTimings = inferLapTimingsFromPositions(replay.positions);
+    const timings = mergeLapTimingsWithInferred(replay.lapTimings, inferredTimings);
+
+    for (const timing of timings) {
       const timings = grouped.get(timing.driverNumber) ?? [];
       timings.push(timing);
       grouped.set(timing.driverNumber, timings);
     }
 
     return grouped;
-  }, [replay.lapTimings, useZandvoort3dReplay]);
+  }, [replay.lapTimings, replay.positions, useTrack3dReplay]);
   const pitLane = replay.track.pitLane ?? null;
   const displayPitLane = useMemo(
     () => buildDisplayPitLane(
@@ -354,7 +366,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     () => new Map(replay.drivers.map((driver) => [driver.driverNumber, driver])),
     [replay.drivers],
   );
-  const zandvoortCars = useMemo<ZandvoortReplayCar[]>(() => (
+  const replayTrackCars = useMemo<ReplayTrackCar[]>(() => (
     [...currentPositions.values()]
       .filter((position) => !position.isStale)
       .map((position) => {
@@ -374,8 +386,15 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
       })
   ), [currentPositions, driversByNumber, selectedDriver]);
   const timingRows = useMemo(
-    () => buildTimingRows(replay.drivers, currentPositions),
-    [currentPositions, replay.drivers],
+    () => buildTimingRows(
+      replay.drivers,
+      currentPositions,
+      replay.positionTimings,
+      replay.intervalTimings,
+      lapTimingsByDriver,
+      elapsedMs,
+    ),
+    [currentPositions, elapsedMs, lapTimingsByDriver, replay.drivers, replay.intervalTimings, replay.positionTimings],
   );
   const timingHighlights = useMemo(
     () => getTimingHighlights(timingRows),
@@ -485,7 +504,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
   }, []);
 
   useEffect(() => {
-    if (!useZandvoort3dReplay) {
+    if (!useTrack3dReplay) {
       return;
     }
 
@@ -517,7 +536,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
     viewport.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => viewport.removeEventListener("wheel", handleWheel);
-  }, [useZandvoort3dReplay, zoomZandvoortTo]);
+  }, [useTrack3dReplay, zoomZandvoortTo]);
 
   const handlePointerDown = useCallback((event: React.PointerEvent<HTMLElement | SVGSVGElement>) => {
     if (followMode) {
@@ -746,7 +765,11 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
           </div>
           <WeatherChips weather={replay.weather} />
         </div>
-        <RaceStatusBanner status={raceStatus} />
+        <RaceStatusBanner
+          currentLap={currentLap}
+          status={raceStatus}
+          totalLaps={replay.totalLaps}
+        />
       </section>
 
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_21.5rem]">
@@ -754,14 +777,14 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
           <div className="relative h-[26rem] overflow-hidden bg-[radial-gradient(circle_at_20%_12%,rgb(225_6_0_/_0.14),transparent_24rem)] p-3 sm:h-[30rem] xl:h-[34rem]">
             <SelectedDriverOverlay driver={selected} followMode={followMode} />
             <PitNotificationStack items={pitNotifications} />
-            <TrackLegend useTrackModelPalette={useZandvoort3dReplay} />
+            <TrackLegend useTrackModelPalette={useTrack3dReplay} />
             <div className="absolute right-5 top-5 z-10 grid gap-1.5">
               <Button
-                aria-label={useZandvoort3dReplay ? "Приблизить трассу" : "Увеличить карту"}
+                aria-label={useTrack3dReplay ? "Приблизить трассу" : "Увеличить карту"}
                 className="size-8"
-                disabled={useZandvoort3dReplay && zoom >= TRACK_MODEL_MAX_ZOOM}
+                disabled={useTrack3dReplay && zoom >= TRACK_MODEL_MAX_ZOOM}
                 onClick={() => {
-                  if (useZandvoort3dReplay) {
+                  if (useTrack3dReplay) {
                     changeZandvoortZoom(TRACK_MODEL_ZOOM_STEP);
                     return;
                   }
@@ -775,11 +798,11 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
                 <ZoomIn aria-hidden="true" />
               </Button>
               <Button
-                aria-label={useZandvoort3dReplay ? "Отдалить трассу" : "Уменьшить карту"}
+                aria-label={useTrack3dReplay ? "Отдалить трассу" : "Уменьшить карту"}
                 className="size-8"
-                disabled={useZandvoort3dReplay && zoom <= TRACK_MODEL_MIN_ZOOM}
+                disabled={useTrack3dReplay && zoom <= TRACK_MODEL_MIN_ZOOM}
                 onClick={() => {
-                  if (useZandvoort3dReplay) {
+                  if (useTrack3dReplay) {
                     changeZandvoortZoom(-TRACK_MODEL_ZOOM_STEP);
                     return;
                   }
@@ -814,9 +837,9 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
                 <Crosshair aria-hidden="true" />
               </Button>
             </div>
-          {useZandvoort3dReplay ? (
+          {replay3dTrackId ? (
             <div
-              aria-label="Интерактивный 3D-повтор Гран-при Нидерландов. Перетаскивай, чтобы перемещать трассу. Колесо мыши или щипок меняют масштаб; сфера ракурса, правая кнопка или Shift и перетаскивание поворачивают модель."
+              aria-label={`Интерактивный 3D-повтор на трассе ${replay.circuitName}. Перетаскивай, чтобы перемещать трассу. Колесо мыши или щипок меняют масштаб; сфера ракурса, правая кнопка или Shift и перетаскивание поворачивают модель.`}
               className="race-replay-map-stage relative size-full cursor-grab touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring active:cursor-grabbing"
               onContextMenu={(event) => event.preventDefault()}
               onDoubleClick={(event) => {
@@ -838,14 +861,15 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
               ref={zandvoortViewportRef}
               tabIndex={0}
             >
-              <RaceReplayZandvoort3D
-                cars={zandvoortCars}
+              <RaceReplayTrack3D
+                cars={replayTrackCars}
                 followDriver={followMode ? selectedDriver : null}
                 onSelectDriver={setSelectedDriver}
                 panX={pan.x}
                 panY={pan.y}
                 rotationDeg={rotationDeg}
                 tiltDeg={tiltDeg}
+                trackId={replay3dTrackId}
                 zoom={effectiveZoom}
               />
               <div className="pointer-events-none absolute inset-0 z-20 [&>button]:pointer-events-auto">
@@ -1020,7 +1044,7 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
 
 function SelectedDriverOverlay({ driver, followMode }: { driver: TimingRow | null; followMode: boolean }) {
   return (
-    <div className="pointer-events-none absolute bottom-5 left-5 z-10 min-w-[14.5rem] max-w-[18rem] rounded-md border border-border/70 bg-background/92 px-3.5 py-2.5 shadow-xl ring-1 ring-primary/25 backdrop-blur-md">
+    <div className="pointer-events-none absolute bottom-5 left-5 z-30 min-w-[14.5rem] max-w-[18rem] rounded-md border border-border/70 bg-background/92 px-3.5 py-2.5 shadow-xl ring-1 ring-primary/25 backdrop-blur-md">
       {driver ? (
         <>
           <div className="flex items-center gap-3">
@@ -1032,7 +1056,7 @@ function SelectedDriverOverlay({ driver, followMode }: { driver: TimingRow | nul
               <div className="flex items-center gap-2">
                 <p className="font-display text-2xl font-extrabold leading-none">{driver.abbreviation}</p>
                 <span className="font-telemetry rounded border border-border/70 px-1.5 py-0.5 text-[0.58rem] font-extrabold">
-                  P{driver.position ?? "—"}
+                  P{driver.displayPosition}
                 </span>
                 {followMode ? (
                   <span className="font-telemetry rounded border border-primary/45 bg-primary/12 px-1.5 py-0.5 text-[0.52rem] font-extrabold uppercase tracking-[0.08em] text-primary">
@@ -1339,7 +1363,7 @@ function TrackLegend({ useTrackModelPalette }: { useTrackModelPalette: boolean }
   ];
 
   return (
-    <div className="pointer-events-none absolute bottom-5 right-5 z-10 hidden items-center gap-2.5 rounded-md border border-border/70 bg-background/85 px-2.5 py-1.5 shadow-xl backdrop-blur-md sm:flex">
+    <div className="pointer-events-none absolute bottom-5 right-5 z-30 hidden items-center gap-2.5 rounded-md border border-border/70 bg-background/85 px-2.5 py-1.5 shadow-xl backdrop-blur-md sm:flex">
       {items.map((item) => (
         <span className="flex items-center gap-1" key={item.label}>
           <span className="h-1.5 w-4 rounded-full" style={{ backgroundColor: item.color }} />
@@ -1561,7 +1585,7 @@ function TimingTowerCompact({
               type="button"
             >
               <span className="font-telemetry w-6 shrink-0 text-right text-xs font-extrabold text-muted-foreground">
-                {row.position ?? index + 1}
+                {index + 1}
               </span>
               <span className="h-5 w-1 shrink-0 rounded-full" style={{ backgroundColor: row.teamColor }} />
               <span className="font-telemetry w-11 shrink-0 text-sm font-extrabold">{row.abbreviation}</span>
@@ -1735,7 +1759,7 @@ function TimingTower({
             onClick={() => setSelectedDriver(row.driverNumber)}
             type="button"
           >
-            <span className="font-telemetry text-sm font-extrabold">P{row.position ?? "—"}</span>
+            <span className="font-telemetry text-sm font-extrabold">P{row.displayPosition ?? "—"}</span>
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold">{row.fullName}</span>
               <span className="block truncate text-xs text-muted-foreground">{row.teamName}</span>
@@ -1939,7 +1963,15 @@ function RaceEventFeed({ events, onSeek }: { events: ReplayRaceEvent[]; onSeek: 
   );
 }
 
-function RaceStatusBanner({ status }: { status: RaceStatus }) {
+function RaceStatusBanner({
+  currentLap,
+  status,
+  totalLaps,
+}: {
+  currentLap: number | null;
+  status: RaceStatus;
+  totalLaps: number | null;
+}) {
   const toneClass = {
     green: "border-[rgba(57,255,20,0.4)] bg-[rgba(57,255,20,0.1)] text-[rgb(97,255,75)]",
     neutral: "border-border/70 bg-secondary/30 text-foreground",
@@ -1958,7 +1990,13 @@ function RaceStatusBanner({ status }: { status: RaceStatus }) {
         />
       )}
       <p className="font-telemetry shrink-0 text-[0.62rem] font-extrabold uppercase tracking-[0.14em]">{status.label}</p>
-      <p className="min-w-0 truncate text-xs font-semibold leading-4 text-foreground">{status.detail}</p>
+      <p className="hidden min-w-0 truncate text-xs font-semibold leading-4 text-foreground xl:block">{status.detail}</p>
+      <p className="font-telemetry ml-auto flex shrink-0 items-baseline gap-1 text-[0.62rem] font-extrabold uppercase tracking-[0.08em] text-foreground xl:hidden">
+        <span>Круг</span>
+        <span className="text-sm leading-none">{currentLap ?? "—"}</span>
+        <span>/</span>
+        <span className="text-sm leading-none">{totalLaps ?? "—"}</span>
+      </p>
     </div>
   );
 }
@@ -1975,11 +2013,7 @@ function groupReplayPositionsByDriver(events: ReplayPositionEvent[]) {
   return grouped;
 }
 
-function isZandvoort3dReplay(replay: RaceReplaySnapshot) {
-  if (replay.sourceSeason !== 2025) {
-    return false;
-  }
-
+function getReplay3dTrackId(replay: RaceReplaySnapshot): ReplayTrackId | null {
   const circuit = [
     replay.circuitName,
     replay.raceName,
@@ -1988,12 +2022,43 @@ function isZandvoort3dReplay(replay: RaceReplaySnapshot) {
     replay.track.countryName,
   ].filter(Boolean).join(" ").toLocaleLowerCase("ru");
 
-  return ["zandvoort", "зандворт", "dutch", "netherlands", "нидерланд"]
-    .some((alias) => circuit.includes(alias));
+  if (
+    replay.sourceSeason === 2025 &&
+    ["zandvoort", "зандворт", "dutch", "netherlands", "нидерланд"]
+      .some((alias) => circuit.includes(alias))
+  ) {
+    return "zandvoort";
+  }
+
+  if (
+    replay.sourceSeason === 2026 &&
+    ["silverstone", "british", "great britain", "сильверстоун", "великобрит"]
+      .some((alias) => circuit.includes(alias))
+  ) {
+    return "silverstone";
+  }
+
+  if (
+    replay.sourceSeason === 2026 &&
+    ["spa-francorchamps", "spa francorchamps", "circuit de spa", "спа-франкоршам", "belgian", "бельги"]
+      .some((alias) => circuit.includes(alias))
+  ) {
+    return "spa";
+  }
+
+  if (
+    replay.sourceSeason === 2026 &&
+    ["hungaroring", "hungarian", "hungary", "хунгароринг", "венгр", "budapest", "будапешт"]
+      .some((alias) => circuit.includes(alias))
+  ) {
+    return "hungaroring";
+  }
+
+  return null;
 }
 
 function getReplayPlaybackStartMs(replay: RaceReplaySnapshot) {
-  if (!isZandvoort3dReplay(replay)) {
+  if (!getReplay3dTrackId(replay)) {
     return 0;
   }
 
@@ -2001,7 +2066,21 @@ function getReplayPlaybackStartMs(replay: RaceReplaySnapshot) {
     .filter((timing) => timing.lapNumber === 1 && timing.startOffsetMs >= 0)
     .map((timing) => timing.startOffsetMs);
 
-  return firstLapStarts.length ? Math.min(...firstLapStarts) : 0;
+  if (firstLapStarts.length) {
+    return Math.min(...firstLapStarts);
+  }
+
+  const firstCompletedLapEvents = replay.positions
+    .filter((event) => event.lapNumber === 1 && event.offsetMs >= 0)
+    .map((event) => {
+      const lapDurationMs = typeof event.lastLapDuration === "number" && event.lastLapDuration > 0
+        ? event.lastLapDuration * 1_000
+        : 0;
+
+      return Math.max(0, event.offsetMs - lapDurationMs);
+    });
+
+  return firstCompletedLapEvents.length ? Math.min(...firstCompletedLapEvents) : 0;
 }
 
 function getCurrentPositions(
@@ -2940,48 +3019,154 @@ function lerp(previous: number, next: number, t: number) {
   return previous + (next - previous) * t;
 }
 
-function buildTimingRows(drivers: ReplayDriverState[], positions: Map<number, CurrentReplayPosition>) {
+function buildTimingRows(
+  drivers: ReplayDriverState[],
+  positions: Map<number, CurrentReplayPosition>,
+  positionTimings: RaceReplaySnapshot["positionTimings"],
+  intervalTimings: RaceReplaySnapshot["intervalTimings"],
+  lapTimingsByDriver: Map<number, NonNullable<RaceReplaySnapshot["lapTimings"]>>,
+  elapsedMs: number,
+) {
+  const timedPositionByDriver = getTimedPositionsAt(positionTimings, elapsedMs);
+  const timedIntervalByDriver = getTimedIntervalsAt(intervalTimings, elapsedMs);
+  const driversWithPositionTimeline = new Set(
+    (positionTimings ?? []).map((timing) => timing.driverNumber),
+  );
   const rows = drivers
     .map((driver): TimingRow => {
       const current = positions.get(driver.driverNumber);
+      const timedPosition = timedPositionByDriver.get(driver.driverNumber);
+      const timedInterval = timedIntervalByDriver.get(driver.driverNumber);
+      const hasPositionTimeline = driversWithPositionTimeline.has(driver.driverNumber);
+      const hasTelemetry = current !== undefined || timedPosition !== undefined || hasPositionTimeline;
+      const hasFinishedRace = driver.status === "NO_DATA" && driver.lapNumber !== null && driver.lapNumber !== undefined;
+      const timedLapNumber = getLapNumberAt(lapTimingsByDriver.get(driver.driverNumber), elapsedMs);
+      const hasEndedTelemetry = Boolean(
+        current && "isStale" in current && current.isStale,
+      );
+      const status = current?.isPitLane
+        ? "PIT"
+        : current && "isStale" in current && current.isStale
+          ? "OUT"
+          : hasPositionTimeline && driver.status === "OUT"
+            ? timedPosition && elapsedMs >= timedPosition.lastOffsetMs
+              ? "OUT"
+              : "RUNNING"
+            : hasFinishedRace
+              ? "RUNNING"
+              : hasTelemetry
+                ? driver.status
+                : "NO_DATA";
 
       return {
         ...driver,
         compound: current?.compound ?? driver.compound,
-        gapToLeader: current?.gapToLeader ?? driver.gapToLeader,
-        intervalToAhead: current?.intervalToAhead ?? driver.intervalToAhead,
-        lapNumber: current?.lapNumber ?? driver.lapNumber,
+        gapToLeader: timedInterval?.gapToLeader ?? current?.gapToLeader ?? driver.gapToLeader,
+        intervalToAhead: timedInterval?.intervalToAhead ?? current?.intervalToAhead ?? driver.intervalToAhead,
+        lapNumber: hasEndedTelemetry
+          ? driver.lapNumber
+          : timedLapNumber ?? current?.lapNumber ?? null,
         lastLapDuration: current?.lastLapDuration ?? driver.lastLapDuration,
         lastLapTime: current?.lastLapTime ?? driver.lastLapTime,
-        position: current?.position ?? driver.position,
+        position: timedPosition?.position ?? current?.position ?? (hasPositionTimeline ? driver.position : null),
         sector1Time: current?.sector1Time ?? driver.sector1Time,
         sector2Time: current?.sector2Time ?? driver.sector2Time,
         sector3Time: current?.sector3Time ?? driver.sector3Time,
-        status: current?.isPitLane ? "PIT" : current && "isStale" in current && current.isStale ? "OUT" : driver.status,
+        status,
         tyreAge: current?.tyreAge ?? driver.tyreAge,
+        displayPosition: 0,
+        hasTimedPosition: timedPosition !== undefined || current?.position != null,
         lapDeficit: null,
         raceOrder: 99,
       };
-    });
-  const leaderLap = rows.reduce(
-    (max, row) => typeof row.lapNumber === "number" && Number.isFinite(row.lapNumber) ? Math.max(max, row.lapNumber) : max,
-    0,
-  );
-
-  return rows
-    .map((row) => {
-      const lapDeficit =
-        leaderLap > 0 && typeof row.lapNumber === "number" && Number.isFinite(row.lapNumber)
-          ? Math.max(0, leaderLap - row.lapNumber)
-          : null;
-
-      return {
-        ...row,
-        lapDeficit,
-        raceOrder: (lapDeficit ?? 0) * 100 + (row.position ?? 99),
-      };
     })
-    .sort((a, b) => a.raceOrder - b.raceOrder || (a.position ?? 99) - (b.position ?? 99));
+    .filter((row) => row.status !== "NO_DATA" || elapsedMs <= staleTelemetryMs);
+  return orderReplayTimingRows(rows);
+}
+
+function getLapNumberAt(
+  timings: NonNullable<RaceReplaySnapshot["lapTimings"]> | undefined,
+  elapsedMs: number,
+) {
+  let currentLap: number | null = null;
+
+  for (const timing of timings ?? []) {
+    if (timing.startOffsetMs <= elapsedMs) {
+      currentLap = Math.max(currentLap ?? 0, timing.lapNumber);
+    }
+  }
+
+  return currentLap;
+}
+
+function getTimedPositionsAt(
+  timings: RaceReplaySnapshot["positionTimings"],
+  elapsedMs: number,
+) {
+  const positions = new Map<number, { lastOffsetMs: number; position: number }>();
+  const firstTimingByDriver = new Map<number, { offsetMs: number; position: number }>();
+  const lastOffsetByDriver = new Map<number, number>();
+
+  for (const timing of timings ?? []) {
+    const firstTiming = firstTimingByDriver.get(timing.driverNumber);
+
+    if (!firstTiming || timing.offsetMs < firstTiming.offsetMs) {
+      firstTimingByDriver.set(timing.driverNumber, {
+        offsetMs: timing.offsetMs,
+        position: timing.position,
+      });
+    }
+
+    lastOffsetByDriver.set(
+      timing.driverNumber,
+      Math.max(lastOffsetByDriver.get(timing.driverNumber) ?? 0, timing.offsetMs),
+    );
+  }
+
+  for (const timing of timings ?? []) {
+    if (timing.offsetMs > elapsedMs) {
+      continue;
+    }
+
+    positions.set(timing.driverNumber, {
+      lastOffsetMs: lastOffsetByDriver.get(timing.driverNumber) ?? timing.offsetMs,
+      position: timing.position,
+    });
+  }
+
+  for (const [driverNumber, firstTiming] of firstTimingByDriver.entries()) {
+    if (!positions.has(driverNumber)) {
+      positions.set(driverNumber, {
+        lastOffsetMs: lastOffsetByDriver.get(driverNumber) ?? firstTiming.offsetMs,
+        position: firstTiming.position,
+      });
+    }
+  }
+
+  return positions;
+}
+
+function getTimedIntervalsAt(
+  timings: RaceReplaySnapshot["intervalTimings"],
+  elapsedMs: number,
+) {
+  const intervals = new Map<number, {
+    gapToLeader: string | null;
+    intervalToAhead: string | null;
+  }>();
+
+  for (const timing of timings ?? []) {
+    if (timing.offsetMs > elapsedMs) {
+      continue;
+    }
+
+    intervals.set(timing.driverNumber, {
+      gapToLeader: timing.gapToLeader,
+      intervalToAhead: timing.intervalToAhead,
+    });
+  }
+
+  return intervals;
 }
 
 function getLapAnalytics(rows: TimingRow[]): LapAnalytics {

@@ -21,6 +21,7 @@ import {
   saveFantasyPrediction,
 } from "@/app/fantasy/actions";
 import { FantasyLockCountdown } from "@/components/fantasy/fantasy-lock-countdown";
+import { FantasyLeagueAvatar } from "@/components/fantasy/fantasy-league-avatar";
 import { PredictionShareModalLauncher } from "@/components/fantasy/PredictionShareModal";
 import { AppShell } from "@/components/racemate/app-shell";
 import { PageTitle } from "@/components/racemate/page-title";
@@ -770,12 +771,11 @@ function LeagueList({
           leagues.map((league) => {
             const content = (
               <>
-                <span
-                  aria-hidden="true"
-                  className="grid size-11 shrink-0 place-items-center rounded-md border border-border/70 bg-secondary/40 font-display text-sm font-extrabold text-primary"
-                >
-                  {getLeagueInitials(league.name)}
-                </span>
+                <FantasyLeagueAvatar
+                  avatarUrl={league.avatarUrl}
+                  className="size-11"
+                  name={league.name}
+                />
                 <span className="min-w-0 flex-1">
                   <span className="flex min-w-0 flex-wrap items-center gap-2">
                     <span className="truncate font-display text-base font-bold">{league.name}</span>
@@ -925,17 +925,6 @@ function buildTeamPredictionFields(
       value: current?.fastestPitStopTeamId,
     },
   ];
-}
-
-function getLeagueInitials(name: string) {
-  return (
-    name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase())
-      .join("") || "Л"
-  );
 }
 
 function pluralize(value: number, forms: [string, string, string]) {

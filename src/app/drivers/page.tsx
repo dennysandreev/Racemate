@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GitCompareArrows, UsersRound } from "lucide-react";
 
-import { AppShell } from "@/components/racemate/app-shell";
 import { DriverDirectory } from "@/components/racemate/driver-directory";
 import { JsonLd } from "@/components/racemate/json-ld";
 import { PageTitle } from "@/components/racemate/page-title";
@@ -59,7 +58,7 @@ export default async function DriversPage({
   const drivers = teams.flatMap((team) => team.drivers);
 
   return (
-    <AppShell>
+    <>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -122,6 +121,6 @@ export default async function DriversPage({
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

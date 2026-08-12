@@ -5,7 +5,6 @@ import {
   ClipboardList,
   Settings,
   Trash2,
-  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -14,9 +13,11 @@ import {
   deleteFantasyLeague,
   updateFantasyLeague,
 } from "@/app/fantasy/actions";
+import { FantasyLeagueAvatarUploader } from "@/components/fantasy/fantasy-league-avatar-uploader";
 import { LeagueLeaveButton } from "@/components/fantasy/league-leave-button";
 import { LeagueInviteCodeCopy } from "@/components/fantasy/league-invite-code-copy";
 import { AppShell } from "@/components/racemate/app-shell";
+import { FantasyLeaderboardPanel } from "@/components/racemate/global-fantasy-leaderboard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getLeagueDetail } from "@/data/racemate-repository";
@@ -93,9 +94,9 @@ export default async function FantasyLeaguePage({
         <LeagueTabs activeView={activeView} leagueId={league.id} />
 
         {activeView === "rating" ? (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] xl:items-start">
+          <div className="grid gap-6">
+            <LeagueSeasonStandings currentUserId={user.id} members={league.members} />
             <TopUsersChart members={league.members} />
-            <LeagueSeasonStandings members={league.members} />
           </div>
         ) : (
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
@@ -132,10 +133,18 @@ function LeagueHero({ league }: { league: LeagueDetail }) {
               </Link>
             </Button>
 
-            <div className="mt-4 flex flex-wrap items-start gap-3">
-              <h1 className="min-w-0 flex-1 font-display text-balance text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
-                {league.name}
-              </h1>
+            <div className="mt-4 flex items-start gap-3 sm:gap-4">
+              <FantasyLeagueAvatarUploader
+                avatarUrl={league.avatarUrl}
+                canEdit={Boolean(league.isOwner)}
+                leagueId={league.id}
+                leagueName={league.name}
+              />
+              <div className="min-w-0 flex-1">
+                <h1 className="font-display text-balance text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
+                  {league.name}
+                </h1>
+              </div>
             </div>
 
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -220,14 +229,22 @@ function LeagueSettingsDisclosure({ league }: { league: LeagueDetail }) {
   );
 }
 
-function LeagueHeaderMetric({ label, value }: { label: string; value: string }) {
+function LeagueHeaderMetric({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div className="grid min-h-[4.75rem] place-items-center rounded-lg border border-border bg-background/45 p-2.5 text-center">
-      <div className="min-w-0">
-        <p className="truncate font-telemetry text-base font-bold text-primary">{value}</p>
-        <p className="mt-1 font-telemetry text-[0.6rem] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-          {label}
-        </p>
+      <div className="flex min-w-0 items-center justify-center gap-2">
+        <div className="min-w-0">
+          <p className="truncate font-telemetry text-base font-bold text-primary">{value}</p>
+          <p className="mt-1 font-telemetry text-[0.6rem] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+            {label}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -489,39 +506,29 @@ function PredictionsByRoundAccordion({
   );
 }
 
-function LeagueSeasonStandings({ members }: { members: LeagueMemberPrediction[] }) {
+function LeagueSeasonStandings({
+  currentUserId,
+  members,
+}: {
+  currentUserId: string;
+  members: LeagueMemberPrediction[];
+}) {
   return (
-    <section className="stitch-panel overflow-hidden">
-      <div className="flex items-center gap-2 border-b stitch-divider p-4">
-        <Trophy aria-hidden="true" className="size-5 text-primary" />
-        <h2 className="font-display text-xl font-bold">Рейтинг сезона</h2>
-      </div>
-      <div className="max-h-[34rem] overflow-y-auto p-3">
-        {members.length ? (
-          <div className="grid gap-2">
-            {members.map((member, index) => (
-              <div
-                className="grid grid-cols-[2rem_minmax(0,1fr)_4.5rem] items-center gap-3 rounded-lg border border-border bg-muted/25 p-3"
-                key={member.userId}
-              >
-                <span className="font-telemetry text-sm text-muted-foreground">#{index + 1}</span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{member.name}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {member.scoredCount} этапов · ср. {member.averageScore}
-                  </p>
-                </div>
-                <p className="font-telemetry text-right text-lg font-bold text-primary">
-                  {member.totalScore}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="p-2 text-sm text-muted-foreground">Рейтинг пока пуст.</p>
-        )}
-      </div>
-    </section>
+    <FantasyLeaderboardPanel
+      emptyText="Рейтинг появится после первых начисленных очков."
+      rows={members.map((member, index) => ({
+        averageScore: member.averageScore,
+        bestScore: member.bestScore,
+        displayName: member.name,
+        isCurrentUser: member.userId === currentUserId,
+        key: member.userId,
+        predictionCount: member.scoredCount,
+        rank: index + 1,
+        totalScore: member.totalScore,
+      }))}
+      subtitle="Участники этой лиги за сезон"
+      title="Лидерборд лиги"
+    />
   );
 }
 

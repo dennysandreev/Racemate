@@ -113,6 +113,13 @@ export async function writeZandvoortClientModel({
       turnLabelOffsets,
     },
     terrain: "__TERRAIN__",
+    webgl: {
+      assetPath: "/f1/tracks/3d/zandvoort.glb",
+      camera: { fitHeight: 1_600, fitWidth: 1_900, lookAtY: 8, radius: 2_650 },
+      elevationDatumLabel: "м NAP",
+      previewPath: "/f1/tracks/3d/zandvoort-preview.webp",
+      turnCount: 14,
+    },
   }, null, 2)
     .replace('"__MODEL__"', "ZANDVOORT_MODEL")
     .replace('"__TERRAIN__"', "ZANDVOORT_TERRAIN")} satisfies TrackModelDefinition;\n`;

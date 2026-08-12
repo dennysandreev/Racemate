@@ -7,6 +7,10 @@ export const TRACK_MODEL_MIN_ZOOM = 0.82;
 export const TRACK_MODEL_MAX_ZOOM = 8;
 export const TRACK_MODEL_ZOOM_STEP = 0.25;
 
+export function trackModelCameraPolarDeg(tiltDeg: number) {
+  return Math.min(72, Math.max(40, 48 + (tiltDeg - 10) * 0.34));
+}
+
 export type TrackModelCameraState = {
   pan: TrackModelPan;
   rotationDeg: number;
@@ -109,6 +113,46 @@ export function orbitTrackModelCamera({
       Math.max(minimumTiltDeg, startTiltDeg + deltaY * tiltSensitivity),
     ),
   };
+}
+
+export function preserveTrackModelOrbitFocus({
+  nextRotationDeg,
+  nextTiltDeg,
+  pan,
+  startRotationDeg,
+  startTiltDeg,
+  viewportAspectRatio = 1,
+  zoom,
+}: {
+  nextRotationDeg: number;
+  nextTiltDeg: number;
+  pan: TrackModelPan;
+  startRotationDeg: number;
+  startTiltDeg: number;
+  viewportAspectRatio?: number;
+  zoom: number;
+}) {
+  if (pan.x === 0 && pan.y === 0) {
+    return pan;
+  }
+
+  // Three.js orbits the camera around the glTF scene, so the preserved ground
+  // focus must be transformed by the inverse azimuth delta.
+  const delta = ((startRotationDeg - nextRotationDeg) * Math.PI) / 180;
+  const startVerticalScale = Math.cos((trackModelCameraPolarDeg(startTiltDeg) * Math.PI) / 180);
+  const nextVerticalScale = Math.cos((trackModelCameraPolarDeg(nextTiltDeg) * Math.PI) / 180);
+  const horizontalFocus = pan.x * viewportAspectRatio;
+  const depthFocus = -pan.y / Math.max(startVerticalScale, 0.001);
+  const rotatedHorizontal = horizontalFocus * Math.cos(delta) - depthFocus * Math.sin(delta);
+  const rotatedDepth = horizontalFocus * Math.sin(delta) + depthFocus * Math.cos(delta);
+
+  return clampTrackModelPan(
+    {
+      x: rotatedHorizontal / Math.max(viewportAspectRatio, 0.001),
+      y: -rotatedDepth * nextVerticalScale,
+    },
+    zoom,
+  );
 }
 
 export function normalizeDegrees(value: number) {

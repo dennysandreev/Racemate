@@ -17,7 +17,7 @@ export default function DriversError({
   }, [error]);
 
   return (
-    <main className="grid min-h-[100dvh] place-items-center px-4 py-20">
+    <div className="grid min-h-[70dvh] place-items-center py-12">
       <section className="stitch-panel relative w-full max-w-2xl overflow-hidden p-6 text-center sm:p-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgb(225_6_0_/_0.2),transparent_22rem)]" />
         <div className="relative">
@@ -30,6 +30,6 @@ export default function DriversError({
           <Button className="mt-6" onClick={reset}>Попробовать еще раз</Button>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

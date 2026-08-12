@@ -1,0 +1,43 @@
+const GRAND_PRIX_NAMES_RU: Record<string, string> = {
+  "70th Anniversary Grand Prix": "Гран-при 70-летия Формулы-1",
+  "Abu Dhabi Grand Prix": "Гран-при Абу-Даби",
+  "Australian Grand Prix": "Гран-при Австралии",
+  "Austrian Grand Prix": "Гран-при Австрии",
+  "Azerbaijan Grand Prix": "Гран-при Азербайджана",
+  "Bahrain Grand Prix": "Гран-при Бахрейна",
+  "Bahrain Grand Prix in Malaysia": "Гран-при Бахрейна в Малайзии",
+  "Barcelona Grand Prix": "Гран-при Барселоны",
+  "Belgian Grand Prix": "Гран-при Бельгии",
+  "Brazilian Grand Prix": "Гран-при Бразилии",
+  "British Grand Prix": "Гран-при Великобритании",
+  "Canadian Grand Prix": "Гран-при Канады",
+  "Chinese Grand Prix": "Гран-при Китая",
+  "Dutch Grand Prix": "Гран-при Нидерландов",
+  "Eifel Grand Prix": "Гран-при Айфеля",
+  "Emilia Romagna Grand Prix": "Гран-при Эмилии-Романьи",
+  "French Grand Prix": "Гран-при Франции",
+  "Hungarian Grand Prix": "Гран-при Венгрии",
+  "Italian Grand Prix": "Гран-при Италии",
+  "Japanese Grand Prix": "Гран-при Японии",
+  "Las Vegas Grand Prix": "Гран-при Лас-Вегаса",
+  "Mexico City Grand Prix": "Гран-при Мехико",
+  "Miami Grand Prix": "Гран-при Майами",
+  "Monaco Grand Prix": "Гран-при Монако",
+  "Portuguese Grand Prix": "Гран-при Португалии",
+  "Qatar Grand Prix": "Гран-при Катара",
+  "Russian Grand Prix": "Гран-при России",
+  "Sakhir Grand Prix": "Гран-при Сахира",
+  "Saudi Arabian Grand Prix": "Гран-при Саудовской Аравии",
+  "Singapore Grand Prix": "Гран-при Сингапура",
+  "Spanish Grand Prix": "Гран-при Испании",
+  "Styrian Grand Prix": "Гран-при Штирии",
+  "São Paulo Grand Prix": "Гран-при Сан-Паулу",
+  "Turkish Grand Prix": "Гран-при Турции",
+  "Tuscan Grand Prix": "Гран-при Тосканы",
+  "United States Grand Prix": "Гран-при США",
+};
+
+export function formatGrandPrixNameRu(raceName: string) {
+  const normalized = raceName.trim();
+  return GRAND_PRIX_NAMES_RU[normalized] ?? normalized;
+}

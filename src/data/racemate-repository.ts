@@ -12,6 +12,7 @@ import { getSocialMediaDeliveryUrl } from "@/lib/social-media-storage";
 import { getOrCreatePredictionShareUrl } from "@/lib/share-links";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { getDriverSeasonNumberOverride } from "@/lib/driver-season-number";
+import { getFantasyLeagueAvatarUrl } from "@/lib/fantasy-league-avatar";
 import {
   getPolymarketRaceMatchTerms,
   isPolymarketEventForRace,
@@ -755,6 +756,8 @@ type GlobalProfileRow = {
 };
 
 type LeagueDbRow = {
+  avatar_path: string | null;
+  avatar_updated_at: string | null;
   id: string;
   is_public?: boolean;
   owner_user_id: string;
@@ -5139,14 +5142,14 @@ export async function getLeagues(userId?: string | null): Promise<LeagueSummary[
   const [publicResult, ownedResult, membershipsResult] = await Promise.all([
     db
       .from("prediction_leagues")
-      .select("id, owner_user_id, name, invite_code, is_public, profiles:owner_user_id(display_name, email)")
+      .select("id, owner_user_id, name, invite_code, is_public, avatar_path, avatar_updated_at, profiles:owner_user_id(display_name, email)")
       .eq("is_public", true)
       .order("created_at", { ascending: false })
       .limit(50),
     userId
       ? db
           .from("prediction_leagues")
-          .select("id, owner_user_id, name, invite_code, is_public, profiles:owner_user_id(display_name, email)")
+          .select("id, owner_user_id, name, invite_code, is_public, avatar_path, avatar_updated_at, profiles:owner_user_id(display_name, email)")
           .eq("owner_user_id", userId)
           .order("created_at", { ascending: false })
           .limit(50)
@@ -5167,7 +5170,7 @@ export async function getLeagues(userId?: string | null): Promise<LeagueSummary[
   if (memberLeagueIds.size) {
     const { data: memberLeagueData } = await db
       .from("prediction_leagues")
-      .select("id, owner_user_id, name, invite_code, is_public, profiles:owner_user_id(display_name, email)")
+      .select("id, owner_user_id, name, invite_code, is_public, avatar_path, avatar_updated_at, profiles:owner_user_id(display_name, email)")
       .in("id", [...memberLeagueIds])
       .order("created_at", { ascending: false });
 
@@ -5188,17 +5191,24 @@ export async function getLeagues(userId?: string | null): Promise<LeagueSummary[
   }
 
   const summaries = [...merged.values()]
-    .map((league) => ({
-      id: league.id,
-      isMember: userId ? league.owner_user_id === userId || memberLeagueIds.has(league.id) : false,
-      isOwner: userId ? league.owner_user_id === userId : false,
-      isPublic: Boolean(league.is_public),
-      name: league.name,
-      members: 1,
-      leader: getProfileName(league.profiles),
-      score: 0,
-      inviteCode: league.invite_code,
-    }));
+    .map((league) => {
+      return {
+        avatarUrl: getFantasyLeagueAvatarUrl({
+          avatarPath: league.avatar_path,
+          avatarUpdatedAt: league.avatar_updated_at,
+          leagueId: league.id,
+        }),
+        id: league.id,
+        isMember: userId ? league.owner_user_id === userId || memberLeagueIds.has(league.id) : false,
+        isOwner: userId ? league.owner_user_id === userId : false,
+        isPublic: Boolean(league.is_public),
+        name: league.name,
+        members: 1,
+        leader: getProfileName(league.profiles),
+        score: 0,
+        inviteCode: league.invite_code,
+      };
+    });
 
   const hydrated = await hydrateLeagueScores(summaries);
 
@@ -5228,7 +5238,7 @@ export async function getLeagueDetail(
   const db = admin ?? supabase;
   const { data: league } = await db
     .from("prediction_leagues")
-    .select("id, owner_user_id, name, invite_code, is_public")
+    .select("id, owner_user_id, name, invite_code, is_public, avatar_path, avatar_updated_at")
     .eq("id", leagueId)
     .maybeSingle();
 
@@ -5264,6 +5274,11 @@ export async function getLeagueDetail(
 
   if (!memberIds.length) {
     return {
+      avatarUrl: getFantasyLeagueAvatarUrl({
+        avatarPath: league.avatar_path,
+        avatarUpdatedAt: league.avatar_updated_at,
+        leagueId: league.id,
+      }),
       id: league.id,
       isOwner,
       isPublic,
@@ -5344,6 +5359,11 @@ export async function getLeagueDetail(
     .sort((a, b) => b.totalScore - a.totalScore || b.scoredCount - a.scoredCount || a.name.localeCompare(b.name));
 
   return {
+    avatarUrl: getFantasyLeagueAvatarUrl({
+      avatarPath: league.avatar_path,
+      avatarUpdatedAt: league.avatar_updated_at,
+      leagueId: league.id,
+    }),
     id: league.id,
     isOwner,
     isPublic,
@@ -5399,7 +5419,10 @@ async function hydrateLeagueScores(summaries: LeagueSummary[]) {
   }
 
   const [profilesResult, predictionsResult] = await Promise.all([
-    admin.from("profiles").select("id, display_name, email").in("id", userIds),
+    admin
+      .from("profiles")
+      .select("id, display_name, email")
+      .in("id", userIds),
     admin
       .from("predictions")
       .select("user_id, score")
@@ -6320,7 +6343,7 @@ async function loadRaceReplaySnapshot(
     return null;
   }
 
-  const [{ data, error }, lapTimingRows] = await Promise.all([
+  const [{ data, error }, replayEventRows] = await Promise.all([
     supabase
       .from("race_replay_sessions")
       .select("id, source_session_key, snapshot, races!inner(season_year)")
@@ -6329,7 +6352,7 @@ async function loadRaceReplaySnapshot(
       .eq("races.season_year", targetSeason)
       .eq("status", "ready")
       .maybeSingle(),
-    loadReplayLapTimingRows(supabase, replaySessionId),
+    loadReplayDataEventRows(supabase, replaySessionId),
   ]);
 
   if (error || !data) {
@@ -6338,26 +6361,63 @@ async function loadRaceReplaySnapshot(
 
   const snapshot = normalizeRaceReplaySnapshot(data.snapshot, data.id, data.source_session_key);
 
-  if (snapshot && !snapshot.lapTimings?.length) {
-    snapshot.lapTimings = normalizeReplayLapTimings(lapTimingRows.map((row) => row.payload));
+  if (snapshot) {
+    const positionRows = replayEventRows.filter((row) => row.event_type === "position");
+    const positionTimingRows = replayEventRows.filter((row) => row.event_type === "position_timing");
+    const intervalTimingRows = replayEventRows.filter((row) => row.event_type === "interval_timing");
+    const lapTimingRows = replayEventRows.filter((row) => row.event_type === "lap_timing");
+
+    snapshot.positions = mergeReplayPositions(
+      snapshot.positions,
+      normalizeReplayPositions(positionRows.map((row) => row.payload)),
+    );
+    snapshot.lapTimings = mergeReplayLapTimings(
+      snapshot.lapTimings,
+      normalizeReplayLapTimings(lapTimingRows.map((row) => row.payload)),
+    );
+    snapshot.positionTimings = mergeReplayPositionTimings(
+      snapshot.positionTimings,
+      normalizeReplayPositionTimings(positionTimingRows.map((row) => row.payload)),
+    );
+    snapshot.intervalTimings = mergeReplayIntervalTimings(
+      snapshot.intervalTimings,
+      normalizeReplayIntervalTimings(intervalTimingRows.map((row) => row.payload)),
+    );
   }
 
   return snapshot;
 }
 
-async function loadReplayLapTimingRows(
+function mergeReplayLapTimings(
+  snapshotTimings: RaceReplaySnapshot["lapTimings"],
+  eventTimings: RaceReplaySnapshot["lapTimings"],
+) {
+  const merged = new Map<string, NonNullable<RaceReplaySnapshot["lapTimings"]>[number]>();
+
+  for (const timing of [...(snapshotTimings ?? []), ...(eventTimings ?? [])]) {
+    merged.set(`${timing.driverNumber}:${timing.lapNumber}`, timing);
+  }
+
+  return [...merged.values()].sort((a, b) =>
+    a.driverNumber - b.driverNumber ||
+    a.lapNumber - b.lapNumber ||
+    a.startOffsetMs - b.startOffsetMs,
+  );
+}
+
+async function loadReplayDataEventRows(
   supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
   replaySessionId: string,
 ) {
-  const rows: Array<{ payload: unknown }> = [];
+  const rows: Array<{ event_type: string; payload: unknown }> = [];
   const pageSize = 1_000;
 
   for (let start = 0; ; start += pageSize) {
     const { data, error } = await supabase
       .from("race_replay_events")
-      .select("payload")
+      .select("event_type, payload")
       .eq("replay_session_id", replaySessionId)
-      .eq("event_type", "lap_timing")
+      .in("event_type", ["position", "lap_timing", "position_timing", "interval_timing"])
       .order("offset_ms", { ascending: true })
       .range(start, start + pageSize - 1);
 
@@ -6403,6 +6463,8 @@ function normalizeRaceReplaySnapshot(value: unknown, replaySessionId: string, so
     drivers: snapshot.drivers,
     durationMs: Number(snapshot.durationMs ?? 0),
     lapTimings: normalizeReplayLapTimings(snapshot.lapTimings),
+    intervalTimings: normalizeReplayIntervalTimings(snapshot.intervalTimings),
+    positionTimings: Array.isArray(snapshot.positionTimings) ? snapshot.positionTimings : undefined,
     positions: snapshot.positions,
     raceEvents: Array.isArray(snapshot.raceEvents) ? snapshot.raceEvents : [],
     raceName: String(snapshot.raceName ?? "Повтор гонки"),
@@ -6413,6 +6475,75 @@ function normalizeRaceReplaySnapshot(value: unknown, replaySessionId: string, so
     track: snapshot.track,
     weather: snapshot.weather ?? null,
   };
+}
+
+function normalizeReplayPositions(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is RaceReplaySnapshot["positions"][number] =>
+        Boolean(entry) && typeof entry === "object" &&
+        Number.isFinite(Number((entry as { driverNumber?: unknown }).driverNumber)) &&
+        Number.isFinite(Number((entry as { offsetMs?: unknown }).offsetMs)) &&
+        Number.isFinite(Number((entry as { progress?: unknown }).progress)),
+      )
+    : [];
+}
+
+function mergeReplayPositions(
+  snapshotPositions: RaceReplaySnapshot["positions"],
+  eventPositions: RaceReplaySnapshot["positions"],
+) {
+  const eventDrivers = new Set(eventPositions.map((position) => position.driverNumber));
+  const merged = [
+    ...snapshotPositions.filter((position) => !eventDrivers.has(position.driverNumber)),
+    ...eventPositions,
+  ];
+
+  return merged.sort((a, b) => a.offsetMs - b.offsetMs || a.driverNumber - b.driverNumber);
+}
+
+function normalizeReplayPositionTimings(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is NonNullable<RaceReplaySnapshot["positionTimings"]>[number] =>
+        Boolean(entry) && typeof entry === "object" &&
+        Number.isFinite(Number((entry as { driverNumber?: unknown }).driverNumber)) &&
+        Number.isFinite(Number((entry as { offsetMs?: unknown }).offsetMs)) &&
+        Number.isFinite(Number((entry as { position?: unknown }).position)),
+      )
+    : [];
+}
+
+function mergeReplayPositionTimings(
+  snapshotTimings: RaceReplaySnapshot["positionTimings"],
+  eventTimings: RaceReplaySnapshot["positionTimings"],
+) {
+  const eventDrivers = new Set((eventTimings ?? []).map((timing) => timing.driverNumber));
+
+  return [
+    ...(snapshotTimings ?? []).filter((timing) => !eventDrivers.has(timing.driverNumber)),
+    ...(eventTimings ?? []),
+  ].sort((a, b) => a.offsetMs - b.offsetMs || a.driverNumber - b.driverNumber);
+}
+
+function normalizeReplayIntervalTimings(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is NonNullable<RaceReplaySnapshot["intervalTimings"]>[number] =>
+        Boolean(entry) && typeof entry === "object" &&
+        Number.isFinite(Number((entry as { driverNumber?: unknown }).driverNumber)) &&
+        Number.isFinite(Number((entry as { offsetMs?: unknown }).offsetMs)),
+      )
+    : [];
+}
+
+function mergeReplayIntervalTimings(
+  snapshotTimings: RaceReplaySnapshot["intervalTimings"],
+  eventTimings: RaceReplaySnapshot["intervalTimings"],
+) {
+  const eventDrivers = new Set((eventTimings ?? []).map((timing) => timing.driverNumber));
+
+  return [
+    ...(snapshotTimings ?? []).filter((timing) => !eventDrivers.has(timing.driverNumber)),
+    ...(eventTimings ?? []),
+  ].sort((a, b) => a.offsetMs - b.offsetMs || a.driverNumber - b.driverNumber);
 }
 
 function normalizeReplayLapTimings(value: unknown) {
@@ -6704,6 +6835,7 @@ function mapSessionResultRows(
         grid: row.grid,
         laps: row.laps,
         points: row.points === null ? null : Number(row.points),
+        bestLap: getFastestLapTimeFromPayload(row.raw_payload),
       };
     });
 }
@@ -7511,34 +7643,27 @@ function countFastestLaps(
 }
 
 function hasFastestLap(result?: DriverSessionResultDbRow | null) {
-  if (!result?.raw_payload || typeof result.raw_payload !== "object" || Array.isArray(result.raw_payload)) {
+  const fastestLap = getFastestLapRecord(result?.raw_payload);
+
+  if (!fastestLap) {
     return false;
   }
 
-  const payload = result.raw_payload as Record<string, unknown>;
-  const fastestLap = payload.FastestLap ?? payload.fastestLap;
-
-  if (!fastestLap || typeof fastestLap !== "object" || Array.isArray(fastestLap)) {
-    return false;
-  }
-
-  return String((fastestLap as Record<string, unknown>).rank ?? "") === "1";
+  return String(fastestLap.rank ?? "") === "1";
 }
 
 function getFastestLapTime(result?: DriverSessionResultDbRow | null) {
-  if (!result?.raw_payload || typeof result.raw_payload !== "object" || Array.isArray(result.raw_payload)) {
+  return getFastestLapTimeFromPayload(result?.raw_payload);
+}
+
+function getFastestLapTimeFromPayload(rawPayload: unknown) {
+  const fastestLap = getFastestLapRecord(rawPayload);
+
+  if (!fastestLap) {
     return null;
   }
 
-  const payload = result.raw_payload as Record<string, unknown>;
-  const fastestLap = payload.FastestLap ?? payload.fastestLap;
-
-  if (!fastestLap || typeof fastestLap !== "object" || Array.isArray(fastestLap)) {
-    return null;
-  }
-
-  const fastestLapRecord = fastestLap as Record<string, unknown>;
-  const time = fastestLapRecord.Time ?? fastestLapRecord.time;
+  const time = fastestLap.Time ?? fastestLap.time ?? fastestLap.lapTime;
 
   if (typeof time === "string") {
     return time.trim() || null;
@@ -7550,6 +7675,21 @@ function getFastestLapTime(result?: DriverSessionResultDbRow | null) {
 
   const timeValue = (time as Record<string, unknown>).time;
   return typeof timeValue === "string" && timeValue.trim() ? timeValue.trim() : null;
+}
+
+function getFastestLapRecord(rawPayload: unknown) {
+  if (!rawPayload || typeof rawPayload !== "object" || Array.isArray(rawPayload)) {
+    return null;
+  }
+
+  const payload = rawPayload as Record<string, unknown>;
+  const fastestLap = payload.FastestLap ?? payload.fastestLap;
+
+  if (!fastestLap || typeof fastestLap !== "object" || Array.isArray(fastestLap)) {
+    return null;
+  }
+
+  return fastestLap as Record<string, unknown>;
 }
 
 function averageNumber(values: number[]) {

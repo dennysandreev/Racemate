@@ -63,6 +63,7 @@
     "telegram:authorize": "node scripts/telegram-authorize.mjs",
     "lint": "eslint .",
     "test:fantasy-scoring": "node scripts/check-fantasy-scoring.mjs",
+    "test:fantasy-league-avatar": "node --experimental-strip-types --experimental-default-type=module --test src/lib/fantasy-league-avatar.test.mjs",
     "test:notifications": "node --test worker/notification-rules.test.mjs worker/job-run-policy.test.mjs",
     "test:ai-usage": "node --test worker/ai-usage.test.mjs",
     "test:openf1-results": "node --test worker/openf1-session-results.test.mjs",

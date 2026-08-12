@@ -821,6 +821,8 @@ export type RaceReplaySnapshot = {
   track: TrackMapDefinition;
   drivers: ReplayDriverState[];
   lapTimings?: ReplayLapTiming[];
+  intervalTimings?: ReplayIntervalTiming[];
+  positionTimings?: ReplayPositionTiming[];
   positions: ReplayPositionEvent[];
   raceEvents: ReplayRaceEvent[];
   weather: {
@@ -829,6 +831,19 @@ export type RaceReplaySnapshot = {
     rainfall?: number | null;
     windSpeedKmh?: number | null;
   } | null;
+};
+
+export type ReplayPositionTiming = {
+  driverNumber: number;
+  offsetMs: number;
+  position: number;
+};
+
+export type ReplayIntervalTiming = {
+  driverNumber: number;
+  gapToLeader: string | null;
+  intervalToAhead: string | null;
+  offsetMs: number;
 };
 
 export type RaceReplaySummary = {
@@ -854,6 +869,7 @@ export type SessionResult = {
   grid: number | null;
   laps: number | null;
   points: number | null;
+  bestLap?: string | null;
 };
 
 export type GrandPrixReportStatus =
@@ -940,6 +956,7 @@ export type WeekendWeather = {
 };
 
 export type LeagueSummary = {
+  avatarUrl?: string | null;
   id?: string;
   isMember?: boolean;
   isOwner?: boolean;
@@ -1044,6 +1061,7 @@ export type LeagueHistoryEntry = {
 };
 
 export type LeagueDetail = {
+  avatarUrl?: string | null;
   id: string;
   isOwner?: boolean;
   isPublic?: boolean;

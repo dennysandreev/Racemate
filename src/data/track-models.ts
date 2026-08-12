@@ -76,6 +76,7 @@ export const TRACK_MODEL_ALIASES = {
     "british grand prix",
     "гран-при великобритании",
     "great britain",
+    "великобритания",
   ],
   spa: [
     "circuit de spa-francorchamps",

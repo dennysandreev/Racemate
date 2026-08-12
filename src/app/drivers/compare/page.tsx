@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, GitCompareArrows } from "lucide-react";
 
-import { AppShell } from "@/components/racemate/app-shell";
 import { DriverComparison } from "@/components/racemate/driver-comparison";
 import { PageTitle } from "@/components/racemate/page-title";
 import { SeasonSwitcher } from "@/components/racemate/season-switcher";
@@ -63,8 +62,7 @@ export default async function DriverComparisonPage({
   );
 
   return (
-    <AppShell>
-      <div className="grid gap-5 pb-6 sm:pb-8">
+    <div className="grid gap-5 pb-6 sm:pb-8">
         <header className="stitch-panel relative overflow-hidden p-4 sm:p-5 lg:h-40">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgb(225_6_0_/_0.22),transparent_22rem),linear-gradient(135deg,rgb(255_255_255_/_0.04),transparent_48%)]" />
           <div className="relative z-10 flex h-full flex-col">
@@ -105,7 +103,6 @@ export default async function DriverComparisonPage({
           leftSlug={selection.left}
           rightSlug={selection.right}
         />
-      </div>
-    </AppShell>
+    </div>
   );
 }

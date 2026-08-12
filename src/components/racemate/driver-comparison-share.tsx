@@ -13,19 +13,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { createDriverComparisonShareCode } from "@/lib/driver-comparison";
 
 export function DriverComparisonShare({
+  leftCode,
   leftName,
   leftSlug,
   raceName,
+  rightCode,
   rightName,
   rightSlug,
   round,
   season,
 }: {
+  leftCode?: string;
   leftName: string;
   leftSlug: string;
   raceName: string;
+  rightCode?: string;
   rightName: string;
   rightSlug: string;
   round: number;
@@ -47,6 +52,13 @@ export function DriverComparisonShare({
   }, [leftSlug, rightSlug, round, season]);
   const comparisonPath = `/drivers/compare?${params}`;
   const imagePath = `/api/share-image/drivers/compare?${params}`;
+  const shareCode = createDriverComparisonShareCode(
+    season,
+    round,
+    leftCode,
+    rightCode,
+  );
+  const sharePath = shareCode ? `/c/${shareCode}` : comparisonPath;
   const fileName = `raceside-${leftSlug}-${rightSlug}-round-${round}.png`;
   const title = `${leftName} и ${rightName} - сравнение RaceSide`;
   const text = `${leftName} и ${rightName} после ${raceName}, этап ${round} сезона ${season}.`;
@@ -67,8 +79,8 @@ export function DriverComparisonShare({
     statusTimer.current = window.setTimeout(() => setStatus(null), 2200);
   }
 
-  function getAbsoluteComparisonUrl() {
-    return new URL(comparisonPath, window.location.origin).toString();
+  function getAbsoluteShareUrl() {
+    return new URL(sharePath, window.location.origin).toString();
   }
 
   async function getImageFile() {
@@ -83,7 +95,7 @@ export function DriverComparisonShare({
   }
 
   async function copyLink() {
-    const shareUrl = getAbsoluteComparisonUrl();
+    const shareUrl = getAbsoluteShareUrl();
 
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -94,7 +106,7 @@ export function DriverComparisonShare({
   }
 
   async function shareComparison() {
-    const shareUrl = getAbsoluteComparisonUrl();
+    const shareUrl = getAbsoluteShareUrl();
 
     if (!navigator.share) {
       await copyLink();
@@ -102,20 +114,8 @@ export function DriverComparisonShare({
     }
 
     try {
-      const file = await getImageFile();
-
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          text: `${text}\n${shareUrl}`,
-          title,
-          url: shareUrl,
-        });
-        return;
-      }
-
       await navigator.share({ text, title, url: shareUrl });
-      showStatus("Ссылка отправлена. PNG можно скачать отдельно");
+      showStatus("Ссылка отправлена");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
@@ -160,18 +160,18 @@ export function DriverComparisonShare({
           <span className="sr-only sm:hidden">Поделиться сравнением</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[92dvh] overflow-y-auto p-0 sm:max-w-4xl">
-        <DialogHeader className="border-b border-border p-5 pb-4">
+      <DialogContent className="max-h-[92dvh] gap-0 overflow-y-auto p-0 sm:max-w-4xl lg:h-[92dvh] lg:max-h-[46rem] lg:grid-rows-[auto_minmax(0,1fr)] lg:overflow-hidden">
+        <DialogHeader className="border-b border-border p-5">
           <DialogTitle>Поделиться сравнением</DialogTitle>
-          <DialogDescription>
-            PNG включает показатели сезона и результаты выбранного этапа.
+          <DialogDescription className="sr-only">
+            Превью сравнения и действия для отправки.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start">
-          <div className="overflow-hidden rounded-lg border border-border bg-background/45">
+        <div className="grid gap-5 p-4 sm:p-5 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-stretch">
+          <div className="overflow-hidden rounded-lg border border-border bg-background/45 lg:min-h-0">
             {imageFailed ? (
-              <div className="grid aspect-[4/5] place-items-center p-6 text-center">
+              <div className="grid aspect-[4/5] place-items-center p-6 text-center lg:h-full lg:aspect-auto">
                 <div className="grid max-w-xs justify-items-center gap-3">
                   <span className="grid size-12 place-items-center rounded-md bg-primary/10 text-primary">
                     <ImageIcon aria-hidden="true" className="size-6" />
@@ -188,7 +188,7 @@ export function DriverComparisonShare({
             ) : (
               <Image
                 alt={`Сравнение ${leftName} и ${rightName} после ${raceName}`}
-                className="block aspect-[4/5] w-full object-cover"
+                className="block aspect-[4/5] w-full object-cover lg:h-full lg:aspect-auto lg:object-contain"
                 height={1350}
                 onError={() => setImageFailed(true)}
                 src={imagePath}
@@ -198,7 +198,7 @@ export function DriverComparisonShare({
             )}
           </div>
 
-          <div className="grid gap-3">
+          <div className="grid content-start gap-3">
             <Button className="h-12 w-full" onClick={shareComparison} type="button">
               <Share2 aria-hidden="true" data-icon="inline-start" />
               Поделиться

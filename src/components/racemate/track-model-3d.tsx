@@ -11,7 +11,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import {
   type Dispatch,
   type SetStateAction,
@@ -36,6 +35,7 @@ import {
   normalizeDegrees,
   orbitTrackModelCamera,
   pinchTrackModelCamera,
+  preserveTrackModelOrbitFocus,
   TRACK_MODEL_MAX_ZOOM,
   TRACK_MODEL_MIN_ZOOM,
   TRACK_MODEL_ZOOM_STEP,
@@ -59,7 +59,7 @@ import { cn } from "@/lib/utils";
 const TrackModelWebGL = dynamic(
   () => import("@/components/racemate/track-model-webgl").then((module) => module.TrackModelWebGL),
   {
-    loading: () => <TrackModelWebGLLoading />,
+    loading: () => null,
     ssr: false,
   },
 );
@@ -288,11 +288,26 @@ function TrackModelViewport({
   }
 
   function setOrbit(nextRotationDeg: number, nextTiltDeg: number) {
+    const current = cameraStateRef.current;
+    const viewportBounds = viewportRef.current?.getBoundingClientRect();
+    const nextPan = preserveTrackModelOrbitFocus({
+      nextRotationDeg,
+      nextTiltDeg,
+      pan: current.pan,
+      startRotationDeg: current.rotationDeg,
+      startTiltDeg: tiltRef.current,
+      viewportAspectRatio: model.webgl && viewportBounds
+        ? viewportBounds.width / viewportBounds.height
+        : 1,
+      zoom: current.zoom,
+    });
     cameraStateRef.current = {
-      ...cameraStateRef.current,
+      ...current,
+      pan: nextPan,
       rotationDeg: nextRotationDeg,
     };
     tiltRef.current = nextTiltDeg;
+    setPan(nextPan);
     setRotationDeg(nextRotationDeg);
     setTiltDeg(nextTiltDeg);
   }
@@ -502,14 +517,19 @@ function TrackModelViewport({
       ref={viewportRef}
       tabIndex={0}
     >
-      {model.id === "zandvoort" ? (
+      {model.webgl ? (
         <TrackModelWebGL
+          assetPath={model.webgl.assetPath}
+          camera={model.webgl.camera}
           circuit={circuit}
+          elevationDatumLabel={model.webgl.elevationDatumLabel}
           panX={pan.x}
           panY={pan.y}
+          previewPath={model.webgl.previewPath}
           rotationDeg={rotationDeg}
           showElevationAnchors={fullscreen}
           tiltDeg={tiltDeg}
+          turnCount={model.webgl.turnCount}
           zoom={zoom}
         />
       ) : (
@@ -520,7 +540,7 @@ function TrackModelViewport({
         aria-hidden="true"
         className={cn(
           "pointer-events-none absolute inset-0",
-          model.id === "zandvoort" && "hidden",
+          model.webgl && "hidden",
         )}
       >
         <span
@@ -545,7 +565,7 @@ function TrackModelViewport({
         <span
           className={cn(
             "absolute translate-x-[10%] -translate-y-[220%] whitespace-nowrap rounded border border-[var(--track-model-height-border)] bg-[var(--track-model-height-bg)] px-2 py-1.5 text-left text-[0.6rem] font-semibold leading-tight text-[var(--track-model-height-text)] shadow-sm sm:-translate-y-[180%]",
-            model.id === "zandvoort" && "hidden @md/track:block",
+            model.webgl && "hidden @md/track:block",
           )}
           style={{
             left: annotationPosition(
@@ -564,7 +584,7 @@ function TrackModelViewport({
         <span
           className={cn(
             "absolute whitespace-nowrap rounded border border-[var(--track-model-height-border)] bg-[var(--track-model-height-bg)] px-2 py-1.5 text-left text-[0.6rem] font-semibold leading-tight text-[var(--track-model-height-text)] shadow-sm",
-            model.id === "zandvoort" ? "hidden" : "hidden @md/track:block",
+            model.webgl ? "hidden" : "hidden @md/track:block",
           )}
           style={{
             left: annotationPosition(
@@ -646,7 +666,7 @@ function TrackModelViewport({
         </Button>
       </div>
 
-      <figcaption className="absolute bottom-1 left-2 right-2 flex flex-nowrap items-end gap-1.5 sm:gap-2">
+      <figcaption className="absolute bottom-1 left-2 right-2 z-30 flex flex-nowrap items-end gap-1.5 sm:gap-2">
         <div className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded border border-border bg-background/90 px-2 text-[0.68rem] font-bold text-foreground shadow-sm sm:px-2.5">
           {SECTOR_TOKEN_NAMES.map((token, index) => (
             <span className="flex items-center gap-1.5" key={token}>
@@ -727,21 +747,6 @@ function ElevationProfile({ scene }: { scene: ReturnType<typeof createTrackModel
         {scene.definition.data.elevationChangeM} м
       </strong>
     </span>
-  );
-}
-
-function TrackModelWebGLLoading() {
-  return (
-    <Image
-      alt=""
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 size-full object-contain"
-      draggable={false}
-      fill
-      loading="eager"
-      sizes="(max-width: 768px) 100vw, 720px"
-      src="/f1/tracks/3d/zandvoort-preview.webp"
-    />
   );
 }
 

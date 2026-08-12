@@ -1,0 +1,1770 @@
+{
+  "boundsMeters": {
+    "depth": 1670,
+    "width": 1650
+  },
+  "coordinateReferenceSystem": "EPSG:32634 + source DEM metres",
+  "elevationProfile": [
+    {
+      "distanceMeters": 0.0,
+      "elevationMeters": 238.098
+    },
+    {
+      "distanceMeters": 24.42,
+      "elevationMeters": 238.838
+    },
+    {
+      "distanceMeters": 48.84,
+      "elevationMeters": 239.213
+    },
+    {
+      "distanceMeters": 73.26,
+      "elevationMeters": 238.788
+    },
+    {
+      "distanceMeters": 97.68,
+      "elevationMeters": 238.647
+    },
+    {
+      "distanceMeters": 122.1,
+      "elevationMeters": 239.255
+    },
+    {
+      "distanceMeters": 146.53,
+      "elevationMeters": 239.095
+    },
+    {
+      "distanceMeters": 170.95,
+      "elevationMeters": 238.758
+    },
+    {
+      "distanceMeters": 195.37,
+      "elevationMeters": 238.611
+    },
+    {
+      "distanceMeters": 219.79,
+      "elevationMeters": 238.788
+    },
+    {
+      "distanceMeters": 244.21,
+      "elevationMeters": 239.225
+    },
+    {
+      "distanceMeters": 268.63,
+      "elevationMeters": 238.921
+    },
+    {
+      "distanceMeters": 293.05,
+      "elevationMeters": 238.214
+    },
+    {
+      "distanceMeters": 317.47,
+      "elevationMeters": 237.658
+    },
+    {
+      "distanceMeters": 341.89,
+      "elevationMeters": 236.969
+    },
+    {
+      "distanceMeters": 366.31,
+      "elevationMeters": 236.027
+    },
+    {
+      "distanceMeters": 390.74,
+      "elevationMeters": 235.173
+    },
+    {
+      "distanceMeters": 415.16,
+      "elevationMeters": 234.226
+    },
+    {
+      "distanceMeters": 439.58,
+      "elevationMeters": 234.145
+    },
+    {
+      "distanceMeters": 464.0,
+      "elevationMeters": 234.361
+    },
+    {
+      "distanceMeters": 488.42,
+      "elevationMeters": 232.706
+    },
+    {
+      "distanceMeters": 512.84,
+      "elevationMeters": 231.623
+    },
+    {
+      "distanceMeters": 537.26,
+      "elevationMeters": 231.917
+    },
+    {
+      "distanceMeters": 561.68,
+      "elevationMeters": 231.385
+    },
+    {
+      "distanceMeters": 586.1,
+      "elevationMeters": 230.516
+    },
+    {
+      "distanceMeters": 610.52,
+      "elevationMeters": 230.192
+    },
+    {
+      "distanceMeters": 634.95,
+      "elevationMeters": 229.648
+    },
+    {
+      "distanceMeters": 659.37,
+      "elevationMeters": 228.954
+    },
+    {
+      "distanceMeters": 683.79,
+      "elevationMeters": 227.607
+    },
+    {
+      "distanceMeters": 708.21,
+      "elevationMeters": 225.954
+    },
+    {
+      "distanceMeters": 732.63,
+      "elevationMeters": 226.23
+    },
+    {
+      "distanceMeters": 757.05,
+      "elevationMeters": 226.305
+    },
+    {
+      "distanceMeters": 781.47,
+      "elevationMeters": 225.841
+    },
+    {
+      "distanceMeters": 805.89,
+      "elevationMeters": 225.753
+    },
+    {
+      "distanceMeters": 830.31,
+      "elevationMeters": 225.854
+    },
+    {
+      "distanceMeters": 854.73,
+      "elevationMeters": 225.293
+    },
+    {
+      "distanceMeters": 879.15,
+      "elevationMeters": 224.873
+    },
+    {
+      "distanceMeters": 903.58,
+      "elevationMeters": 224.768
+    },
+    {
+      "distanceMeters": 928.0,
+      "elevationMeters": 225.448
+    },
+    {
+      "distanceMeters": 952.42,
+      "elevationMeters": 226.131
+    },
+    {
+      "distanceMeters": 976.84,
+      "elevationMeters": 227.166
+    },
+    {
+      "distanceMeters": 1001.26,
+      "elevationMeters": 226.873
+    },
+    {
+      "distanceMeters": 1025.68,
+      "elevationMeters": 226.041
+    },
+    {
+      "distanceMeters": 1050.1,
+      "elevationMeters": 225.932
+    },
+    {
+      "distanceMeters": 1074.52,
+      "elevationMeters": 225.295
+    },
+    {
+      "distanceMeters": 1098.94,
+      "elevationMeters": 223.119
+    },
+    {
+      "distanceMeters": 1123.36,
+      "elevationMeters": 222.195
+    },
+    {
+      "distanceMeters": 1147.79,
+      "elevationMeters": 219.158
+    },
+    {
+      "distanceMeters": 1172.21,
+      "elevationMeters": 218.694
+    },
+    {
+      "distanceMeters": 1196.63,
+      "elevationMeters": 217.343
+    },
+    {
+      "distanceMeters": 1221.05,
+      "elevationMeters": 216.041
+    },
+    {
+      "distanceMeters": 1245.47,
+      "elevationMeters": 213.88
+    },
+    {
+      "distanceMeters": 1269.89,
+      "elevationMeters": 213.418
+    },
+    {
+      "distanceMeters": 1294.31,
+      "elevationMeters": 212.969
+    },
+    {
+      "distanceMeters": 1318.73,
+      "elevationMeters": 210.586
+    },
+    {
+      "distanceMeters": 1343.15,
+      "elevationMeters": 209.009
+    },
+    {
+      "distanceMeters": 1367.57,
+      "elevationMeters": 206.617
+    },
+    {
+      "distanceMeters": 1392.0,
+      "elevationMeters": 204.532
+    },
+    {
+      "distanceMeters": 1416.42,
+      "elevationMeters": 203.504
+    },
+    {
+      "distanceMeters": 1440.84,
+      "elevationMeters": 202.5
+    },
+    {
+      "distanceMeters": 1465.26,
+      "elevationMeters": 202.681
+    },
+    {
+      "distanceMeters": 1489.68,
+      "elevationMeters": 204.684
+    },
+    {
+      "distanceMeters": 1514.1,
+      "elevationMeters": 206.063
+    },
+    {
+      "distanceMeters": 1538.52,
+      "elevationMeters": 206.633
+    },
+    {
+      "distanceMeters": 1562.94,
+      "elevationMeters": 205.701
+    },
+    {
+      "distanceMeters": 1587.36,
+      "elevationMeters": 204.723
+    },
+    {
+      "distanceMeters": 1611.78,
+      "elevationMeters": 205.326
+    },
+    {
+      "distanceMeters": 1636.2,
+      "elevationMeters": 206.58
+    },
+    {
+      "distanceMeters": 1660.63,
+      "elevationMeters": 206.586
+    },
+    {
+      "distanceMeters": 1685.05,
+      "elevationMeters": 207.411
+    },
+    {
+      "distanceMeters": 1709.47,
+      "elevationMeters": 208.169
+    },
+    {
+      "distanceMeters": 1733.89,
+      "elevationMeters": 209.837
+    },
+    {
+      "distanceMeters": 1758.31,
+      "elevationMeters": 210.687
+    },
+    {
+      "distanceMeters": 1782.73,
+      "elevationMeters": 212.238
+    },
+    {
+      "distanceMeters": 1807.15,
+      "elevationMeters": 213.707
+    },
+    {
+      "distanceMeters": 1831.57,
+      "elevationMeters": 215.047
+    },
+    {
+      "distanceMeters": 1855.99,
+      "elevationMeters": 216.142
+    },
+    {
+      "distanceMeters": 1880.41,
+      "elevationMeters": 216.5
+    },
+    {
+      "distanceMeters": 1904.84,
+      "elevationMeters": 216.264
+    },
+    {
+      "distanceMeters": 1929.26,
+      "elevationMeters": 216.084
+    },
+    {
+      "distanceMeters": 1953.68,
+      "elevationMeters": 215.97
+    },
+    {
+      "distanceMeters": 1978.1,
+      "elevationMeters": 215.553
+    },
+    {
+      "distanceMeters": 2002.52,
+      "elevationMeters": 215.649
+    },
+    {
+      "distanceMeters": 2026.94,
+      "elevationMeters": 215.998
+    },
+    {
+      "distanceMeters": 2051.36,
+      "elevationMeters": 216.524
+    },
+    {
+      "distanceMeters": 2075.78,
+      "elevationMeters": 217.217
+    },
+    {
+      "distanceMeters": 2100.2,
+      "elevationMeters": 218.264
+    },
+    {
+      "distanceMeters": 2124.62,
+      "elevationMeters": 219.556
+    },
+    {
+      "distanceMeters": 2149.05,
+      "elevationMeters": 220.534
+    },
+    {
+      "distanceMeters": 2173.47,
+      "elevationMeters": 221.355
+    },
+    {
+      "distanceMeters": 2197.89,
+      "elevationMeters": 221.876
+    },
+    {
+      "distanceMeters": 2222.31,
+      "elevationMeters": 222.535
+    },
+    {
+      "distanceMeters": 2246.73,
+      "elevationMeters": 224.07
+    },
+    {
+      "distanceMeters": 2271.15,
+      "elevationMeters": 224.991
+    },
+    {
+      "distanceMeters": 2295.57,
+      "elevationMeters": 225.748
+    },
+    {
+      "distanceMeters": 2319.99,
+      "elevationMeters": 226.533
+    },
+    {
+      "distanceMeters": 2344.41,
+      "elevationMeters": 226.665
+    },
+    {
+      "distanceMeters": 2368.83,
+      "elevationMeters": 226.789
+    },
+    {
+      "distanceMeters": 2393.25,
+      "elevationMeters": 227.72
+    },
+    {
+      "distanceMeters": 2417.68,
+      "elevationMeters": 226.31
+    },
+    {
+      "distanceMeters": 2442.1,
+      "elevationMeters": 225.873
+    },
+    {
+      "distanceMeters": 2466.52,
+      "elevationMeters": 226.031
+    },
+    {
+      "distanceMeters": 2490.94,
+      "elevationMeters": 226.938
+    },
+    {
+      "distanceMeters": 2515.36,
+      "elevationMeters": 227.82
+    },
+    {
+      "distanceMeters": 2539.78,
+      "elevationMeters": 227.546
+    },
+    {
+      "distanceMeters": 2564.2,
+      "elevationMeters": 227.5
+    },
+    {
+      "distanceMeters": 2588.62,
+      "elevationMeters": 227.5
+    },
+    {
+      "distanceMeters": 2613.04,
+      "elevationMeters": 227.803
+    },
+    {
+      "distanceMeters": 2637.46,
+      "elevationMeters": 228.123
+    },
+    {
+      "distanceMeters": 2661.89,
+      "elevationMeters": 228.5
+    },
+    {
+      "distanceMeters": 2686.31,
+      "elevationMeters": 229.092
+    },
+    {
+      "distanceMeters": 2710.73,
+      "elevationMeters": 229.758
+    },
+    {
+      "distanceMeters": 2735.15,
+      "elevationMeters": 229.987
+    },
+    {
+      "distanceMeters": 2759.57,
+      "elevationMeters": 229.574
+    },
+    {
+      "distanceMeters": 2783.99,
+      "elevationMeters": 229.753
+    },
+    {
+      "distanceMeters": 2808.41,
+      "elevationMeters": 229.637
+    },
+    {
+      "distanceMeters": 2832.83,
+      "elevationMeters": 230.163
+    },
+    {
+      "distanceMeters": 2857.25,
+      "elevationMeters": 230.586
+    },
+    {
+      "distanceMeters": 2881.67,
+      "elevationMeters": 230.52
+    },
+    {
+      "distanceMeters": 2906.1,
+      "elevationMeters": 231.07
+    },
+    {
+      "distanceMeters": 2930.52,
+      "elevationMeters": 231.26
+    },
+    {
+      "distanceMeters": 2954.94,
+      "elevationMeters": 231.81
+    },
+    {
+      "distanceMeters": 2979.36,
+      "elevationMeters": 232.393
+    },
+    {
+      "distanceMeters": 3003.78,
+      "elevationMeters": 232.574
+    },
+    {
+      "distanceMeters": 3028.2,
+      "elevationMeters": 233.25
+    },
+    {
+      "distanceMeters": 3052.62,
+      "elevationMeters": 233.839
+    },
+    {
+      "distanceMeters": 3077.04,
+      "elevationMeters": 234.066
+    },
+    {
+      "distanceMeters": 3101.46,
+      "elevationMeters": 234.58
+    },
+    {
+      "distanceMeters": 3125.88,
+      "elevationMeters": 234.448
+    },
+    {
+      "distanceMeters": 3150.3,
+      "elevationMeters": 234.349
+    },
+    {
+      "distanceMeters": 3174.73,
+      "elevationMeters": 234.793
+    },
+    {
+      "distanceMeters": 3199.15,
+      "elevationMeters": 235.352
+    },
+    {
+      "distanceMeters": 3223.57,
+      "elevationMeters": 235.971
+    },
+    {
+      "distanceMeters": 3247.99,
+      "elevationMeters": 235.742
+    },
+    {
+      "distanceMeters": 3272.41,
+      "elevationMeters": 235.725
+    },
+    {
+      "distanceMeters": 3296.83,
+      "elevationMeters": 235.3
+    },
+    {
+      "distanceMeters": 3321.25,
+      "elevationMeters": 235.048
+    },
+    {
+      "distanceMeters": 3345.67,
+      "elevationMeters": 234.042
+    },
+    {
+      "distanceMeters": 3370.09,
+      "elevationMeters": 233.843
+    },
+    {
+      "distanceMeters": 3394.51,
+      "elevationMeters": 233.67
+    },
+    {
+      "distanceMeters": 3418.94,
+      "elevationMeters": 233.148
+    },
+    {
+      "distanceMeters": 3443.36,
+      "elevationMeters": 232.109
+    },
+    {
+      "distanceMeters": 3467.78,
+      "elevationMeters": 232.682
+    },
+    {
+      "distanceMeters": 3492.2,
+      "elevationMeters": 232.72
+    },
+    {
+      "distanceMeters": 3516.62,
+      "elevationMeters": 231.708
+    },
+    {
+      "distanceMeters": 3541.04,
+      "elevationMeters": 230.384
+    },
+    {
+      "distanceMeters": 3565.46,
+      "elevationMeters": 229.275
+    },
+    {
+      "distanceMeters": 3589.88,
+      "elevationMeters": 228.937
+    },
+    {
+      "distanceMeters": 3614.3,
+      "elevationMeters": 228.504
+    },
+    {
+      "distanceMeters": 3638.72,
+      "elevationMeters": 227.941
+    },
+    {
+      "distanceMeters": 3663.15,
+      "elevationMeters": 227.5
+    },
+    {
+      "distanceMeters": 3687.57,
+      "elevationMeters": 227.813
+    },
+    {
+      "distanceMeters": 3711.99,
+      "elevationMeters": 227.507
+    },
+    {
+      "distanceMeters": 3736.41,
+      "elevationMeters": 226.878
+    },
+    {
+      "distanceMeters": 3760.83,
+      "elevationMeters": 226.502
+    },
+    {
+      "distanceMeters": 3785.25,
+      "elevationMeters": 226.499
+    },
+    {
+      "distanceMeters": 3809.67,
+      "elevationMeters": 227.433
+    },
+    {
+      "distanceMeters": 3834.09,
+      "elevationMeters": 228.411
+    },
+    {
+      "distanceMeters": 3858.51,
+      "elevationMeters": 229.952
+    },
+    {
+      "distanceMeters": 3882.93,
+      "elevationMeters": 230.426
+    },
+    {
+      "distanceMeters": 3907.36,
+      "elevationMeters": 230.766
+    },
+    {
+      "distanceMeters": 3931.78,
+      "elevationMeters": 232.013
+    },
+    {
+      "distanceMeters": 3956.2,
+      "elevationMeters": 232.891
+    },
+    {
+      "distanceMeters": 3980.62,
+      "elevationMeters": 233.583
+    },
+    {
+      "distanceMeters": 4005.04,
+      "elevationMeters": 234.172
+    },
+    {
+      "distanceMeters": 4029.46,
+      "elevationMeters": 234.682
+    },
+    {
+      "distanceMeters": 4053.88,
+      "elevationMeters": 235.991
+    },
+    {
+      "distanceMeters": 4078.3,
+      "elevationMeters": 236.34
+    },
+    {
+      "distanceMeters": 4102.72,
+      "elevationMeters": 236.649
+    },
+    {
+      "distanceMeters": 4127.14,
+      "elevationMeters": 237.406
+    },
+    {
+      "distanceMeters": 4151.56,
+      "elevationMeters": 237.858
+    },
+    {
+      "distanceMeters": 4175.99,
+      "elevationMeters": 238.327
+    },
+    {
+      "distanceMeters": 4200.41,
+      "elevationMeters": 239.073
+    },
+    {
+      "distanceMeters": 4224.83,
+      "elevationMeters": 237.907
+    },
+    {
+      "distanceMeters": 4249.25,
+      "elevationMeters": 237.567
+    },
+    {
+      "distanceMeters": 4273.67,
+      "elevationMeters": 237.762
+    },
+    {
+      "distanceMeters": 4298.09,
+      "elevationMeters": 237.773
+    },
+    {
+      "distanceMeters": 4322.51,
+      "elevationMeters": 237.329
+    },
+    {
+      "distanceMeters": 4346.93,
+      "elevationMeters": 237.74
+    },
+    {
+      "distanceMeters": 4371.35,
+      "elevationMeters": 238.098
+    }
+  ],
+  "elevationsMeters": {
+    "high": 239.327,
+    "low": 202.229
+  },
+  "finishDistanceMeters": 0,
+  "generatedWith": "Blender 5.2.0 LTS",
+  "lapLength": {
+    "geometryMeters": 4371.353,
+    "officialFiaMeters": 4381,
+    "relativeErrorPercent": 0.2202
+  },
+  "layoutQuality": {
+    "buildings": {
+      "excludedGrandstandConflicts": 3,
+      "excludedReplacedCircuitStructures": 1,
+      "excludedTrackConflicts": 0,
+      "renderedCurrentFootprints": 58,
+      "remainingGrandstandConflicts": 0,
+      "remainingTrackConflicts": 0,
+      "downwardFacingRoofTriangles": 0,
+      "roofTriangles": 185,
+      "roofWindingRepairs": 144,
+      "sourceCurrentFootprints": 63
+    },
+    "curbs": {
+      "innerOffsetMeters": 7.58,
+      "sections": 672,
+      "visibleHeightMeters": 0.1,
+      "widthMeters": 1.3
+    },
+    "grandstands": {
+      "candidateSections": 140,
+      "maximumPlatformStepMeters": 1.5,
+      "maximumSeatRowTwistMeters": 0.0,
+      "maximumSupportHeightMeters": 7.036,
+      "maximumSupportHeightByStandMeters": {
+        "Hungaroring Platinum": 6.44,
+        "Hungaroring": 7.036,
+        "Grid 1": 2.045,
+        "Grid 2": 0.0,
+        "Grid 3": 2.816,
+        "Grand Prix 1": 3.212,
+        "Grand Prix 2": 4.255,
+        "Podium": 2.702,
+        "T1": 2.63,
+        "Pit Exit 1": 1.121,
+        "Pit Exit 2": 2.621,
+        "Apex 1": 2.263,
+        "Apex 2": 4.435,
+        "Fan 1": 3.974,
+        "Fan 2": 3.606,
+        "Chicane 1": 1.449,
+        "Chicane 2": 1.227,
+        "Chicane 3": 5.079,
+        "Chicane 4": 2.426
+      },
+      "minimumTrackClearanceMeters": 4.442,
+      "rejectedBlockConflicts": 22,
+      "rejectedTrackConflicts": 0,
+      "remainingBlockOverlaps": 0,
+      "remainingTrackConflicts": 0,
+      "renderedSections": 118,
+      "sourceMap": "Hungaroring 2026 current event map"
+    },
+    "motorhomes": {
+      "configuredObjects": 11,
+      "renderedObjects": 11,
+      "remainingTrackConflicts": 0,
+      "trackConflictNames": [],
+      "trackConflictDetails": [],
+      "sourceResolutionMetersPerPixel": 0.4,
+      "behindPitComplex": true,
+      "clusterSpanMeters": 61.5,
+      "compactCluster": true,
+      "rearTowardPitGrandstand": true
+    },
+    "pitLane": {
+      "entryGapMeters": 0.0,
+      "entryMinimumWidthMeters": 4.2,
+      "entrySurface": "asphalt",
+      "exitGapMeters": 0.0,
+      "exitMinimumWidthMeters": 0.55,
+      "fastLaneSeparator": true,
+      "lengthMeters": 1069.167,
+      "pitBoxes": 36,
+      "taperMeters": 34.0,
+      "taperProfile": "smoothstep",
+      "widthMeters": 11.0,
+      "pitWall": {
+        "fenceHeightMeters": 0.58,
+        "lengthMeters": 812.567,
+        "panels": 271,
+        "wallHeightMeters": 0.48,
+        "placement": "between main circuit and pit lane",
+        "profile": "low concrete separator with debris fence"
+      },
+      "pitComplex": {
+        "buildingDepthMeters": 14.5,
+        "garageBoxes": 36,
+        "grandstandRows": 10,
+        "lengthMeters": 588.04,
+        "pitLaneClearanceMeters": 0.85
+      }
+    },
+    "runoff": {
+      "excludedTurns": [
+        12,
+        13,
+        14
+      ],
+      "pitEntrySurface": "asphalt",
+      "syntheticGravelAtPitEntry": false,
+      "syntheticRunoffAtPitEntry": false
+    },
+    "surfaceClearance": {
+      "minimumTrackTerrainClearanceMeters": 0.613,
+      "startStraightMinimumClearanceMeters": 0.613,
+      "terrainBreakthroughSamples": 0
+    },
+    "surfaceSmoothing": {
+      "wholeLap": {
+        "applied": true,
+        "intervalMeters": 3.0,
+        "maximumCorrectionMeters": 1.513,
+        "maximumRawStepMeters": 0.664,
+        "maximumSmoothedStepMeters": 0.401,
+        "method": "closed-loop upper-envelope smoothing",
+        "sampleCount": 1458
+      }
+    },
+    "terrainSurface": {
+      "currentGroundLines": 272,
+      "currentGroundPolygons": 48,
+      "detailSource": "current OpenStreetMap ground geometry",
+      "macroColorSource": "2022 orthophoto overview",
+      "textureHeight": 4145,
+      "textureWidth": 3914
+    }
+  },
+  "objects": {
+    "buildingsTotal": 58,
+    "fenceSegments": 390,
+    "grandstandSections": 118,
+    "mappedTrees": 71,
+    "pitGarageBoxes": 36,
+    "raceMotorhomes": 11,
+    "runoffSections": 227,
+    "turnAnchors": 14
+  },
+  "officialSources": [
+    {
+      "role": "2026 circuit map: 4.381 km lap, 14 turns, sectors, speed trap and pit-lane drawing",
+      "url": "https://www.fia.com/documents/season/season-2026-1130/world-championships-2/formula-1-world-championship-16"
+    },
+    {
+      "role": "current renovated main straight, main building and grandstand",
+      "url": "https://hungaroring.hu/site/en/races/2026-formula-1-aws-magyar-nagydij"
+    },
+    {
+      "role": "current 2026 named grandstand inventory and event layout",
+      "url": "https://www.gpticketshop.com/en/f1/hungarian-f1-grand-prix/pdfpricelist.html?id=1137t"
+    },
+    {
+      "role": "Hungary national orthophoto 2022 metadata and CC BY 4.0 licence",
+      "url": "https://inspire-geoportal.ec.europa.eu/srv/api/records/orto2022m-2e5d-474c-9de5-910a2e8edd62"
+    },
+    {
+      "role": "Terrarium elevation format and open-source attribution chain",
+      "url": "https://docs.versatiles.org/basics/tilesets.html#elevation"
+    }
+  ],
+  "realWorldScale": "1 unit = 1 metre; no vertical exaggeration",
+  "schemaVersion": 4,
+  "sectorBoundaryDistancesMeters": [
+    1736,
+    3278
+  ],
+  "sourceManifest": {
+    "bounds": {
+      "minX": 367550,
+      "minY": 5270600,
+      "maxX": 369200,
+      "maxY": 5272270
+    },
+    "coordinateReferenceSystem": "WGS 84 / UTM zone 34N (EPSG:32634)",
+    "generatedAt": "2026-08-11T20:14:54.005Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "bbox": {
+          "minX": 367550,
+          "minY": 5270600,
+          "maxX": 369200,
+          "maxY": 5272270
+        },
+        "bytes": 1622246,
+        "crs": "EPSG:4326 / document reference",
+        "date": "live OSM snapshot at retrieval",
+        "file": "openstreetmap-map.osm",
+        "license": "ODbL 1.0",
+        "resolution": "surveyed vector geometry inside the circuit bbox",
+        "role": "raw current circuit, pit lane, buildings, barriers and mapped trees",
+        "sha256": "03f264821b9a7c7b23b34b43d8aabe33d2e5be5149f81ceb905728f3a77dcc02",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=19.239,47.5755,19.26,47.5905",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 367550,
+          "minY": 5270600,
+          "maxX": 369200,
+          "maxY": 5272270
+        },
+        "bytes": 61293,
+        "crs": "EPSG:4326 / document reference",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-raceway.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction with original ids and tags",
+        "role": "Blender-ready raceway layer",
+        "sha256": "faca52b6a66ead8eabe1b5b2bcd9fb59e7a86cff95431aa9fc2992d48c538258",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 367550,
+          "minY": 5270600,
+          "maxX": 369200,
+          "maxY": 5272270
+        },
+        "bytes": 47287,
+        "crs": "EPSG:4326 / document reference",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-buildings.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction with original ids and tags",
+        "role": "Blender-ready buildings layer",
+        "sha256": "a6fa68e127639d5aa36eaebf7190c029d8e2cadce29058d82bdc59d81ed93666",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 367550,
+          "minY": 5270600,
+          "maxX": 369200,
+          "maxY": 5272270
+        },
+        "bytes": 47087,
+        "crs": "EPSG:4326 / document reference",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-barriers.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction with original ids and tags",
+        "role": "Blender-ready barriers layer",
+        "sha256": "f46c610daf8f3736b10995d38aafcb380f671f52c1cec58ec0b1d44ecf30fa15",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 367550,
+          "minY": 5270600,
+          "maxX": 369200,
+          "maxY": 5272270
+        },
+        "bytes": 14938,
+        "crs": "EPSG:4326 / document reference",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-trees.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction with original ids and tags",
+        "role": "Blender-ready trees layer",
+        "sha256": "dded1375d3b008d5f16f931de3189f4eae89acf612ad8c17c4b3bccedb206b7d",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 367550,
+          "minY": 5270600,
+          "maxX": 369200,
+          "maxY": 5272270
+        },
+        "bytes": 319662,
+        "crs": "EPSG:4326 / document reference",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-ground.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction with original ids and tags",
+        "role": "Blender-ready ground layer",
+        "sha256": "4724c893e59c3b32c141a9869ce1a1a72574bb219c4134ea0c1f065874f55c24",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 367550,
+          "minY": 5270600,
+          "maxX": 369200,
+          "maxY": 5272270
+        },
+        "bytes": 25831,
+        "crs": "EPSG:3857 tiles prepared to EPSG:32634",
+        "date": "VersaTiles public satellite/orthophoto composite; tiles retrieved 2026-08-11",
+        "file": "terrain-tile-manifest.json",
+        "license": "CC BY 4.0",
+        "members": [
+          {
+            "bytes": 2562,
+            "file": "orthophoto-tiles/17-72540-45784.webp",
+            "sha256": "6a1a005cde463b2cb025e3687a248af7bac9b13a06a91ec0122b2652cbf96991",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72540/45784",
+            "x": 72540,
+            "y": 45784
+          },
+          {
+            "bytes": 2904,
+            "file": "orthophoto-tiles/17-72541-45784.webp",
+            "sha256": "af6b8732d711f991f6ded48045e0401180cbe57387c799b1d40cd50c92abd073",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72541/45784",
+            "x": 72541,
+            "y": 45784
+          },
+          {
+            "bytes": 2670,
+            "file": "orthophoto-tiles/17-72542-45784.webp",
+            "sha256": "8c2cef5a622f8e5d8174d1c108d0d9aef2a958bcb324a80bca4713110fa2ede5",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72542/45784",
+            "x": 72542,
+            "y": 45784
+          },
+          {
+            "bytes": 1684,
+            "file": "orthophoto-tiles/17-72543-45784.webp",
+            "sha256": "322c93314b349688eeead9a3a6d61217169a996fde23d7572551a4f8a613bd01",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72543/45784",
+            "x": 72543,
+            "y": 45784
+          },
+          {
+            "bytes": 2932,
+            "file": "orthophoto-tiles/17-72544-45784.webp",
+            "sha256": "26f3c4d9160b94e96e5d24997b12283aa53ec002adb3e0ee21c19fefd75349c5",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72544/45784",
+            "x": 72544,
+            "y": 45784
+          },
+          {
+            "bytes": 2636,
+            "file": "orthophoto-tiles/17-72545-45784.webp",
+            "sha256": "74ade609231a10a8ba8347ca32a48473974cff435637286c1e7508e59908c579",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72545/45784",
+            "x": 72545,
+            "y": 45784
+          },
+          {
+            "bytes": 1650,
+            "file": "orthophoto-tiles/17-72546-45784.webp",
+            "sha256": "ece98e3b98087ce7c3ff29d1f5476615a5395de82e42e85e3f67512836cdb5bf",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72546/45784",
+            "x": 72546,
+            "y": 45784
+          },
+          {
+            "bytes": 1670,
+            "file": "orthophoto-tiles/17-72547-45784.webp",
+            "sha256": "766983aa92b370de60008ebfc36ceeb28cededf86efe7cbd2cb3189d67cc97b1",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72547/45784",
+            "x": 72547,
+            "y": 45784
+          },
+          {
+            "bytes": 1818,
+            "file": "orthophoto-tiles/17-72548-45784.webp",
+            "sha256": "3370fed2b1990465d02fcc8c431d27569683f07ada547aeb622882746f679649",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72548/45784",
+            "x": 72548,
+            "y": 45784
+          },
+          {
+            "bytes": 1066,
+            "file": "orthophoto-tiles/17-72540-45785.webp",
+            "sha256": "ed5ecae0d153b0bb461293769980a5c8ab9aa4ceb9975a61c5a53b7b325982aa",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72540/45785",
+            "x": 72540,
+            "y": 45785
+          },
+          {
+            "bytes": 1588,
+            "file": "orthophoto-tiles/17-72541-45785.webp",
+            "sha256": "472ddc4f078ad64a4e05d2e59cc162b630d25f202d9494e4898079f6983a67a8",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72541/45785",
+            "x": 72541,
+            "y": 45785
+          },
+          {
+            "bytes": 2454,
+            "file": "orthophoto-tiles/17-72542-45785.webp",
+            "sha256": "a39113b84829ecbd18be77eb9d566e70f686c7ef43f227e245e1679fe6b0f260",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72542/45785",
+            "x": 72542,
+            "y": 45785
+          },
+          {
+            "bytes": 2212,
+            "file": "orthophoto-tiles/17-72543-45785.webp",
+            "sha256": "22abf6a17c9bb935ed4dcba80d903a52855a5fb47ef29b21bd38eee54b0a9893",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72543/45785",
+            "x": 72543,
+            "y": 45785
+          },
+          {
+            "bytes": 2484,
+            "file": "orthophoto-tiles/17-72544-45785.webp",
+            "sha256": "5519ce130dc7f3de2093301f51caf3777ab38dfb01fb3a88a19ebd269c51f69c",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72544/45785",
+            "x": 72544,
+            "y": 45785
+          },
+          {
+            "bytes": 2170,
+            "file": "orthophoto-tiles/17-72545-45785.webp",
+            "sha256": "7bad3cb8464149c1f2f18947df9ae2bb11c64988493dcb66220a6702246009d8",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72545/45785",
+            "x": 72545,
+            "y": 45785
+          },
+          {
+            "bytes": 1954,
+            "file": "orthophoto-tiles/17-72546-45785.webp",
+            "sha256": "e542189492d755822f72c78ae5345c0d4f4ff2e903ad6b06c9b306256dd01031",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72546/45785",
+            "x": 72546,
+            "y": 45785
+          },
+          {
+            "bytes": 1750,
+            "file": "orthophoto-tiles/17-72547-45785.webp",
+            "sha256": "1f420583c6df23d216089147a3c7b8bbfef2739a59845b0a4083602f2f671ab0",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72547/45785",
+            "x": 72547,
+            "y": 45785
+          },
+          {
+            "bytes": 1628,
+            "file": "orthophoto-tiles/17-72548-45785.webp",
+            "sha256": "bd60b9e8d8f55ab0849bd4700f94c213b010bdb3c3ae931ce34ef35c72e66558",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72548/45785",
+            "x": 72548,
+            "y": 45785
+          },
+          {
+            "bytes": 944,
+            "file": "orthophoto-tiles/17-72540-45786.webp",
+            "sha256": "3315fbb367a3a6320c2c96e9caa177559ba4671be5354ceb06338d166c1291e1",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72540/45786",
+            "x": 72540,
+            "y": 45786
+          },
+          {
+            "bytes": 1454,
+            "file": "orthophoto-tiles/17-72541-45786.webp",
+            "sha256": "3886a70dafda44f0d9dca5d74adf61248d3d5d5fa2da4d2f97b2e7f1261657f8",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72541/45786",
+            "x": 72541,
+            "y": 45786
+          },
+          {
+            "bytes": 1496,
+            "file": "orthophoto-tiles/17-72542-45786.webp",
+            "sha256": "0ef18f1194a4ea459c1291f445fe5f3c2317b944090c902f45a50699a522d906",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72542/45786",
+            "x": 72542,
+            "y": 45786
+          },
+          {
+            "bytes": 2238,
+            "file": "orthophoto-tiles/17-72543-45786.webp",
+            "sha256": "e21a04dea875cbe9218b5460775216c3d468a7ac2386455a4875f840af9ac8a8",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72543/45786",
+            "x": 72543,
+            "y": 45786
+          },
+          {
+            "bytes": 2058,
+            "file": "orthophoto-tiles/17-72544-45786.webp",
+            "sha256": "81127a3c96235029ed694127b5e3a0dd41a71fbb3c1f1aaba56ed302b4d111bc",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72544/45786",
+            "x": 72544,
+            "y": 45786
+          },
+          {
+            "bytes": 2290,
+            "file": "orthophoto-tiles/17-72545-45786.webp",
+            "sha256": "96b90b8511d6e1d2bec08655a7767c1861bc3f23c0fb84e318562cf418320bf0",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72545/45786",
+            "x": 72545,
+            "y": 45786
+          },
+          {
+            "bytes": 2212,
+            "file": "orthophoto-tiles/17-72546-45786.webp",
+            "sha256": "abab9705abb56e5c4a2bab4398fada99b55ccdc46947be3261266ffa41b1b873",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72546/45786",
+            "x": 72546,
+            "y": 45786
+          },
+          {
+            "bytes": 1800,
+            "file": "orthophoto-tiles/17-72547-45786.webp",
+            "sha256": "f8b0a185c65c379bcd4752e452aa822045ce7b4e196f087edf313633c792b2fd",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72547/45786",
+            "x": 72547,
+            "y": 45786
+          },
+          {
+            "bytes": 1722,
+            "file": "orthophoto-tiles/17-72548-45786.webp",
+            "sha256": "7b1bd669cc742f03a0c5d6577ecce9bcea8654b6ef999afdfd78ae0d84a91fe8",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72548/45786",
+            "x": 72548,
+            "y": 45786
+          },
+          {
+            "bytes": 864,
+            "file": "orthophoto-tiles/17-72540-45787.webp",
+            "sha256": "092faa0ac24e39b5a822341f9b2cf843fab70e6b3a0655f63246a55e15b64901",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72540/45787",
+            "x": 72540,
+            "y": 45787
+          },
+          {
+            "bytes": 2008,
+            "file": "orthophoto-tiles/17-72541-45787.webp",
+            "sha256": "3ff5b6b432508587ee6d6cd8e7cf86bfb9d515083b46c148b6090e63c24215b5",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72541/45787",
+            "x": 72541,
+            "y": 45787
+          },
+          {
+            "bytes": 1754,
+            "file": "orthophoto-tiles/17-72542-45787.webp",
+            "sha256": "1bc7b4dcdb4b5da47fbbbf85f60c52f7ac2d091fb08afb53435417533c456fe0",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72542/45787",
+            "x": 72542,
+            "y": 45787
+          },
+          {
+            "bytes": 1726,
+            "file": "orthophoto-tiles/17-72543-45787.webp",
+            "sha256": "42940f6105969ba745de9161a9f430271f02ba59449eff1eb101423cff9cd5e3",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72543/45787",
+            "x": 72543,
+            "y": 45787
+          },
+          {
+            "bytes": 2024,
+            "file": "orthophoto-tiles/17-72544-45787.webp",
+            "sha256": "709bb053a663280f87f7220d873345db39eaf66025cd4c6929585083106d2b0b",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72544/45787",
+            "x": 72544,
+            "y": 45787
+          },
+          {
+            "bytes": 1710,
+            "file": "orthophoto-tiles/17-72545-45787.webp",
+            "sha256": "5513fc9f5654df286ad89b744bae2112119d4264def1f59fc8f2ccb2d9735342",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72545/45787",
+            "x": 72545,
+            "y": 45787
+          },
+          {
+            "bytes": 1962,
+            "file": "orthophoto-tiles/17-72546-45787.webp",
+            "sha256": "cc40d1d858e7a995e21695cf8cb55a926c7be3a01bbfc82ff7f902816e4fe23a",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72546/45787",
+            "x": 72546,
+            "y": 45787
+          },
+          {
+            "bytes": 1988,
+            "file": "orthophoto-tiles/17-72547-45787.webp",
+            "sha256": "e0e659aa4132bc85f73ce2bc6d57dceb110a49667d23070391f396343c014c50",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72547/45787",
+            "x": 72547,
+            "y": 45787
+          },
+          {
+            "bytes": 2172,
+            "file": "orthophoto-tiles/17-72548-45787.webp",
+            "sha256": "6b3b6b4131f01244f7d4d63faaa054df7e17222128ef55d7c7b5dd753a3fedbb",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72548/45787",
+            "x": 72548,
+            "y": 45787
+          },
+          {
+            "bytes": 1962,
+            "file": "orthophoto-tiles/17-72540-45788.webp",
+            "sha256": "472e608195ebcc0ebcd872236615094e0795ce4fd6ba97df4894bc0e67d3e038",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72540/45788",
+            "x": 72540,
+            "y": 45788
+          },
+          {
+            "bytes": 2480,
+            "file": "orthophoto-tiles/17-72541-45788.webp",
+            "sha256": "06da2e76dad7e0dd0755fa7c0423d91a785299fc5a6efa828e7ad0c6ef185177",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72541/45788",
+            "x": 72541,
+            "y": 45788
+          },
+          {
+            "bytes": 2502,
+            "file": "orthophoto-tiles/17-72542-45788.webp",
+            "sha256": "dce392d82b1bb35587d6db8d6f10289b1573d35b02c8b74cdb4469ffe050e981",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72542/45788",
+            "x": 72542,
+            "y": 45788
+          },
+          {
+            "bytes": 2334,
+            "file": "orthophoto-tiles/17-72543-45788.webp",
+            "sha256": "29ed20d854aa2cc5c0ecc90ee3766ee14b4773da26adf894609f03da11bfb823",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72543/45788",
+            "x": 72543,
+            "y": 45788
+          },
+          {
+            "bytes": 1498,
+            "file": "orthophoto-tiles/17-72544-45788.webp",
+            "sha256": "fb9079705601bf8b064fcc2aa7983d8e9a291be2bdbea377230fbe94802a7663",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72544/45788",
+            "x": 72544,
+            "y": 45788
+          },
+          {
+            "bytes": 1248,
+            "file": "orthophoto-tiles/17-72545-45788.webp",
+            "sha256": "7520b7fe6d1474c0999f58823f130d1a6b3de52aa64fd59d4c131677eb9b6dc6",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72545/45788",
+            "x": 72545,
+            "y": 45788
+          },
+          {
+            "bytes": 2110,
+            "file": "orthophoto-tiles/17-72546-45788.webp",
+            "sha256": "314d0046d191565ba4222fd63c5ea757183dd9a2435406f7f04e0de7e1f6d624",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72546/45788",
+            "x": 72546,
+            "y": 45788
+          },
+          {
+            "bytes": 2348,
+            "file": "orthophoto-tiles/17-72547-45788.webp",
+            "sha256": "3404ab2f8ccc22a51d0233ebe849a9c090a9e3ffa18cc4515c8feeeb2d812f05",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72547/45788",
+            "x": 72547,
+            "y": 45788
+          },
+          {
+            "bytes": 1984,
+            "file": "orthophoto-tiles/17-72548-45788.webp",
+            "sha256": "79b1d181a8a463741c606309fea8169371d4ce8cc30d84707b435dcc5d5a10b2",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72548/45788",
+            "x": 72548,
+            "y": 45788
+          },
+          {
+            "bytes": 2022,
+            "file": "orthophoto-tiles/17-72540-45789.webp",
+            "sha256": "69db5eaf93660df4419f43bd201a84f717fc628c2183ae8a7e68d30813a46604",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72540/45789",
+            "x": 72540,
+            "y": 45789
+          },
+          {
+            "bytes": 2114,
+            "file": "orthophoto-tiles/17-72541-45789.webp",
+            "sha256": "50478d98a4ace9dd1920db70e60eb5e235ae4d6ff6f50fec897485a5890699f6",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72541/45789",
+            "x": 72541,
+            "y": 45789
+          },
+          {
+            "bytes": 2476,
+            "file": "orthophoto-tiles/17-72542-45789.webp",
+            "sha256": "081ab0ebd896e2376f9b3780508dd38c19bfb47a9e876efb740a73693ac44254",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72542/45789",
+            "x": 72542,
+            "y": 45789
+          },
+          {
+            "bytes": 2718,
+            "file": "orthophoto-tiles/17-72543-45789.webp",
+            "sha256": "bbd6f899273187f8eea6cd338f7d6d2f4d9547c0263f751ebd7f5a5895863f99",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72543/45789",
+            "x": 72543,
+            "y": 45789
+          },
+          {
+            "bytes": 2298,
+            "file": "orthophoto-tiles/17-72544-45789.webp",
+            "sha256": "4e0255e4d67af97d34a95c09ad8812ae292f2a80e59d79db222de37a2097bb32",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72544/45789",
+            "x": 72544,
+            "y": 45789
+          },
+          {
+            "bytes": 1906,
+            "file": "orthophoto-tiles/17-72545-45789.webp",
+            "sha256": "f247a41a61dc69aa5f18c22e7c7b0537588dd010b9fba632bc841b72fcba07af",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72545/45789",
+            "x": 72545,
+            "y": 45789
+          },
+          {
+            "bytes": 2446,
+            "file": "orthophoto-tiles/17-72546-45789.webp",
+            "sha256": "9081b085c941f107f124626c627880f0ddb00a98f15406c8179c25f93b35693a",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72546/45789",
+            "x": 72546,
+            "y": 45789
+          },
+          {
+            "bytes": 2494,
+            "file": "orthophoto-tiles/17-72547-45789.webp",
+            "sha256": "f5d0dea24115572b2b391e42503557fb1a3a8a689cc29b9742cb92e41854fce1",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72547/45789",
+            "x": 72547,
+            "y": 45789
+          },
+          {
+            "bytes": 2246,
+            "file": "orthophoto-tiles/17-72548-45789.webp",
+            "sha256": "ecde5293850d41da364f599ede44de7e0a21bbb099cbd23498549387d5206fcb",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72548/45789",
+            "x": 72548,
+            "y": 45789
+          },
+          {
+            "bytes": 1740,
+            "file": "orthophoto-tiles/17-72540-45790.webp",
+            "sha256": "7d9ce9303b9e9f019e00ac0116a6920875cdfe384aa2d2efa8ba69fcc8ce3c90",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72540/45790",
+            "x": 72540,
+            "y": 45790
+          },
+          {
+            "bytes": 1618,
+            "file": "orthophoto-tiles/17-72541-45790.webp",
+            "sha256": "a98a86f73b65e9318a7ee48cc64b38a5825f3c124f3f51d8107d8c6fc9f4ec45",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72541/45790",
+            "x": 72541,
+            "y": 45790
+          },
+          {
+            "bytes": 1828,
+            "file": "orthophoto-tiles/17-72542-45790.webp",
+            "sha256": "92e84a5553c9a433bf784bb88ecfe1bcf2a0ce26a71e615fc5ac26c8cb1a9d23",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72542/45790",
+            "x": 72542,
+            "y": 45790
+          },
+          {
+            "bytes": 2902,
+            "file": "orthophoto-tiles/17-72543-45790.webp",
+            "sha256": "274e489a2fd1b4fb49ae64cfe56be1ad3a344d25bf9dd8c363ad566bcd7a6f44",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72543/45790",
+            "x": 72543,
+            "y": 45790
+          },
+          {
+            "bytes": 2890,
+            "file": "orthophoto-tiles/17-72544-45790.webp",
+            "sha256": "3d35fe2a84eccc8ef386f8055281495fbdda1abd5cb92679484a57d2a924b009",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72544/45790",
+            "x": 72544,
+            "y": 45790
+          },
+          {
+            "bytes": 2098,
+            "file": "orthophoto-tiles/17-72545-45790.webp",
+            "sha256": "2e72650bea936e3d78bf2f237b60f959a42e08e70d382bd5234f31701af6dfc2",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72545/45790",
+            "x": 72545,
+            "y": 45790
+          },
+          {
+            "bytes": 2122,
+            "file": "orthophoto-tiles/17-72546-45790.webp",
+            "sha256": "013be60493730a2f523ec03bee18b95276fa3437a27311629f1bcec4d0238706",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72546/45790",
+            "x": 72546,
+            "y": 45790
+          },
+          {
+            "bytes": 2382,
+            "file": "orthophoto-tiles/17-72547-45790.webp",
+            "sha256": "d18a9150d6361f7fa33b72e201421cc86fe860f150349bc0b2cb66abe43fe188",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72547/45790",
+            "x": 72547,
+            "y": 45790
+          },
+          {
+            "bytes": 2390,
+            "file": "orthophoto-tiles/17-72548-45790.webp",
+            "sha256": "780dc547e31077f0fe120c68d59572cb18cf1d903a492aedfb409924303ce3dc",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72548/45790",
+            "x": 72548,
+            "y": 45790
+          },
+          {
+            "bytes": 1146,
+            "file": "orthophoto-tiles/17-72540-45791.webp",
+            "sha256": "267e2283b502073a64367df02f47ab6bdd65677bd362829fccfcf639daf2a1a8",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72540/45791",
+            "x": 72540,
+            "y": 45791
+          },
+          {
+            "bytes": 1806,
+            "file": "orthophoto-tiles/17-72541-45791.webp",
+            "sha256": "ce47e5ad6741d07d525f7020f75a8edab7ef6d1b0f542aacd4a2a44852cd4686",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72541/45791",
+            "x": 72541,
+            "y": 45791
+          },
+          {
+            "bytes": 1634,
+            "file": "orthophoto-tiles/17-72542-45791.webp",
+            "sha256": "d38149ebfbce52e607f03ec4d55a46a4525ac3a73e5b3a17ddd534a8b48dfa14",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72542/45791",
+            "x": 72542,
+            "y": 45791
+          },
+          {
+            "bytes": 2200,
+            "file": "orthophoto-tiles/17-72543-45791.webp",
+            "sha256": "e0eb6f38f7d5af2409f5afb7b015d7d60b6357b0d1571cad80fd16654ae904b6",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72543/45791",
+            "x": 72543,
+            "y": 45791
+          },
+          {
+            "bytes": 2346,
+            "file": "orthophoto-tiles/17-72544-45791.webp",
+            "sha256": "fbd88dd6df6e59e0e0f9b567d63d0a5e3f5c79ef5d325da5ba8851ae1b36ba43",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72544/45791",
+            "x": 72544,
+            "y": 45791
+          },
+          {
+            "bytes": 2492,
+            "file": "orthophoto-tiles/17-72545-45791.webp",
+            "sha256": "ec2fae195a90836971c693d47e12538db4e00367e53308d72919bdacc4bfc106",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72545/45791",
+            "x": 72545,
+            "y": 45791
+          },
+          {
+            "bytes": 2202,
+            "file": "orthophoto-tiles/17-72546-45791.webp",
+            "sha256": "a04abd1fd08fbc9c9ae01e8b7974b10c77a94a895fe5546575b5da9c923073ea",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72546/45791",
+            "x": 72546,
+            "y": 45791
+          },
+          {
+            "bytes": 1820,
+            "file": "orthophoto-tiles/17-72547-45791.webp",
+            "sha256": "a8226f9876949a9f8a80a01ba629ff5c5af1a3592784ac512236b82541974604",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72547/45791",
+            "x": 72547,
+            "y": 45791
+          },
+          {
+            "bytes": 2660,
+            "file": "orthophoto-tiles/17-72548-45791.webp",
+            "sha256": "c68fc355b627b0ce782f61c514bed64cbfd6376f1f2656db0797d573a7a2fd27",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72548/45791",
+            "x": 72548,
+            "y": 45791
+          },
+          {
+            "bytes": 1560,
+            "file": "orthophoto-tiles/17-72540-45792.webp",
+            "sha256": "249e5488283be117581957c52a253e4ed63cd19213393f80ef751c297f1f76ac",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72540/45792",
+            "x": 72540,
+            "y": 45792
+          },
+          {
+            "bytes": 1830,
+            "file": "orthophoto-tiles/17-72541-45792.webp",
+            "sha256": "55e437096527e3e7112b9d0c504c4af068b9b4eed6b038bd9183333a1c90ff08",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72541/45792",
+            "x": 72541,
+            "y": 45792
+          },
+          {
+            "bytes": 1934,
+            "file": "orthophoto-tiles/17-72542-45792.webp",
+            "sha256": "1b0043cdde63dc4928e130ab366935b5ff30f13179328e99fb454f53357971b2",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72542/45792",
+            "x": 72542,
+            "y": 45792
+          },
+          {
+            "bytes": 1652,
+            "file": "orthophoto-tiles/17-72543-45792.webp",
+            "sha256": "47bf20d22ba24b04a84d563bc93a05f940428274603805f8bdb51a943c77e53f",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72543/45792",
+            "x": 72543,
+            "y": 45792
+          },
+          {
+            "bytes": 1492,
+            "file": "orthophoto-tiles/17-72544-45792.webp",
+            "sha256": "6fd44cc76b91e4cbf491239dd8701778d26993849dee246b627fa65d368cfc95",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72544/45792",
+            "x": 72544,
+            "y": 45792
+          },
+          {
+            "bytes": 1874,
+            "file": "orthophoto-tiles/17-72545-45792.webp",
+            "sha256": "e06ee9080b7b7c4ff7e71c444290905f8cfe717a5dfaf6e6cc5500a6e6f5b567",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72545/45792",
+            "x": 72545,
+            "y": 45792
+          },
+          {
+            "bytes": 2182,
+            "file": "orthophoto-tiles/17-72546-45792.webp",
+            "sha256": "71c299bcecbd220e31d7b6b8246fa11198a18266d5473d78d9866c08451ec422",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72546/45792",
+            "x": 72546,
+            "y": 45792
+          },
+          {
+            "bytes": 2032,
+            "file": "orthophoto-tiles/17-72547-45792.webp",
+            "sha256": "6ae7a5296ad2a0b21e12242c4ffc7c05362ff20d5284252b9ca7190b548ac743",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72547/45792",
+            "x": 72547,
+            "y": 45792
+          },
+          {
+            "bytes": 2152,
+            "file": "orthophoto-tiles/17-72548-45792.webp",
+            "sha256": "77b3a4163cf90c5d2a39cc9bfe1cb0dbd4161d2d3b71ffcea05e5d9d6a727cbd",
+            "url": "https://tiles.versatiles.org/tiles/satellite/17/72548/45792",
+            "x": 72548,
+            "y": 45792
+          },
+          {
+            "bytes": 78074,
+            "file": "elevation-tiles/12-2266-1430.webp",
+            "sha256": "c75539941abcb7d09574ec2cd0b3141a1c48c15aa42d8f492131fce78d9b1e77",
+            "url": "https://tiles.versatiles.org/tiles/elevation/12/2266/1430",
+            "x": 2266,
+            "y": 1430
+          },
+          {
+            "bytes": 79740,
+            "file": "elevation-tiles/12-2267-1430.webp",
+            "sha256": "acb0118048fef977cf829d33825b388b897d4e498b9dd1e7a5fd6f3817534041",
+            "url": "https://tiles.versatiles.org/tiles/elevation/12/2267/1430",
+            "x": 2267,
+            "y": 1430
+          },
+          {
+            "bytes": 71298,
+            "file": "elevation-tiles/12-2266-1431.webp",
+            "sha256": "4f79df0f8043734cb08e84f6834f3011219340bc8d54d49c1baca4ae26e3fadd",
+            "url": "https://tiles.versatiles.org/tiles/elevation/12/2266/1431",
+            "x": 2266,
+            "y": 1431
+          },
+          {
+            "bytes": 76946,
+            "file": "elevation-tiles/12-2267-1431.webp",
+            "sha256": "38864d39dcf948ef6c9573d10ddc6904c2171a0fb363abb500dc0de0b8695d13",
+            "url": "https://tiles.versatiles.org/tiles/elevation/12/2267/1431",
+            "x": 2267,
+            "y": 1431
+          }
+        ],
+        "resolution": "512 px z17 display grid; effective imagery detail is overview-grade; elevation z12 Terrarium (~19 m/pixel)",
+        "role": "real 2022 macro terrain colour and unexaggerated elevation; not used as the fine-detail layer",
+        "sha256": "5c8267863d145a358e5c962f61c4cc7b1adff151483b9ff198cbfa27b487c6eb",
+        "url": "https://docs.versatiles.org/basics/tilesets.html",
+        "verticalDatum": "Terrarium ellipsoidal/DEM metres"
+      },
+      {
+        "bbox": {
+          "minX": 367550,
+          "minY": 5270600,
+          "maxX": 369200,
+          "maxY": 5272270
+        },
+        "bytes": 1306528,
+        "crs": "EPSG:4326 / document reference",
+        "date": "2026-07-23",
+        "file": "fia-2026-hungarian-grand-prix-doc-5.pdf",
+        "license": "official FIA event document; reference use",
+        "resolution": "vector PDF",
+        "role": "4.381 km lap, 14 turns, sectors, speed trap, pit-lane drawing and garage order",
+        "sha256": "9e0d7e4c730b3572d36f2b7f5552fa9607ba808cfc4b9dca2f4a2523405b8a63",
+        "url": "https://www.fia.com/system/files/decision-document/2026_hungarian_grand_prix_-_competition_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_and_red_zone.pdf",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 367550,
+          "minY": 5270600,
+          "maxX": 369200,
+          "maxY": 5272270
+        },
+        "bytes": 40881,
+        "crs": "EPSG:4326 / document reference",
+        "date": "current 2026 event map at retrieval",
+        "file": "hungaroring-2026-ticket-map.pdf",
+        "license": "official event ticket map; reference use",
+        "resolution": "vector PDF",
+        "role": "current named grandstand inventory and spectator layout after circuit renovation",
+        "sha256": "fb31ffd054947bb898d2998854ed928482a508f99075e75ab0696ead47c409de",
+        "url": "https://www.gpticketshop.com/en/f1/hungarian-f1-grand-prix/pdfpricelist.html?id=1137t",
+        "verticalDatum": null
+      }
+    ],
+    "sourceNotes": {
+      "elevation": "https://docs.versatiles.org/basics/tilesets.html",
+      "orthophotoMetadata": "https://inspire-geoportal.ec.europa.eu/srv/api/records/orto2022m-2e5d-474c-9de5-910a2e8edd62",
+      "publicTileService": "https://docs.versatiles.org/basics/tilesets.html"
+    },
+    "verticalDatum": "source DEM metres; no vertical exaggeration"
+  },
+  "verticalDatum": "source DEM metres; no vertical exaggeration"
+}

@@ -92,6 +92,24 @@ export async function exportTrackData({
   outputPath,
   sourceDirectory,
 }) {
+  if (modelId === "hungaroring") {
+    const { exportHungaroringTrackData } = await import("./export-hungaroring-track-data.mjs");
+    return exportHungaroringTrackData({
+      forceSources,
+      outputPath,
+      sourceDirectory,
+    });
+  }
+
+  if (modelId === "spa") {
+    const { exportSpaTrackData } = await import("./export-spa-track-data.mjs");
+    return exportSpaTrackData({
+      forceSources,
+      outputPath,
+      sourceDirectory,
+    });
+  }
+
   if (modelId !== "zandvoort") {
     throw new Error(`3D build is not configured for track: ${modelId}`);
   }

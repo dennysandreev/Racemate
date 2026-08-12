@@ -22,14 +22,23 @@ import {
 import {
   ZANDVOORT_MODEL,
   ZANDVOORT_REPLAY_PATH,
-  type ZandvoortReplayPathPoint,
 } from "@/data/zandvoort-model";
+import {
+  HUNGARORING_REPLAY_PATH,
+  HUNGARORING_TRACK_MODEL,
+} from "@/data/hungaroring-model";
+import {
+  SILVERSTONE_REPLAY_PATH,
+  SILVERSTONE_TRACK_MODEL,
+} from "@/data/silverstone-model";
+import { SPA_REPLAY_PATH, SPA_TRACK_MODEL } from "@/data/spa-model";
+import type { CircuitModelPoint } from "@/data/track-model-types";
 import { cn } from "@/lib/utils";
 
 const ZANDVOORT_ASSET_PATH = "/f1/tracks/3d/zandvoort.glb";
 const ZANDVOORT_PREVIEW_PATH = "/f1/tracks/3d/zandvoort-preview.webp";
 
-export type ZandvoortReplayCar = {
+export type ReplayTrackCar = {
   abbreviation: string;
   driverNumber: number;
   fullName: string;
@@ -41,23 +50,102 @@ export type ZandvoortReplayCar = {
   teamColor: string;
 };
 
-type RaceReplayZandvoort3DProps = {
-  cars: ZandvoortReplayCar[];
+export type ZandvoortReplayCar = ReplayTrackCar;
+export type ReplayTrackId = "hungaroring" | "silverstone" | "spa" | "zandvoort";
+
+type ReplayTrackConfig = {
+  alt: string;
+  ariaLabel: string;
+  assetPath: string;
+  camera: {
+    fitHeight: number;
+    fitWidth: number;
+    lookAtY: number;
+    radius: number;
+  };
+  path: {
+    baseElevationMeters: number;
+    pitLanePoints: readonly CircuitModelPoint[];
+    startFinishProgress: number;
+    surfaceOffsetMeters: number;
+    trackPoints: readonly CircuitModelPoint[];
+    trackWidthMeters: number;
+  };
+  previewPath: string;
+  turnCount: number;
+};
+
+const REPLAY_TRACK_CONFIGS: Record<ReplayTrackId, ReplayTrackConfig> = {
+  hungaroring: {
+    alt: "Трасса Хунгароринг",
+    ariaLabel: "3D-повтор Гран-при Венгрии на трассе Хунгароринг",
+    assetPath: HUNGARORING_TRACK_MODEL.webgl.assetPath,
+    camera: HUNGARORING_TRACK_MODEL.webgl.camera,
+    path: HUNGARORING_REPLAY_PATH,
+    previewPath: HUNGARORING_TRACK_MODEL.webgl.previewPath,
+    turnCount: HUNGARORING_TRACK_MODEL.webgl.turnCount,
+  },
+  silverstone: {
+    alt: "Трасса Сильверстоун",
+    ariaLabel: "3D-повтор Гран-при Великобритании на трассе Сильверстоун",
+    assetPath: SILVERSTONE_TRACK_MODEL.webgl.assetPath,
+    camera: SILVERSTONE_TRACK_MODEL.webgl.camera,
+    path: SILVERSTONE_REPLAY_PATH,
+    previewPath: SILVERSTONE_TRACK_MODEL.webgl.previewPath,
+    turnCount: SILVERSTONE_TRACK_MODEL.webgl.turnCount,
+  },
+  spa: {
+    alt: "Трасса Спа-Франкоршам",
+    ariaLabel: "3D-повтор Гран-при Бельгии на трассе Спа-Франкоршам",
+    assetPath: SPA_TRACK_MODEL.webgl.assetPath,
+    camera: SPA_TRACK_MODEL.webgl.camera,
+    path: {
+      baseElevationMeters: SPA_REPLAY_PATH.baseElevationDngMeters,
+      pitLanePoints: SPA_REPLAY_PATH.pitLanePoints,
+      startFinishProgress: SPA_REPLAY_PATH.startFinishProgress,
+      surfaceOffsetMeters: SPA_REPLAY_PATH.surfaceOffsetMeters,
+      trackPoints: SPA_REPLAY_PATH.trackPoints,
+      trackWidthMeters: SPA_REPLAY_PATH.trackWidthMeters,
+    },
+    previewPath: SPA_TRACK_MODEL.webgl.previewPath,
+    turnCount: SPA_TRACK_MODEL.webgl.turnCount,
+  },
+  zandvoort: {
+    alt: "Трасса Зандворт",
+    ariaLabel: "3D-повтор Гран-при Нидерландов на трассе Зандворт",
+    assetPath: ZANDVOORT_ASSET_PATH,
+    camera: { fitHeight: 1_600, fitWidth: 1_900, lookAtY: 8, radius: 2_650 },
+    path: {
+      baseElevationMeters: ZANDVOORT_REPLAY_PATH.baseElevationNapMeters,
+      pitLanePoints: ZANDVOORT_REPLAY_PATH.pitLanePoints,
+      startFinishProgress: ZANDVOORT_REPLAY_PATH.startFinishProgress,
+      surfaceOffsetMeters: ZANDVOORT_REPLAY_PATH.surfaceOffsetMeters,
+      trackPoints: ZANDVOORT_MODEL.points,
+      trackWidthMeters: ZANDVOORT_REPLAY_PATH.trackWidthMeters,
+    },
+    previewPath: ZANDVOORT_PREVIEW_PATH,
+    turnCount: 14,
+  },
+};
+
+type RaceReplayTrack3DProps = {
+  cars: ReplayTrackCar[];
   followDriver: number | null;
   onSelectDriver: (driverNumber: number) => void;
   panX: number;
   panY: number;
   rotationDeg: number;
   tiltDeg: number;
+  trackId: ReplayTrackId;
   zoom: number;
 };
 
-type CarPose = ZandvoortReplayCar & {
+type CarPose = ReplayTrackCar & {
   heading: number;
   position: readonly [number, number, number];
 };
 
-export function RaceReplayZandvoort3D({
+export function RaceReplayTrack3D({
   cars,
   followDriver,
   onSelectDriver,
@@ -65,22 +153,27 @@ export function RaceReplayZandvoort3D({
   panY,
   rotationDeg,
   tiltDeg,
+  trackId,
   zoom,
-}: RaceReplayZandvoort3DProps) {
+}: RaceReplayTrack3DProps) {
   const [isReady, setIsReady] = useState(false);
-  const poses = useMemo(() => cars.map(buildCarPose), [cars]);
+  const config = REPLAY_TRACK_CONFIGS[trackId];
+  const poses = useMemo(() => cars.map((car) => buildCarPose(car, config)), [cars, config]);
   const followPosition = followDriver === null
     ? null
     : poses.find((car) => car.driverNumber === followDriver)?.position ?? null;
 
   return (
-    <ReplayMapErrorBoundary fallback={<ReplayMapPreview />}>
+    <ReplayMapErrorBoundary fallback={<ReplayMapPreview config={config} />}>
       <div
-        aria-label="3D-повтор Гран-при Нидерландов на трассе Зандворт"
+        aria-label={config.ariaLabel}
         className="relative size-full overflow-hidden rounded-lg border border-border/70 bg-black/35"
         role="img"
       >
-        <ReplayMapPreview className={cn("transition-opacity duration-200 motion-reduce:transition-none", isReady && "opacity-0")} />
+        <ReplayMapPreview
+          className={cn("transition-opacity duration-200 motion-reduce:transition-none", isReady && "opacity-0")}
+          config={config}
+        />
         <Canvas
           camera={{ far: 10_000, near: 1, position: [1_500, 1_700, 1_500], zoom: 0.3 }}
           className={cn(
@@ -98,6 +191,7 @@ export function RaceReplayZandvoort3D({
           <directionalLight intensity={2.1} position={[-900, 1_600, -1_100]} />
           <directionalLight intensity={0.7} position={[1_000, 900, 700]} />
           <ReplayCameraRig
+            cameraConfig={config.camera}
             followPosition={followPosition}
             panX={panX}
             panY={panY}
@@ -106,8 +200,9 @@ export function RaceReplayZandvoort3D({
             zoom={zoom}
           />
           <Suspense fallback={null}>
-            <ZandvoortReplayScene
+            <TrackReplayScene
               cars={poses}
+              config={config}
               onReady={() => setIsReady(true)}
               onSelectDriver={onSelectDriver}
             />
@@ -119,20 +214,26 @@ export function RaceReplayZandvoort3D({
   );
 }
 
-function ZandvoortReplayScene({
+export function RaceReplayZandvoort3D(props: Omit<RaceReplayTrack3DProps, "trackId">) {
+  return <RaceReplayTrack3D {...props} trackId="zandvoort" />;
+}
+
+function TrackReplayScene({
   cars,
+  config,
   onReady,
   onSelectDriver,
 }: {
   cars: CarPose[];
+  config: ReplayTrackConfig;
   onReady: () => void;
   onSelectDriver: (driverNumber: number) => void;
 }) {
-  const gltf = useGLTF(ZANDVOORT_ASSET_PATH, false, true);
+  const gltf = useGLTF(config.assetPath, false, true);
   const invalidate = useThree((state) => state.invalidate);
   const hasReportedReady = useRef(false);
   const scene = useMemo(() => cloneScene(gltf.scene), [gltf.scene]);
-  const anchors = useMemo(() => readAnchors(scene), [scene]);
+  const anchors = useMemo(() => readAnchors(scene, config.turnCount), [config.turnCount, scene]);
 
   useLayoutEffect(() => {
     invalidate();
@@ -229,6 +330,7 @@ function ReplayCar({ car, onSelect }: { car: CarPose; onSelect: () => void }) {
 }
 
 function ReplayCameraRig({
+  cameraConfig,
   followPosition,
   panX,
   panY,
@@ -236,6 +338,7 @@ function ReplayCameraRig({
   tiltDeg,
   zoom,
 }: {
+  cameraConfig: ReplayTrackConfig["camera"];
   followPosition: readonly [number, number, number] | null;
   panX: number;
   panY: number;
@@ -255,11 +358,11 @@ function ReplayCameraRig({
       return;
     }
 
-    const target = followPosition ? new Vector3(...followPosition) : new Vector3(0, 8, 0);
+    const target = followPosition ? new Vector3(...followPosition) : new Vector3(0, cameraConfig.lookAtY, 0);
     const polarDeg = MathUtils.clamp(48 + (tiltDeg - 10) * 0.34, 40, 72);
     const polar = MathUtils.degToRad(polarDeg);
     const azimuth = MathUtils.degToRad(38 + rotationDeg);
-    const radius = 2_650;
+    const radius = cameraConfig.radius;
     const horizontalRadius = Math.sin(polar) * radius;
 
     camera.position.set(
@@ -268,7 +371,7 @@ function ReplayCameraRig({
       target.z + Math.cos(azimuth) * horizontalRadius,
     );
     camera.lookAt(target);
-    camera.zoom = Math.min(width / 1_900, height / 1_600) * zoom;
+    camera.zoom = Math.min(width / cameraConfig.fitWidth, height / cameraConfig.fitHeight) * zoom;
     camera.clearViewOffset();
 
     if (!followPosition && (panX !== 0 || panY !== 0)) {
@@ -277,7 +380,7 @@ function ReplayCameraRig({
 
     camera.updateProjectionMatrix();
     invalidate();
-  }, [followPosition, height, invalidate, panX, panY, rotationDeg, tiltDeg, width, zoom]);
+  }, [cameraConfig, followPosition, height, invalidate, panX, panY, rotationDeg, tiltDeg, width, zoom]);
 
   return (
     <DreiOrthographicCamera
@@ -322,17 +425,17 @@ function TrackAnnotations({ anchors }: { anchors: ReturnType<typeof readAnchors>
   );
 }
 
-function buildCarPose(car: ZandvoortReplayCar): CarPose {
+function buildCarPose(car: ReplayTrackCar, config: ReplayTrackConfig): CarPose {
   const path = car.isPitLane && car.pitLaneProgress !== null
-    ? ZANDVOORT_REPLAY_PATH.pitLanePoints
-    : ZANDVOORT_MODEL.points;
+    ? config.path.pitLanePoints
+    : config.path.trackPoints;
   const progress = car.isPitLane && car.pitLaneProgress !== null
     ? car.pitLaneProgress
-    : normalizeProgress(car.progress + ZANDVOORT_REPLAY_PATH.startFinishProgress);
-  const sample = sampleReplayPath(path, progress);
+    : normalizeProgress(car.progress + config.path.startFinishProgress);
+  const sample = sampleReplayPath(path, progress, config.path);
   const lateralOffsetMeters = car.isPitLane
     ? 0
-    : car.lateralOffset * (ZANDVOORT_REPLAY_PATH.trackWidthMeters / 26);
+    : car.lateralOffset * (config.path.trackWidthMeters / 26);
   const normalX = -sample.directionZ;
   const normalZ = sample.directionX;
 
@@ -347,7 +450,11 @@ function buildCarPose(car: ZandvoortReplayCar): CarPose {
   };
 }
 
-function sampleReplayPath(points: readonly ZandvoortReplayPathPoint[], requestedProgress: number) {
+function sampleReplayPath(
+  points: readonly CircuitModelPoint[],
+  requestedProgress: number,
+  pathConfig: ReplayTrackConfig["path"],
+) {
   const progress = Math.max(0, Math.min(1, requestedProgress));
   let upper = points.findIndex((point) => point[0] >= progress);
 
@@ -369,7 +476,7 @@ function sampleReplayPath(points: readonly ZandvoortReplayPathPoint[], requested
     directionX: directionXRaw / directionLength,
     directionZ: directionZRaw / directionLength,
     x,
-    y: elevationNapMeters - ZANDVOORT_REPLAY_PATH.baseElevationNapMeters + ZANDVOORT_REPLAY_PATH.surfaceOffsetMeters,
+    y: elevationNapMeters - pathConfig.baseElevationMeters + pathConfig.surfaceOffsetMeters,
     z: -sourceY,
   };
 }
@@ -388,9 +495,9 @@ function cloneScene(source: Object3D) {
   return cloned;
 }
 
-function readAnchors(scene: Object3D) {
+function readAnchors(scene: Object3D, turnCount: number) {
   scene.updateMatrixWorld(true);
-  const turns = Array.from({ length: 14 }, (_, index) => {
+  const turns = Array.from({ length: turnCount }, (_, index) => {
     const number = index + 1;
     const anchor = scene.getObjectByName(`Turn_${String(number).padStart(2, "0")}`);
 
@@ -415,17 +522,17 @@ function readAnchorPosition(scene: Object3D, name: string) {
   return anchor ? anchor.getWorldPosition(new Vector3()) : null;
 }
 
-function ReplayMapPreview({ className }: { className?: string }) {
+function ReplayMapPreview({ className, config }: { className?: string; config: ReplayTrackConfig }) {
   return (
     <div className={cn("absolute inset-0 size-full overflow-hidden bg-black/25", className)}>
       <Image
-        alt="Трасса Зандворт"
+        alt={config.alt}
         className="pointer-events-none object-contain opacity-80"
         draggable={false}
         fill
         loading="eager"
         sizes="(max-width: 768px) 100vw, 960px"
-        src={ZANDVOORT_PREVIEW_PATH}
+        src={config.previewPath}
       />
     </div>
   );
@@ -453,3 +560,5 @@ class ReplayMapErrorBoundary extends Component<ReplayMapErrorBoundaryProps, { ha
 }
 
 useGLTF.preload(ZANDVOORT_ASSET_PATH);
+useGLTF.preload(SPA_TRACK_MODEL.webgl.assetPath);
+useGLTF.preload(HUNGARORING_TRACK_MODEL.webgl.assetPath);

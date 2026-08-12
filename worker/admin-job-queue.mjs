@@ -89,6 +89,11 @@ export function toWorkerArguments(definition, args) {
   return result;
 }
 
+export function getUnexpectedWorkerExitMessage(exitCode) {
+  const code = Number.isInteger(exitCode) && exitCode !== 0 ? exitCode : 1;
+  return `Worker завершился с кодом ${code} до сохранения результата.`;
+}
+
 function isRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

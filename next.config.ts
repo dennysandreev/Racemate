@@ -75,6 +75,15 @@ const nextConfig: NextConfig = {
         headers: noIndexHeaders,
         source,
       })),
+      {
+        source: "/api/og/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, noarchive, max-image-preview:large",
+          },
+        ],
+      },
     ];
   },
   images: {

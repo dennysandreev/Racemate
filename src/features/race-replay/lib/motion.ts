@@ -19,6 +19,88 @@ type BuildDriverMotionOptions = {
   lapTimings?: ReplayLapTiming[];
 };
 
+export function inferLapTimingsFromPositions(events: ReplayPositionEvent[]): ReplayLapTiming[] {
+  const firstEventByLap = new Map<string, ReplayPositionEvent>();
+
+  for (const event of [...events].sort((a, b) => a.offsetMs - b.offsetMs)) {
+    const lapNumber = event.lapNumber;
+
+    if (typeof lapNumber !== "number" || !Number.isFinite(lapNumber) || lapNumber <= 0) {
+      continue;
+    }
+
+    const key = `${event.driverNumber}:${lapNumber}`;
+
+    if (!firstEventByLap.has(key)) {
+      firstEventByLap.set(key, event);
+    }
+  }
+
+  const byDriver = new Map<number, ReplayPositionEvent[]>();
+
+  for (const event of firstEventByLap.values()) {
+    const driverEvents = byDriver.get(event.driverNumber) ?? [];
+    driverEvents.push(event);
+    byDriver.set(event.driverNumber, driverEvents);
+  }
+
+  return [...byDriver.entries()].flatMap(([driverNumber, driverEvents]) => {
+    const ordered = driverEvents.sort((a, b) => a.offsetMs - b.offsetMs);
+    const firstDurationMs = replayLapDurationMs(ordered[0]);
+    let cursorMs = Math.max(0, ordered[0].offsetMs - (firstDurationMs ?? 0));
+
+    return ordered.map((event, index) => {
+      const durationMs = replayLapDurationMs(event);
+      const timing = {
+        driverNumber,
+        durationMs,
+        lapNumber: index + 1,
+        startOffsetMs: Math.round(cursorMs),
+      };
+      const nextEvent = ordered[index + 1];
+      const fallbackDurationMs = nextEvent
+        ? Math.max(1, nextEvent.offsetMs - event.offsetMs)
+        : 0;
+      cursorMs += durationMs ?? fallbackDurationMs;
+
+      return timing;
+    });
+  }).sort((a, b) =>
+    a.driverNumber - b.driverNumber ||
+    a.lapNumber - b.lapNumber ||
+    a.startOffsetMs - b.startOffsetMs,
+  );
+}
+
+export function mergeLapTimingsWithInferred(
+  officialTimings: ReplayLapTiming[] | undefined,
+  inferredTimings: ReplayLapTiming[],
+) {
+  const merged = new Map<string, ReplayLapTiming>();
+
+  for (const timing of inferredTimings) {
+    merged.set(`${timing.driverNumber}:${timing.lapNumber}`, timing);
+  }
+
+  // Official timings are more accurate where they exist. Incomplete official
+  // feeds must not discard later laps recovered from position telemetry.
+  for (const timing of officialTimings ?? []) {
+    merged.set(`${timing.driverNumber}:${timing.lapNumber}`, timing);
+  }
+
+  return [...merged.values()].sort((a, b) =>
+    a.driverNumber - b.driverNumber ||
+    a.lapNumber - b.lapNumber ||
+    a.startOffsetMs - b.startOffsetMs,
+  );
+}
+
+function replayLapDurationMs(event: ReplayPositionEvent) {
+  return typeof event.lastLapDuration === "number" && event.lastLapDuration > 0
+    ? Math.round(event.lastLapDuration * 1_000)
+    : null;
+}
+
 /*
  * Прогресс по кругу «разворачивается» в монотонную величину (круги + доля круга),
  * а между сэмплами телеметрии интерполируется монотонным кубическим сплайном
@@ -83,7 +165,14 @@ export function buildDriverMotion(
       // Накопленное отставание от таймингов гасим ресинком, но только вперед,
       // чтобы машина никогда не поехала назад (лаг обновления круга дает ±1).
       if (anchor !== null && anchor - unwrapped > 1.5) {
-        unwrapped = anchor;
+        const expectedAdvance = paceLapMs === null ? null : gapMs / paceLapMs;
+        const anchorAdvance = anchor - unwrapped;
+        const isPlausibleAdvance = expectedAdvance === null ||
+          anchorAdvance <= Math.max(1.5, expectedAdvance + 0.75);
+
+        if (isPlausibleAdvance) {
+          unwrapped = anchor;
+        }
       }
     }
 

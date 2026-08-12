@@ -1710,5 +1710,17 @@ export const ZANDVOORT_TRACK_MODEL = {
       ]
     }
   },
-  "terrain": ZANDVOORT_TERRAIN
+  "terrain": ZANDVOORT_TERRAIN,
+  "webgl": {
+    "assetPath": "/f1/tracks/3d/zandvoort.glb",
+    "camera": {
+      "fitHeight": 1600,
+      "fitWidth": 1900,
+      "lookAtY": 8,
+      "radius": 2650
+    },
+    "elevationDatumLabel": "м NAP",
+    "previewPath": "/f1/tracks/3d/zandvoort-preview.webp",
+    "turnCount": 14
+  }
 } satisfies TrackModelDefinition;

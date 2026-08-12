@@ -59,7 +59,7 @@ export function DriverComparisonShareImage({
       }}
     >
       <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
-        <ShareLogo />
+        <RaceSideShareLogo />
         <span style={{ color: colors.muted, display: "flex", fontFamily: monoFont, fontSize: 15, fontWeight: 700, letterSpacing: 1.4 }}>
           СЕЗОН {season} / ЭТАП {round}
         </span>
@@ -153,7 +153,7 @@ export function DriverComparisonShareImage({
   );
 }
 
-function ShareLogo() {
+export function RaceSideShareLogo() {
   return (
     <div style={{ alignItems: "center", display: "flex", gap: 12 }}>
       <svg aria-hidden="true" height="48" viewBox="0 0 136 64" width="102">

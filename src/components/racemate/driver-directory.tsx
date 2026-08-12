@@ -210,24 +210,26 @@ function TeamDriverCard({
       ) : null}
 
       <Link
-        className="flex min-h-16 items-center justify-between gap-3 border-t border-border bg-background/50 px-4 py-3 transition-colors duration-200 hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none"
+        className="flex min-h-16 items-center justify-center border-t border-border bg-background/50 px-4 py-3 transition-colors duration-200 hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none"
         href={`/teams/${team.slug}?season=${season}`}
         prefetch={false}
       >
-        <div className="min-w-0">
-          <p className="truncate font-display text-base font-extrabold">{team.shortName}</p>
-          <p className="mt-0.5 font-telemetry text-[0.65rem] font-bold text-muted-foreground">
-            {team.championshipPosition ? `P${team.championshipPosition} в Кубке конструкторов` : "Позиция уточняется"}
-          </p>
+        <div className="flex min-w-0 items-center justify-center gap-3">
+          <TeamLogo
+            code={team.code}
+            color={team.color}
+            logo={team.logo}
+            name={team.name}
+            season={season}
+            size="md"
+          />
+          <div className="min-w-0 text-left">
+            <p className="truncate font-display text-base font-extrabold">{team.shortName}</p>
+            <p className="mt-0.5 font-telemetry text-[0.65rem] font-bold text-muted-foreground">
+              {team.championshipPosition ? `P${team.championshipPosition} в Кубке конструкторов` : "Позиция уточняется"}
+            </p>
+          </div>
         </div>
-        <TeamLogo
-          code={team.code}
-          color={team.color}
-          logo={team.logo}
-          name={team.name}
-          season={season}
-          size="md"
-        />
       </Link>
     </article>
   );

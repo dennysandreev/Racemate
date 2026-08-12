@@ -143,9 +143,11 @@ export function DriverComparison({
           <div className="flex items-center gap-2">
             {leftDriver && rightDriver && selectedRound && round > 0 ? (
               <DriverComparisonShare
+                leftCode={leftDriver.code ?? String(leftDriver.number ?? "")}
                 leftName={leftDriver.fullName}
                 leftSlug={leftDriver.slug}
                 raceName={selectedRound.raceName}
+                rightCode={rightDriver.code ?? String(rightDriver.number ?? "")}
                 rightName={rightDriver.fullName}
                 rightSlug={rightDriver.slug}
                 round={round}

@@ -89,6 +89,28 @@ test("worker falls back when a published template loses a required variable", as
   assert.match(prompt.userPrompt, /Новость дня/);
 });
 
+test("social editorial prompt requires JSON score ranges", async () => {
+  clearWorkerAiPromptCache();
+  const definition = getWorkerAiPromptDefinition("social.editorial");
+  const prompt = await resolveWorkerAiPrompt({
+    client: makeClient({ data: null, error: null }),
+    promptKey: definition.key,
+    variables: {
+      categories: "social-technical",
+      teams: "Ferrari",
+      drivers: "Charles Leclerc",
+      races: "Гран-при Италии",
+      source: "@F1TelemetryData",
+      author: "@F1TelemetryData",
+      title: "Telemetry update",
+      body: "Details",
+    },
+  });
+
+  assert.match(prompt.systemPrompt, /importance - целое JSON-число от 0 до 100/);
+  assert.match(prompt.systemPrompt, /relevance и confidence - JSON-числа от 0 до 1 включительно/);
+});
+
 function makeClient(result) {
   const query = {
     select() {

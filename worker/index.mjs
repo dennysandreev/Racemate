@@ -78,6 +78,7 @@ import {
   runNewsDeduplicationPipeline,
 } from "./news-deduplication.mjs";
 import {
+  getUnexpectedWorkerExitMessage,
   toWorkerArguments,
   validateQueuedJob,
 } from "./admin-job-queue.mjs";
@@ -730,6 +731,16 @@ async function consumeQueuedAdminJobs() {
       const exitCode = await spawnAttachedJob(job, workerArguments);
 
       if (exitCode !== 0) {
+        const { error: updateError } = await supabase
+          .from("job_runs")
+          .update({
+            status: "failed",
+            finished_at: new Date().toISOString(),
+            error_message: getUnexpectedWorkerExitMessage(exitCode),
+          })
+          .eq("id", job.id)
+          .eq("status", "running");
+        if (updateError) throw updateError;
         process.stderr.write(`Admin job ${job.id} exited with code ${exitCode}\n`);
       }
     } catch (spawnError) {
@@ -1062,7 +1073,7 @@ async function fetchTelegramSocial() {
 async function ensureSocialSources({ platform } = {}) {
   const defaults = [];
 
-  if ((!platform || platform === "x") && (process.env.X_BEARER_TOKEN || process.env.SOCIAL_X_RSSHUB_BASE_URL)) {
+  if ((!platform || platform === "x") && process.env.X_BEARER_TOKEN) {
     for (const account of getXAccountsFromEnv()) {
       const handle = getXHandle(account);
 
@@ -1073,9 +1084,9 @@ async function ensureSocialSources({ platform } = {}) {
       defaults.push({
         platform: "x",
         name: `@${handle}`,
-        source_type: process.env.X_BEARER_TOKEN ? "api" : "rss",
+        source_type: "api",
         url: `https://x.com/${handle}`,
-        adapter: process.env.X_BEARER_TOKEN ? "x-api-user" : "rsshub-x-user",
+        adapter: "x-api-user",
         feed_kind: "user",
         external_key: handle,
         fetch_interval_minutes: 15,
@@ -1217,7 +1228,7 @@ async function fetchSocialSource(source) {
   if (source.adapter === "x-api-user") return fetchXApiSource(source);
   if (source.adapter === "reddit-oauth") return fetchRedditApiSource(source);
   if (source.adapter === "telegram-mtproto") return fetchTelegramMtprotoSource(source);
-  if (source.adapter === "rsshub-x-user" || source.adapter === "reddit-rss") {
+  if (source.adapter === "reddit-rss") {
     return fetchSocialRssSource(source);
   }
   throw new Error(`Unsupported social adapter: ${source.adapter}`);
@@ -1714,21 +1725,6 @@ function getRedditSubredditsFromEnv() {
 function getSocialFeedUrl(source) {
   if (source.adapter === "reddit-rss") {
     return source.url;
-  }
-
-  if (source.adapter === "rsshub-x-user") {
-    const baseUrl = process.env.SOCIAL_X_RSSHUB_BASE_URL?.replace(/\/+$/, "");
-    const handle = getXHandle(source.url);
-
-    if (!baseUrl) {
-      throw new Error("SOCIAL_X_RSSHUB_BASE_URL is missing for X social sync");
-    }
-
-    if (!handle) {
-      throw new Error(`Cannot parse X handle from ${source.url}`);
-    }
-
-    return `${baseUrl}/twitter/user/${handle}/count=20&addLinkForPics=1&readable=1`;
   }
 
   throw new Error(`Unsupported social adapter: ${source.adapter}`);
@@ -10094,7 +10090,7 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
     duration_ms: replayPayload.durationMs,
     prepared_at: new Date().toISOString(),
     race_id: currentRace.id,
-    snapshot: replayPayload,
+    snapshot: compactReplaySnapshot(replayPayload),
     source_errors: sourceErrors,
     source_meeting_key: numberOrNull(sourceSession.meeting_key),
     source_race_name: sourceSession.meeting_name ?? sourceSession.session_name ?? currentRace.race_name,
@@ -10102,43 +10098,30 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
     source_session_key: sourceSessionKey,
     source_session_name: sourceSession.session_name ?? sourceSession.session_type ?? "Race",
     source_started_at: sourceSession.date_start ? new Date(sourceSession.date_start).toISOString() : null,
-    status: replayPayload.positions.length ? "ready" : "failed",
+    status: replayPayload.positions.length ? "preparing" : "failed",
     title: `${currentRace.race_name}: повтор гонки ${sourceSeason}`,
     total_laps: replayPayload.totalLaps,
     track_map_id: trackMap.id,
   };
-  const existingReadyBeforeWrite = await getExistingReadyReplayForRace(currentRace.id, sourceSeason);
-  let replaySession;
-  let snapshotWrite = "updated";
+  const replaySession = await upsertReplaySessionWithRetry(replayRow, 3);
+  const eventIndexing = await replaceReplayEvents(replaySession.id, replayPayload);
 
-  try {
-    replaySession = await upsertReplaySessionWithRetry(replayRow, existingReadyBeforeWrite ? 1 : 3);
-  } catch (error) {
-    const existingReady = error?.code === "57014" ? existingReadyBeforeWrite : null;
-
-    if (!existingReady || Number(existingReady.source_session_key) !== sourceSessionKey) {
-      throw error;
-    }
-
-    replaySession = existingReady;
-    snapshotWrite = "preserved_after_timeout";
-
-    const { error: touchError } = await supabase
+  if (eventIndexing.status !== "indexed") {
+    await supabase
       .from("race_replay_sessions")
-      .update({ prepared_at: replayRow.prepared_at })
+      .update({ status: "failed" })
       .eq("id", replaySession.id);
-
-    if (touchError) {
-      logWorkerWarning("race_replay.snapshot_touch_failed", {
-        message: getSafeErrorMessage(touchError),
-        replaySessionId: replaySession.id,
-      });
-    }
+    throw new Error(`Replay event indexing failed: ${eventIndexing.message ?? "unknown error"}`);
   }
 
-  const eventIndexing = snapshotWrite === "updated"
-    ? await replaceReplayEvents(replaySession.id, replayPayload)
-    : await replaceReplayLapTimingEvents(replaySession.id, replayPayload);
+  const { error: readyError } = await supabase
+    .from("race_replay_sessions")
+    .update({ status: "ready" })
+    .eq("id", replaySession.id);
+
+  if (readyError) {
+    throw readyError;
+  }
 
   return {
     itemsProcessed: replayPayload.positions.length + replayPayload.raceEvents.length,
@@ -10151,8 +10134,18 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
       sourceErrors,
       sourceSeason,
       sourceSessionKey,
-      snapshotWrite,
+      snapshotWrite: "compact_event_index",
     },
+  };
+}
+
+function compactReplaySnapshot(replayPayload) {
+  return {
+    ...replayPayload,
+    intervalTimings: replayPayload.intervalTimings ?? [],
+    lapTimings: [],
+    positionTimings: [],
+    positions: [],
   };
 }
 
@@ -10180,12 +10173,22 @@ function scoreReplayRaceSession(circuit, session) {
 }
 
 async function fetchOpenF1Optional(url, sourceErrors, label) {
-  try {
-    return await fetchJson(url);
-  } catch (error) {
-    sourceErrors.push({ label, message: getSafeErrorMessage(error) });
-    return [];
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await fetchJson(url);
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < 3) {
+        await sleep(1_000 * attempt);
+      }
+    }
   }
+
+  sourceErrors.push({ label, message: getSafeErrorMessage(lastError) });
+  return [];
 }
 
 function getReplayDriverNumbers(driversPayload, positionsPayload, lapsPayload) {
@@ -10210,7 +10213,7 @@ async function fetchReplayLocationsByDriver(baseUrl, sourceSessionKey, driverNum
     const chunk = driverNumbers.slice(index, index + concurrency);
     const results = await Promise.all(
       chunk.map(async (driverNumber) => {
-        const locations = await fetchOpenF1Optional(
+        const locations = await fetchReplayLocations(
           `${baseUrl}/location?session_key=${sourceSessionKey}&driver_number=${driverNumber}`,
           sourceErrors,
           `location_${driverNumber}`,
@@ -10231,6 +10234,25 @@ async function fetchReplayLocationsByDriver(baseUrl, sourceSessionKey, driverNum
   }
 
   return locationByDriver;
+}
+
+async function fetchReplayLocations(url, sourceErrors, label) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await fetchJson(url, 1, 45_000);
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < 3) {
+        await sleep(1_000 * attempt);
+      }
+    }
+  }
+
+  sourceErrors.push({ label, message: getSafeErrorMessage(lastError) });
+  return [];
 }
 
 function filterReplayLocationsByDriver(locations, driverNumber) {
@@ -10644,6 +10666,7 @@ function buildReplaySnapshot({
     trackDefinition,
   });
   const replayPositions = [];
+  const positionTimings = buildReplayPositionTimings(positionsPayload, raceStartMs);
 
   for (const [driverNumber, locations] of locationByDriver.entries()) {
     const points = normalizeOpenF1LocationPoints(locations)
@@ -10727,6 +10750,8 @@ function buildReplaySnapshot({
   }
 
   replayPositions.sort((a, b) => a.offsetMs - b.offsetMs || a.driverNumber - b.driverNumber);
+  const driversWithReplayPositions = new Set(replayPositions.map((event) => event.driverNumber));
+  const intervalTimings = buildReplayIntervalTimings(intervalsPayload, raceStartMs);
   const lapTimings = buildReplayLapTimings(timedLapsPayload, raceStartMs);
   const durationMs = Math.max(
     ...replayPositions.map((event) => event.offsetMs),
@@ -10740,7 +10765,7 @@ function buildReplaySnapshot({
       ...replayPositions.map((event) => event.driverNumber),
     ]),
   ].sort((a, b) => a - b);
-  const driversWithReplayPositions = new Set(replayPositions.map((event) => event.driverNumber));
+  const totalLaps = getReplayTotalLaps(timedLapsPayload);
   const drivers = driverNumbers.map((driverNumber) => {
     const driver = driverMap.get(driverNumber);
     const latestPosition = [...(positionsByDriver.get(driverNumber) ?? [])].reverse()[0];
@@ -10749,6 +10774,13 @@ function buildReplaySnapshot({
     const firstStint = stintsByDriver.get(driverNumber)?.[0];
     const latestLap = [...(lapsByDriver.get(driverNumber) ?? [])].reverse()[0];
     const latestLapTiming = getReplayLapTiming(latestLap);
+    const completedRaceDistance =
+      totalLaps !== null && Number(latestLap?.lap_number) >= totalLaps;
+    const status = driversWithReplayPositions.has(driverNumber) || completedRaceDistance
+      ? "RUNNING"
+      : latestLap
+        ? "OUT"
+        : "NO_DATA";
 
     return {
       abbreviation: driver?.abbreviation ?? String(driverNumber),
@@ -10766,7 +10798,7 @@ function buildReplaySnapshot({
       sector2Time: latestLapTiming.sector2Time,
       sector3Time: latestLapTiming.sector3Time,
       position: numberOrNull(firstPosition?.position ?? latestPosition?.position),
-      status: driversWithReplayPositions.has(driverNumber) ? "RUNNING" : "NO_DATA",
+      status,
       teamColor: driver?.teamColor ?? "#E10600",
       teamName: driver?.teamName ?? "Команда",
       tyreAge: null,
@@ -10778,17 +10810,72 @@ function buildReplaySnapshot({
     circuitName: circuit.name,
     drivers,
     durationMs,
+    intervalTimings,
     lapTimings,
+    positionTimings,
     positions: replayPositions,
     raceEvents,
     raceName: currentRace.race_name,
     replaySessionId: "",
     sourceSeason,
     sourceSessionKey,
-    totalLaps: getReplayTotalLaps(timedLapsPayload),
+    totalLaps,
     track: trackDefinition,
     weather: buildReplayWeather(weatherPayload),
   };
+}
+
+function buildReplayIntervalTimings(intervalsPayload, raceStartMs) {
+  const lastOffsetByDriver = new Map();
+
+  return (intervalsPayload ?? [])
+    .map((item) => {
+      const driverNumber = Number(item?.driver_number);
+      const timestampMs = item?.date ? new Date(item.date).getTime() : NaN;
+      const offsetMs = Math.round(timestampMs - raceStartMs);
+
+      if (
+        !Number.isFinite(driverNumber) ||
+        !Number.isFinite(timestampMs) ||
+        timestampMs < raceStartMs ||
+        offsetMs - (lastOffsetByDriver.get(driverNumber) ?? -Infinity) < 8_000
+      ) {
+        return null;
+      }
+
+      lastOffsetByDriver.set(driverNumber, offsetMs);
+
+      return {
+        driverNumber,
+        gapToLeader: formatReplayGap(item?.gap_to_leader),
+        intervalToAhead: formatReplayGap(item?.interval),
+        offsetMs,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.offsetMs - b.offsetMs || a.driverNumber - b.driverNumber);
+}
+
+function buildReplayPositionTimings(positionsPayload, raceStartMs) {
+  return (positionsPayload ?? [])
+    .map((item) => {
+      const driverNumber = Number(item?.driver_number);
+      const position = Number(item?.position);
+      const timestampMs = item?.date ? new Date(item.date).getTime() : NaN;
+
+      return Number.isFinite(driverNumber) &&
+        Number.isFinite(position) &&
+        Number.isFinite(timestampMs) &&
+        timestampMs >= raceStartMs
+        ? {
+            driverNumber,
+            offsetMs: Math.round(timestampMs - raceStartMs),
+            position,
+          }
+        : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.offsetMs - b.offsetMs || a.driverNumber - b.driverNumber);
 }
 
 function buildReplayLapTimings(timedLapsPayload, raceStartMs) {
@@ -11982,10 +12069,12 @@ async function insertReplayEvents(replaySessionId, replayPayload) {
       replay_session_id: replaySessionId,
     })),
     ...buildReplayLapTimingEventRows(replaySessionId, replayPayload),
+    ...buildReplayPositionTimingEventRows(replaySessionId, replayPayload),
+    ...buildReplayIntervalTimingEventRows(replaySessionId, replayPayload),
   ];
 
-  for (let index = 0; index < rows.length; index += 60) {
-    const chunk = rows.slice(index, index + 60);
+  for (let index = 0; index < rows.length; index += 200) {
+    const chunk = rows.slice(index, index + 200);
     const { error } = await supabase.from("race_replay_events").insert(chunk);
 
     if (error) {
@@ -11994,11 +12083,42 @@ async function insertReplayEvents(replaySessionId, replayPayload) {
   }
 }
 
-function buildReplayLapTimingEventRows(replaySessionId, replayPayload) {
+function buildReplayPositionTimingEventRows(replaySessionId, replayPayload) {
+  const raceStartMs = getReplayPayloadStartMs(replayPayload);
+
+  return (replayPayload.positionTimings ?? []).map((timing) => ({
+    driver_number: timing.driverNumber,
+    event_time: new Date(raceStartMs + timing.offsetMs).toISOString(),
+    event_type: "position_timing",
+    offset_ms: timing.offsetMs,
+    payload: timing,
+    replay_session_id: replaySessionId,
+  }));
+}
+
+function buildReplayIntervalTimingEventRows(replaySessionId, replayPayload) {
+  const raceStartMs = getReplayPayloadStartMs(replayPayload);
+
+  return (replayPayload.intervalTimings ?? []).map((timing) => ({
+    driver_number: timing.driverNumber,
+    event_time: new Date(raceStartMs + timing.offsetMs).toISOString(),
+    event_type: "interval_timing",
+    offset_ms: timing.offsetMs,
+    payload: timing,
+    replay_session_id: replaySessionId,
+  }));
+}
+
+function getReplayPayloadStartMs(replayPayload) {
   const firstPosition = replayPayload.positions[0];
-  const raceStartMs = firstPosition
+
+  return firstPosition
     ? new Date(firstPosition.timestamp).getTime() - firstPosition.offsetMs
     : Date.now();
+}
+
+function buildReplayLapTimingEventRows(replaySessionId, replayPayload) {
+  const raceStartMs = getReplayPayloadStartMs(replayPayload);
 
   return (replayPayload.lapTimings ?? []).map((timing) => ({
     driver_number: timing[0],
@@ -12008,30 +12128,6 @@ function buildReplayLapTimingEventRows(replaySessionId, replayPayload) {
     payload: timing,
     replay_session_id: replaySessionId,
   }));
-}
-
-async function replaceReplayLapTimingEvents(replaySessionId, replayPayload) {
-  const { error: deleteError } = await supabase
-    .from("race_replay_events")
-    .delete()
-    .eq("replay_session_id", replaySessionId)
-    .eq("event_type", "lap_timing");
-
-  if (deleteError) {
-    return { message: getSafeErrorMessage(deleteError), status: "skipped" };
-  }
-
-  const rows = buildReplayLapTimingEventRows(replaySessionId, replayPayload);
-
-  for (let index = 0; index < rows.length; index += 100) {
-    const { error } = await supabase.from("race_replay_events").insert(rows.slice(index, index + 100));
-
-    if (error) {
-      return { message: getSafeErrorMessage(error), status: "skipped" };
-    }
-  }
-
-  return { rows: rows.length, status: "indexed" };
 }
 
 async function replaceReplayEvents(replaySessionId, replayPayload) {
@@ -12078,24 +12174,28 @@ async function deleteReplayEvents(replaySessionId) {
   }
 }
 
-async function fetchJson(url, attempt = 1) {
+async function fetchJson(
+  url,
+  attempt = 1,
+  timeoutMs = Number(process.env.OPENF1_FETCH_TIMEOUT_MS ?? 12000),
+) {
   await throttleOpenF1Fetch(url);
   const headers = await getFetchHeaders(url);
 
   const response = await fetch(url, {
     headers,
-    signal: AbortSignal.timeout(Number(process.env.OPENF1_FETCH_TIMEOUT_MS ?? 12000)),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   const payload = await readJsonResponse(response);
 
   if (response.status === 429 && attempt < 4) {
     await sleep(2500 * attempt);
-    return fetchJson(url, attempt + 1);
+    return fetchJson(url, attempt + 1, timeoutMs);
   }
 
   if (response.status === 401 && headers.authorization && canRefreshOpenF1AccessToken() && attempt < 2) {
     clearOpenF1AccessTokenCache();
-    return fetchJson(url, attempt + 1);
+    return fetchJson(url, attempt + 1, timeoutMs);
   }
 
   if (!response.ok) {

@@ -69,9 +69,63 @@ export const comparisonMetricDirections: Record<
   positionsGained: "higher",
 };
 
+const DRIVER_COMPARISON_SHARE_VERSION = "s2";
+
+export function createDriverComparisonShareCode(
+  season: number,
+  round: number,
+  leftKey?: string | null,
+  rightKey?: string | null,
+) {
+  const normalizedLeft = normalizeDriverShareKey(leftKey);
+  const normalizedRight = normalizeDriverShareKey(rightKey);
+
+  if (
+    !Number.isInteger(season)
+    || season < 2000
+    || season > 2099
+    || !Number.isInteger(round)
+    || round < 1
+    || round > 99
+    || !normalizedLeft
+    || !normalizedRight
+    || normalizedLeft === normalizedRight
+  ) {
+    return null;
+  }
+
+  return `${DRIVER_COMPARISON_SHARE_VERSION}-${String(season).slice(-2)}-${round}-${normalizedLeft}-${normalizedRight}`;
+}
+
+export function parseDriverComparisonShareCode(value?: string | null) {
+  const match = /^(?:s2-)?(\d{2})-(\d{1,2})-([A-Z0-9]{1,4})-([A-Z0-9]{1,4})$/i.exec(
+    value?.trim() ?? "",
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const season = 2000 + Number(match[1]);
+  const round = Number(match[2]);
+  const leftKey = match[3].toUpperCase();
+  const rightKey = match[4].toUpperCase();
+
+  if (round < 1 || leftKey === rightKey) {
+    return null;
+  }
+
+  return { leftKey, rightKey, round, season };
+}
+
 export function normalizeDriverComparisonSlug(value?: string | null) {
   const normalized = value?.trim().toLowerCase();
   return normalized && /^[a-z0-9-]+$/.test(normalized) ? normalized : undefined;
+}
+
+function normalizeDriverShareKey(value?: string | null) {
+  const normalized = value?.trim().toUpperCase();
+  return normalized && /^[A-Z0-9]{1,4}$/.test(normalized) ? normalized : null;
 }
 
 export function resolveDriverComparisonRound(

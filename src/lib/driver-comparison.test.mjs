@@ -3,12 +3,46 @@ import test from "node:test";
 
 import {
   buildDriverRoundSnapshots,
+  createDriverComparisonShareCode,
   compareDriverSnapshots,
   normalizeDriverComparisonSlug,
   rankDirectoryDrivers,
+  parseDriverComparisonShareCode,
   resolveDriverComparisonRound,
   resolveDriverComparisonSelection,
 } from "./driver-comparison.ts";
+import { resolvePublicSiteOrigin } from "./seo.ts";
+
+test("uses the canonical public origin behind a production proxy", () => {
+  assert.equal(
+    resolvePublicSiteOrigin("https://0.0.0.0:3000/c/26-3-RUS-ANT", "production"),
+    "https://raceside.online",
+  );
+  assert.equal(
+    resolvePublicSiteOrigin("http://localhost:3010/c/26-3-RUS-ANT", "development"),
+    "http://localhost:3010",
+  );
+});
+
+test("creates and parses compact comparison share codes", () => {
+  const code = createDriverComparisonShareCode(2026, 8, "VER", "NOR");
+
+  assert.equal(code, "s2-26-8-VER-NOR");
+  assert.deepEqual(parseDriverComparisonShareCode(code), {
+    leftKey: "VER",
+    rightKey: "NOR",
+    round: 8,
+    season: 2026,
+  });
+  assert.deepEqual(parseDriverComparisonShareCode("26-8-VER-NOR"), {
+    leftKey: "VER",
+    rightKey: "NOR",
+    round: 8,
+    season: 2026,
+  });
+  assert.equal(parseDriverComparisonShareCode("26-0-VER-NOR"), null);
+  assert.equal(createDriverComparisonShareCode(2026, 8, undefined, "NOR"), null);
+});
 
 test("builds cumulative snapshots from sprint and race results", () => {
   const snapshots = buildDriverRoundSnapshots(

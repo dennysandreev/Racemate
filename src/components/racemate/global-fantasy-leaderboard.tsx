@@ -4,6 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { GlobalFantasyLeaderboard } from "@/types/racemate";
 
+export type FantasyLeaderboardPanelRow = {
+  averageScore: number;
+  bestBreakdown?: GlobalFantasyLeaderboard["rows"][number]["bestBreakdown"];
+  bestScore: number | null;
+  displayName: string;
+  isCurrentUser?: boolean;
+  key: string;
+  predictionCount: number;
+  rank: number;
+  totalScore: number;
+};
+
 export function GlobalFantasyLeaderboardPanel({
   currentDisplayName,
   leaderboard,
@@ -11,15 +23,39 @@ export function GlobalFantasyLeaderboardPanel({
   currentDisplayName?: string | null;
   leaderboard: GlobalFantasyLeaderboard;
 }) {
-  const rows = leaderboard.rows;
+  const rows: FantasyLeaderboardPanelRow[] = leaderboard.rows.map((row) => ({
+    ...row,
+    isCurrentUser: isSameName(row.displayName, currentDisplayName),
+    key: `${row.rank}-${row.displayName}`,
+  }));
+
+  return (
+    <FantasyLeaderboardPanel
+      emptyText="Рейтинг появится, когда участники сохранят первые личные прогнозы."
+      rows={rows}
+      subtitle="Все участники RaceSide за сезон"
+      title="Глобальный лидерборд"
+    />
+  );
+}
+
+export function FantasyLeaderboardPanel({
+  emptyText,
+  rows,
+  subtitle,
+  title,
+}: {
+  emptyText: string;
+  rows: FantasyLeaderboardPanelRow[];
+  subtitle: string;
+  title: string;
+}) {
   const leaderScore = Math.max(rows[0]?.totalScore ?? 0, 1);
 
   if (!rows.length) {
     return (
       <section className="stitch-panel p-6">
-        <p className="text-sm leading-6 text-muted-foreground">
-          Рейтинг появится, когда участники сохранят первые личные прогнозы.
-        </p>
+        <p className="text-sm leading-6 text-muted-foreground">{emptyText}</p>
       </section>
     );
   }
@@ -33,25 +69,21 @@ export function GlobalFantasyLeaderboardPanel({
               <ListOrdered aria-hidden="true" className="size-4.5 text-primary" />
             </span>
             <div>
-              <h2 className="font-display text-lg font-bold leading-tight">Глобальный лидерборд</h2>
-              <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-                Все участники RaceSide за сезон
-              </p>
+              <h2 className="font-display text-lg font-bold leading-tight">{title}</h2>
+              <p className="mt-0.5 text-xs font-semibold text-muted-foreground">{subtitle}</p>
             </div>
           </div>
           <Badge variant="secondary">{rows.length}</Badge>
         </div>
         <ol>
           {rows.map((row) => {
-            const isCurrentUser = isSameName(row.displayName, currentDisplayName);
-
             return (
               <li
                 className={cn(
                   "grid grid-cols-[2.2rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-t stitch-divider px-3 py-2.5 transition-colors hover:bg-accent/40 sm:px-4",
-                  isCurrentUser && "bg-primary/10",
+                  row.isCurrentUser && "bg-primary/10",
                 )}
-                key={`${row.rank}-${row.displayName}`}
+                key={row.key}
               >
                 <span
                   className={cn(
@@ -67,7 +99,7 @@ export function GlobalFantasyLeaderboardPanel({
                 <div className="min-w-0">
                   <p className="flex min-w-0 items-center gap-2">
                     <span className="truncate text-sm font-bold">{row.displayName}</span>
-                    {isCurrentUser ? (
+                    {row.isCurrentUser ? (
                       <span className="font-telemetry shrink-0 rounded border border-primary/45 bg-primary/12 px-1.5 py-0.5 text-[0.55rem] font-extrabold uppercase tracking-[0.08em] text-primary">
                         Вы
                       </span>

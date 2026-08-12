@@ -32,6 +32,15 @@ export function absoluteUrl(pathOrUrl: string) {
   return new URL(pathOrUrl, SITE_URL).toString();
 }
 
+export function resolvePublicSiteOrigin(
+  requestUrl: string,
+  environment = process.env.NODE_ENV,
+) {
+  return environment === "production"
+    ? new URL(SITE_URL).origin
+    : new URL(requestUrl).origin;
+}
+
 export function createPageMetadata({
   authors,
   description,

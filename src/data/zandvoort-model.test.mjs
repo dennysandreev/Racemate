@@ -24,21 +24,44 @@ test("3D viewer supports close inspection at 800% zoom", async () => {
 });
 
 test("Zandvoort loading preview keeps the fitted 3D framing", async () => {
-  const [viewerSource, webglSource] = await Promise.all([
+  const webglSource = await readFile(
+    new URL("../components/racemate/track-model-webgl.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(webglSource, /pointer-events-none object-contain/);
+  assert.doesNotMatch(webglSource, /pointer-events-none object-cover/);
+  assert.equal(ZANDVOORT_TRACK_MODEL.webgl.previewPath, "/f1/tracks/3d/zandvoort-preview.webp");
+});
+
+test("bottom map information stays above projected 3D annotations", async () => {
+  const [viewerSource, replaySource] = await Promise.all([
     readFile(
       new URL("../components/racemate/track-model-3d.tsx", import.meta.url),
       "utf8",
     ),
     readFile(
-      new URL("../components/racemate/track-model-webgl.tsx", import.meta.url),
+      new URL("../features/race-replay/components/race-replay-player.tsx", import.meta.url),
       "utf8",
     ),
   ]);
 
-  assert.match(viewerSource, /size-full object-contain/);
-  assert.doesNotMatch(viewerSource, /size-full object-cover/);
-  assert.match(webglSource, /pointer-events-none object-contain/);
-  assert.doesNotMatch(webglSource, /pointer-events-none object-cover/);
+  assert.match(
+    viewerSource,
+    /<figcaption className="[^"]*\bz-30\b[^"]*"/,
+  );
+  assert.match(
+    replaySource,
+    /absolute bottom-5 right-5 z-30/,
+  );
+  assert.match(
+    replaySource,
+    /absolute bottom-5 left-5 z-30/,
+  );
+  assert.match(
+    replaySource,
+    /xl:hidden[^>]*>[\s\S]*<span>Круг<\/span>/,
+  );
 });
 
 test("Zandvoort model is a closed lap with all fourteen turns", () => {

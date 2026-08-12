@@ -60,6 +60,21 @@ test("AI payload accepts only complete Russian summaries", () => {
   assert.throws(() => parseSocialAiPayload({ title: "F1 update", summary: "No Russian text", categories: ["social-upgrades"], contentType: "report", importance: 50, relevance: 1, confidence: 1, shouldPublish: true }));
 });
 
+test("AI payload rejects percentage-style scores instead of publishing a malformed result", () => {
+  assert.throws(() => parseSocialAiPayload({
+    title: "Ferrari обновила переднее антикрыло",
+    summary: "Команда проверит новую конфигурацию в первой практике ближайшего этапа.",
+    categories: ["social-upgrades"],
+    entities: { teams: ["Ferrari"], drivers: [], races: [] },
+    contentType: "official",
+    importance: 72,
+    relevance: 98,
+    confidence: 94,
+    shouldPublish: true,
+    originalLanguage: "en",
+  }), /scores are invalid/);
+});
+
 test("Telegram AI only analyzes the post and does not retain rewritten text", () => {
   const payload = parseSocialAiPayload(JSON.stringify({
     categories: ["social-technical"],

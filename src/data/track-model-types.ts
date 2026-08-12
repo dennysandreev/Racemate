@@ -83,4 +83,16 @@ export type TrackModelDefinition = {
     turnLabelTrackOffsets?: Readonly<Partial<Record<number, number>>>;
   };
   terrain: CircuitTerrainData;
+  webgl?: {
+    assetPath: string;
+    camera: {
+      fitHeight: number;
+      fitWidth: number;
+      lookAtY: number;
+      radius: number;
+    };
+    elevationDatumLabel: string;
+    previewPath: string;
+    turnCount: number;
+  };
 };

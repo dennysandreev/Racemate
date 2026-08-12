@@ -1,0 +1,257 @@
+import { readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { utm34nFromWgs84 } from "./export-hungaroring-track-data.mjs";
+
+const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(scriptDirectory, "../..");
+
+export async function writeHungaroringClientModel({
+  configPath = path.join(projectRoot, ".track-model-build/hungaroring.json"),
+  metadataPath = path.join(projectRoot, "public/f1/tracks/3d/hungaroring-metadata.json"),
+  outputPath = path.join(projectRoot, "src/data/hungaroring-model.ts"),
+} = {}) {
+  const preparedDirectory = path.join(projectRoot, ".track-model-build/hungaroring-prepared");
+  const [config, metadata, rasterMetadata, dtmBuffer] = await Promise.all([
+    readJson(configPath),
+    readJson(metadataPath),
+    readJson(path.join(preparedDirectory, "raster-metadata.json")),
+    readFile(path.join(preparedDirectory, "hungary-dtm.f32le")),
+  ]);
+  const osm = await readJson(path.join(config.sourceDirectory, "openstreetmap-raceway.json"));
+  const sourceCenterline = assembleMainCircuit(osm, config.model.mainCircuitWayIds);
+  const centerline = rotateClosedLine(sourceCenterline, config.model.sourceStartFinishOffsetMeters);
+  const cumulative = cumulativeDistances(centerline);
+  const totalLength = cumulative.at(-1);
+  const dtm = createHeightRasterSampler(
+    dtmBuffer,
+    rasterMetadata.rasters.dtm,
+    config.model.bounds,
+  );
+  const pointCount = 180;
+  const points = Array.from({ length: pointCount + 1 }, (_, index) => {
+    const distanceAlongTrack = totalLength * index / pointCount;
+    const point = index === pointCount
+      ? centerline[0]
+      : sampleLine(centerline, cumulative, distanceAlongTrack);
+    const elevation = dtm.sample(point[0], point[1]);
+    return [
+      round(index / pointCount, 6),
+      round(point[0] - config.model.center.x, 3),
+      round(point[1] - config.model.center.y, 3),
+      round(elevation * 10, 3),
+    ];
+  });
+  points.at(-1).splice(1, 3, ...points[0].slice(1));
+  const pitWay = osm.elements.find((element) =>
+    element.type === "way" && element.id === config.model.pitLaneWayId
+  );
+  if (!pitWay?.geometry?.length) {
+    throw new Error(`OSM pit-lane way ${config.model.pitLaneWayId} is missing or has no geometry`);
+  }
+  const pitCenterline = pitWay.geometry.map(({ lat, lon }) => utm34nFromWgs84(lat, lon));
+  const pitCumulative = cumulativeDistances(pitCenterline);
+  const pitLength = pitCumulative.at(-1);
+  const pitPointCount = 96;
+  const pitLanePoints = Array.from({ length: pitPointCount + 1 }, (_, index) => {
+    const distanceAlongPit = pitLength * index / pitPointCount;
+    const point = sampleLine(pitCenterline, pitCumulative, distanceAlongPit);
+    return [
+      round(index / pitPointCount, 6),
+      round(point[0] - config.model.center.x, 3),
+      round(point[1] - config.model.center.y, 3),
+      round(dtm.sample(point[0], point[1]) * 10, 3),
+    ];
+  });
+  const elevations = metadata.elevationProfile.map((sample) => sample.elevationMeters);
+  const slopes = metadata.elevationProfile.slice(1).map((sample, index) => {
+    const previous = metadata.elevationProfile[index];
+    return (sample.elevationMeters - previous.elevationMeters)
+      / (sample.distanceMeters - previous.distanceMeters) * 100;
+  });
+  const turns = config.model.turns.map((turn) => ({
+    name: turn.name,
+    number: turn.number,
+    progress: round(turn.distanceMeters / totalLength, 6),
+  }));
+  const speedTrap = config.officialControlPoints.speedTrap;
+  const speedTrapDistance = config.model.turns[speedTrap.turn - 1].distanceMeters
+    - speedTrap.beforeTurnMeters;
+  const sectorBreaks = config.officialControlPoints.sectorBoundaries
+    .map((boundary) => round(boundary.absoluteDistanceMeters / totalLength, 6));
+  const turnLabelOffsets = Object.fromEntries(turns.map(({ number }) => [number, [0, 0]]));
+  const content = `import type {
+  CircuitModelPoint,
+  CircuitModelTurn,
+  TrackModelDefinition,
+} from "@/data/track-model-types";
+
+/**
+ * Generated from the Hungaroring Blender digital twin. Do not hand-edit.
+ * Geometry: current OSM; elevations: Terrarium DEM; official markers: FIA 2026 map.
+ * Run \`pnpm track:3d:build hungaroring\` to regenerate this controller metadata.
+ */
+
+export const HUNGARORING_MODEL = ${JSON.stringify({
+    circuitName: "Hungaroring",
+    lapLengthKm: 4.381,
+    elevationChangeM: round(metadata.elevationsMeters.high - metadata.elevationsMeters.low, 1),
+    maxDownhillPercent: round(Math.abs(Math.min(...slopes)), 1),
+    maxUphillPercent: round(Math.max(...slopes), 1),
+    points: "__POINTS__",
+    sectorBreaks,
+    speedTrapProgress: round(speedTrapDistance / totalLength, 6),
+    turns: "__TURNS__",
+  }, null, 2)
+    .replace('"__POINTS__"', `${JSON.stringify(points, null, 2)} satisfies readonly CircuitModelPoint[]`)
+    .replace('"__TURNS__"', `${JSON.stringify(turns, null, 2)} satisfies readonly CircuitModelTurn[]`)} as const;
+
+export const HUNGARORING_TERRAIN = ${JSON.stringify({
+    attribution: "Hungary national orthophoto 2022 · CC BY 4.0 · VersaTiles elevation",
+    attributionUrl: "https://inspire-geoportal.ec.europa.eu/srv/api/records/orto2022m-2e5d-474c-9de5-910a2e8edd62",
+    bounds: { maxX: 1, maxY: 1, minX: -1, minY: -1 },
+    columns: 2,
+    elevationMaxM: round(Math.max(...elevations), 3),
+    elevationMinM: round(Math.min(...elevations), 3),
+    rows: 2,
+    values: [
+      [round(metadata.elevationsMeters.low, 3), round(metadata.elevationsMeters.high, 3)],
+      [round(metadata.elevationsMeters.high, 3), round(metadata.elevationsMeters.low, 3)],
+    ],
+  }, null, 2)} as const;
+
+export const HUNGARORING_REPLAY_PATH = ${JSON.stringify({
+    baseElevationMeters: round(rasterMetadata.rasters.dtm.minimum, 5),
+    pitLanePoints: "__PIT_POINTS__",
+    startFinishProgress: 0,
+    surfaceOffsetMeters: 1,
+    trackPoints: "__TRACK_POINTS__",
+    trackWidthMeters: config.model.trackWidthMeters,
+  }, null, 2)
+    .replace('"__PIT_POINTS__"', `${JSON.stringify(pitLanePoints, null, 2)} satisfies readonly CircuitModelPoint[]`)
+    .replace('"__TRACK_POINTS__"', `${JSON.stringify(points, null, 2)} satisfies readonly CircuitModelPoint[]`)} as const;
+
+export const HUNGARORING_TRACK_MODEL = ${JSON.stringify({
+    aliases: [
+      "hungaroring",
+      "хунгароринг",
+      "hungarian grand prix",
+      "гран-при венгрии",
+      "budapest",
+      "будапешт",
+    ],
+    camera: { centerY: 0, rotationDeg: 0, scale: 1, tiltDeg: 10, verticalExaggeration: 1 },
+    data: "__MODEL__",
+    id: "hungaroring",
+    rendering: {
+      annotationOffsets: {},
+      contourIntervalM: 5,
+      curbTurnNumbers: turns.map(({ number }) => number),
+      gravelTurnNumbers: [...GRAVEL_TURNS],
+      runoffTurnNumbers: turns.map(({ number }) => number),
+      turnLabelOffsets,
+    },
+    terrain: "__TERRAIN__",
+    webgl: {
+      assetPath: "/f1/tracks/3d/hungaroring.glb",
+      camera: { fitHeight: 2_050, fitWidth: 2_050, lookAtY: 18, radius: 3_100 },
+      elevationDatumLabel: "м DEM",
+      previewPath: "/f1/tracks/3d/hungaroring-preview.webp",
+      turnCount: 14,
+    },
+  }, null, 2)
+    .replace('"__MODEL__"', "HUNGARORING_MODEL")
+    .replace('"__TERRAIN__"', "HUNGARORING_TERRAIN")} satisfies TrackModelDefinition;
+`;
+  await writeFile(outputPath, content, "utf8");
+  return { outputPath, pointCount: points.length, totalLength };
+}
+
+const GRAVEL_TURNS = [1, 2, 4, 5, 6, 7, 9, 11, 12, 13, 14];
+
+function assembleMainCircuit(osm, wayIds) {
+  const ways = new Map(osm.elements.filter((element) => element.type === "way")
+    .map((way) => [way.id, way]));
+  const points = [];
+  for (const wayId of wayIds) {
+    const way = ways.get(wayId);
+    if (!way?.geometry?.length) throw new Error(`OSM way ${wayId} is missing or has no geometry`);
+    let geometry = way.geometry.map(({ lat, lon }) => utm34nFromWgs84(lat, lon));
+    if (points.length > 0) {
+      if (distance(points.at(-1), geometry.at(-1)) < distance(points.at(-1), geometry[0])) {
+        geometry = geometry.reverse();
+      }
+      if (distance(points.at(-1), geometry[0]) < 0.05) geometry = geometry.slice(1);
+    }
+    points.push(...geometry);
+  }
+  if (distance(points[0], points.at(-1)) > 0.05) points.push(points[0]);
+  return points;
+}
+
+function rotateClosedLine(points, requestedOffset) {
+  const cumulative = cumulativeDistances(points);
+  const total = cumulative.at(-1);
+  const offset = ((requestedOffset % total) + total) % total;
+  const splitIndex = cumulative.findIndex((value) => value >= offset);
+  const splitPoint = sampleLine(points, cumulative, offset);
+  const core = distance(points[0], points.at(-1)) < 0.05 ? points.slice(0, -1) : points;
+  return [splitPoint, ...core.slice(splitIndex), ...core.slice(0, splitIndex), splitPoint];
+}
+
+function cumulativeDistances(points) {
+  const result = [0];
+  for (let index = 1; index < points.length; index += 1) {
+    result.push(result.at(-1) + distance(points[index - 1], points[index]));
+  }
+  return result;
+}
+
+function sampleLine(points, cumulative, requestedDistance) {
+  const distanceAlongLine = Math.min(Math.max(requestedDistance, 0), cumulative.at(-1));
+  const upper = cumulative.findIndex((value) => value >= distanceAlongLine);
+  if (upper <= 0) return points[0];
+  const lower = upper - 1;
+  const blend = (distanceAlongLine - cumulative[lower])
+    / Math.max(cumulative[upper] - cumulative[lower], 1e-9);
+  return points[lower].map((value, axis) => value * (1 - blend) + points[upper][axis] * blend);
+}
+
+function createHeightRasterSampler(buffer, metadata, bounds) {
+  const width = Number(metadata.width);
+  const height = Number(metadata.height);
+  const values = Array.from({ length: width * height }, (_, index) => buffer.readFloatLE(index * 4));
+  const sample = (x, y) => {
+    const fx = clamp((x - bounds.minX) / (bounds.maxX - bounds.minX) * (width - 1), 0, width - 1);
+    const fy = clamp((bounds.maxY - y) / (bounds.maxY - bounds.minY) * (height - 1), 0, height - 1);
+    const x0 = Math.floor(fx);
+    const y0 = Math.floor(fy);
+    const x1 = Math.min(x0 + 1, width - 1);
+    const y1 = Math.min(y0 + 1, height - 1);
+    const tx = fx - x0;
+    const ty = fy - y0;
+    return values[y0 * width + x0] * (1 - tx) * (1 - ty)
+      + values[y0 * width + x1] * tx * (1 - ty)
+      + values[y1 * width + x0] * (1 - tx) * ty
+      + values[y1 * width + x1] * tx * ty;
+  };
+  return { sample };
+}
+
+function distance(first, second) {
+  return Math.hypot(second[0] - first[0], second[1] - first[1]);
+}
+
+async function readJson(filePath) {
+  return JSON.parse(await readFile(filePath, "utf8"));
+}
+
+function round(value, digits = 3) {
+  const scale = 10 ** digits;
+  return Math.round(value * scale) / scale;
+}
+
+function clamp(value, minimum, maximum) {
+  return Math.max(minimum, Math.min(maximum, value));
+}

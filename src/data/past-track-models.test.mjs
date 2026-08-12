@@ -28,9 +28,13 @@ const generatedModels = [
   [MONTREAL_TRACK_MODEL, 14, "montreal-model.ts"],
   [MONACO_TRACK_MODEL, 19, "monaco-model.ts"],
   [CATALUNYA_TRACK_MODEL, 14, "catalunya-model.ts"],
-  [SILVERSTONE_TRACK_MODEL, 18, "silverstone-model.ts"],
-  [SPA_TRACK_MODEL, 19, "spa-model.ts"],
-  [HUNGARORING_TRACK_MODEL, 14, "hungaroring-model.ts"],
+];
+
+const digitalTwinModels = [
+  HUNGARORING_TRACK_MODEL,
+  SILVERSTONE_TRACK_MODEL,
+  SPA_TRACK_MODEL,
+  ZANDVOORT_TRACK_MODEL,
 ];
 
 for (const [model, turnCount] of generatedModels) {
@@ -80,7 +84,13 @@ for (const [model, turnCount] of generatedModels) {
 test("every generated track resolves from its circuit name and aliases", () => {
   assert.equal(Object.keys(TRACK_MODEL_ALIASES).length, 12);
 
-  for (const [model] of generatedModels) {
+  const allModels = [
+    ...generatedModels.map(([model]) => model),
+    RED_BULL_RING_TRACK_MODEL,
+    ...digitalTwinModels,
+  ];
+
+  for (const model of allModels) {
     assert.equal(getThreeDimensionalTrackModelId(model.data.circuitName), model.id);
 
     for (const alias of model.aliases) {
@@ -134,8 +144,14 @@ test("legacy 3D tracks keep their shared presentation scale", () => {
   }
 });
 
-test("Zandvoort digital twin keeps real-world vertical scale", () => {
-  assert.equal(ZANDVOORT_TRACK_MODEL.camera.verticalExaggeration, 1);
+test("Blender digital twins keep real-world vertical scale and explicit WebGL assets", () => {
+  for (const model of digitalTwinModels) {
+    assert.equal(model.camera.verticalExaggeration, 1);
+    assert.ok(model.webgl);
+    assert.equal(model.webgl.turnCount, model.data.turns.length);
+    assert.match(model.webgl.assetPath, new RegExp(`/${model.id}\\.glb$`));
+    assert.match(model.webgl.previewPath, new RegExp(`/${model.id}-preview\\.webp$`));
+  }
 });
 
 test("low-relief generated tracks do not contain DEM micro-jumps", () => {

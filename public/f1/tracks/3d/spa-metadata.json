@@ -1,0 +1,1103 @@
+{
+  "boundsMeters": {
+    "depth": 2900,
+    "width": 3500
+  },
+  "coordinateReferenceSystem": "EPSG:3812 + DNG (EPSG:5710)",
+  "elevationProfile": [
+    {
+      "distanceMeters": 0.0,
+      "elevationDngMeters": 414.529
+    },
+    {
+      "distanceMeters": 35.19,
+      "elevationDngMeters": 414.938
+    },
+    {
+      "distanceMeters": 70.39,
+      "elevationDngMeters": 415.644
+    },
+    {
+      "distanceMeters": 105.58,
+      "elevationDngMeters": 416.233
+    },
+    {
+      "distanceMeters": 140.77,
+      "elevationDngMeters": 417.094
+    },
+    {
+      "distanceMeters": 175.97,
+      "elevationDngMeters": 417.568
+    },
+    {
+      "distanceMeters": 211.16,
+      "elevationDngMeters": 418.219
+    },
+    {
+      "distanceMeters": 246.35,
+      "elevationDngMeters": 418.759
+    },
+    {
+      "distanceMeters": 281.55,
+      "elevationDngMeters": 419.661
+    },
+    {
+      "distanceMeters": 316.74,
+      "elevationDngMeters": 421.205
+    },
+    {
+      "distanceMeters": 351.93,
+      "elevationDngMeters": 422.685
+    },
+    {
+      "distanceMeters": 387.13,
+      "elevationDngMeters": 423.91
+    },
+    {
+      "distanceMeters": 422.32,
+      "elevationDngMeters": 423.099
+    },
+    {
+      "distanceMeters": 457.52,
+      "elevationDngMeters": 421.013
+    },
+    {
+      "distanceMeters": 492.71,
+      "elevationDngMeters": 418.918
+    },
+    {
+      "distanceMeters": 527.9,
+      "elevationDngMeters": 416.821
+    },
+    {
+      "distanceMeters": 563.1,
+      "elevationDngMeters": 414.642
+    },
+    {
+      "distanceMeters": 598.29,
+      "elevationDngMeters": 412.251
+    },
+    {
+      "distanceMeters": 633.48,
+      "elevationDngMeters": 409.955
+    },
+    {
+      "distanceMeters": 668.68,
+      "elevationDngMeters": 407.761
+    },
+    {
+      "distanceMeters": 703.87,
+      "elevationDngMeters": 405.881
+    },
+    {
+      "distanceMeters": 739.06,
+      "elevationDngMeters": 404.173
+    },
+    {
+      "distanceMeters": 774.26,
+      "elevationDngMeters": 402.511
+    },
+    {
+      "distanceMeters": 809.45,
+      "elevationDngMeters": 400.701
+    },
+    {
+      "distanceMeters": 844.64,
+      "elevationDngMeters": 398.875
+    },
+    {
+      "distanceMeters": 879.84,
+      "elevationDngMeters": 397.073
+    },
+    {
+      "distanceMeters": 915.03,
+      "elevationDngMeters": 395.306
+    },
+    {
+      "distanceMeters": 950.22,
+      "elevationDngMeters": 393.59
+    },
+    {
+      "distanceMeters": 985.42,
+      "elevationDngMeters": 392.169
+    },
+    {
+      "distanceMeters": 1020.61,
+      "elevationDngMeters": 390.752
+    },
+    {
+      "distanceMeters": 1055.8,
+      "elevationDngMeters": 389.769
+    },
+    {
+      "distanceMeters": 1091.0,
+      "elevationDngMeters": 389.984
+    },
+    {
+      "distanceMeters": 1126.19,
+      "elevationDngMeters": 392.301
+    },
+    {
+      "distanceMeters": 1161.38,
+      "elevationDngMeters": 397.031
+    },
+    {
+      "distanceMeters": 1196.58,
+      "elevationDngMeters": 402.326
+    },
+    {
+      "distanceMeters": 1231.77,
+      "elevationDngMeters": 407.132
+    },
+    {
+      "distanceMeters": 1266.96,
+      "elevationDngMeters": 410.894
+    },
+    {
+      "distanceMeters": 1302.16,
+      "elevationDngMeters": 413.668
+    },
+    {
+      "distanceMeters": 1337.35,
+      "elevationDngMeters": 415.333
+    },
+    {
+      "distanceMeters": 1372.55,
+      "elevationDngMeters": 416.938
+    },
+    {
+      "distanceMeters": 1407.74,
+      "elevationDngMeters": 418.497
+    },
+    {
+      "distanceMeters": 1442.93,
+      "elevationDngMeters": 420.442
+    },
+    {
+      "distanceMeters": 1478.13,
+      "elevationDngMeters": 422.181
+    },
+    {
+      "distanceMeters": 1513.32,
+      "elevationDngMeters": 423.657
+    },
+    {
+      "distanceMeters": 1548.51,
+      "elevationDngMeters": 425.121
+    },
+    {
+      "distanceMeters": 1583.71,
+      "elevationDngMeters": 426.824
+    },
+    {
+      "distanceMeters": 1618.9,
+      "elevationDngMeters": 428.309
+    },
+    {
+      "distanceMeters": 1654.09,
+      "elevationDngMeters": 429.064
+    },
+    {
+      "distanceMeters": 1689.29,
+      "elevationDngMeters": 431.632
+    },
+    {
+      "distanceMeters": 1724.48,
+      "elevationDngMeters": 432.732
+    },
+    {
+      "distanceMeters": 1759.67,
+      "elevationDngMeters": 434.6
+    },
+    {
+      "distanceMeters": 1794.87,
+      "elevationDngMeters": 435.738
+    },
+    {
+      "distanceMeters": 1830.06,
+      "elevationDngMeters": 437.707
+    },
+    {
+      "distanceMeters": 1865.25,
+      "elevationDngMeters": 439.195
+    },
+    {
+      "distanceMeters": 1900.45,
+      "elevationDngMeters": 441.047
+    },
+    {
+      "distanceMeters": 1935.64,
+      "elevationDngMeters": 442.414
+    },
+    {
+      "distanceMeters": 1970.83,
+      "elevationDngMeters": 444.044
+    },
+    {
+      "distanceMeters": 2006.03,
+      "elevationDngMeters": 445.673
+    },
+    {
+      "distanceMeters": 2041.22,
+      "elevationDngMeters": 447.12
+    },
+    {
+      "distanceMeters": 2076.41,
+      "elevationDngMeters": 448.878
+    },
+    {
+      "distanceMeters": 2111.61,
+      "elevationDngMeters": 450.562
+    },
+    {
+      "distanceMeters": 2146.8,
+      "elevationDngMeters": 452.071
+    },
+    {
+      "distanceMeters": 2181.99,
+      "elevationDngMeters": 453.594
+    },
+    {
+      "distanceMeters": 2217.19,
+      "elevationDngMeters": 455.316
+    },
+    {
+      "distanceMeters": 2252.38,
+      "elevationDngMeters": 456.877
+    },
+    {
+      "distanceMeters": 2287.58,
+      "elevationDngMeters": 458.582
+    },
+    {
+      "distanceMeters": 2322.77,
+      "elevationDngMeters": 460.143
+    },
+    {
+      "distanceMeters": 2357.96,
+      "elevationDngMeters": 461.705
+    },
+    {
+      "distanceMeters": 2393.16,
+      "elevationDngMeters": 463.312
+    },
+    {
+      "distanceMeters": 2428.35,
+      "elevationDngMeters": 464.851
+    },
+    {
+      "distanceMeters": 2463.54,
+      "elevationDngMeters": 465.987
+    },
+    {
+      "distanceMeters": 2498.74,
+      "elevationDngMeters": 467.078
+    },
+    {
+      "distanceMeters": 2533.93,
+      "elevationDngMeters": 467.817
+    },
+    {
+      "distanceMeters": 2569.12,
+      "elevationDngMeters": 468.376
+    },
+    {
+      "distanceMeters": 2604.32,
+      "elevationDngMeters": 468.758
+    },
+    {
+      "distanceMeters": 2639.51,
+      "elevationDngMeters": 468.806
+    },
+    {
+      "distanceMeters": 2674.7,
+      "elevationDngMeters": 468.705
+    },
+    {
+      "distanceMeters": 2709.9,
+      "elevationDngMeters": 468.169
+    },
+    {
+      "distanceMeters": 2745.09,
+      "elevationDngMeters": 467.539
+    },
+    {
+      "distanceMeters": 2780.28,
+      "elevationDngMeters": 466.686
+    },
+    {
+      "distanceMeters": 2815.48,
+      "elevationDngMeters": 465.683
+    },
+    {
+      "distanceMeters": 2850.67,
+      "elevationDngMeters": 464.262
+    },
+    {
+      "distanceMeters": 2885.86,
+      "elevationDngMeters": 462.757
+    },
+    {
+      "distanceMeters": 2921.06,
+      "elevationDngMeters": 460.925
+    },
+    {
+      "distanceMeters": 2956.25,
+      "elevationDngMeters": 459.027
+    },
+    {
+      "distanceMeters": 2991.44,
+      "elevationDngMeters": 456.92
+    },
+    {
+      "distanceMeters": 3026.64,
+      "elevationDngMeters": 454.23
+    },
+    {
+      "distanceMeters": 3061.83,
+      "elevationDngMeters": 451.697
+    },
+    {
+      "distanceMeters": 3097.02,
+      "elevationDngMeters": 449.185
+    },
+    {
+      "distanceMeters": 3132.22,
+      "elevationDngMeters": 446.683
+    },
+    {
+      "distanceMeters": 3167.41,
+      "elevationDngMeters": 444.171
+    },
+    {
+      "distanceMeters": 3202.61,
+      "elevationDngMeters": 441.817
+    },
+    {
+      "distanceMeters": 3237.8,
+      "elevationDngMeters": 439.284
+    },
+    {
+      "distanceMeters": 3272.99,
+      "elevationDngMeters": 436.787
+    },
+    {
+      "distanceMeters": 3308.19,
+      "elevationDngMeters": 434.379
+    },
+    {
+      "distanceMeters": 3343.38,
+      "elevationDngMeters": 432.025
+    },
+    {
+      "distanceMeters": 3378.57,
+      "elevationDngMeters": 429.482
+    },
+    {
+      "distanceMeters": 3413.77,
+      "elevationDngMeters": 426.965
+    },
+    {
+      "distanceMeters": 3448.96,
+      "elevationDngMeters": 424.472
+    },
+    {
+      "distanceMeters": 3484.15,
+      "elevationDngMeters": 422.051
+    },
+    {
+      "distanceMeters": 3519.35,
+      "elevationDngMeters": 419.521
+    },
+    {
+      "distanceMeters": 3554.54,
+      "elevationDngMeters": 417.06
+    },
+    {
+      "distanceMeters": 3589.73,
+      "elevationDngMeters": 414.582
+    },
+    {
+      "distanceMeters": 3624.93,
+      "elevationDngMeters": 412.226
+    },
+    {
+      "distanceMeters": 3660.12,
+      "elevationDngMeters": 409.714
+    },
+    {
+      "distanceMeters": 3695.31,
+      "elevationDngMeters": 407.351
+    },
+    {
+      "distanceMeters": 3730.51,
+      "elevationDngMeters": 404.891
+    },
+    {
+      "distanceMeters": 3765.7,
+      "elevationDngMeters": 402.335
+    },
+    {
+      "distanceMeters": 3800.89,
+      "elevationDngMeters": 400.199
+    },
+    {
+      "distanceMeters": 3836.09,
+      "elevationDngMeters": 397.749
+    },
+    {
+      "distanceMeters": 3871.28,
+      "elevationDngMeters": 395.261
+    },
+    {
+      "distanceMeters": 3906.47,
+      "elevationDngMeters": 392.649
+    },
+    {
+      "distanceMeters": 3941.67,
+      "elevationDngMeters": 390.242
+    },
+    {
+      "distanceMeters": 3976.86,
+      "elevationDngMeters": 387.758
+    },
+    {
+      "distanceMeters": 4012.05,
+      "elevationDngMeters": 385.323
+    },
+    {
+      "distanceMeters": 4047.25,
+      "elevationDngMeters": 383.291
+    },
+    {
+      "distanceMeters": 4082.44,
+      "elevationDngMeters": 381.436
+    },
+    {
+      "distanceMeters": 4117.64,
+      "elevationDngMeters": 379.925
+    },
+    {
+      "distanceMeters": 4152.83,
+      "elevationDngMeters": 378.527
+    },
+    {
+      "distanceMeters": 4188.02,
+      "elevationDngMeters": 377.376
+    },
+    {
+      "distanceMeters": 4223.22,
+      "elevationDngMeters": 376.663
+    },
+    {
+      "distanceMeters": 4258.41,
+      "elevationDngMeters": 375.963
+    },
+    {
+      "distanceMeters": 4293.6,
+      "elevationDngMeters": 375.687
+    },
+    {
+      "distanceMeters": 4328.8,
+      "elevationDngMeters": 375.509
+    },
+    {
+      "distanceMeters": 4363.99,
+      "elevationDngMeters": 375.669
+    },
+    {
+      "distanceMeters": 4399.18,
+      "elevationDngMeters": 376.063
+    },
+    {
+      "distanceMeters": 4434.38,
+      "elevationDngMeters": 376.378
+    },
+    {
+      "distanceMeters": 4469.57,
+      "elevationDngMeters": 376.664
+    },
+    {
+      "distanceMeters": 4504.76,
+      "elevationDngMeters": 377.039
+    },
+    {
+      "distanceMeters": 4539.96,
+      "elevationDngMeters": 377.266
+    },
+    {
+      "distanceMeters": 4575.15,
+      "elevationDngMeters": 377.459
+    },
+    {
+      "distanceMeters": 4610.34,
+      "elevationDngMeters": 377.619
+    },
+    {
+      "distanceMeters": 4645.54,
+      "elevationDngMeters": 377.572
+    },
+    {
+      "distanceMeters": 4680.73,
+      "elevationDngMeters": 377.396
+    },
+    {
+      "distanceMeters": 4715.92,
+      "elevationDngMeters": 377.031
+    },
+    {
+      "distanceMeters": 4751.12,
+      "elevationDngMeters": 376.634
+    },
+    {
+      "distanceMeters": 4786.31,
+      "elevationDngMeters": 376.233
+    },
+    {
+      "distanceMeters": 4821.5,
+      "elevationDngMeters": 375.43
+    },
+    {
+      "distanceMeters": 4856.7,
+      "elevationDngMeters": 375.046
+    },
+    {
+      "distanceMeters": 4891.89,
+      "elevationDngMeters": 373.78
+    },
+    {
+      "distanceMeters": 4927.09,
+      "elevationDngMeters": 373.245
+    },
+    {
+      "distanceMeters": 4962.28,
+      "elevationDngMeters": 371.567
+    },
+    {
+      "distanceMeters": 4997.47,
+      "elevationDngMeters": 370.156
+    },
+    {
+      "distanceMeters": 5032.67,
+      "elevationDngMeters": 368.817
+    },
+    {
+      "distanceMeters": 5067.86,
+      "elevationDngMeters": 367.931
+    },
+    {
+      "distanceMeters": 5103.05,
+      "elevationDngMeters": 367.086
+    },
+    {
+      "distanceMeters": 5138.25,
+      "elevationDngMeters": 366.835
+    },
+    {
+      "distanceMeters": 5173.44,
+      "elevationDngMeters": 366.738
+    },
+    {
+      "distanceMeters": 5208.63,
+      "elevationDngMeters": 367.107
+    },
+    {
+      "distanceMeters": 5243.83,
+      "elevationDngMeters": 367.765
+    },
+    {
+      "distanceMeters": 5279.02,
+      "elevationDngMeters": 368.678
+    },
+    {
+      "distanceMeters": 5314.21,
+      "elevationDngMeters": 369.804
+    },
+    {
+      "distanceMeters": 5349.41,
+      "elevationDngMeters": 370.923
+    },
+    {
+      "distanceMeters": 5384.6,
+      "elevationDngMeters": 371.854
+    },
+    {
+      "distanceMeters": 5419.79,
+      "elevationDngMeters": 373.017
+    },
+    {
+      "distanceMeters": 5454.99,
+      "elevationDngMeters": 374.086
+    },
+    {
+      "distanceMeters": 5490.18,
+      "elevationDngMeters": 375.351
+    },
+    {
+      "distanceMeters": 5525.37,
+      "elevationDngMeters": 376.481
+    },
+    {
+      "distanceMeters": 5560.57,
+      "elevationDngMeters": 377.4
+    },
+    {
+      "distanceMeters": 5595.76,
+      "elevationDngMeters": 378.0
+    },
+    {
+      "distanceMeters": 5630.95,
+      "elevationDngMeters": 379.313
+    },
+    {
+      "distanceMeters": 5666.15,
+      "elevationDngMeters": 379.687
+    },
+    {
+      "distanceMeters": 5701.34,
+      "elevationDngMeters": 380.863
+    },
+    {
+      "distanceMeters": 5736.53,
+      "elevationDngMeters": 381.646
+    },
+    {
+      "distanceMeters": 5771.73,
+      "elevationDngMeters": 382.397
+    },
+    {
+      "distanceMeters": 5806.92,
+      "elevationDngMeters": 382.913
+    },
+    {
+      "distanceMeters": 5842.12,
+      "elevationDngMeters": 383.767
+    },
+    {
+      "distanceMeters": 5877.31,
+      "elevationDngMeters": 384.58
+    },
+    {
+      "distanceMeters": 5912.5,
+      "elevationDngMeters": 385.623
+    },
+    {
+      "distanceMeters": 5947.7,
+      "elevationDngMeters": 386.533
+    },
+    {
+      "distanceMeters": 5982.89,
+      "elevationDngMeters": 387.328
+    },
+    {
+      "distanceMeters": 6018.08,
+      "elevationDngMeters": 388.128
+    },
+    {
+      "distanceMeters": 6053.28,
+      "elevationDngMeters": 388.905
+    },
+    {
+      "distanceMeters": 6088.47,
+      "elevationDngMeters": 390.291
+    },
+    {
+      "distanceMeters": 6123.66,
+      "elevationDngMeters": 390.755
+    },
+    {
+      "distanceMeters": 6158.86,
+      "elevationDngMeters": 391.76
+    },
+    {
+      "distanceMeters": 6194.05,
+      "elevationDngMeters": 392.867
+    },
+    {
+      "distanceMeters": 6229.24,
+      "elevationDngMeters": 393.73
+    },
+    {
+      "distanceMeters": 6264.44,
+      "elevationDngMeters": 394.565
+    },
+    {
+      "distanceMeters": 6299.63,
+      "elevationDngMeters": 394.851
+    },
+    {
+      "distanceMeters": 6334.82,
+      "elevationDngMeters": 395.769
+    },
+    {
+      "distanceMeters": 6370.02,
+      "elevationDngMeters": 396.192
+    },
+    {
+      "distanceMeters": 6405.21,
+      "elevationDngMeters": 396.305
+    },
+    {
+      "distanceMeters": 6440.4,
+      "elevationDngMeters": 397.304
+    },
+    {
+      "distanceMeters": 6475.6,
+      "elevationDngMeters": 398.052
+    },
+    {
+      "distanceMeters": 6510.79,
+      "elevationDngMeters": 399.121
+    },
+    {
+      "distanceMeters": 6545.98,
+      "elevationDngMeters": 400.182
+    },
+    {
+      "distanceMeters": 6581.18,
+      "elevationDngMeters": 401.705
+    },
+    {
+      "distanceMeters": 6616.37,
+      "elevationDngMeters": 402.686
+    },
+    {
+      "distanceMeters": 6651.56,
+      "elevationDngMeters": 404.06
+    },
+    {
+      "distanceMeters": 6686.76,
+      "elevationDngMeters": 405.391
+    },
+    {
+      "distanceMeters": 6721.95,
+      "elevationDngMeters": 406.604
+    },
+    {
+      "distanceMeters": 6757.15,
+      "elevationDngMeters": 407.747
+    },
+    {
+      "distanceMeters": 6792.34,
+      "elevationDngMeters": 408.691
+    },
+    {
+      "distanceMeters": 6827.53,
+      "elevationDngMeters": 410.0
+    },
+    {
+      "distanceMeters": 6862.73,
+      "elevationDngMeters": 411.013
+    },
+    {
+      "distanceMeters": 6897.92,
+      "elevationDngMeters": 411.962
+    },
+    {
+      "distanceMeters": 6933.11,
+      "elevationDngMeters": 412.846
+    },
+    {
+      "distanceMeters": 6968.31,
+      "elevationDngMeters": 413.585
+    },
+    {
+      "distanceMeters": 7003.5,
+      "elevationDngMeters": 414.529
+    }
+  ],
+  "elevationsDngMeters": {
+    "high": 469.007,
+    "low": 366.65
+  },
+  "finishDistanceMeters": 0,
+  "generatedWith": "Blender 5.2.0 LTS",
+  "lapLength": {
+    "geometryMeters": 7003.499,
+    "officialFiaMeters": 7004,
+    "relativeErrorPercent": 0.0071
+  },
+  "layoutQuality": {
+    "buildings": {
+      "excludedGrandstandConflicts": 10,
+      "excludedReplacedCircuitStructures": 2,
+      "excludedTrackConflicts": 2,
+      "renderedCurrentFootprints": 420,
+      "remainingGrandstandConflicts": 0,
+      "remainingTrackConflicts": 0,
+      "downwardFacingRoofTriangles": 0,
+      "roofTriangles": 1552,
+      "roofWindingRepairs": 1334,
+      "sourceCurrentFootprints": 442
+    },
+    "grandstands": {
+      "candidateSections": 158,
+      "maximumPlatformStepMeters": 2.4,
+      "maximumSeatRowTwistMeters": 0.0,
+      "maximumSupportHeightMeters": 12.429,
+      "maximumSupportHeightByStandMeters": {
+        "Gold 3 Eau Rouge": 10.388,
+        "Gold 4 Eau Rouge": 12.429,
+        "Gold 5 Raidillon": 8.039,
+        "Gold 6 Chicane": 10.555,
+        "Silver 2 Les Combes": 3.799,
+        "Silver 3 Double Gauche": 12.162,
+        "Silver 4 Bruxelles": 10.972,
+        "Silver 5 Fagnes": 5.012,
+        "Silver 6 Speed Corner": 6.141
+      },
+      "minimumTrackClearanceMeters": 16.999,
+      "rejectedBlockConflicts": 1,
+      "rejectedTrackConflicts": 0,
+      "remainingBlockOverlaps": 0,
+      "remainingTrackConflicts": 0,
+      "renderedSections": 157,
+      "verifiedTurnTenZone": "Eastside Grandstands 1, 2, 3"
+    },
+    "mappedGrandstands": {
+      "downwardFacingRoofTriangles": 0,
+      "roofTriangles": 172,
+      "roofWindingRepairs": 86,
+      "redRoofSurfaces": 0,
+      "roofedStructures": 7,
+      "roofSlabThicknessMeters": 0.32
+    },
+    "motorhomes": {
+      "configuredObjects": 11,
+      "renderedObjects": 11,
+      "remainingTrackConflicts": 0,
+      "trackConflictNames": [],
+      "trackConflictDetails": [],
+      "sourceResolutionMetersPerPixel": 0.62,
+      "behindPitComplex": true,
+      "minimumGarageRearClearanceMeters": 14.0
+    },
+    "pitLane": {
+      "entryGapMeters": 0.0,
+      "entryMinimumWidthMeters": 4.2,
+      "entrySurface": "asphalt",
+      "exitGapMeters": 0.0,
+      "exitMinimumWidthMeters": 0.55,
+      "fastLaneSeparator": true,
+      "lengthMeters": 720.471,
+      "pitBoxes": 42,
+      "taperMeters": 34.0,
+      "taperProfile": "smoothstep",
+      "widthMeters": 12.0,
+      "pitWall": {
+        "fenceHeightMeters": 0.78,
+        "lengthMeters": 453.896,
+        "panels": 152,
+        "wallHeightMeters": 0.72
+      },
+      "pitComplex": {
+        "buildingDepthMeters": 14.5,
+        "garageBoxes": 42,
+        "grandstandRows": 10,
+        "lengthMeters": 396.26,
+        "pitLaneClearanceMeters": 0.85
+      }
+    },
+    "runoff": {
+      "pitEntryGroundContext": "orthophoto",
+      "pitEntrySurface": "asphalt",
+      "pitEntryTurns": [
+        18,
+        19
+      ],
+      "syntheticGravelAtPitEntry": false,
+      "syntheticRunoffAtPitEntry": false
+    },
+    "surfaceSmoothing": {
+      "afterTurn17": {
+        "applied": true,
+        "endDistanceMeters": 6560.0,
+        "maximumCorrectionMeters": 2.545,
+        "maximumRawStepMeters": 1.052,
+        "maximumSmoothedStepMeters": 0.765,
+        "startDistanceMeters": 6170.0
+      }
+    },
+    "surfaceClearance": {
+      "minimumTrackTerrainClearanceMeters": 0.441,
+      "startStraightMinimumClearanceMeters": 0.539,
+      "terrainBreakthroughSamples": 0
+    }
+  },
+  "objects": {
+    "buildingsTotal": 420,
+    "fenceSegments": 2404,
+    "grandstandSections": 157,
+    "mappedGrandstands": 7,
+    "pitGarageBoxes": 42,
+    "raceMotorhomes": 11,
+    "runoffSections": 376,
+    "trees": 2364,
+    "turnAnchors": 19
+  },
+  "realWorldScale": "1 unit = 1 metre; no vertical exaggeration",
+  "officialSources": [
+    {
+      "role": "2026 lap length, turns, sectors, speed trap, overtake zone, pit lane and 42 garages",
+      "url": "https://www.fia.com/documents/season/season-2026-2072/championships/fia-formula-one-world-championship-14"
+    },
+    {
+      "role": "current official Belgian GP grandstand categories and locations",
+      "url": "https://www.spagrandprix.com/en/ticketing/ticket/map"
+    },
+    {
+      "role": "DTM 2021-2022 specification, CRS, datum, acquisition and licence",
+      "url": "https://geoportail.wallonie.be/catalogue/a004e570-99d6-4fe5-b83d-49b774409278.html"
+    },
+    {
+      "role": "DSM 2021-2022 specification, CRS, datum, acquisition and licence",
+      "url": "https://geoportail.wallonie.be/catalogue/e82665e2-4f89-4b7b-87a0-e77a4d4d9c5b.html"
+    }
+  ],
+  "schemaVersion": 3,
+  "sectorBoundaryDistancesMeters": [
+    2254,
+    5074
+  ],
+  "sourceManifest": {
+    "bounds": {
+      "minX": 762100,
+      "minY": 624950,
+      "maxX": 765600,
+      "maxY": 627850
+    },
+    "coordinateReferenceSystem": "ETRS89 / Belgian Lambert 2008 (EPSG:3812)",
+    "generatedAt": "2026-08-11T09:32:22.187Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "bbox": {
+          "minX": 762100,
+          "minY": 624950,
+          "maxX": 765600,
+          "maxY": 627850
+        },
+        "bytes": 77135,
+        "crs": "EPSG:4326",
+        "date": "2026-08-11",
+        "file": "openstreetmap-raceway.json",
+        "license": "ODbL 1.0",
+        "resolution": "surveyed vector centreline and pit-lane geometry",
+        "role": "main circuit centreline, pit lane and start/finish reference",
+        "sha256": "900da5cc8088717a950275e95106e75bced0e89969e4fa4d0c8fcab478a3b463",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 762100,
+          "minY": 624950,
+          "maxX": 765600,
+          "maxY": 627850
+        },
+        "bytes": 850173,
+        "crs": "EPSG:4326",
+        "date": "2026-08-11",
+        "file": "openstreetmap-buildings.json",
+        "license": "ODbL 1.0",
+        "resolution": "current mapped building footprints",
+        "role": "permanent buildings and mapped grandstand footprints",
+        "sha256": "f8301f13adf1578a52a284eab6794bbda5937324eb8fd53a02b70ba3ecd3bc67",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 762100,
+          "minY": 624950,
+          "maxX": 765600,
+          "maxY": 627850
+        },
+        "bytes": 396184,
+        "crs": "EPSG:4326",
+        "date": "2026-08-11",
+        "file": "openstreetmap-barriers.json",
+        "license": "ODbL 1.0",
+        "resolution": "current mapped line geometry",
+        "role": "safety fences, walls, guard rails and retaining walls",
+        "sha256": "61c6a7d27a495b03b80d3abf7e2d97a17968609d708c3dd332fce1c5ad456afa",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 762100,
+          "minY": 624950,
+          "maxX": 765600,
+          "maxY": 627850
+        },
+        "bytes": 278459,
+        "crs": "EPSG:3812",
+        "date": "2021-02-19/2022-03-05; corrected 2024-01-23",
+        "file": "wallonia-dtm-samples.json",
+        "license": "CC BY 4.0",
+        "resolution": "0.5 m source sampled to the web terrain grid",
+        "role": "bare-earth terrain and circuit elevation",
+        "sha256": "3613df44dcf1426c363be6931f3af4f6cdca0031fa1f8aabf82b61d0f2daf033",
+        "url": "https://geoservices.wallonie.be/arcgis/rest/services/RELIEF/WALLONIE_MNT_2021_2022/MapServer/identify",
+        "verticalDatum": "DNG / EPSG:5710"
+      },
+      {
+        "bbox": {
+          "minX": 762100,
+          "minY": 624950,
+          "maxX": 765600,
+          "maxY": 627850
+        },
+        "bytes": 280011,
+        "crs": "EPSG:3812",
+        "date": "2021-02-19/2022-03-05; corrected 2024-01-23",
+        "file": "wallonia-dsm-samples.json",
+        "license": "CC BY 4.0",
+        "resolution": "0.5 m source sampled to the web terrain grid",
+        "role": "building, vegetation and infrastructure heights",
+        "sha256": "12636828c769281b4a6a4bacd92c961bc40d860f91663c5049ec27a1d91b6cc9",
+        "url": "https://geoservices.wallonie.be/arcgis/rest/services/RELIEF/WALLONIE_MNS_2021_2022/MapServer/identify",
+        "verticalDatum": "DNG / EPSG:5710"
+      },
+      {
+        "bbox": {
+          "minX": 762100,
+          "minY": 624950,
+          "maxX": 765600,
+          "maxY": 627850
+        },
+        "bytes": 1497948,
+        "crs": "EPSG:3812",
+        "date": "latest SPW campaign exposed by ORTHO_LAST (2023 at retrieval)",
+        "file": "wallonia-ortho-latest.jpg",
+        "license": "SPW geographic web-service terms",
+        "resolution": "25 cm source, exported at 1.71 m/pixel for the web asset",
+        "role": "measured ground colour, roads, vegetation and paddock context",
+        "sha256": "8344e078967165533222d4875821c9699db54f18c9b838c349817d06fe4878ee",
+        "url": "https://geoservices.wallonie.be/arcgis/rest/services/IMAGERIE/ORTHO_LAST/MapServer/export?bbox=762100%2C624950%2C765600%2C627850&bboxSR=3812&dpi=96&f=image&format=jpg&imageSR=3812&size=2048%2C1697&transparent=false",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 762100,
+          "minY": 624950,
+          "maxX": 765600,
+          "maxY": 627850
+        },
+        "bytes": 2537482,
+        "crs": "EPSG:4326",
+        "date": "2026-07-16",
+        "file": "fia-2026-belgian-grand-prix-doc-7.pdf",
+        "license": "official FIA event document; reference use",
+        "resolution": "vector PDF",
+        "role": "7.004 km lap, 19 turns, sectors, speed trap, pit lane and 42 garages",
+        "sha256": "584d96cf7d651b1eef1554a0032382eb79ba515028035c79b1e0273ea44a38f1",
+        "url": "https://gp.news/media/documents/2026/Belgian_Grand_Prix/d07_Competition_Notes_-_Circuit_Map_Pit_Lane_Drawing_Emergency_Exits_Map_and_Red_Zone/document.pdf",
+        "verticalDatum": null
+      }
+    ],
+    "verticalDatum": "DNG / EPSG:5710"
+  },
+  "verticalDatum": "DNG / EPSG:5710"
+}

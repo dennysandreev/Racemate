@@ -204,7 +204,7 @@ export async function saveSocialSource(formData: FormData) {
   }
 
   const adapter = platform === "x"
-    ? requestedAdapter === "rsshub-x-user" ? "rsshub-x-user" : "x-api-user"
+    ? "x-api-user"
     : platform === "reddit"
       ? "reddit-oauth"
       : requestedAdapter === "telegram-bot-webhook" ? "telegram-bot-webhook" : "telegram-mtproto";

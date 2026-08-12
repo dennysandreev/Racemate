@@ -24,34 +24,49 @@ import {
   Vector3,
 } from "three";
 
+import { trackModelCameraPolarDeg } from "@/lib/track-model-camera";
 import { cn } from "@/lib/utils";
 
-const ZANDVOORT_ASSET_PATH = "/f1/tracks/3d/zandvoort.glb";
-const ZANDVOORT_PREVIEW_PATH = "/f1/tracks/3d/zandvoort-preview.webp";
-
 type TrackModelWebGLProps = {
+  assetPath: string;
+  camera: {
+    fitHeight: number;
+    fitWidth: number;
+    lookAtY: number;
+    radius: number;
+  };
   circuit: string;
+  elevationDatumLabel: string;
   panX: number;
   panY: number;
+  previewPath: string;
   rotationDeg: number;
   showElevationAnchors: boolean;
   tiltDeg: number;
+  turnCount: number;
   zoom: number;
 };
 
 export function TrackModelWebGL({
+  assetPath,
+  camera,
   circuit,
+  elevationDatumLabel,
   panX,
   panY,
+  previewPath,
   rotationDeg,
   showElevationAnchors,
   tiltDeg,
+  turnCount,
   zoom,
 }: TrackModelWebGLProps) {
   const [isReady, setIsReady] = useState(false);
 
   return (
-    <TrackModelErrorBoundary fallback={<TrackModelStaticPreview circuit={circuit} />}>
+    <TrackModelErrorBoundary
+      fallback={<TrackModelStaticPreview circuit={circuit} previewPath={previewPath} />}
+    >
       <div aria-hidden="true" className="absolute inset-0 size-full overflow-hidden">
         <TrackModelStaticPreview
           circuit={circuit}
@@ -59,6 +74,7 @@ export function TrackModelWebGL({
             "transition-opacity duration-200 motion-reduce:transition-none",
             isReady && "opacity-0",
           )}
+          previewPath={previewPath}
         />
         <Canvas
           camera={{ far: 10_000, near: 1, position: [1_500, 1_700, 1_500], zoom: 0.3 }}
@@ -68,7 +84,7 @@ export function TrackModelWebGL({
           )}
           dpr={[1, 1.5]}
           events={createDisabledEventManager}
-          fallback={<TrackModelStaticPreview circuit={circuit} />}
+          fallback={<TrackModelStaticPreview circuit={circuit} previewPath={previewPath} />}
           frameloop="demand"
           gl={{
             alpha: true,
@@ -83,6 +99,7 @@ export function TrackModelWebGL({
           <directionalLight intensity={2.1} position={[-900, 1_600, -1_100]} />
           <directionalLight intensity={0.65} position={[1_000, 900, 700]} />
           <CameraRig
+            camera={camera}
             panX={panX}
             panY={panY}
             rotationDeg={rotationDeg}
@@ -90,9 +107,12 @@ export function TrackModelWebGL({
             zoom={zoom}
           />
           <Suspense fallback={null}>
-            <ZandvoortScene
+            <TrackDigitalTwinScene
+              assetPath={assetPath}
+              elevationDatumLabel={elevationDatumLabel}
               onReady={() => setIsReady(true)}
               showElevationAnchors={showElevationAnchors}
+              turnCount={turnCount}
             />
           </Suspense>
         </Canvas>
@@ -104,9 +124,11 @@ export function TrackModelWebGL({
 export function TrackModelStaticPreview({
   circuit,
   className,
+  previewPath,
 }: {
   circuit: string;
   className?: string;
+  previewPath: string;
 }) {
   return (
     <div className={cn("absolute inset-0 size-full overflow-hidden", className)}>
@@ -117,24 +139,30 @@ export function TrackModelStaticPreview({
         fill
         loading="eager"
         sizes="(max-width: 768px) 100vw, 720px"
-        src={ZANDVOORT_PREVIEW_PATH}
+        src={previewPath}
       />
     </div>
   );
 }
 
-function ZandvoortScene({
+function TrackDigitalTwinScene({
+  assetPath,
+  elevationDatumLabel,
   onReady,
   showElevationAnchors,
+  turnCount,
 }: {
+  assetPath: string;
+  elevationDatumLabel: string;
   onReady: () => void;
   showElevationAnchors: boolean;
+  turnCount: number;
 }) {
-  const gltf = useGLTF(ZANDVOORT_ASSET_PATH, false, true);
+  const gltf = useGLTF(assetPath, false, true);
   const invalidate = useThree((state) => state.invalidate);
   const hasReportedReady = useRef(false);
   const scene = useMemo(() => cloneScene(gltf.scene), [gltf.scene]);
-  const anchors = useMemo(() => readAnchors(scene), [scene]);
+  const anchors = useMemo(() => readAnchors(scene, turnCount), [scene, turnCount]);
 
   useLayoutEffect(() => {
     invalidate();
@@ -210,7 +238,7 @@ function ZandvoortScene({
           zIndexRange={[20, 0]}
         >
           <span className="pointer-events-none hidden whitespace-nowrap rounded border border-[var(--track-model-height-border)] bg-[var(--track-model-height-bg)] px-2 py-1 font-mono text-[0.65rem] font-bold text-[var(--track-model-height-text)] shadow-sm @lg/track:block">
-            {formatElevation(anchors.highPoint.elevation)} м NAP
+            {formatElevation(anchors.highPoint.elevation)} {elevationDatumLabel}
           </span>
         </Html>
       ) : null}
@@ -222,7 +250,7 @@ function ZandvoortScene({
           zIndexRange={[20, 0]}
         >
           <span className="pointer-events-none hidden whitespace-nowrap rounded border border-[var(--track-model-height-border)] bg-[var(--track-model-height-bg)] px-2 py-1 font-mono text-[0.65rem] font-bold text-[var(--track-model-height-text)] shadow-sm @lg/track:block">
-            {formatElevation(anchors.lowPoint.elevation)} м NAP
+            {formatElevation(anchors.lowPoint.elevation)} {elevationDatumLabel}
           </span>
         </Html>
       ) : null}
@@ -231,12 +259,13 @@ function ZandvoortScene({
 }
 
 function CameraRig({
+  camera: cameraSettings,
   panX,
   panY,
   rotationDeg,
   tiltDeg,
   zoom,
-}: Pick<TrackModelWebGLProps, "panX" | "panY" | "rotationDeg" | "tiltDeg" | "zoom">) {
+}: Pick<TrackModelWebGLProps, "camera" | "panX" | "panY" | "rotationDeg" | "tiltDeg" | "zoom">) {
   const cameraRef = useRef<OrthographicCamera>(null);
   const invalidate = useThree((state) => state.invalidate);
   const height = useThree((state) => state.size.height);
@@ -249,18 +278,18 @@ function CameraRig({
       return;
     }
 
-    const polarDeg = clamp(48 + (tiltDeg - 10) * 0.34, 40, 72);
+    const polarDeg = trackModelCameraPolarDeg(tiltDeg);
     const polar = MathUtils.degToRad(polarDeg);
     const azimuth = MathUtils.degToRad(38 + rotationDeg);
-    const radius = 2_650;
+    const radius = cameraSettings.radius;
     const horizontalRadius = Math.sin(polar) * radius;
     camera.position.set(
       Math.sin(azimuth) * horizontalRadius,
       Math.cos(polar) * radius,
       Math.cos(azimuth) * horizontalRadius,
     );
-    camera.lookAt(0, 8, 0);
-    camera.zoom = Math.min(width / 1_900, height / 1_600) * zoom;
+    camera.lookAt(0, cameraSettings.lookAtY, 0);
+    camera.zoom = Math.min(width / cameraSettings.fitWidth, height / cameraSettings.fitHeight) * zoom;
     camera.clearViewOffset();
 
     if (panX !== 0 || panY !== 0) {
@@ -269,7 +298,7 @@ function CameraRig({
 
     camera.updateProjectionMatrix();
     invalidate();
-  }, [height, invalidate, panX, panY, rotationDeg, tiltDeg, width, zoom]);
+  }, [cameraSettings, height, invalidate, panX, panY, rotationDeg, tiltDeg, width, zoom]);
 
   return (
     <DreiOrthographicCamera
@@ -293,9 +322,9 @@ function cloneScene(source: Object3D) {
   return cloned;
 }
 
-function readAnchors(scene: Object3D) {
+function readAnchors(scene: Object3D, turnCount: number) {
   scene.updateMatrixWorld(true);
-  const turns = Array.from({ length: 14 }, (_, index) => {
+  const turns = Array.from({ length: turnCount }, (_, index) => {
     const number = index + 1;
     const anchor = scene.getObjectByName(`Turn_${String(number).padStart(2, "0")}`);
 
@@ -331,17 +360,17 @@ function readElevationAnchor(scene: Object3D, name: string) {
   }
 
   return {
-    elevation: Number(anchor.userData.elevation_nap_m),
+    elevation: Number(
+      anchor.userData.elevation_datum_m
+      ?? anchor.userData.elevation_dng_m
+      ?? anchor.userData.elevation_nap_m,
+    ),
     position: anchor.getWorldPosition(new Vector3()),
   };
 }
 
 function formatElevation(value: number) {
   return value.toFixed(1).replace(".", ",");
-}
-
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.max(minimum, Math.min(maximum, value));
 }
 
 function createDisabledEventManager(): EventManager<HTMLElement> {

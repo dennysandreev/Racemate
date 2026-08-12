@@ -1,6 +1,6 @@
 # Blender track builder
 
-This directory contains the reproducible real-scale builder for the RaceSide Circuit Zandvoort asset.
+This directory contains the reproducible real-scale builders for RaceSide Blender track assets.
 
 Requirements:
 
@@ -13,6 +13,12 @@ Build and validate:
 ```bash
 pnpm track:3d:build zandvoort
 pnpm track:3d:validate zandvoort
+pnpm track:3d:build spa
+pnpm track:3d:validate spa
+pnpm track:3d:build hungaroring
+pnpm track:3d:validate hungaroring
+pnpm track:3d:build silverstone
+pnpm track:3d:validate silverstone
 ```
 
 The build does not use the former hand-authored `src/data/zandvoort-model.ts` geometry. It performs this deterministic pipeline:
@@ -24,4 +30,8 @@ The build does not use the former hand-authored `src/data/zandvoort-model.ts` ge
 5. `write-zandvoort-client-model.mjs` regenerates lightweight UI/controller metadata from the same geodata.
 6. `validate-track.mjs` checks checksums, FIA length tolerance, required anchors, scene completeness and web budgets.
 
-Raw sources and prepared rasters stay in `.track-model-build/`. Production assets are written to `public/f1/tracks/3d/`. Do not hand-edit the generated GLB, preview, metadata or `src/data/zandvoort-model.ts`.
+The Hungaroring branch follows the same contract with dedicated scripts: it pins the current OSM circuit and ground-detail snapshot, FIA 2026 circuit/pit drawing, the current 2026 event map, the public Hungary 2022 orthophoto overview and open Terrarium elevation tiles; composes a crisp hybrid digital-twin ground layer in EPSG:32634; builds the 1:1 scene; regenerates `src/data/hungaroring-model.ts`; then validates hashes, anchors, geometry and web budgets.
+
+The Silverstone branch pins the current OSM circuit and site objects, the FIA British GP 2026 circuit/pit drawing, the official Silverstone grandstand guide, Environment Agency LIDAR Composite DTM 1 m, first-return DSM 1 m and National LIDAR Programme intensity 1 m. It builds the site in EPSG:32630 + ODN at 1:1 scale with no vertical exaggeration, writes `src/data/silverstone-model.ts`, and validates source hashes, FIA anchors, scene completeness and delivery budgets.
+
+Raw sources and prepared rasters stay in `.track-model-build/`. Production assets are written to `public/f1/tracks/3d/`. Do not hand-edit generated GLBs, previews, metadata files or their generated client model modules.

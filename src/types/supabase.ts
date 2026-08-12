@@ -883,6 +883,8 @@ export type Database = {
         updated_at: string;
       }>;
       prediction_leagues: TableDefinition<{
+        avatar_path: string | null;
+        avatar_updated_at: string | null;
         id: string;
         owner_user_id: string;
         name: string;

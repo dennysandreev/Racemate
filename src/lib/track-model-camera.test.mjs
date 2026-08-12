@@ -5,6 +5,7 @@ import {
   clampTrackModelPan,
   orbitTrackModelCamera,
   pinchTrackModelCamera,
+  preserveTrackModelOrbitFocus,
   zoomTrackModelAtPoint,
 } from "./track-model-camera.ts";
 
@@ -60,4 +61,19 @@ test("orientation sphere rotates and clamps the 3D tilt", () => {
     }),
     { rotationDeg: -130, tiltDeg: 82 },
   );
+});
+
+test("orientation sphere keeps the current world focus centred while orbiting", () => {
+  const result = preserveTrackModelOrbitFocus({
+    nextRotationDeg: 90,
+    nextTiltDeg: 10,
+    pan: { x: 0.2, y: -0.1 },
+    startRotationDeg: 0,
+    startTiltDeg: 10,
+    viewportAspectRatio: 1200 / 710,
+    zoom: 2,
+  });
+
+  assert.ok(Math.abs(result.x - 0.08842) < 0.0001);
+  assert.ok(Math.abs(result.y - 0.22618) < 0.0001);
 });

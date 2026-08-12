@@ -7,6 +7,10 @@ import { redirect } from "next/navigation";
 
 import { ensureProfile, requireUser } from "@/lib/auth";
 import {
+  FANTASY_LEAGUE_AVATAR_BUCKET,
+  getFantasyLeagueAvatarStoragePath,
+} from "@/lib/fantasy-league-avatar";
+import {
   getPredictionLocksForRace,
   preserveLockedPredictionValues,
 } from "@/lib/prediction-locks";
@@ -398,6 +402,12 @@ export async function deleteFantasyLeague(formData: FormData) {
 
   if (error) {
     redirect(`/fantasy/leagues/${leagueId}?message=delete`);
+  }
+
+  if (admin) {
+    await admin.storage
+      .from(FANTASY_LEAGUE_AVATAR_BUCKET)
+      .remove([getFantasyLeagueAvatarStoragePath(leagueId)]);
   }
 
   revalidatePath("/fantasy");

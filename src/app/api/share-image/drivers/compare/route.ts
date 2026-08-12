@@ -1,6 +1,4 @@
 import { ImageResponse } from "next/og";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { createElement } from "react";
 
 import { DriverComparisonShareImage } from "@/components/racemate/driver-comparison-share-image";
@@ -10,6 +8,7 @@ import {
   resolveDriverComparisonRound,
   resolveDriverComparisonSelection,
 } from "@/lib/driver-comparison";
+import { getDriverShareAvatarDataUrl } from "@/lib/driver-share-avatar";
 import { getPredictionShareFonts } from "@/lib/prediction-share-fonts";
 import { consumeIpRateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { resolvePublishedSeason } from "@/lib/season-navigation";
@@ -61,20 +60,24 @@ export async function GET(request: Request) {
     return new Response("Comparison is not ready", { status: 404 });
   }
 
-  const fonts = await getPredictionShareFonts();
+  const [fonts, leftAvatarUrl, rightAvatarUrl] = await Promise.all([
+    getPredictionShareFonts(),
+    getDriverShareAvatarDataUrl(left.avatarUrl, left.slug),
+    getDriverShareAvatarDataUrl(right.avatarUrl, right.slug),
+  ]);
   const isCurrentSeason = season === Math.max(...publishedSeasons);
 
   return new ImageResponse(
     createElement(DriverComparisonShareImage, {
       left: {
         ...left,
-        avatarUrl: getSupportedShareImage(left.avatarUrl, left.slug),
+        avatarUrl: leftAvatarUrl,
       },
       leftSnapshot,
       raceName,
       right: {
         ...right,
-        avatarUrl: getSupportedShareImage(right.avatarUrl, right.slug),
+        avatarUrl: rightAvatarUrl,
       },
       rightSnapshot,
       round,
@@ -92,19 +95,4 @@ export async function GET(request: Request) {
       width: 1080,
     },
   );
-}
-
-function getSupportedShareImage(
-  value: string | null | undefined,
-  slug: string,
-) {
-  if (value && /^(?:https:\/\/|\/).+\.(?:jpe?g|png)(?:\?.*)?$/i.test(value)) {
-    return value;
-  }
-
-  const localAvatar = `/drivers/avatars/${slug}.png`;
-
-  return existsSync(join(process.cwd(), "public", localAvatar.slice(1)))
-    ? localAvatar
-    : "/drivers/avatars/archive-helmet-neutral.png";
 }
