@@ -29,12 +29,16 @@ import type {
 import {
   buildDriverMotion,
   inferLapTimingsFromPositions,
+  isDriverRetiredOnTrack,
   mergeLapTimingsWithInferred,
   pitLaneParamAt,
   trackProgressAt,
   type DriverMotion,
 } from "@/features/race-replay/lib/motion";
-import { orderReplayTimingRows } from "@/features/race-replay/lib/timing-order";
+import {
+  getReplayTimedPositionsAt,
+  orderReplayTimingRows,
+} from "@/features/race-replay/lib/timing-order";
 import { layoutTimelineMarkers } from "@/features/race-replay/lib/timeline-layout";
 import {
   buildPitGeometry,
@@ -1027,7 +1031,8 @@ export function RaceReplayPlayer({ debug = false, replay }: RaceReplayPlayerProp
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <RaceEventFeed events={visibleEvents} onSeek={seekTo} />
+        <div className="grid content-start gap-4"><RaceEventFeed events={visibleEvents} onSeek={seekTo} />
+        {(replay.radio?.length ?? 0) > 0 ? <section className="stitch-panel p-4"><h2 className="text-sm font-semibold">Радио команд</h2><div className="mt-3 grid max-h-80 gap-4 overflow-y-auto">{replay.radio?.filter(r=>r.offsetMs<=elapsedMs).slice(-100).reverse().map(r=><article key={r.id} className="border-t pt-3"><button className="text-xs font-semibold" onClick={()=>seekTo(r.offsetMs)}>{replay.drivers.find(d=>d.driverNumber===r.driverNumber)?.abbreviation??r.driverNumber} · {r.lap??'—'} кр.</button><p className="mt-2 text-sm">{r.ru??'Не удалось расшифровать радио'}</p>{r.original?<p className="mt-1 text-xs text-muted-foreground">{r.original}</p>:null}</article>)}</div></section>:null}</div>
         <PitStopsPanel items={pitHistory} />
         <PacePanel lapAnalytics={lapAnalytics} tyrePace={tyrePace} weather={replay.weather} />
       </div>
@@ -2023,11 +2028,27 @@ function getReplay3dTrackId(replay: RaceReplaySnapshot): ReplayTrackId | null {
   ].filter(Boolean).join(" ").toLocaleLowerCase("ru");
 
   if (
-    replay.sourceSeason === 2025 &&
+    (replay.sourceSeason === 2025 || replay.sourceSeason === 2026) &&
     ["zandvoort", "зандворт", "dutch", "netherlands", "нидерланд"]
       .some((alias) => circuit.includes(alias))
   ) {
     return "zandvoort";
+  }
+
+  if (
+    replay.sourceSeason === 2026 &&
+    ["barcelona-catalunya", "barcelona catalunya", "catalunya", "barcelona", "каталунья", "барселон", "spanish", "испан"]
+      .some((alias) => circuit.includes(alias))
+  ) {
+    return "catalunya";
+  }
+
+  if (
+    replay.sourceSeason === 2026 &&
+    ["circuit gilles villeneuve", "gilles villeneuve", "villeneuve", "montreal", "montréal", "жиль вильнёв", "вильнёв", "монреаль", "canadian", "канад"]
+      .some((alias) => circuit.includes(alias))
+  ) {
+    return "montreal";
   }
 
   if (
@@ -2052,6 +2073,14 @@ function getReplay3dTrackId(replay: RaceReplaySnapshot): ReplayTrackId | null {
       .some((alias) => circuit.includes(alias))
   ) {
     return "hungaroring";
+  }
+
+  if (
+    replay.sourceSeason === 2026 &&
+    ["red bull ring", "red_bull_ring", "spielberg", "austrian", "austria", "ред булл ринг", "австри"]
+      .some((alias) => circuit.includes(alias))
+  ) {
+    return "red-bull-ring";
   }
 
   return null;
@@ -2248,36 +2277,6 @@ function applyLateralSeparation(
   }
 }
 
-function isDriverRetiredOnTrack(
-  events: ReplayPositionEvent[],
-  elapsedMs: number,
-  finalLapComplete: boolean | undefined,
-) {
-  if (finalLapComplete) {
-    return false;
-  }
-
-  if (elapsedMs < 6 * 60_000 || events.length < 4) {
-    return false;
-  }
-
-  const currentIndex = findReplayEventIndexAt(events, elapsedMs);
-
-  if (currentIndex < 0) {
-    return false;
-  }
-
-  const current = events[currentIndex];
-
-  if (hasFutureMovement(events, currentIndex, 18)) {
-    return false;
-  }
-
-  const stoppedSince = findStoppedSinceOffset(events, currentIndex, 18);
-
-  return current.offsetMs - stoppedSince >= 15_000;
-}
-
 function findReplayEventIndexAt(events: ReplayPositionEvent[], elapsedMs: number) {
   let low = 0;
   let high = events.length - 1;
@@ -2295,37 +2294,6 @@ function findReplayEventIndexAt(events: ReplayPositionEvent[], elapsedMs: number
   }
 
   return indexAt;
-}
-
-function hasFutureMovement(events: ReplayPositionEvent[], index: number, threshold: number) {
-  const origin = events[index];
-
-  for (let nextIndex = index + 1; nextIndex < events.length; nextIndex += 1) {
-    if (distanceBetweenReplayPoints(origin, events[nextIndex]) > threshold) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function findStoppedSinceOffset(events: ReplayPositionEvent[], index: number, threshold: number) {
-  const current = events[index];
-  let stoppedSince = current.offsetMs;
-
-  for (let previousIndex = index - 1; previousIndex >= 0; previousIndex -= 1) {
-    if (distanceBetweenReplayPoints(current, events[previousIndex]) > threshold) {
-      break;
-    }
-
-    stoppedSince = events[previousIndex].offsetMs;
-  }
-
-  return stoppedSince;
-}
-
-function distanceBetweenReplayPoints(a: ReplayPositionEvent, b: ReplayPositionEvent) {
-  return Math.hypot(a.svgX - b.svgX, a.svgY - b.svgY);
 }
 
 function buildPitWindows(events: ReplayPositionEvent[]): PitWindow[] {
@@ -3027,7 +2995,7 @@ function buildTimingRows(
   lapTimingsByDriver: Map<number, NonNullable<RaceReplaySnapshot["lapTimings"]>>,
   elapsedMs: number,
 ) {
-  const timedPositionByDriver = getTimedPositionsAt(positionTimings, elapsedMs);
+  const timedPositionByDriver = getReplayTimedPositionsAt(positionTimings, elapsedMs);
   const timedIntervalByDriver = getTimedIntervalsAt(intervalTimings, elapsedMs);
   const driversWithPositionTimeline = new Set(
     (positionTimings ?? []).map((timing) => timing.driverNumber),
@@ -3097,53 +3065,6 @@ function getLapNumberAt(
   }
 
   return currentLap;
-}
-
-function getTimedPositionsAt(
-  timings: RaceReplaySnapshot["positionTimings"],
-  elapsedMs: number,
-) {
-  const positions = new Map<number, { lastOffsetMs: number; position: number }>();
-  const firstTimingByDriver = new Map<number, { offsetMs: number; position: number }>();
-  const lastOffsetByDriver = new Map<number, number>();
-
-  for (const timing of timings ?? []) {
-    const firstTiming = firstTimingByDriver.get(timing.driverNumber);
-
-    if (!firstTiming || timing.offsetMs < firstTiming.offsetMs) {
-      firstTimingByDriver.set(timing.driverNumber, {
-        offsetMs: timing.offsetMs,
-        position: timing.position,
-      });
-    }
-
-    lastOffsetByDriver.set(
-      timing.driverNumber,
-      Math.max(lastOffsetByDriver.get(timing.driverNumber) ?? 0, timing.offsetMs),
-    );
-  }
-
-  for (const timing of timings ?? []) {
-    if (timing.offsetMs > elapsedMs) {
-      continue;
-    }
-
-    positions.set(timing.driverNumber, {
-      lastOffsetMs: lastOffsetByDriver.get(timing.driverNumber) ?? timing.offsetMs,
-      position: timing.position,
-    });
-  }
-
-  for (const [driverNumber, firstTiming] of firstTimingByDriver.entries()) {
-    if (!positions.has(driverNumber)) {
-      positions.set(driverNumber, {
-        lastOffsetMs: lastOffsetByDriver.get(driverNumber) ?? firstTiming.offsetMs,
-        position: firstTiming.position,
-      });
-    }
-  }
-
-  return positions;
 }
 
 function getTimedIntervalsAt(

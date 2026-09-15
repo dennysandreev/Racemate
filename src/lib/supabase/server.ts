@@ -71,3 +71,14 @@ export function createSupabaseAdminClient() {
     },
   });
 }
+
+/** Cookie-free client for shared public caches; public RLS still applies. */
+export function createSupabasePublicClient() {
+  const env = getSupabaseEnv();
+
+  if (!env) return null;
+
+  return createClient<Database>(env.url, env.anonKey, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+}

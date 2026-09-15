@@ -59,7 +59,7 @@ export function MobileNewsDigestDialog({
           <div
             aria-labelledby="mobile-news-digest-title"
             aria-modal="true"
-            className="fixed inset-0 z-[100] grid items-end bg-background/84 backdrop-blur-md lg:hidden"
+            className="fixed inset-0 z-[100] grid items-start overflow-hidden bg-background/84 p-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md lg:hidden"
             onMouseDown={(event) => {
               if (event.target === event.currentTarget) {
                 setIsOpen(false);
@@ -67,7 +67,7 @@ export function MobileNewsDigestDialog({
             }}
             role="dialog"
           >
-            <section className="flex max-h-[82dvh] w-full flex-col overflow-hidden rounded-t-lg border border-b-0 border-border bg-card shadow-2xl">
+            <section className="flex max-h-[calc(100dvh-1.5rem-env(safe-area-inset-top))] w-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-2xl">
               <header className="flex shrink-0 items-center justify-between gap-4 border-b stitch-divider p-4">
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">

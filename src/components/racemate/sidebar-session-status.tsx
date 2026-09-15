@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ArrowUpRight } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { IntentLink as Link } from "@/components/racemate/intent-link";
 
 type SidebarSessionStatusProps = {
   sessionName?: string | null;
@@ -32,21 +33,31 @@ export function SidebarSessionStatus({
     return () => window.clearInterval(timer);
   }, []);
 
+  if (state.live) {
+    return (
+      <Link
+        href="/live"
+        aria-label="Открыть Live Hub — тайминг, трасса и радио"
+        title="Тайминг, трасса и радио"
+        className="mt-4 flex min-w-0 items-center gap-2 rounded-sm text-success transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
+      >
+        <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-success" />
+        <span className="font-telemetry min-w-0 whitespace-nowrap text-[0.86rem] font-extrabold uppercase leading-none tracking-[0.02em]">
+          LIVE
+        </span>
+        <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium leading-none">
+          Открыть
+          <ArrowUpRight aria-hidden="true" className="size-3 shrink-0" />
+        </span>
+      </Link>
+    );
+  }
+
   return (
     <div className="mt-4 flex min-w-0 items-center gap-2">
+      <span aria-hidden="true" className="size-2 rounded-full bg-primary shadow-[0_0_14px_rgb(225_6_0_/_0.35)]" />
       <span
-        className={cn(
-          "size-2 rounded-full",
-          state.live
-            ? "bg-success shadow-[0_0_14px_rgb(57_255_20_/_0.45)]"
-            : "bg-primary shadow-[0_0_14px_rgb(225_6_0_/_0.35)]",
-        )}
-      />
-      <span
-        className={cn(
-          "font-telemetry min-w-0 whitespace-nowrap text-[0.86rem] font-extrabold uppercase leading-none tracking-[0.02em] tabular-nums",
-          state.live ? "text-success" : "text-primary",
-        )}
+        className="font-telemetry min-w-0 whitespace-nowrap text-[0.86rem] font-extrabold uppercase leading-none tracking-[0.02em] tabular-nums text-primary"
         suppressHydrationWarning
       >
         {state.label}

@@ -14,6 +14,7 @@ import {
 } from "react";
 import {
   MathUtils,
+  Group,
   Object3D,
   OrthographicCamera,
   Vector3,
@@ -24,14 +25,28 @@ import {
   ZANDVOORT_REPLAY_PATH,
 } from "@/data/zandvoort-model";
 import {
+  CATALUNYA_REPLAY_PATH,
+  CATALUNYA_TRACK_MODEL,
+} from "@/data/catalunya-model";
+import {
   HUNGARORING_REPLAY_PATH,
   HUNGARORING_TRACK_MODEL,
 } from "@/data/hungaroring-model";
+import {
+  MONTREAL_REPLAY_PATH,
+  MONTREAL_TRACK_MODEL,
+} from "@/data/montreal-model";
 import {
   SILVERSTONE_REPLAY_PATH,
   SILVERSTONE_TRACK_MODEL,
 } from "@/data/silverstone-model";
 import { SPA_REPLAY_PATH, SPA_TRACK_MODEL } from "@/data/spa-model";
+import { MADRING_MODEL, MADRING_TRACK_MODEL } from "@/data/madring-model";
+import madringLivePath from "@/data/madring-live-path.json";
+import {
+  RED_BULL_RING_REPLAY_PATH,
+  RED_BULL_RING_TRACK_MODEL,
+} from "@/data/red-bull-ring-model";
 import type { CircuitModelPoint } from "@/data/track-model-types";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +66,7 @@ export type ReplayTrackCar = {
 };
 
 export type ZandvoortReplayCar = ReplayTrackCar;
-export type ReplayTrackId = "hungaroring" | "silverstone" | "spa" | "zandvoort";
+export type ReplayTrackId = "catalunya" | "hungaroring" | "madring" | "montreal" | "red-bull-ring" | "silverstone" | "spa" | "zandvoort";
 
 type ReplayTrackConfig = {
   alt: string;
@@ -76,6 +91,31 @@ type ReplayTrackConfig = {
 };
 
 const REPLAY_TRACK_CONFIGS: Record<ReplayTrackId, ReplayTrackConfig> = {
+  madring: {
+    alt: "Трасса Мадринг",
+    ariaLabel: "3D-карта трассы Мадринг",
+    assetPath: MADRING_TRACK_MODEL.webgl.assetPath,
+    camera: MADRING_TRACK_MODEL.webgl.camera,
+    path: {
+      baseElevationMeters: 640,
+      startFinishProgress: 0,
+      surfaceOffsetMeters: 0.45,
+      trackPoints: MADRING_MODEL.points,
+      pitLanePoints: madringLivePath.pitLanePoints as [number, number, number, number][],
+      trackWidthMeters: 12,
+    },
+    previewPath: MADRING_TRACK_MODEL.webgl.previewPath,
+    turnCount: MADRING_TRACK_MODEL.webgl.turnCount,
+  },
+  catalunya: {
+    alt: "Трасса Барселона-Каталунья",
+    ariaLabel: "3D-повтор Гран-при Испании на трассе Барселона-Каталунья",
+    assetPath: CATALUNYA_TRACK_MODEL.webgl.assetPath,
+    camera: CATALUNYA_TRACK_MODEL.webgl.camera,
+    path: CATALUNYA_REPLAY_PATH,
+    previewPath: CATALUNYA_TRACK_MODEL.webgl.previewPath,
+    turnCount: CATALUNYA_TRACK_MODEL.webgl.turnCount,
+  },
   hungaroring: {
     alt: "Трасса Хунгароринг",
     ariaLabel: "3D-повтор Гран-при Венгрии на трассе Хунгароринг",
@@ -84,6 +124,24 @@ const REPLAY_TRACK_CONFIGS: Record<ReplayTrackId, ReplayTrackConfig> = {
     path: HUNGARORING_REPLAY_PATH,
     previewPath: HUNGARORING_TRACK_MODEL.webgl.previewPath,
     turnCount: HUNGARORING_TRACK_MODEL.webgl.turnCount,
+  },
+  montreal: {
+    alt: "Трасса имени Жиля Вильнёва",
+    ariaLabel: "3D-повтор Гран-при Канады на трассе имени Жиля Вильнёва",
+    assetPath: MONTREAL_TRACK_MODEL.webgl.assetPath,
+    camera: MONTREAL_TRACK_MODEL.webgl.camera,
+    path: MONTREAL_REPLAY_PATH,
+    previewPath: MONTREAL_TRACK_MODEL.webgl.previewPath,
+    turnCount: MONTREAL_TRACK_MODEL.webgl.turnCount,
+  },
+  "red-bull-ring": {
+    alt: "Трасса Ред Булл Ринг",
+    ariaLabel: "3D-повтор Гран-при Австрии на трассе Ред Булл Ринг",
+    assetPath: RED_BULL_RING_TRACK_MODEL.webgl.assetPath,
+    camera: RED_BULL_RING_TRACK_MODEL.webgl.camera,
+    path: RED_BULL_RING_REPLAY_PATH,
+    previewPath: RED_BULL_RING_TRACK_MODEL.webgl.previewPath,
+    turnCount: RED_BULL_RING_TRACK_MODEL.webgl.turnCount,
   },
   silverstone: {
     alt: "Трасса Сильверстоун",
@@ -129,6 +187,7 @@ const REPLAY_TRACK_CONFIGS: Record<ReplayTrackId, ReplayTrackConfig> = {
 };
 
 type RaceReplayTrack3DProps = {
+  sampleCar?: (driverNumber: number) => ReplayTrackCar | null;
   cars: ReplayTrackCar[];
   followDriver: number | null;
   onSelectDriver: (driverNumber: number) => void;
@@ -146,6 +205,7 @@ type CarPose = ReplayTrackCar & {
 };
 
 export function RaceReplayTrack3D({
+  sampleCar,
   cars,
   followDriver,
   onSelectDriver,
@@ -157,6 +217,7 @@ export function RaceReplayTrack3D({
   zoom,
 }: RaceReplayTrack3DProps) {
   const [isReady, setIsReady] = useState(false);
+  const [eventSource, setEventSource] = useState<HTMLDivElement | null>(null);
   const config = REPLAY_TRACK_CONFIGS[trackId];
   const poses = useMemo(() => cars.map((car) => buildCarPose(car, config)), [cars, config]);
   const followPosition = followDriver === null
@@ -166,6 +227,7 @@ export function RaceReplayTrack3D({
   return (
     <ReplayMapErrorBoundary fallback={<ReplayMapPreview config={config} />}>
       <div
+        ref={setEventSource}
         aria-label={config.ariaLabel}
         className="relative size-full overflow-hidden rounded-lg border border-border/70 bg-black/35"
         role="img"
@@ -174,14 +236,15 @@ export function RaceReplayTrack3D({
           className={cn("transition-opacity duration-200 motion-reduce:transition-none", isReady && "opacity-0")}
           config={config}
         />
-        <Canvas
+        {eventSource && <Canvas
+          eventSource={eventSource}
           camera={{ far: 10_000, near: 1, position: [1_500, 1_700, 1_500], zoom: 0.3 }}
           className={cn(
             "absolute inset-0 size-full transition-opacity duration-200 motion-reduce:transition-none",
             isReady ? "opacity-100" : "opacity-0",
           )}
           dpr={[1, 1.5]}
-          frameloop="demand"
+          frameloop={sampleCar ? "always" : "demand"}
           gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
           onCreated={({ gl }) => gl.setClearAlpha(0)}
           orthographic
@@ -193,6 +256,10 @@ export function RaceReplayTrack3D({
           <ReplayCameraRig
             cameraConfig={config.camera}
             followPosition={followPosition}
+            sampleFollowPosition={sampleCar && followDriver !== null ? () => {
+              const car = sampleCar(followDriver);
+              return car ? buildCarPose(car, config).position : null;
+            } : undefined}
             panX={panX}
             panY={panY}
             rotationDeg={rotationDeg}
@@ -202,12 +269,13 @@ export function RaceReplayTrack3D({
           <Suspense fallback={null}>
             <TrackReplayScene
               cars={poses}
+              sampleCar={sampleCar}
               config={config}
               onReady={() => setIsReady(true)}
               onSelectDriver={onSelectDriver}
             />
           </Suspense>
-        </Canvas>
+        </Canvas>}
         {!isReady ? <span className="sr-only">Готовим 3D-повтор гонки</span> : null}
       </div>
     </ReplayMapErrorBoundary>
@@ -219,11 +287,13 @@ export function RaceReplayZandvoort3D(props: Omit<RaceReplayTrack3DProps, "track
 }
 
 function TrackReplayScene({
+  sampleCar,
   cars,
   config,
   onReady,
   onSelectDriver,
 }: {
+  sampleCar?: RaceReplayTrack3DProps["sampleCar"];
   cars: CarPose[];
   config: ReplayTrackConfig;
   onReady: () => void;
@@ -255,6 +325,8 @@ function TrackReplayScene({
       {cars.map((car) => (
         <ReplayCar
           car={car}
+          config={config}
+          sampleCar={sampleCar}
           key={car.driverNumber}
           onSelect={() => onSelectDriver(car.driverNumber)}
         />
@@ -263,9 +335,29 @@ function TrackReplayScene({
   );
 }
 
-function ReplayCar({ car, onSelect }: { car: CarPose; onSelect: () => void }) {
+function ReplayCar({ car, config, sampleCar, onSelect }: {
+  car: CarPose;
+  config: ReplayTrackConfig;
+  sampleCar?: RaceReplayTrack3DProps["sampleCar"];
+  onSelect: () => void;
+}) {
+  const group = useRef<Group>(null);
+  const label = useRef<HTMLSpanElement>(null);
+  // LIVE samples the time buffer on every WebGL frame. React only updates
+  // driver membership and selection, not the position of 22 cars per frame.
+  useFrame(() => {
+    if (!sampleCar || !group.current) return;
+    const sample = sampleCar(car.driverNumber);
+    group.current.visible = Boolean(sample);
+    if (label.current) label.current.style.visibility = sample ? "visible" : "hidden";
+    if (!sample) return;
+    const pose = buildCarPose(sample, config);
+    group.current.position.set(...pose.position);
+    group.current.rotation.y = pose.heading;
+  }, -1);
   return (
     <group
+      ref={group}
       name={`ReplayCar_${car.driverNumber}`}
       onClick={(event) => {
         event.stopPropagation();
@@ -314,6 +406,7 @@ function ReplayCar({ car, onSelect }: { car: CarPose; onSelect: () => void }) {
         zIndexRange={[28, 0]}
       >
         <span
+          ref={label}
           className={cn(
             "pointer-events-none whitespace-nowrap rounded border bg-black/88 px-1.5 py-0.5 font-mono text-[0.58rem] font-black leading-none text-white shadow-lg",
             car.isSelected && "px-2 py-1 text-[0.68rem]",
@@ -330,6 +423,7 @@ function ReplayCar({ car, onSelect }: { car: CarPose; onSelect: () => void }) {
 }
 
 function ReplayCameraRig({
+  sampleFollowPosition,
   cameraConfig,
   followPosition,
   panX,
@@ -338,6 +432,7 @@ function ReplayCameraRig({
   tiltDeg,
   zoom,
 }: {
+  sampleFollowPosition?: () => readonly [number, number, number] | null;
   cameraConfig: ReplayTrackConfig["camera"];
   followPosition: readonly [number, number, number] | null;
   panX: number;
@@ -350,6 +445,19 @@ function ReplayCameraRig({
   const invalidate = useThree((state) => state.invalidate);
   const height = useThree((state) => state.size.height);
   const width = useThree((state) => state.size.width);
+
+  useFrame(() => {
+    const position = sampleFollowPosition?.();
+    const camera = cameraRef.current;
+    if (!position || !camera) return;
+    const polar = MathUtils.degToRad(MathUtils.clamp(48 + (tiltDeg - 10) * 0.34, 40, 72));
+    const azimuth = MathUtils.degToRad(38 + rotationDeg);
+    const radius = cameraConfig.radius;
+    camera.position.set(position[0] + Math.sin(azimuth) * Math.sin(polar) * radius,
+      position[1] + Math.cos(polar) * radius,
+      position[2] + Math.cos(azimuth) * Math.sin(polar) * radius);
+    camera.lookAt(...position);
+  }, -1);
 
   useLayoutEffect(() => {
     const camera = cameraRef.current;
@@ -562,3 +670,4 @@ class ReplayMapErrorBoundary extends Component<ReplayMapErrorBoundaryProps, { ha
 useGLTF.preload(ZANDVOORT_ASSET_PATH);
 useGLTF.preload(SPA_TRACK_MODEL.webgl.assetPath);
 useGLTF.preload(HUNGARORING_TRACK_MODEL.webgl.assetPath);
+useGLTF.preload(RED_BULL_RING_TRACK_MODEL.webgl.assetPath);

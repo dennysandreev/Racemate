@@ -110,7 +110,7 @@ test("history preview prepares every bounded season without a publication update
   );
   assert.match(
     readFileSync("package.json", "utf8"),
-    /"worker:history:prepare": "node worker\/index\.mjs jolpica\.prepare_history"/,
+    /"worker:history:prepare": "node worker\/cli\.mjs jolpica\.prepare_history"/,
   );
   assert.ok(prepareStart >= 0 && prepareEnd > prepareStart);
   assert.match(prepareSource, /backfillHistoricalSeasonByYear\(season, \{ validateAfter: false \}\)/);

@@ -32,6 +32,10 @@ export async function consumeIpRateLimit(
   return consumeRateLimit(scope, `ip:${ip}`, limit, windowMs);
 }
 
+export async function getRequestIp(request: Request | null = null) {
+  return getClientIp(request);
+}
+
 export function consumeRateLimit(
   scope: string,
   identity: string,

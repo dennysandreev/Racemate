@@ -92,6 +92,7 @@ export type TrackModelDefinition = {
       radius: number;
     };
     elevationDatumLabel: string;
+    elevationApproximate?: boolean;
     previewPath: string;
     turnCount: number;
   };

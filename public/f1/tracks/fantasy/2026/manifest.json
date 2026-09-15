@@ -1,0 +1,1207 @@
+{
+  "season": 2026,
+  "expectedRaces": 23,
+  "complete": true,
+  "releaseReady": false,
+  "generatedAt": "2026-08-30T18:23:35.513243+00:00",
+  "generator": "scripts/generate-fantasy-track-assets.py",
+  "imagePolicy": "licensed real photographs only; no satellite imagery, maps, 3D, game captures or generative AI",
+  "sources": [
+    {
+      "season": 2026,
+      "round": 1,
+      "raceName": "Australian Grand Prix",
+      "circuitId": "albert_park",
+      "layoutSlug": "australia",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Melbourne Grand Prix Circuit pit building.jpg",
+      "visibleSegment": "пит-лейн и здание боксов Альберт-Парка",
+      "author": "Ozzmosis",
+      "license": "CC BY-SA 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Melbourne_Grand_Prix_Circuit_pit_building.jpg",
+      "capturedAt": "12 January, 2006, <a href=\"//commons.wikimedia.org/wiki/Melbourne\" title=\"Melbourne\">Melbourne</a>, <a href=\"//commons.wikimedia.org/wiki/Australia\" title=\"Australia\">Australia</a>",
+      "acquiredAt": "2026-08-30T18:23:25.455618+00:00",
+      "sourceSha256": "541ff5ff2a1f6e494f025101050f933b818549b93339ff860065a3607b3f0b71",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1440
+      },
+      "focus": {
+        "x": 0.53,
+        "y": 0.6,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/01-australia.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 144442,
+          "sha256": "e2c778e418b367d6af5070af6ee74eff71ffc407cbd7b661d7de9f6456275440"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/01-australia.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 46506,
+          "sha256": "4caebd34d2adf8036ab073ed7bc9aee0ac9ae35bb48c60939ff865476f34783a"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/01-australia.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 12930,
+          "sha256": "bac7976638ad373e3354b5d25461a4bcb1131d4176f6e97550f4b0559b37d0af"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 2,
+      "raceName": "Chinese Grand Prix",
+      "circuitId": "shanghai",
+      "layoutSlug": "china",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Formula 1 Circuit (Shanghai) - panoramio.jpg",
+      "visibleSegment": "стартовая прямая и пит-комплекс Шанхая",
+      "author": "CyberCop",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Formula_1_Circuit_(Shanghai)_-_panoramio.jpg",
+      "capturedAt": "Taken on 1 January 2000",
+      "acquiredAt": "2026-08-30T18:23:25.772391+00:00",
+      "sourceSha256": "c9fb6cf1b0e28ea80f2098fa9df06fe90979c414c1e8a228de5e5d8b54c5bcdb",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1440
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.54,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/02-china.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 213286,
+          "sha256": "cc75e9d30457ba646cf7c58f0f5eee2cb56314a5a31d3a59bf80cd1d9a8e31ff"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/02-china.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 79168,
+          "sha256": "b300c39e1a9ae404438cc67fa3b59b25cd52fedcc3bb730533f31af58cb21f3b"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/02-china.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 21164,
+          "sha256": "14030a8aa94209ca23e73337afd4eccd6ef19bddcbb56d794936e404aedcba22"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 3,
+      "raceName": "Japanese Grand Prix",
+      "circuitId": "suzuka",
+      "layoutSlug": "japan",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Suzuka.s curve.JPG",
+      "visibleSegment": "связка S Curves Сузуки",
+      "author": "wata0929",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Suzuka.s_curve.JPG",
+      "capturedAt": "2015-07-29",
+      "acquiredAt": "2026-08-30T18:23:26.270895+00:00",
+      "sourceSha256": "60da58c5f2668b77fb3630aa09047d24fda3fa7fdd12c40c38598d532ade9e8f",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1080
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.5,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/03-japan.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 215572,
+          "sha256": "611e90c775502b5bc5988faa13771cc4d4cf5f57904a2b6ebad871d46c527e96"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/03-japan.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 69232,
+          "sha256": "491f06e9e50942491dcd29ab3c14e714ffa9f38cb6b17fce8634ce133b297e01"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/03-japan.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 15978,
+          "sha256": "812db68c2021c01fde391519026dd638a39380a3dc9ad3815ffbe4f028a265f8"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 4,
+      "raceName": "Miami Grand Prix",
+      "circuitId": "miami",
+      "layoutSlug": "miami",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Start of the Porsche Sprint Challenge North America at the F1 Miami GP - 2022.jpg",
+      "visibleSegment": "стартовая прямая Miami International Autodrome",
+      "author": "USACJack",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Start_of_the_Porsche_Sprint_Challenge_North_America_at_the_F1_Miami_GP_-_2022.jpg",
+      "capturedAt": "2022-05-07",
+      "acquiredAt": "2026-08-30T18:23:26.478622+00:00",
+      "sourceSha256": "e1c2da79b064496cf8c05a0434cd5fdab4833749a9519bf7f7932f3f0ba35c66",
+      "sourcePixelSize": {
+        "width": 1500,
+        "height": 1000
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.51,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/04-miami.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 98112,
+          "sha256": "f62807c2221992ad7580718b04bccd33c5caf5fb1757a17638d369b21f5c54ed"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/04-miami.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 45980,
+          "sha256": "c25404c56d7f0f7e777cdaa6a6b802e43065c722a67d688366bdb76c318a6dae"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/04-miami.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 16910,
+          "sha256": "963390e20f4eed8b2dc5a943ebb814fa82f43b5f0283083c709e02bbeaab5575"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 5,
+      "raceName": "Canadian Grand Prix",
+      "circuitId": "villeneuve",
+      "layoutSlug": "canada",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Circuit Gilles Villeneuve Hairpin.jpg",
+      "visibleSegment": "шпилька трассы имени Жиля Вильнёва",
+      "author": "magicfab",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Circuit_Gilles_Villeneuve_Hairpin.jpg",
+      "capturedAt": "2005-06-10",
+      "acquiredAt": "2026-08-30T18:23:26.987334+00:00",
+      "sourceSha256": "7c56fdc1396a2388a2c4efe20711760064b27b4ce5427a5dab7be2c1da9a1b2b",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1440
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.48,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/05-canada.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 204054,
+          "sha256": "002ec516aa84b1c50545b60ae482ab7c8657dddbf4f14e9f8426ab315a729ff8"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/05-canada.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 84626,
+          "sha256": "85f6c499235d74d4e8d5a23ca1e6c2ddfe07e5c136c94a472c585471c4d48050"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/05-canada.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 23010,
+          "sha256": "c03bb5af2edc73c5ae7148b858fa083c1916914b47e3bb71d510e554c4c6660e"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 6,
+      "raceName": "Monaco Grand Prix",
+      "circuitId": "monaco",
+      "layoutSlug": "monaco",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Circuit de Monaco - Épingle du Loews Fairmont (54777022015).jpg",
+      "visibleSegment": "шпилька Fairmont",
+      "author": "crash71100",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Circuit_de_Monaco_-_%C3%89pingle_du_Loews_Fairmont_(54777022015).jpg",
+      "capturedAt": "2022-05-23 10:25",
+      "acquiredAt": "2026-08-30T18:23:28.812121+00:00",
+      "sourceSha256": "5d5b63ed7be57940a7763f647b5cc983797e09dad12b615bc146a420501dd1ae",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1440
+      },
+      "focus": {
+        "x": 0.53,
+        "y": 0.58,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/06-monaco.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 217566,
+          "sha256": "795b054c7585459c81860d7e3f6ceacb2f4cccb9f126dd06a72e27e2c2bf885d"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/06-monaco.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 89892,
+          "sha256": "5b020ebbc39b862606c42c6d44b580d04dcd94ed8f07851e85bbb0408dafe98e"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/06-monaco.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 19654,
+          "sha256": "00cd3d47e42bb472cbfdb69eb1b2e02feb94ce174057e2fb4dd8e3d5c287c2bf"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 7,
+      "raceName": "Barcelona Grand Prix",
+      "circuitId": "catalunya",
+      "layoutSlug": "barcelona-catalunya",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Curvas 1-6 de Circuit de Barcelona-Catalunya Montmeló (2023).jpg",
+      "visibleSegment": "повороты 1–6 Барселоны-Каталуньи",
+      "author": "Wilnel José Verdú Guerrero",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Curvas_1-6_de_Circuit_de_Barcelona-Catalunya_Montmel%C3%B3_(2023).jpg",
+      "capturedAt": "2023-03-22 11:53:51",
+      "acquiredAt": "2026-08-30T18:23:29.329576+00:00",
+      "sourceSha256": "6dd3bcd44ea67b67a81d82170b1af7d5be62b1014011f0e6131d0ebe5fa497a2",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1440
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.52,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/07-barcelona-catalunya.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 204394,
+          "sha256": "879c31374bc3b02c790284652c6b92d72417d932ff8f68eee698f045d260b3cf"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/07-barcelona-catalunya.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 81476,
+          "sha256": "44586c2a3a6d2bbe589fe74e15a787854a68cc79e3b80f40f3794ce6a427994a"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/07-barcelona-catalunya.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 21610,
+          "sha256": "eca000d15187f992031ed2f023151de12dbcc030a247b3d2ebb5237d72fc47ea"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 8,
+      "raceName": "Austrian Grand Prix",
+      "circuitId": "red_bull_ring",
+      "layoutSlug": "austria",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Start-Ziel Red Bull Ring.jpg",
+      "visibleSegment": "стартовая прямая Red Bull Ring",
+      "author": "Fitschy99",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Start-Ziel_Red_Bull_Ring.jpg",
+      "capturedAt": "2021-08-15 12:15:51",
+      "acquiredAt": "2026-08-30T18:23:29.642337+00:00",
+      "sourceSha256": "79579d58bb60181fa383d4326563f69c405870dac91d37b93a641279b62c5bcd",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1387
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.55,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/08-austria.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 219558,
+          "sha256": "93df10563a7a695f66325ed8f16f20f75df7c737efa4ef5022a5047a26b8c768"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/08-austria.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 66854,
+          "sha256": "301959251c67419121231af379b4960e184fcca5a3aadc4bde5a4c838310d90f"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/08-austria.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 14488,
+          "sha256": "f566013c6703e7b5ed509f55e887258eb2d4e500b3e32cf843c5d5a0657ca691"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 9,
+      "raceName": "British Grand Prix",
+      "circuitId": "silverstone",
+      "layoutSlug": "great-britain",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Silverstone circuit - geograph.org.uk - 2060445.jpg",
+      "visibleSegment": "Сильверстоун с борта самолёта; реальная фотография, не спутниковый снимок",
+      "author": "Philip Halling",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Silverstone_circuit_-_geograph.org.uk_-_2060445.jpg",
+      "capturedAt": "2010-07-17",
+      "acquiredAt": "2026-08-30T18:23:29.939036+00:00",
+      "sourceSha256": "a2b1e66f0b6d65ed42f333a0c142b118b7741d418b5c01876f6fe61cd30d4561",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1277
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.55,
+        "zoom": 1.08
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/09-great-britain.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 172756,
+          "sha256": "1c6b8e0338914722c4596a24e87d3c508154e50c2eb758dfabedce5b251eba4b"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/09-great-britain.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 55734,
+          "sha256": "2f09a3ea4d2921c227e3b0096dfed94c883a6f1686d62977422d6da25f9939f4"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/09-great-britain.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 15858,
+          "sha256": "01577654cbf64c6874b64700e8e16960c1d27a8cc55588a4f3279ea68bf6cb00"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 10,
+      "raceName": "Belgian Grand Prix",
+      "circuitId": "spa",
+      "layoutSlug": "belgium",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Eau Rouge at Spa Francorchamps.jpg",
+      "visibleSegment": "Eau Rouge и подъём Raidillon",
+      "author": "ContextCreator",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Eau_Rouge_at_Spa_Francorchamps.jpg",
+      "capturedAt": "2014-05-31 15:05:38",
+      "acquiredAt": "2026-08-30T18:23:30.455341+00:00",
+      "sourceSha256": "19683811de553207683fd6fc4cc5835bfd86cfd4010d12eb074ab8853f034959",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1280
+      },
+      "focus": {
+        "x": 0.53,
+        "y": 0.55,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/10-belgium.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 217424,
+          "sha256": "2e1aab48f9c0ffd10f9719cfc7f57333b3292ce2d314e5fbdd1526de69565232"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/10-belgium.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 84212,
+          "sha256": "bda76828670635b8cb677a623f11698af6e77749491671c99a63da7dfd217471"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/10-belgium.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 21468,
+          "sha256": "6642531adaa3641c75432d23a0786b9a84238d8170d8fd03a9121c7b6a7fba15"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 11,
+      "raceName": "Hungarian Grand Prix",
+      "circuitId": "hungaroring",
+      "layoutSlug": "hungary",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Hungaroring, Mogyoród 13.jpg",
+      "visibleSegment": "подъём на Хунгароринге",
+      "author": "Ank Kumar",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Hungaroring,_Mogyor%C3%B3d_13.jpg",
+      "capturedAt": "2015-03-04 14:48:04",
+      "acquiredAt": "2026-08-30T18:23:30.950846+00:00",
+      "sourceSha256": "116dd48eb4fe6837dfc4f9995ec5dc92d26ce5ce7aebdb7c1a02ee0808b9fed6",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1280
+      },
+      "focus": {
+        "x": 0.52,
+        "y": 0.59,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/11-hungary.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 210016,
+          "sha256": "24609400c39b954625034473451eb505fa15d1280b056d5fe1de0e798d3175f7"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/11-hungary.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 67332,
+          "sha256": "2d634d610d7083daac340e152796236da8da4346df43c39e4dbfb7394931ee6e"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/11-hungary.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 12288,
+          "sha256": "086b1acbf5abbbc8d81345f6f9b933a154000e938e91add684c1f5fda1024cbe"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 12,
+      "raceName": "Dutch Grand Prix",
+      "circuitId": "zandvoort",
+      "layoutSlug": "netherlands",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Zandvoort motor racing circuit.jpg",
+      "visibleSegment": "актуальная конфигурация Зандворта с борта самолёта; реальная фотография 2024 года",
+      "author": "Steve Knight",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Zandvoort_motor_racing_circuit.jpg",
+      "capturedAt": "2024-04-03 22:05:40",
+      "acquiredAt": "2026-08-30T18:23:32.228237+00:00",
+      "sourceSha256": "09c3659ee734e71834de98b8be03603ddd75094fafcf29ae6ffe206204bae0d4",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1013
+      },
+      "focus": {
+        "x": 0.49,
+        "y": 0.48,
+        "zoom": 1.08
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/12-netherlands.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 211774,
+          "sha256": "e77bf3d667acaccfdc36078b7b95756ea810f5788a3f39783be7b6b8b860d155"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/12-netherlands.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 99410,
+          "sha256": "32d843545c4c8a4315b335243a4c0e785166f9098f21cadd7a6a39bb7cd97bcc"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/12-netherlands.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 24200,
+          "sha256": "83bae4f714123bd9f241ef894aebbadb8b84e60ccf70433308f8c9dc3dc46852"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 13,
+      "raceName": "Italian Grand Prix",
+      "circuitId": "monza",
+      "layoutSlug": "italy",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Autodromo Nazionale Monza.jpg",
+      "visibleSegment": "отрезок трассы у исторической инфраструктуры Монцы",
+      "author": "Derbrauni",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Autodromo_Nazionale_Monza.jpg",
+      "capturedAt": "2023-03-16 17:25:01",
+      "acquiredAt": "2026-08-30T18:23:32.476855+00:00",
+      "sourceSha256": "188cf0617348487036dd0c0cfbd115db380ababc0253c60cde789990b62ca6f0",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 865
+      },
+      "focus": {
+        "x": 0.51,
+        "y": 0.56,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/13-italy.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 173782,
+          "sha256": "9dcfd8889061e824738f435e3a8be9ad42af2b25f3c2142dd029058ef6569b75"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/13-italy.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 66006,
+          "sha256": "9c43c8a3d3476f75a419028fc3c5dfac6dc8cfec8e7f7a921c7fca8a69129692"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/13-italy.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 14660,
+          "sha256": "cc5caf2f293bedd302964170301d9bec254b8c886145e6c8ee30b1ecfad30fef"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 14,
+      "raceName": "Spanish Grand Prix",
+      "circuitId": "madring",
+      "layoutSlug": "spain",
+      "sourceKind": "real-venue-context",
+      "commonsTitle": "File:Fachada Feria de Madrid - IFEMA.jpg",
+      "visibleSegment": "городская зона IFEMA у конфигурации MADRING",
+      "author": "Alquiler de Coches",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Fachada_Feria_de_Madrid_-_IFEMA.jpg",
+      "capturedAt": "2011-01-24",
+      "acquiredAt": "2026-08-30T18:23:32.725097+00:00",
+      "sourceSha256": "d181d0ed61d81d7b6742f10b949b800caa8b42971da6b2199118fe4654d5d4c6",
+      "sourcePixelSize": {
+        "width": 1240,
+        "height": 930
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.55,
+        "zoom": 1.0
+      },
+      "reviewStatus": "context-only",
+      "reviewNote": "Временный контекстный кадр: свободно лицензированная фотография готового полотна MADRING не найдена. Заменить после получения разрешения или публикации совместимого источника.",
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/14-spain.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 154820,
+          "sha256": "1605fdd7e31bdc4c6cffa688d997696ce4dbf78cad0ec341408f64cc2f954c04"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/14-spain.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 66034,
+          "sha256": "3c50a842001f032706509345640f7feb18f16b0fb6caffa3d4d10f1c9ca9aa31"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/14-spain.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 20136,
+          "sha256": "547e9d0a0fbf66fcb2d026852d30c3e40bece04d34bc208c600062822dace6bb"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 15,
+      "raceName": "Azerbaijan Grand Prix",
+      "circuitId": "baku",
+      "layoutSlug": "azerbaijan",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Baku 12 54 39 091000.jpeg",
+      "visibleSegment": "пит-лейн Бакинской городской трассы",
+      "author": "Robot8A",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Baku_12_54_39_091000.jpeg",
+      "capturedAt": "2020-01-22 13:26:19",
+      "acquiredAt": "2026-08-30T18:23:33.039883+00:00",
+      "sourceSha256": "c68e135075899619cf3d92852d6742705f73196572560c09ba88f55b59e74feb",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 2560
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.58,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/15-azerbaijan.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 156044,
+          "sha256": "69db37bbfb2c894525fbf385a3087a0e627f080c2e539f9118c06ccc7f321eb4"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/15-azerbaijan.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 53276,
+          "sha256": "6cb0f0d793d32ef444e538f0200003c59080e2c26937c0a7b02c9323bd93e91a"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/15-azerbaijan.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 13266,
+          "sha256": "c9fde1bf47727198b790fef5669eb58e6faabd5a715ad45669058762cac44f1b"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 16,
+      "raceName": "Bahrain Grand Prix in Malaysia",
+      "circuitId": "sepang",
+      "layoutSlug": "malaysia",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Sepang International Circuit outview (230625) 01.jpg",
+      "visibleSegment": "реальный вид на секцию Sepang International Circuit",
+      "author": "*angys*",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Sepang_International_Circuit_outview_(230625)_01.jpg",
+      "capturedAt": "2023-06-25 12:42:23",
+      "acquiredAt": "2026-08-30T18:23:33.319788+00:00",
+      "sourceSha256": "4b0acf004e415a5cbaf645711be638ba9b5073b6b39962fac1c48881e4d32c08",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1440
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.56,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/16-malaysia.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 154914,
+          "sha256": "3d513e090da23b4e1db0a214b53dbd2f2495d5013350a2d8bb2833ebb09ed047"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/16-malaysia.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 52696,
+          "sha256": "3266a6b483b64b92c91441ce72a05820b7e794cee1beafd292010d1370e9e4a6"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/16-malaysia.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 12958,
+          "sha256": "ba7303b46355349ecfe1afd456af5d982602a25cd01a531ba32bd9ce0a407879"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 17,
+      "raceName": "Singapore Grand Prix",
+      "circuitId": "marina_bay",
+      "layoutSlug": "singapore",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Marina Bay Street Circuit near Singapore Flyer 11Jul2026 02.jpg",
+      "visibleSegment": "секция Marina Bay у Singapore Flyer",
+      "author": "RFNirmala",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Marina_Bay_Street_Circuit_near_Singapore_Flyer_11Jul2026_02.jpg",
+      "capturedAt": "2026-07-11 11:46:46",
+      "acquiredAt": "2026-08-30T18:23:33.631377+00:00",
+      "sourceSha256": "7e83832eeb5f2bc7251ba218e94cc98cd4454df14c849ca77c36cfce5ec6fec5",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1440
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.55,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/17-singapore.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 205296,
+          "sha256": "94a9e5de25fda710f677b9b591ed0325e407f39c8c66f1222de58bdb2020df8e"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/17-singapore.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 58324,
+          "sha256": "56e48a59b8a76d369b8b9d7f3192528fb91de698efcd373afc16c3a70e169dd3"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/17-singapore.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 11940,
+          "sha256": "6310685dfd3dc553337fed8c41277c129ddc69d4935b45a6f65aa5955e241b93"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 18,
+      "raceName": "United States Grand Prix",
+      "circuitId": "americas",
+      "layoutSlug": "united-states",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Main straight and turn 1 hill, Circuit of the Americas.jpg",
+      "visibleSegment": "стартовая прямая и подъём к первому повороту COTA",
+      "author": "Lars Plougmann",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Main_straight_and_turn_1_hill,_Circuit_of_the_Americas.jpg",
+      "capturedAt": "2017-10-10 18:22:45",
+      "acquiredAt": "2026-08-30T18:23:33.916728+00:00",
+      "sourceSha256": "3b63cd7dbe8286ccebfbc5d274715319df77e78a6891047c2792b552c2dafd48",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1246
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.53,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/18-united-states.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 186978,
+          "sha256": "301668305ccfe3a726d9f136b4375c6e516ddfd4c2413a8bba81f0fabc18b657"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/18-united-states.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 58358,
+          "sha256": "052b7d2e6dd739b2f067bfbf76e432111da211601af2f55fe3af15a6c19d3aeb"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/18-united-states.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 13740,
+          "sha256": "7a0c58389f8100247b522d21d6aad29ebb43a8f5b59bf99db03d3e8ba607ae2c"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 19,
+      "raceName": "Mexico City Grand Prix",
+      "circuitId": "rodriguez",
+      "layoutSlug": "mexico",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Formula 1 2016 -i---i- (30061627393).jpg",
+      "visibleSegment": "стадионная секция автодрома имени братьев Родригес",
+      "author": "Gobierno CDMX",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Formula_1_2016_-i---i-_(30061627393).jpg",
+      "capturedAt": "2016-10-30 16:03",
+      "acquiredAt": "2026-08-30T18:23:34.166054+00:00",
+      "sourceSha256": "fa1affb504da05c01eff43951f912f1c71d65d0e6b0160e0db1bdabb9266eceb",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1280
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.57,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/19-mexico.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 162054,
+          "sha256": "f2623081e19c57be8364456481447bbb8b9124f7371f9f3d06d0be539af91266"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/19-mexico.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 62496,
+          "sha256": "609c8910aad8dbc2f65b7e11f571cd7e7543ad4ca2f7eda13fcb86ee8648bf0f"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/19-mexico.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 16602,
+          "sha256": "bbadeb14234f25644a68e5a0c1c4873a461dbc81d7b77eb6609ded3721c3ad69"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 20,
+      "raceName": "Brazilian Grand Prix",
+      "circuitId": "interlagos",
+      "layoutSlug": "brazil",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Autódromo de Interlagos em Dezembro de 2023.jpg",
+      "visibleSegment": "стартовая прямая Интерлагоса",
+      "author": "Boaventuravinicius",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Aut%C3%B3dromo_de_Interlagos_em_Dezembro_de_2023.jpg",
+      "capturedAt": "10 December 2023 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+      "acquiredAt": "2026-08-30T18:23:34.849092+00:00",
+      "sourceSha256": "df89e1a49d0fd53e24de1f20dddb3b586646941ac0eb38e1d94e28fcbdaa0712",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1581
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.54,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/20-brazil.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 218632,
+          "sha256": "ecefba49f050005e6b0680e969e57660d39483b7c49427269614f037b0b5790d"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/20-brazil.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 88286,
+          "sha256": "ecd9be662b572894f1552e1443888fccb54f2759ec37914e415107821b3efd41"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/20-brazil.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 20916,
+          "sha256": "f0b3cf18f95b1f869769b22be85967cc090a5d25ada379f105753b46cc0aced5"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 21,
+      "raceName": "Las Vegas Grand Prix",
+      "circuitId": "vegas",
+      "layoutSlug": "las-vegas",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:2024 Las Vegas Grand Prix at the Sphere - Saturday, November 23, Orbi.jpg",
+      "visibleSegment": "повороты 7–8 у Sphere",
+      "author": "Nascar9919",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2024_Las_Vegas_Grand_Prix_at_the_Sphere_-_Saturday,_November_23,_Orbi.jpg",
+      "capturedAt": "2024-11-23 22:47:25",
+      "acquiredAt": "2026-08-30T18:23:35.151088+00:00",
+      "sourceSha256": "16c8cf4d137b78bfcabc262eed86779f2cf3bca7b1cad426d462f4e3fa229cc9",
+      "sourcePixelSize": {
+        "width": 1920,
+        "height": 1440
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.59,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/21-las-vegas.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 199914,
+          "sha256": "2d64405f2ca192558b05e3321cbf972ff552da0ed7241f5612489b4284207d80"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/21-las-vegas.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 60850,
+          "sha256": "b512731d49c97c3ac0cc14528a02e5c6bf451783a242f75689aaaa1a484aaf8f"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/21-las-vegas.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 14220,
+          "sha256": "e81ae92cd2665081ab73e7b4b887f468c029e4e1f1bf83e6accc54aa1c581312"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 22,
+      "raceName": "Qatar Grand Prix",
+      "circuitId": "losail",
+      "layoutSlug": "qatar",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:WTCC 2016, Qatar.jpg",
+      "visibleSegment": "ночная стартовая прямая Лосаила",
+      "author": "Dmitry Racer",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:WTCC_2016,_Qatar.jpg",
+      "capturedAt": "2016-11-25",
+      "acquiredAt": "2026-08-30T18:23:35.349409+00:00",
+      "sourceSha256": "fe104fc94b3e3b439206a0d7679fe09fe9bde293d2e7716ed56a2ae92393c2a2",
+      "sourcePixelSize": {
+        "width": 1653,
+        "height": 930
+      },
+      "focus": {
+        "x": 0.52,
+        "y": 0.55,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/22-qatar.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 92018,
+          "sha256": "d991469edac7fabbc4086026b5b0a0feb46e4accd0e2c32ae28be9669effd6d2"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/22-qatar.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 41272,
+          "sha256": "4a071fb96979b80475ab81d4c128b3790198f1231133b4c23319d076358bf723"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/22-qatar.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 14328,
+          "sha256": "3d4f1d4154cd004ca963ca70c2c374c4d0329c0b5e47509d135d35de7b22ea48"
+        }
+      }
+    },
+    {
+      "season": 2026,
+      "round": 23,
+      "raceName": "Abu Dhabi Grand Prix",
+      "circuitId": "yas_marina",
+      "layoutSlug": "united-arab-emirates",
+      "sourceKind": "real-track-photo",
+      "commonsTitle": "File:Sunset at Yas Marina circuit - Abu Dhabi 2014.jpg",
+      "visibleSegment": "секция Yas Marina на закате",
+      "author": "Cesar I. Martins",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Sunset_at_Yas_Marina_circuit_-_Abu_Dhabi_2014.jpg",
+      "capturedAt": "2014-07-29 19:24:06",
+      "acquiredAt": "2026-08-30T18:23:35.512847+00:00",
+      "sourceSha256": "f94dea5bb6d4bb3c4c6c9b4f7a3214ba81ceb7f11f6e0887a910cb71735fe5ef",
+      "sourcePixelSize": {
+        "width": 1600,
+        "height": 1067
+      },
+      "focus": {
+        "x": 0.5,
+        "y": 0.55,
+        "zoom": 1.0
+      },
+      "reviewStatus": "approved",
+      "reviewNote": null,
+      "changes": "4:3 crop, resize, light colour/contrast adjustment, metadata removal",
+      "variants": {
+        "hero": {
+          "file": "/f1/tracks/fantasy/2026/23-united-arab-emirates.hero.webp",
+          "width": 1280,
+          "height": 960,
+          "bytes": 51306,
+          "sha256": "6e54e0affb06f9e808edcfe33eb8549b0e07ad91c95a1476a410f0f366f53ae2"
+        },
+        "card": {
+          "file": "/f1/tracks/fantasy/2026/23-united-arab-emirates.card.webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 20370,
+          "sha256": "38b9091f9cb7632fc679965365d0f2e32ebd4a563de7594458c8786003076b4e"
+        },
+        "thumb": {
+          "file": "/f1/tracks/fantasy/2026/23-united-arab-emirates.thumb.webp",
+          "width": 384,
+          "height": 288,
+          "bytes": 6332,
+          "sha256": "aaf77630805eef22a2d445a07ed188b71e3c73bf1f4381e39471cba132d2b42b"
+        }
+      }
+    }
+  ]
+}

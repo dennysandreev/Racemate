@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
+import { formatGrandPrixNameRu } from "@/lib/race-display";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/supabase";
 
@@ -25,6 +26,7 @@ type TelegramMessage = {
   forward_count?: number;
   photo?: { file_id: string; file_unique_id?: string; width?: number; height?: number }[];
   video?: { file_id: string; file_unique_id?: string; width?: number; height?: number; mime_type?: string };
+  video_note?: { file_id: string; file_unique_id?: string; length?: number; duration?: number };
   reactions?: { results?: { total_count?: number }[] };
   forward_origin?: unknown;
   forward_from_chat?: unknown;
@@ -96,6 +98,18 @@ async function handleChannelPost(
     return key === chatId || (username && key === username);
   });
   if (!source) return;
+  if (message.video_note) {
+    await admin
+      .from("social_posts")
+      .update({
+        status: "rejected",
+        next_retry_at: null,
+        last_processing_error: "unsupported_telegram_video_note",
+      })
+      .eq("platform", "telegram")
+      .eq("external_id", `${chatId}:${message.message_id}`);
+    return;
+  }
   const isForward = Boolean(message.forward_origin || message.forward_from_chat);
   const isReply = Boolean(message.reply_to_message);
   if ((isForward && !source.include_reposts) || (isReply && !source.include_replies)) return;
@@ -268,7 +282,7 @@ async function handleMessage(
 
     const race = firstRelation(session.races as unknown as { race_name: string } | { race_name: string }[] | null);
     await sendTelegramMessage(botToken, message.chat.id, {
-      text: `Следующая сессия\n\n${session.name}\n${race?.race_name ?? "Гоночный уикенд"}\n${formatDateTime(session.start_at, profile?.timezone ?? "Europe/Moscow")}`,
+      text: `Следующая сессия\n\n${session.name}\n${race ? formatGrandPrixNameRu(race.race_name) : "Гоночный уикенд"}\n${formatDateTime(session.start_at, profile?.timezone ?? "Europe/Moscow")}`,
       reply_markup: siteKeyboard("Открыть уикенд", "/weekend"),
     });
     return;
@@ -437,7 +451,7 @@ async function handleCallback(
 
   await answerCallback(botToken, callback.id, "Результаты открыты");
   await sendTelegramMessage(botToken, chatId, {
-    text: `${session.name}\n${race?.race_name ?? ""}\n\n${lines.join("\n")}`,
+    text: `${session.name}\n${race ? formatGrandPrixNameRu(race.race_name) : ""}\n\n${lines.join("\n")}`,
     reply_markup: siteKeyboard("Полные результаты", `/weekend?session=${encodeURIComponent(session.id)}`),
   });
 }

@@ -1,11 +1,10 @@
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
-
 import { AppShell } from "@/components/racemate/app-shell";
+import { FantasySectionHeader } from "@/components/fantasy/fantasy-section-nav";
+import { FantasyScoringDialog } from "@/components/racemate/fantasy-scoring-dialog";
 import { PageTitle } from "@/components/racemate/page-title";
 import { GlobalFantasyLeaderboardPanel } from "@/components/racemate/global-fantasy-leaderboard";
-import { Button } from "@/components/ui/button";
 import { getGlobalFantasyLeaderboard } from "@/data/racemate-repository";
+import { getSessionProfileSummary } from "@/lib/auth";
 import { createPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -18,33 +17,25 @@ export const metadata = createPageMetadata({
 });
 
 export default async function GlobalFantasyLeaderboardPage() {
-  const leaderboard = await getGlobalFantasyLeaderboard();
+  const [leaderboard, profileSummary] = await Promise.all([
+    getGlobalFantasyLeaderboard(),
+    getSessionProfileSummary(),
+  ]);
 
   return (
     <AppShell>
       <section className="grid gap-6 pb-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="font-telemetry text-xs font-bold uppercase tracking-[0.12em] text-primary">
-              Фентази лига
-            </p>
-            <PageTitle className="mt-2">
-              Общий рейтинг
-            </PageTitle>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-              Все личные прогнозы RaceSide в одной таблице. Очки обновляются после
-              подсчёта результатов этапа.
-            </p>
+        <FantasySectionHeader active="leaderboard">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <PageTitle>Общий рейтинг</PageTitle>
+            <FantasyScoringDialog />
           </div>
-          <Button asChild variant="secondary">
-            <Link href="/fantasy">
-              <ChevronLeft aria-hidden="true" data-icon="inline-start" />
-              К фентази-лиге
-            </Link>
-          </Button>
-        </div>
+        </FantasySectionHeader>
 
-        <GlobalFantasyLeaderboardPanel leaderboard={leaderboard} />
+        <GlobalFantasyLeaderboardPanel
+          currentDisplayName={profileSummary?.displayName ?? null}
+          leaderboard={leaderboard}
+        />
       </section>
     </AppShell>
   );

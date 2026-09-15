@@ -2,6 +2,8 @@ import { LockKeyhole } from "lucide-react";
 
 import { runAdminJobAction, savePollAction } from "@/app/admin/operations";
 import { AdminActionForm } from "@/components/admin/admin-action-form";
+import { AdminConfirmedForm } from "@/components/admin/admin-confirmed-form";
+import { AdminUrlTabs } from "@/components/admin/admin-url-tabs";
 import {
   AdminMetric,
   AdminPage,
@@ -12,7 +14,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { loadAdminCommunity, parseAdminTableQuery } from "@/data/admin-repository";
 import { requireAdmin } from "@/lib/auth";
@@ -49,7 +51,7 @@ export default async function AdminCommunityPage({ searchParams }: PageProps) {
           Пользовательские выборы и начисленные очки не меняются вручную. Повторный подсчёт использует подтверждённые результаты гонки.
         </AlertDescription>
       </Alert>
-      <Tabs defaultValue="polls">
+      <AdminUrlTabs defaultValue="polls" values={["polls", "leagues", "predictions"]}>
         <TabsList variant="line">
           <TabsTrigger value="polls">Опросы</TabsTrigger>
           <TabsTrigger value="leagues">Лиги</TabsTrigger>
@@ -58,16 +60,16 @@ export default async function AdminCommunityPage({ searchParams }: PageProps) {
         <TabsContent value="polls">
           <div className="grid gap-5 xl:grid-cols-[22rem_minmax(0,1fr)]">
             <AdminSection description="Варианты блокируются после первого голоса." title="Новый опрос">
-              <AdminActionForm action={savePollAction} className="p-4" submitLabel="Создать опрос">
+              <AdminConfirmedForm action={savePollAction} className="p-4" confirmLabel="Создать" description="Если выбрана публикация, опрос сразу станет доступен читателям." submitLabel="Создать опрос" title="Создать опрос?">
                 <FieldGroup>
                   <PollFields />
                 </FieldGroup>
-              </AdminActionForm>
+              </AdminConfirmedForm>
             </AdminSection>
             <AdminSection description="Публикуй, закрывай и обновляй вопрос без удаления истории." title="Все опросы">
               <div className="grid gap-4 p-4">
                 {data.polls.map((poll) => (
-                  <AdminActionForm action={savePollAction} className="rounded-md border border-border p-4" key={poll.id} submitLabel="Сохранить опрос" submitVariant="secondary">
+                  <AdminConfirmedForm action={savePollAction} className="rounded-md border border-border p-4" confirmLabel="Сохранить" description="Изменение публикации или закрытие опроса сразу отразится на сайте." key={poll.id} submitLabel="Сохранить опрос" submitVariant="secondary" title="Сохранить изменения опроса?">
                     <input name="pollId" type="hidden" value={poll.id} />
                     <div className="flex flex-wrap items-center gap-2">
                       <AdminStatusBadge status={poll.status} />
@@ -105,7 +107,7 @@ export default async function AdminCommunityPage({ searchParams }: PageProps) {
                         <Input defaultValue={toLocalDateTime(poll.closes_at)} id={`poll-close-${poll.id}`} name="closesAt" type="datetime-local" />
                       </Field>
                     </FieldGroup>
-                  </AdminActionForm>
+                  </AdminConfirmedForm>
                 ))}
               </div>
             </AdminSection>
@@ -143,7 +145,7 @@ export default async function AdminCommunityPage({ searchParams }: PageProps) {
             </div>
           </AdminSection>
         </TabsContent>
-      </Tabs>
+      </AdminUrlTabs>
     </AdminPage>
   );
 }

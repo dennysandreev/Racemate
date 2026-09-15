@@ -58,6 +58,7 @@ test("OpenF1 counter includes deployments and ignores endings and penalties", ()
   ]);
 
   assert.deepEqual(result, {
+    yellowFlagCount: 0,
     safetyCarCount: 1,
     vscCount: 1,
     redFlagCount: 1,
@@ -75,6 +76,7 @@ test("report safety summary uses only the race session and deployment events", (
   const counts = countOpenF1SafetyEvents(raceMessages);
 
   assert.deepEqual(counts, {
+    yellowFlagCount: 0,
     safetyCarCount: 0,
     vscCount: 1,
     redFlagCount: 0,
@@ -82,9 +84,42 @@ test("report safety summary uses only the race session and deployment events", (
   assert.equal(formatSafetyEventSummary(counts), "VSC: 1");
 });
 
+test("race-control audit counts yellow periods only between session start and chequered flag", () => {
+  const raceMessages = filterRaceControlForSession([
+    { session_key: 200, date: "2026-07-05T13:59:00Z", lap_number: 1, category: "Flag", flag: "YELLOW", scope: "Sector", sector: 7, message: "YELLOW IN TRACK SECTOR 7" },
+    { session_key: 200, date: "2026-07-05T14:00:00Z", lap_number: 1, category: "SessionStatus", message: "SESSION STARTED" },
+    { session_key: 200, date: "2026-07-05T14:01:00Z", lap_number: 1, category: "Flag", flag: "YELLOW", scope: "Sector", sector: 10, message: "YELLOW IN TRACK SECTOR 10" },
+    { session_key: 200, date: "2026-07-05T14:01:10Z", lap_number: 1, category: "Flag", flag: "YELLOW", scope: "Sector", sector: 11, message: "YELLOW IN TRACK SECTOR 11" },
+    { session_key: 200, date: "2026-07-05T14:01:40Z", lap_number: 1, category: "Flag", flag: "CLEAR", scope: "Sector", sector: 10, message: "CLEAR IN TRACK SECTOR 10" },
+    { session_key: 200, date: "2026-07-05T14:01:50Z", lap_number: 1, category: "Flag", flag: "CLEAR", scope: "Sector", sector: 11, message: "CLEAR IN TRACK SECTOR 11" },
+    { session_key: 200, date: "2026-07-05T14:01:52Z", lap_number: 1, category: "Flag", flag: "DOUBLE YELLOW", scope: "Sector", sector: 11, message: "DOUBLE YELLOW IN TRACK SECTOR 11" },
+    { session_key: 200, date: "2026-07-05T14:02:00Z", lap_number: 1, category: "Flag", flag: "CLEAR", scope: "Track", sector: null, message: "TRACK CLEAR" },
+    { session_key: 200, date: "2026-07-05T14:04:00Z", lap_number: 3, category: "Flag", flag: "YELLOW", scope: "Sector", sector: 4, message: "YELLOW IN TRACK SECTOR 4" },
+    { session_key: 200, date: "2026-07-05T15:30:00Z", lap_number: 52, category: "Flag", flag: "CHEQUERED", scope: "Track", message: "CHEQUERED FLAG" },
+    { session_key: 200, date: "2026-07-05T15:31:00Z", lap_number: 52, category: "Flag", flag: "YELLOW", scope: "Sector", sector: 8, message: "YELLOW IN TRACK SECTOR 8" },
+  ], 200);
+
+  assert.equal(raceMessages[0]?.message, "SESSION STARTED");
+  assert.equal(raceMessages.at(-1)?.message, "CHEQUERED FLAG");
+  assert.equal(countOpenF1SafetyEvents(raceMessages).yellowFlagCount, 2);
+});
+
 test("chequered flag is not classified as a red flag event", () => {
   assert.equal(isImportantRaceControlMessage("CHEQUERED FLAG", "Flag"), false);
   assert.equal(isImportantRaceControlMessage("RED FLAG", "Flag"), true);
   assert.equal(getRaceControlEventTitle("RED FLAG", "Flag"), "Красный флаг");
   assert.equal(getRaceControlEventTitle("SAFETY CAR INFRINGEMENT", "Other"), "Сообщение дирекции гонки");
+});
+
+test("red-flag suspension is counted and temporary session stop does not truncate the race", () => {
+  const raceMessages = filterRaceControlForSession([
+    { session_key: 300, date: "2026-08-23T13:00:00Z", lap_number: 1, category: "SessionStatus", message: "SESSION STARTED" },
+    { session_key: 300, date: "2026-08-23T13:02:00Z", lap_number: 2, category: "SessionStatus", message: "SESSION STOPPED" },
+    { session_key: 300, date: "2026-08-23T13:02:01Z", lap_number: 2, category: "Other", message: "RED FLAG - RACE SUSPENDED" },
+    { session_key: 300, date: "2026-08-23T13:20:00Z", lap_number: 3, category: "SessionStatus", message: "SESSION STARTED" },
+    { session_key: 300, date: "2026-08-23T15:00:00Z", lap_number: 72, category: "Flag", flag: "CHEQUERED", message: "CHEQUERED FLAG" },
+  ], 300);
+
+  assert.equal(raceMessages.at(-1)?.message, "CHEQUERED FLAG");
+  assert.equal(countOpenF1SafetyEvents(raceMessages).redFlagCount, 1);
 });

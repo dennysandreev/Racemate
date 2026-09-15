@@ -23,7 +23,7 @@ export default function AdminError({
         description="Раздел не загрузился. Данные не менялись."
         title="Не удалось открыть админку"
       />
-      <AdminErrorState message="Попробуй загрузить раздел ещё раз. Если ошибка повторится, проверь последние worker-задачи." />
+      <AdminErrorState message="Попробуй загрузить раздел ещё раз. Если ошибка повторится, проверь последние фоновые задачи." />
       <div><Button onClick={reset}>Попробовать ещё раз</Button></div>
     </AdminPage>
   );

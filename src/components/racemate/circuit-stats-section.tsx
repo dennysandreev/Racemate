@@ -32,22 +32,32 @@ import type {
 } from "@/types/racemate";
 
 export function CircuitStatsSection({
+  actionsInline = false,
+  buttonSize = "default",
   className,
   circuitName,
   footerAction,
   headerAction,
   embedded = false,
   mode = "compact",
+  previewFooter,
+  previewLayout = "list",
   showCircuitName = true,
+  showSectionLabel = true,
   stats,
 }: {
+  actionsInline?: boolean;
+  buttonSize?: "default" | "sm";
   className?: string;
   circuitName?: string;
   footerAction?: ReactNode;
   headerAction?: ReactNode;
   embedded?: boolean;
   mode?: "compact" | "button";
+  previewFooter?: ReactNode;
+  previewLayout?: "grid" | "list";
   showCircuitName?: boolean;
+  showSectionLabel?: boolean;
   stats: CircuitStatsView | null;
 }) {
   const [open, setOpen] = useState(false);
@@ -85,6 +95,7 @@ export function CircuitStatsSection({
           className={cn("w-full justify-center", className)}
           disabled={!stats}
           onClick={() => setOpen(true)}
+          size={buttonSize}
           type="button"
           variant="secondary"
         >
@@ -99,10 +110,12 @@ export function CircuitStatsSection({
     return (
       <section className={cn(embedded ? "" : "pb-8", className)} id="circuit-stats">
         <div className={cn("grid gap-4", embedded ? "" : "rounded-xl border border-border bg-card/80 p-4 sm:p-5")}>
-          <div className="flex items-center justify-between gap-3">
-            <p className="stitch-label text-primary">О трассе</p>
-            {headerAction}
-          </div>
+          {showSectionLabel || headerAction ? (
+            <div className="flex items-center justify-between gap-3">
+              {showSectionLabel ? <p className="stitch-label text-primary">О трассе</p> : null}
+              {headerAction}
+            </div>
+          ) : null}
           <div>
             <h2 className="mt-2 font-display text-2xl font-extrabold tracking-[-0.03em]">
               {circuitName ?? "Трасса этапа"}
@@ -114,6 +127,7 @@ export function CircuitStatsSection({
           <Button className="w-full justify-center" disabled type="button" variant="secondary">
             Подробнее
           </Button>
+          {previewFooter}
           {footerAction}
         </div>
       </section>
@@ -131,18 +145,23 @@ export function CircuitStatsSection({
           <CircuitCompactDossier
             dense={embedded}
             headerAction={headerAction}
+            previewFooter={previewFooter}
+            previewLayout={previewLayout}
             showCircuitName={showCircuitName}
+            showSectionLabel={showSectionLabel}
             stats={stats}
           />
-          <Button
-            className="w-full justify-center border-border/80 bg-secondary/70 hover:bg-accent"
-            onClick={() => setOpen(true)}
-            type="button"
-            variant="secondary"
-          >
-            Подробнее
-          </Button>
-          {footerAction}
+          <div className={cn("grid gap-2", actionsInline && footerAction && "grid-cols-2")}>
+            <Button
+              className="w-full justify-center border-border/80 bg-secondary/70 hover:bg-accent"
+              onClick={() => setOpen(true)}
+              type="button"
+              variant="secondary"
+            >
+              Подробнее
+            </Button>
+            {footerAction}
+          </div>
         </div>
       </div>
 
@@ -211,12 +230,18 @@ function CircuitStatsDialog({
 function CircuitCompactDossier({
   dense = false,
   headerAction,
+  previewFooter,
+  previewLayout = "list",
   showCircuitName = true,
+  showSectionLabel = true,
   stats,
 }: {
   dense?: boolean;
   headerAction?: ReactNode;
+  previewFooter?: ReactNode;
+  previewLayout?: "grid" | "list";
   showCircuitName?: boolean;
+  showSectionLabel?: boolean;
   stats: CircuitStatsView;
 }) {
   const metrics = [
@@ -239,51 +264,73 @@ function CircuitCompactDossier({
 
   return (
     <div className="relative min-w-0">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="stitch-label text-primary">О трассе</p>
+      {showSectionLabel || headerAction ? (
+        <div className="flex items-start justify-between gap-4">
+          {showSectionLabel ? <p className="stitch-label text-primary">О трассе</p> : null}
+          <div className="flex shrink-0 items-center gap-2">
+            {headerAction ?? (
+              <span className={cn("grid place-items-center rounded-md bg-primary/10 text-primary", dense ? "size-8" : "size-10")}>
+                <MapPinned aria-hidden="true" className={dense ? "size-4" : "size-5"} />
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {headerAction ?? (
-            <span className={cn("grid place-items-center rounded-md bg-primary/10 text-primary", dense ? "size-8" : "size-10")}>
-              <MapPinned aria-hidden="true" className={dense ? "size-4" : "size-5"} />
-            </span>
-          )}
-        </div>
-      </div>
+      ) : null}
       {showCircuitName ? (
         <h2 className="relative mt-4 text-balance font-display text-2xl font-extrabold leading-tight tracking-[-0.03em]">
           {stats.circuit.name}
         </h2>
       ) : null}
-      <div className={cn("divide-y stitch-divider", dense ? "mt-2" : "mt-4")}>
-        {metrics.map((metric) => (
+      <div
+        className={cn(
+          previewLayout === "grid" ? "grid grid-cols-2 gap-2" : "divide-y divide-border/70",
+          dense ? "mt-2" : "mt-4",
+        )}
+      >
+        {metrics.map((metric, index) => (
           <CircuitPreviewMetric
+            className={cn(previewLayout === "grid" && index === metrics.length - 1 && "col-span-2")}
             icon={metric.icon}
             dense={dense}
             key={metric.label}
             label={metric.label}
+            layout={previewLayout}
             value={metric.value}
           />
         ))}
+        {previewFooter ? (
+          <div className={cn(previewLayout === "grid" && "col-span-2")}>
+            {previewFooter}
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
 function CircuitPreviewMetric({
+  className,
   dense = false,
   icon: Icon,
   label,
+  layout = "list",
   value,
 }: {
+  className?: string;
   dense?: boolean;
   icon: typeof Gauge;
   label: string;
+  layout?: "grid" | "list";
   value: ReactNode;
 }) {
   return (
-    <div className={cn("grid grid-cols-[auto_1fr] gap-3", dense ? "min-h-12 py-2" : "min-h-14 py-3")}>
+    <div
+      className={cn(
+        "grid grid-cols-[auto_1fr] gap-3",
+        layout === "grid" ? "min-h-16 rounded-md bg-secondary/40 p-3" : dense ? "min-h-12 py-2" : "min-h-14 py-3",
+        className,
+      )}
+    >
       <span className={cn("grid place-items-center rounded-md bg-primary/10 text-primary", dense ? "size-7" : "size-8")}>
         <Icon aria-hidden="true" className={dense ? "size-3.5" : "size-4"} />
       </span>

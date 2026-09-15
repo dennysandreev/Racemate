@@ -23,6 +23,7 @@ const authMessages: Record<string, string> = {
   "missing-credentials": "Заполни почту и пароль.",
   "password-mismatch": "Пароли не совпадают. Введи их ещё раз.",
   "password-too-short": "Пароль должен содержать не меньше 8 символов.",
+  "required-consents": "Подтверди соглашение и согласие на обработку персональных данных.",
   "service-unavailable": "Вход временно недоступен. Попробуй ещё раз через несколько минут.",
   "signup-failed": "Не получилось создать аккаунт. Проверь данные или попробуй позже.",
 };
@@ -43,6 +44,7 @@ export default async function AuthPage({
         "missing-credentials",
         "password-mismatch",
         "password-too-short",
+        "required-consents",
         "signup-failed",
       ].includes(message),
   );
@@ -50,18 +52,13 @@ export default async function AuthPage({
   const encodedNext = encodeURIComponent(next ?? "/account");
 
   return (
-    <AppShell>
+    <AppShell hideAds>
       <PageHeading title={isSignup ? "Регистрация в RaceSide" : "Вход в RaceSide"} />
 
       <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(22rem,0.58fr)]">
         <StitchPanel>
           <StitchPanelHeader
             icon={isSignup ? UserPlus : KeyRound}
-            meta={
-              isSignup
-                ? "Задай пароль и подтверди почту по ссылке из письма."
-                : "Если раньше входил по ссылке, сначала задай пароль через восстановление."
-            }
             title={isSignup ? "Создать аккаунт" : "Войти с паролем"}
           />
           <div className="grid gap-5 p-5">
@@ -117,21 +114,35 @@ export default async function AuthPage({
                 ) : null}
               </label>
               {isSignup ? (
-                <label
-                  className="grid gap-2 text-sm font-semibold"
-                  htmlFor="passwordConfirmation"
-                >
-                  Повтори пароль
-                  <Input
-                    aria-invalid={fieldInvalid}
-                    autoComplete="new-password"
-                    id="passwordConfirmation"
-                    minLength={8}
-                    name="passwordConfirmation"
-                    required
-                    type="password"
-                  />
-                </label>
+                <>
+                  <label
+                    className="grid gap-2 text-sm font-semibold"
+                    htmlFor="passwordConfirmation"
+                  >
+                    Повтори пароль
+                    <Input
+                      aria-invalid={fieldInvalid}
+                      autoComplete="new-password"
+                      id="passwordConfirmation"
+                      minLength={8}
+                      name="passwordConfirmation"
+                      required
+                      type="password"
+                    />
+                  </label>
+                  <fieldset className="grid gap-3 rounded-md border border-border bg-muted/25 p-4">
+                    <legend className="px-1 text-sm font-semibold">Согласия</legend>
+                    <ConsentCheckbox id="acceptTerms" name="acceptTerms" required>
+                      Принимаю <Link className="underline underline-offset-4 hover:text-foreground" href="/legal/terms">пользовательское соглашение</Link>
+                    </ConsentCheckbox>
+                    <ConsentCheckbox id="personalDataConsent" name="personalDataConsent" required>
+                      Соглашаюсь на обработку персональных данных согласно <Link className="underline underline-offset-4 hover:text-foreground" href="/legal/privacy">политике конфиденциальности</Link>
+                    </ConsentCheckbox>
+                    <ConsentCheckbox id="marketingConsent" name="marketingConsent">
+                      Хочу получать новости и предложения RaceSide
+                    </ConsentCheckbox>
+                  </fieldset>
+                </>
               ) : null}
               {messageCopy ? (
                 <p
@@ -164,18 +175,33 @@ export default async function AuthPage({
 
         <aside className="grid content-start gap-4">
           <StitchMetric label="Способ входа" tone="red" value="Почта и пароль" />
-          <StitchPanel>
-            <div className="p-5">
-              <h2 className="font-display text-xl font-bold">Что откроется после входа</h2>
-              <div className="mt-4 grid gap-3 text-sm leading-6 text-muted-foreground">
-                <p>Личный прогноз на ближайший этап и история очков.</p>
-                <p>Мини-лиги с друзьями и вступление по коду.</p>
-                <p>Голосования и реакции к новостям.</p>
-              </div>
-            </div>
-          </StitchPanel>
         </aside>
       </section>
     </AppShell>
+  );
+}
+
+function ConsentCheckbox({
+  children,
+  id,
+  name,
+  required = false,
+}: {
+  children: React.ReactNode;
+  id: string;
+  name: string;
+  required?: boolean;
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3 text-sm leading-5 text-muted-foreground" htmlFor={id}>
+      <input
+        className="mt-0.5 size-4 shrink-0 accent-primary"
+        id={id}
+        name={name}
+        required={required}
+        type="checkbox"
+      />
+      <span>{children}</span>
+    </label>
   );
 }

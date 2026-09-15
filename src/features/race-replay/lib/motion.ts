@@ -15,6 +15,10 @@ export type MotionSample = {
   hold: boolean;
 };
 
+const RETIREMENT_LOOKAHEAD_MS = 45_000;
+const RETIREMENT_STILLNESS_MS = 15_000;
+const RETIREMENT_MOVEMENT_THRESHOLD = 18;
+
 type BuildDriverMotionOptions = {
   lapTimings?: ReplayLapTiming[];
 };
@@ -77,6 +81,7 @@ export function mergeLapTimingsWithInferred(
   inferredTimings: ReplayLapTiming[],
 ) {
   const merged = new Map<string, ReplayLapTiming>();
+  const officialKeys = new Set<string>();
 
   for (const timing of inferredTimings) {
     merged.set(`${timing.driverNumber}:${timing.lapNumber}`, timing);
@@ -85,14 +90,43 @@ export function mergeLapTimingsWithInferred(
   // Official timings are more accurate where they exist. Incomplete official
   // feeds must not discard later laps recovered from position telemetry.
   for (const timing of officialTimings ?? []) {
-    merged.set(`${timing.driverNumber}:${timing.lapNumber}`, timing);
+    const key = `${timing.driverNumber}:${timing.lapNumber}`;
+    officialKeys.add(key);
+    merged.set(key, timing);
   }
 
-  return [...merged.values()].sort((a, b) =>
+  const ordered = [...merged.values()].sort((a, b) =>
     a.driverNumber - b.driverNumber ||
     a.lapNumber - b.lapNumber ||
     a.startOffsetMs - b.startOffsetMs,
   );
+
+  // Inferred timings use a telemetry-relative origin that can differ from the
+  // official clock. When a single official lap is absent, inserting the raw
+  // inferred timestamp between its official neighbours can compress two laps
+  // into one and make the car jump. Anchor recovered laps to the preceding
+  // official/reconciled lap instead.
+  for (let index = 1; index < ordered.length; index += 1) {
+    const previous = ordered[index - 1];
+    const current = ordered[index];
+    const currentKey = `${current.driverNumber}:${current.lapNumber}`;
+
+    if (
+      current.driverNumber === previous.driverNumber &&
+      current.lapNumber === previous.lapNumber + 1 &&
+      !officialKeys.has(currentKey) &&
+      previous.durationMs !== null &&
+      Number.isFinite(previous.durationMs) &&
+      previous.durationMs > 0
+    ) {
+      ordered[index] = {
+        ...current,
+        startOffsetMs: previous.startOffsetMs + previous.durationMs,
+      };
+    }
+  }
+
+  return ordered;
 }
 
 function replayLapDurationMs(event: ReplayPositionEvent) {
@@ -213,13 +247,36 @@ function buildOfficialTimingMotion(
   }
 
   const knots = new Map<number, number>();
+  const splitTimingIndexes = findSplitLapTimingIndexes(timings);
+  let previousAcceptedTiming: ReplayLapTiming | null = null;
+  let rejectedSincePrevious = 0;
+  let visualLapValue = timings[0].lapNumber - 1;
+  let lastAcceptedTiming = timings[0];
 
-  for (const timing of timings) {
-    const startValue = timing.lapNumber - 1;
-    knots.set(timing.startOffsetMs, Math.max(knots.get(timing.startOffsetMs) ?? -Infinity, startValue));
+  for (const [index, timing] of timings.entries()) {
+    if (splitTimingIndexes.has(index)) {
+      rejectedSincePrevious += 1;
+      continue;
+    }
+
+    if (previousAcceptedTiming) {
+      const officialLapDelta = Math.max(1, timing.lapNumber - previousAcceptedTiming.lapNumber);
+      visualLapValue += Math.max(1, officialLapDelta - rejectedSincePrevious);
+    } else {
+      visualLapValue = timing.lapNumber - 1;
+    }
+
+    knots.set(
+      timing.startOffsetMs,
+      Math.max(knots.get(timing.startOffsetMs) ?? -Infinity, visualLapValue),
+    );
+    previousAcceptedTiming = timing;
+    lastAcceptedTiming = timing;
+    rejectedSincePrevious = 0;
   }
 
-  const lastTiming = timings[timings.length - 1];
+  const lastTiming = lastAcceptedTiming;
+  const lastLapStartValue = visualLapValue;
   const finalLapDurationMs = lastTiming.durationMs;
   const finalLapComplete = finalLapDurationMs !== null &&
     Number.isFinite(finalLapDurationMs) &&
@@ -227,17 +284,39 @@ function buildOfficialTimingMotion(
 
   if (finalLapDurationMs !== null && finalLapComplete) {
     const endMs = lastTiming.startOffsetMs + finalLapDurationMs;
-    knots.set(endMs, Math.max(knots.get(endMs) ?? -Infinity, lastTiming.lapNumber));
+    knots.set(endMs, Math.max(knots.get(endMs) ?? -Infinity, lastLapStartValue + 1));
   } else {
+    const previousCompletedLapDurationMs = [...timings]
+      .reverse()
+      .find((timing) =>
+        timing.lapNumber < lastTiming.lapNumber &&
+        timing.durationMs !== null &&
+        Number.isFinite(timing.durationMs) &&
+        timing.durationMs > 0,
+      )?.durationMs ?? null;
     const finalLapEvents = collapseFrozenRuns(events.filter((event) =>
       !event.isPitLane &&
       event.lapNumber === lastTiming.lapNumber &&
       event.offsetMs >= lastTiming.startOffsetMs &&
       Number.isFinite(event.progress),
     ));
+    const firstFinalLapEvent = finalLapEvents[0];
+    const progressAtLapStart = firstFinalLapEvent
+      ? normalizeProgress(
+          firstFinalLapEvent.progress - estimateProgressSinceLapStart(
+            finalLapEvents,
+            firstFinalLapEvent,
+            lastTiming.startOffsetMs,
+            previousCompletedLapDurationMs,
+          ),
+        )
+      : 0;
 
     for (const event of finalLapEvents) {
-      knots.set(event.offsetMs, lastTiming.lapNumber - 1 + event.progress);
+      knots.set(
+        event.offsetMs,
+        lastLapStartValue + normalizeProgress(event.progress - progressAtLapStart),
+      );
     }
   }
 
@@ -259,6 +338,75 @@ function buildOfficialTimingMotion(
   return times.length >= 2 ? { finalLapComplete, times, values } : null;
 }
 
+function findSplitLapTimingIndexes(timings: ReplayLapTiming[]) {
+  const regularDurations = timings
+    .map((timing) => timing.durationMs)
+    .filter((duration): duration is number =>
+      duration !== null &&
+      Number.isFinite(duration) &&
+      duration >= 45_000 &&
+      duration <= 180_000,
+    )
+    .sort((a, b) => a - b);
+
+  if (regularDurations.length < 3) {
+    return new Set<number>();
+  }
+
+  const paceLapMs = regularDurations[Math.floor(regularDurations.length / 2)];
+  const rejected = new Set<number>();
+
+  for (let index = 1; index < timings.length - 1; index += 1) {
+    const beforeMs = timings[index].startOffsetMs - timings[index - 1].startOffsetMs;
+    const afterMs = timings[index + 1].startOffsetMs - timings[index].startOffsetMs;
+    const combinedMs = beforeMs + afterMs;
+
+    // After a red-flag restart OpenF1 can expose one synthetic lap boundary in
+    // the middle of a physical lap. Two short intervals then replace one normal
+    // interval. Keeping both makes the marker complete two visual laps at once.
+    if (
+      beforeMs > 0 &&
+      afterMs > 0 &&
+      beforeMs < paceLapMs * 0.78 &&
+      afterMs < paceLapMs * 0.78 &&
+      combinedMs >= paceLapMs * 0.75 &&
+      combinedMs <= paceLapMs * 1.35
+    ) {
+      rejected.add(index);
+      index += 1;
+    }
+  }
+
+  return rejected;
+}
+
+function estimateProgressSinceLapStart(
+  events: ReplayPositionEvent[],
+  firstEvent: ReplayPositionEvent,
+  lapStartOffsetMs: number,
+  previousLapDurationMs: number | null,
+) {
+  const nextEvent = events.find((event) => event.offsetMs > firstEvent.offsetMs);
+  const elapsedSinceLapStartMs = Math.max(0, firstEvent.offsetMs - lapStartOffsetMs);
+  const paceProgress = previousLapDurationMs !== null && previousLapDurationMs > 0
+    ? elapsedSinceLapStartMs / previousLapDurationMs
+    : 0;
+
+  if (!nextEvent) {
+    return paceProgress;
+  }
+
+  const sampleSpanMs = nextEvent.offsetMs - firstEvent.offsetMs;
+  const sampleProgress = wrapDelta(firstEvent.progress, nextEvent.progress);
+  const observedProgress = sampleSpanMs > 0 && sampleProgress > 0
+    ? sampleProgress / sampleSpanMs * elapsedSinceLapStartMs
+    : 0;
+
+  return observedProgress > 0 && observedProgress >= paceProgress * 0.2
+    ? observedProgress
+    : paceProgress;
+}
+
 function anchorLapsOf(event: ReplayPositionEvent) {
   return typeof event.lapNumber === "number" && Number.isFinite(event.lapNumber) && event.lapNumber > 0
     ? event.lapNumber - 1 + event.progress
@@ -275,6 +423,10 @@ function wrapDelta(from: number, to: number) {
   }
 
   return delta;
+}
+
+function normalizeProgress(progress: number) {
+  return ((progress % 1) + 1) % 1;
 }
 
 /*
@@ -473,6 +625,86 @@ export function trackProgressAt(motion: DriverMotion, elapsedMs: number): Motion
     h11 * span * slopes[high];
 
   return { hold: false, unwrapped: Math.max(values[low], Math.min(values[high], value)) };
+}
+
+export function isDriverRetiredOnTrack(
+  events: ReplayPositionEvent[],
+  elapsedMs: number,
+  finalLapComplete: boolean | undefined,
+) {
+  if (finalLapComplete || elapsedMs < 6 * 60_000 || events.length < 4) {
+    return false;
+  }
+
+  const currentIndex = findReplayEventIndexAt(events, elapsedMs);
+
+  if (currentIndex < 0) {
+    return false;
+  }
+
+  if (hasNearbyFutureMovement(events, currentIndex)) {
+    return false;
+  }
+
+  const stoppedSince = findStoppedSinceOffset(events, currentIndex);
+
+  return elapsedMs - stoppedSince >= RETIREMENT_STILLNESS_MS;
+}
+
+function findReplayEventIndexAt(events: ReplayPositionEvent[], elapsedMs: number) {
+  let low = 0;
+  let high = events.length - 1;
+  let indexAt = -1;
+
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+
+    if (events[middle].offsetMs <= elapsedMs) {
+      indexAt = middle;
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+
+  return indexAt;
+}
+
+function hasNearbyFutureMovement(events: ReplayPositionEvent[], index: number) {
+  const origin = events[index];
+
+  for (let nextIndex = index + 1; nextIndex < events.length; nextIndex += 1) {
+    const next = events[nextIndex];
+
+    if (next.offsetMs - origin.offsetMs > RETIREMENT_LOOKAHEAD_MS) {
+      break;
+    }
+
+    if (distanceBetweenReplayPoints(origin, next) > RETIREMENT_MOVEMENT_THRESHOLD) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function findStoppedSinceOffset(events: ReplayPositionEvent[], index: number) {
+  const current = events[index];
+  let stoppedSince = current.offsetMs;
+
+  for (let previousIndex = index - 1; previousIndex >= 0; previousIndex -= 1) {
+    if (distanceBetweenReplayPoints(current, events[previousIndex]) > RETIREMENT_MOVEMENT_THRESHOLD) {
+      break;
+    }
+
+    stoppedSince = events[previousIndex].offsetMs;
+  }
+
+  return stoppedSince;
+}
+
+function distanceBetweenReplayPoints(a: ReplayPositionEvent, b: ReplayPositionEvent) {
+  return Math.hypot(a.svgX - b.svgX, a.svgY - b.svgY);
 }
 
 /*

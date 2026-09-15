@@ -5,8 +5,8 @@
     "title": "Подготовка новости",
     "description": "Переводит исходный материал на русский и собирает редакторскую версию новости.",
     "area": "Новости",
-    "modelFallback": "google/gemini-2.5-flash-lite",
-    "maxTokens": 1800,
+    "modelFallback": "google/gemini-2.5-flash",
+    "maxTokens": 3200,
     "usedBy": ["Обработка новых новостей", "Повтор проблемных материалов"],
     "variables": [
       { "name": "source_url", "label": "Ссылка на источник" },
@@ -16,9 +16,9 @@
       { "name": "races", "label": "Этапы сезона" },
       { "name": "teams", "label": "Команды" }
     ],
-    "defaultSystemPrompt": "Ты редактор RaceSide для русскоязычных фанатов Формулы-1. Прочитай переданные материалы, переведи их смысл на русский и напиши подробный редакторский пересказ своими словами. Не копируй источник дословно и не выдавай пересказ за оригинальную публикацию. Если данных мало, подготовь короткий осторожный текст по доступному RSS-описанию.",
+    "defaultSystemPrompt": "Ты редактор RaceSide для русскоязычных фанатов Формулы-1. Прочитай переданные материалы, переведи их смысл на естественный русский язык и напиши подробный редакторский пересказ своими словами. Не копируй источник дословно, избегай кальки с английского и не выдавай пересказ за оригинальную публикацию. Если данных мало, подготовь короткий осторожный текст по доступному RSS-описанию.",
     "defaultUserTemplate": "Источник: {{source_url}}\nОригинальный заголовок: {{original_title}}\n\nRSS-описание:\n{{rss_description}}\n\nТекст оригинальной статьи или расширенный контекст:\n{{article_text}}\n\nЭтапы сезона:\n{{races}}\n\nКоманды для привязки материала:\n{{teams}}",
-    "protectedInstruction": "Используй только переданные факты и не добавляй неподтверждённые сведения. Верни только JSON с полями title_ru, summary_ru, details_ru, key_points_ru, highlight_phrases_ru, race_round, race_confidence, team_slugs, main_fact, event_type, event_stage, event_date, event_fingerprint и entities. title_ru, summary_ru и details_ru должны быть на русском. summary_ru содержит 2-3 предложения, details_ru - 5-8 абзацев, key_points_ru - 4-5 пунктов. highlight_phrases_ru содержит 3-6 точных фраз из summary_ru или details_ru длиной 4-140 символов. race_round - номер этапа или null. team_slugs содержит только slug из переданного списка. event_type, event_stage, event_fingerprint и normalized_name записываются в snake_case на латинице; event_date - YYYY-MM-DD или null."
+    "protectedInstruction": "Используй только переданные факты и не добавляй неподтверждённые сведения. Перед ответом молча вычитай весь русский текст: исправь падежи, склонение имён и географических названий, согласование рода и числа, управление предлогов и числительных. Избегай буквального порядка слов и кальки с английского; формулировки должны звучать как текст русскоязычной спортивной редакции. Названия команд, серий и технические термины сохраняй в принятом в Формуле-1 написании. Верни только JSON с полями title_ru, summary_ru, details_ru, highlight_phrases_ru, race_round, race_confidence, team_slugs, main_fact, event_type, event_stage, event_date, event_fingerprint и entities. title_ru, summary_ru и details_ru должны быть заполнены на русском. summary_ru содержит 2-3 предложения. details_ru содержит 4-6 компактных абзацев; если исходных фактов мало, напиши 2-3 коротких осторожных абзаца, но никогда не оставляй details_ru пустым. highlight_phrases_ru содержит 3-6 точных фраз из summary_ru или details_ru длиной 4-140 символов. race_round - номер этапа или null. team_slugs содержит только slug из переданного списка. event_type, event_stage, event_fingerprint и normalized_name записываются в snake_case на латинице; event_date - YYYY-MM-DD или null."
   },
   {
     "key": "news.metadata",
@@ -27,7 +27,7 @@
     "description": "Восстанавливает центральный факт, тип события и участников, если основной ответ оказался неполным.",
     "area": "Новости",
     "modelFallback": "google/gemini-2.5-flash-lite",
-    "maxTokens": 1600,
+    "maxTokens": 2200,
     "usedBy": ["Обработка новых новостей"],
     "variables": [
       { "name": "payload_json", "label": "Данные подготовленной новости" }
@@ -59,7 +59,7 @@
     "description": "Восстанавливает недостающие метаданные перед повторной проверкой недавних публикаций.",
     "area": "Новости",
     "modelFallback": "google/gemini-2.5-flash-lite",
-    "maxTokens": 1600,
+    "maxTokens": 2200,
     "usedBy": ["Аудит недавних новостей"],
     "variables": [
       { "name": "payload_json", "label": "Данные опубликованной новости" }
@@ -92,7 +92,7 @@
     "description": "Собирает короткий итог дня из уже опубликованных материалов.",
     "area": "Сводки",
     "modelFallback": "google/gemini-2.5-flash-lite",
-    "maxTokens": 800,
+    "maxTokens": 1000,
     "usedBy": ["Сборка дневной сводки"],
     "variables": [
       { "name": "articles_text", "label": "Список опубликованных новостей" }
@@ -108,7 +108,7 @@
     "description": "Пишет компактное русское саммари отчёта по подтверждённым результатам и связанным новостям.",
     "area": "Отчёты",
     "modelFallback": "google/gemini-2.5-flash-lite",
-    "maxTokens": 250,
+    "maxTokens": 500,
     "usedBy": ["Сборка отчёта Гран-при", "Повтор саммари отчёта"],
     "variables": [
       { "name": "facts_json", "label": "Подтверждённые факты этапа" }

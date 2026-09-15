@@ -3,17 +3,19 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 export function FantasyLeagueAvatar({
+  ariaLabel,
   avatarUrl,
   className,
   name,
 }: {
+  ariaLabel?: string;
   avatarUrl?: string | null;
   className?: string;
   name: string;
 }) {
   return (
     <span
-      aria-label={`Обложка лиги: ${name}`}
+      aria-label={ariaLabel ?? `Обложка лиги: ${name}`}
       className={cn(
         "relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-border/80 bg-secondary/55 font-display text-sm font-extrabold text-primary shadow-sm",
         className,

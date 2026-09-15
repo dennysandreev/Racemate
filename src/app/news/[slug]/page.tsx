@@ -9,6 +9,7 @@ import { AppShell } from "@/components/racemate/app-shell";
 import { ArticleShareActions } from "@/components/racemate/article-share-actions";
 import { JsonLd } from "@/components/racemate/json-ld";
 import { NewsImage } from "@/components/racemate/news-image";
+import { NewsErrorReport } from "@/components/racemate/news-error-report";
 import { NewsTagBadge } from "@/components/racemate/news-tag-badge";
 import {
   StitchPanel,
@@ -84,11 +85,15 @@ export default async function NewsArticlePage({
   const canonicalUrl = buildArticleUrl(article.slug);
   const [reactions, latestNews, shareUrl] = await Promise.all([
     getArticleReactionCounts(article.id),
-    getNewsItems({ pageSize: 4 }),
+    getNewsItems({ includeTotal: false, pageSize: 4 }),
     getOrCreateNewsShareUrl(article.id, canonicalUrl),
   ]);
   const detailParagraphs = splitArticleDetails(article.details);
   const imageUrl = toAbsoluteUrl(article.imageUrl);
+  const raceTag = article.tags.find((tag) => tag.type === "race");
+  const orderedTags = raceTag
+    ? [raceTag, ...article.tags.filter((tag) => tag.slug !== raceTag.slug)]
+    : article.tags;
 
   return (
     <AppShell>
@@ -147,29 +152,34 @@ export default async function NewsArticlePage({
         <h1 className="font-display max-w-5xl text-balance text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:text-4xl">
           {article.title}
         </h1>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{article.source}</span>
+        <div className="mt-3 flex max-w-full items-center gap-2 text-sm text-muted-foreground">
+          <span className="shrink-0 whitespace-nowrap">{article.time}</span>
           <span aria-hidden="true">·</span>
-          <span>{article.time}</span>
+          <span className="min-w-0 truncate">
+            Источник:{" "}
+            <span className="font-medium text-foreground" title={article.source}>
+              {article.source}
+            </span>
+          </span>
         </div>
+        {orderedTags.length || article.raceTag ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {!raceTag && article.raceTag ? (
+              <Link href={article.raceFilter ? `/news?race=${article.raceFilter}` : "/news"}>
+                <Badge variant="warning">{article.raceTag}</Badge>
+              </Link>
+            ) : null}
+            {orderedTags.map((tag) => (
+              <NewsTagBadge href={`/news?tag=${tag.slug}`} key={tag.slug} tag={tag} />
+            ))}
+          </div>
+        ) : null}
       </header>
 
       <section className="grid gap-5 py-5 sm:py-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <article className="stitch-panel p-5 sm:p-6">
-          {article.tags.length || article.raceTag ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {article.tags.map((tag) => (
-                <NewsTagBadge href={`/news?tag=${tag.slug}`} key={tag.slug} tag={tag} />
-              ))}
-              {article.raceTag && !article.tags.some((tag) => tag.type === "race") ? (
-                <Link href={article.raceFilter ? `/news?race=${article.raceFilter}` : "/news"}>
-                  <Badge variant="warning">{article.raceTag}</Badge>
-                </Link>
-              ) : null}
-            </div>
-          ) : null}
           <HighlightedParagraph
-            className="mt-5 max-w-[72ch] text-lg leading-8 text-foreground"
+            className="max-w-[72ch] text-lg leading-8 text-foreground"
             highlights={article.highlights ?? []}
             text={article.summary}
           />
@@ -195,26 +205,17 @@ export default async function NewsArticlePage({
               Подробности появятся после обработки материала.
             </p>
           )}
-          {article.keyPoints?.length ? (
-            <div className="mt-6 grid gap-2">
-              {article.keyPoints.map((point) => (
-                <p
-                  className="rounded-md border border-border/70 bg-muted px-3 py-2 text-sm text-muted-foreground"
-                  key={point}
-                >
-                  {point}
-                </p>
-              ))}
-            </div>
-          ) : null}
-          {article.href ? (
-            <Button asChild className="mt-6" variant="secondary">
-              <Link href={article.href} rel="noreferrer" target="_blank">
-                Открыть оригинал
-                <ExternalLink aria-hidden="true" data-icon="inline-end" />
-              </Link>
-            </Button>
-          ) : null}
+          <footer className="mt-6 flex items-center justify-between gap-2 border-t border-border pt-4">
+            {article.href ? (
+              <Button asChild className="px-0 hover:bg-transparent hover:text-primary" size="sm" variant="ghost">
+                <Link href={article.href} rel="noreferrer" target="_blank">
+                  Открыть оригинал
+                  <ExternalLink aria-hidden="true" data-icon="inline-end" />
+                </Link>
+              </Button>
+            ) : <span />}
+            <NewsErrorReport articleId={article.id} articleSlug={article.slug} />
+          </footer>
         </article>
 
         <aside className="grid content-start gap-5">
@@ -225,9 +226,17 @@ export default async function NewsArticlePage({
                 <input name="articleId" type="hidden" value={article.id} />
                 <input name="articleSlug" type="hidden" value={article.slug} />
                 {Object.entries(reactions).map(([reaction, count]) => (
-                  <Button className="min-w-20 justify-between" key={reaction} name="reaction" type="submit" value={reaction} variant="secondary">
-                    {reaction}
-                    <Badge variant="outline">{count}</Badge>
+                  <Button
+                    aria-label={`Поставить реакцию ${reaction}`}
+                    className="h-9 min-w-14 gap-1.5 rounded-full border-0 bg-muted px-3 shadow-none hover:bg-primary/10"
+                    key={reaction}
+                    name="reaction"
+                    type="submit"
+                    value={reaction}
+                    variant="ghost"
+                  >
+                    <span className="text-base leading-none">{reaction}</span>
+                    <span className="font-telemetry text-xs font-bold text-muted-foreground">{count}</span>
                   </Button>
                 ))}
               </form>

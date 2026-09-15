@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Play } from "lucide-react";
 
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
+import { GrandPrixRecapShare } from "@/components/racemate/grand-prix-recap-share";
 import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
 import { Button } from "@/components/ui/button";
 import { getTeamAsset } from "@/data/f1-assets";
@@ -10,11 +11,14 @@ import type { GrandPrixReport, RaceReplaySummary } from "@/types/racemate";
 
 type GrandPrixPodiumPreviewProps = {
   className?: string;
+  compact?: boolean;
+  compactShareAction?: boolean;
   driverSlugByName?: Record<string, string>;
   href: string;
   report: GrandPrixReport;
   replay?: RaceReplaySummary | null;
   showRaceHeading?: boolean;
+  showShareAction?: boolean;
 };
 
 const podiumTone: Record<number, { step: string; text: string; ring: string }> = {
@@ -26,22 +30,32 @@ const podiumTone: Record<number, { step: string; text: string; ring: string }> =
 // Классический порядок ступеней: серебро слева, золото по центру, бронза справа.
 const podiumOrder = [2, 1, 3];
 const stepHeight: Record<number, string> = { 1: "h-14", 2: "h-10", 3: "h-8" };
+const compactStepHeight: Record<number, string> = { 1: "h-10", 2: "h-8", 3: "h-7" };
 
 export function GrandPrixPodiumPreview({
   className,
+  compact = false,
+  compactShareAction = false,
   driverSlugByName = {},
   href,
   report,
   replay,
   showRaceHeading = true,
+  showShareAction = true,
 }: GrandPrixPodiumPreviewProps) {
   const podium = report.results.slice(0, 3);
 
   return (
-    <div className={cn("grid gap-4", className)}>
+    <div className={cn("grid", compact ? "gap-2.5" : "gap-4", className)}>
       {showRaceHeading ? (
         <div className="min-w-0">
-          <p className="font-display text-lg font-bold leading-tight">{report.raceName}</p>
+          <Link
+            className="inline-block rounded-sm font-display text-lg font-bold leading-tight transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={`/calendar/${report.season}/${report.round}`}
+            prefetch={false}
+          >
+            {report.raceName}
+          </Link>
           <p className="mt-1 text-xs text-muted-foreground">{report.raceDate}</p>
         </div>
       ) : null}
@@ -54,15 +68,6 @@ export function GrandPrixPodiumPreview({
             const tone = podiumTone[rank];
             const isCenter = rank === 1;
             const slug = getDriverSlug(driverSlugByName, result.driver);
-            const avatar = (
-              <DriverAvatarBadge
-                className={isCenter ? "size-16" : "size-12"}
-                color={team?.color ?? tone.ring}
-                name={result.driver}
-                sizes={isCenter ? "4rem" : "3rem"}
-                slug={slug}
-              />
-            );
 
             return (
               <div className="flex min-w-0 flex-col items-center text-center" key={`${result.position}-${result.driver}`}>
@@ -73,20 +78,32 @@ export function GrandPrixPodiumPreview({
                     href={`/drivers/${slug}`}
                     prefetch={false}
                   >
-                    {avatar}
-                    <span className="mt-1.5 w-full truncate text-sm font-bold leading-tight transition-colors group-hover:text-primary">
+                    <DriverAvatarBadge
+                      className={isCenter ? "size-16" : "size-12"}
+                      color={team?.color ?? tone.ring}
+                      name={result.driver}
+                      sizes={isCenter ? "4rem" : "3rem"}
+                      slug={slug}
+                    />
+                    <span className={cn("w-full truncate font-bold leading-tight transition-colors group-hover:text-primary", compact ? "mt-1 text-xs" : "mt-1.5 text-sm")}>
                       {getShortDriverName(result.driver)}
                     </span>
                   </Link>
                 ) : (
                   <>
-                    {avatar}
-                    <p className="mt-1.5 w-full truncate text-sm font-bold leading-tight">
+                    <DriverAvatarBadge
+                      className={isCenter ? "size-16" : "size-12"}
+                      color={team?.color ?? tone.ring}
+                      name={result.driver}
+                      sizes={isCenter ? "4rem" : "3rem"}
+                      slug={slug}
+                    />
+                    <p className={cn("w-full truncate font-bold leading-tight", compact ? "mt-1 text-xs" : "mt-1.5 text-sm")}>
                       {getShortDriverName(result.driver)}
                     </p>
                   </>
                 )}
-                <p className="mt-0.5 flex min-w-0 max-w-full items-center gap-1 text-[0.65rem] font-semibold text-muted-foreground">
+                <p className={cn("mt-0.5 flex min-w-0 max-w-full items-center gap-1 font-semibold text-muted-foreground", compact ? "text-[0.6rem]" : "text-[0.65rem]")}>
                   <span
                     aria-hidden="true"
                     className="size-1.5 shrink-0 rounded-full"
@@ -96,12 +113,13 @@ export function GrandPrixPodiumPreview({
                 </p>
                 <div
                   className={cn(
-                    "mt-2 grid w-full place-items-center rounded-t-md",
-                    stepHeight[rank],
+                    "grid w-full place-items-center rounded-t-md",
+                    compact ? "mt-1.5" : "mt-2",
+                    compact ? compactStepHeight[rank] : stepHeight[rank],
                     tone.step,
                   )}
                 >
-                  <span className="font-display text-lg font-black leading-none">{rank}</span>
+                  <span className={cn("font-display font-black leading-none", compact ? "text-base" : "text-lg")}>{rank}</span>
                 </div>
               </div>
             );
@@ -113,25 +131,42 @@ export function GrandPrixPodiumPreview({
         </p>
       )}
 
-      <div className={cn("grid gap-2", replay ? "sm:grid-cols-2" : "")}>
-        <Button asChild className="w-full justify-center text-center">
-          <Link className="justify-center text-center" href={href} prefetch={false} scroll={false}>
-            Открыть полный отчет
-          </Link>
-        </Button>
+      <div className={cn("grid", compact ? "gap-1.5" : "gap-2", replay && !compact ? "sm:grid-cols-2" : "")}>
+        <div className="flex min-w-0 items-center gap-2">
+          <Button asChild className="min-w-0 flex-1 justify-center text-center" size={compact ? "sm" : "default"}>
+            <Link className="justify-center text-center" href={href} prefetch={false} scroll={false}>
+              Открыть полный отчет
+            </Link>
+          </Button>
+          {showShareAction && compactShareAction ? (
+            <GrandPrixRecapShare
+              compact
+              raceName={report.raceName}
+              round={report.round}
+              season={report.season}
+            />
+          ) : null}
+        </div>
         {replay ? (
-          <Button asChild className="w-full" variant="secondary">
+          <Button asChild className="w-full" size={compact ? "sm" : "default"} variant="secondary">
             <NavigationLoadingLink
               href={replay.href}
               loadingLabel={`Готовим повтор Гран-при ${replay.sourceSeason}`}
               prefetch={false}
             >
               <Play aria-hidden="true" data-icon="inline-start" />
-              Гран-при {replay.sourceSeason}
+              {compact ? `Повтор ${replay.sourceSeason}` : `Гран-при ${replay.sourceSeason}`}
             </NavigationLoadingLink>
           </Button>
         ) : null}
       </div>
+      {showShareAction && !compactShareAction ? (
+        <GrandPrixRecapShare
+          raceName={report.raceName}
+          round={report.round}
+          season={report.season}
+        />
+      ) : null}
     </div>
   );
 }

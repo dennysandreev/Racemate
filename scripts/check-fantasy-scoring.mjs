@@ -1,6 +1,65 @@
 import assert from "node:assert/strict";
 
-import { scoreFantasyPrediction } from "../worker/fantasy-scoring.mjs";
+import {
+  isFantasyRaceReadyForScoring,
+  scoreFantasyPrediction,
+} from "../worker/fantasy-scoring.mjs";
+
+assert.equal(
+  isFantasyRaceReadyForScoring({ hasRacePoints: true, raceStatus: "completed", top10DriverIds: [] }),
+  false,
+  "A completed session without a classification must not be scored",
+);
+assert.equal(
+  isFantasyRaceReadyForScoring({
+    hasRacePoints: true,
+    raceEndAt: "2026-09-13T15:00:00Z",
+    raceStatus: "running",
+    top10DriverIds: ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10"],
+  }, Date.parse("2026-09-13T14:59:59Z")),
+  false,
+  "A classification must not be scored before the session ends",
+);
+assert.equal(
+  isFantasyRaceReadyForScoring({
+    raceEndAt: "2026-09-13T15:00:00Z",
+    raceStatus: "completed",
+    hasRacePoints: true,
+    top10DriverIds: ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10"],
+  }, Date.parse("2026-09-13T15:00:00Z")),
+  true,
+  "A completed session with a full top ten must be scored",
+);
+assert.equal(
+  isFantasyRaceReadyForScoring({
+    raceEndAt: "2026-09-13T15:00:00Z",
+    raceStatus: "completed",
+    hasRacePoints: false,
+    top10DriverIds: ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10"],
+  }, Date.parse("2026-09-13T15:00:00Z")),
+  false,
+  "A completed classification without championship points must not be scored",
+);
+assert.equal(
+  isFantasyRaceReadyForScoring({
+    raceEndAt: "2026-09-13T15:01:00Z",
+    raceStatus: "completed",
+    hasRacePoints: true,
+    top10DriverIds: ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10"],
+  }, Date.parse("2026-09-13T15:00:00Z")),
+  false,
+  "A completed status must not score before the scheduled session end",
+);
+assert.equal(
+  isFantasyRaceReadyForScoring({
+    raceEndAt: "2026-09-13T15:00:00Z",
+    raceStatus: "running",
+    hasRacePoints: true,
+    top10DriverIds: ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10"],
+  }, Date.parse("2026-09-13T15:01:00Z")),
+  false,
+  "A past scheduled end alone must not make a running session scoreable",
+);
 
 const actual = {
   fastestLapDriverId: "d4",

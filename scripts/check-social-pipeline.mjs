@@ -7,6 +7,7 @@ import {
   getSocialInitialBackfillDays,
   getSocialPostWriteDecision,
   getTelegramFloodWaitSeconds,
+  getTelegramRoundVideoExternalIds,
   isSocialFormulaScopeAllowed,
   isTelegramStorageSizeError,
   getSocialRetryDelayMs,
@@ -219,6 +220,20 @@ test("Telegram fixture maps create and edit to one external id", () => {
   assert.ok(edited.editedAt);
 });
 
+test("Telegram Bot API video notes never enter the social feed", () => {
+  const source = { id: "source", name: "Channel", url: "https://t.me/channel" };
+  const post = mapTelegramChannelUpdate(source, {
+    channel_post: {
+      message_id: 70,
+      date: 1_700_000_000,
+      chat: { id: -1001, title: "Channel", username: "channel" },
+      video_note: { file_id: "round-video", length: 384, duration: 12 },
+    },
+  });
+
+  assert.equal(post, null);
+});
+
 test("Telegram fixture groups media album into one post", () => {
   const source = { id: "source", name: "Channel", url: "https://t.me/channel" };
   const first = mapTelegramChannelUpdate(source, {
@@ -311,6 +326,29 @@ test("Telegram MTProto fixture groups an album and preserves media order", () =>
   assert.equal(post.body, "Галерея с трассы");
   assert.deepEqual(post.messageIds, [21, 22]);
   assert.deepEqual(post.media.map((item) => item.mediaType), ["image", "video"]);
+});
+
+test("Telegram MTProto round videos are rejected and expose their existing post ids", () => {
+  const channel = { id: 100500, title: "Channel", username: "channel" };
+  const messages = [{
+    id: 71,
+    date: 1_700_000_000,
+    message: "",
+    video: {
+      id: "round-71",
+      attributes: [{ roundMessage: true, w: 384, h: 384 }],
+    },
+  }];
+
+  assert.deepEqual(
+    mapTelegramMtprotoMessages(
+      { id: "source", name: "Channel", external_key: "channel" },
+      channel,
+      messages,
+    ),
+    [],
+  );
+  assert.deepEqual(getTelegramRoundVideoExternalIds(channel, messages), ["telegram:100500:71"]);
 });
 
 test("Telegram MTProto fixture keeps an edit on the same external ID", () => {

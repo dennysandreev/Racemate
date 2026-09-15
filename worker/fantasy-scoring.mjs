@@ -1,3 +1,29 @@
+const REQUIRED_TOP_TEN_RESULTS = 10;
+
+export function isFantasyRaceReadyForScoring(actual, nowMs = Date.now()) {
+  const top10DriverIds = Array.isArray(actual?.top10DriverIds)
+    ? actual.top10DriverIds.filter((driverId) => typeof driverId === "string" && driverId.length > 0)
+    : [];
+  const hasCompleteTopTen =
+    top10DriverIds.length === REQUIRED_TOP_TEN_RESULTS &&
+    new Set(top10DriverIds).size === REQUIRED_TOP_TEN_RESULTS;
+
+  if (!hasCompleteTopTen) {
+    return false;
+  }
+
+  if (actual?.hasRacePoints !== true) {
+    return false;
+  }
+
+  const status = String(actual?.raceStatus ?? "").trim().toLowerCase();
+  const endedByStatus = status === "completed" || status === "finished";
+  const endAtMs = Date.parse(String(actual?.raceEndAt ?? ""));
+  const endedByTime = !Number.isFinite(endAtMs) || endAtMs <= nowMs;
+
+  return endedByStatus && endedByTime;
+}
+
 export function scoreFantasyPrediction(prediction, actual) {
   const predictedTop10 = normalizePredictionDriverIds(prediction.top10_driver_ids);
   const raceCompleted = Boolean(actual.raceCompleted ?? actual.top10DriverIds.length > 0);

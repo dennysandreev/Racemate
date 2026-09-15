@@ -12,9 +12,11 @@ import {
   type SessionNotificationPreferences,
 } from "@/lib/notification-preferences";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { getSubscriptionAccess } from "@/lib/billing/access";
 
 export async function connectTelegram() {
   const user = await requireUser();
+  await requireTelegramSubscription(user.id);
   const admin = createSupabaseAdminClient();
   const botUsername = process.env.TELEGRAM_BOT_USERNAME?.trim().replace(/^@/, "");
 
@@ -69,6 +71,7 @@ export async function disconnectTelegram() {
 
 export async function saveTelegramPreferences(formData: FormData) {
   const user = await requireUser();
+  await requireTelegramSubscription(user.id);
   const admin = createSupabaseAdminClient();
 
   if (!admin) {
@@ -138,6 +141,7 @@ export async function saveTelegramPreferences(formData: FormData) {
 
 export async function sendTelegramTest() {
   const user = await requireUser();
+  await requireTelegramSubscription(user.id);
   const admin = createSupabaseAdminClient();
 
   if (!admin) {
@@ -165,4 +169,9 @@ export async function sendTelegramTest() {
 
 function hashToken(value: string) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+async function requireTelegramSubscription(userId: string) {
+  const access = await getSubscriptionAccess(userId);
+  if (!access.entitlements.telegram_notifications) redirect("/plus#plans");
 }

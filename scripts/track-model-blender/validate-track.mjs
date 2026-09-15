@@ -54,6 +54,35 @@ export async function validateTrackAsset({
     failures.push(`static track asset contains ${metrics.animations} animation(s)`);
   }
 
+  for (const [materialName, alphaMode] of Object.entries(metrics.materialAlphaModes)) {
+    if (/Motorhomes/.test(materialName) && alphaMode === "BLEND") {
+      failures.push(`${materialName} must be opaque, not alpha-blended`);
+    }
+  }
+
+  if (modelId === "baku") {
+    const { auditBakuSurfaces } = await import("./audit-baku-surfaces.mjs");
+    metrics.decodedSurfaceAudit = await auditBakuSurfaces(glbBuffer);
+    if (metrics.decodedSurfaceAudit.road.intersections || metrics.decodedSurfaceAudit.road.missingSupport) failures.push("Baku decoded road intersects terrain");
+    if (metrics.decodedSurfaceAudit.paint.intersections || metrics.decodedSurfaceAudit.paint.missingSupport) failures.push("Baku decoded paint intersects asphalt");
+    if (metrics.decodedSurfaceAudit.roadBarrierTrianglesInsidePit) failures.push("Baku roadside fence blocks pit lane");
+    const required = [...Array.from({ length: 20 }, (_, i) => `Turn_${String(i + 1).padStart(2, "0")}`),
+      "RaceStart", "StartFinish", "SpeedTrap", "SectorBoundary_02", "SectorBoundary_03", "HighPoint", "LowPoint"];
+    const names = new Set((gltf.nodes ?? []).map((node) => node.name));
+    for (const name of required) if (!names.has(name)) failures.push(`missing Baku anchor: ${name}`);
+    if (!metrics.extensionsRequired.includes("EXT_meshopt_compression")) failures.push("Baku requires Meshopt compression");
+    if (metadata.coordinateReferenceSystem !== "EPSG:32639" || metadata.verticalExaggeration !== 1) failures.push("Baku must retain native metre geometry without vertical exaggeration");
+    if (!(metadata.lapLength?.relativeErrorPercent < .5) || metadata.lapLength.officialFiaMeters !== 6003) failures.push("Baku length differs from the official 6003 m");
+    if (!(metadata.raceStartDistanceMeters > 100) || metadata.finishDistanceMeters !== 0) failures.push("Baku race start and control lines must be separate");
+    if (!(metadata.objects?.buildingsTotal > 500) || metadata.objects.turnAnchors !== 20 || metadata.objects.pitGarageBoxes !== 44) failures.push("Baku scene is missing required city/pit/turn geometry");
+    if (!(metadata.objects?.grandstandSections > 20)) failures.push("Baku grandstands are missing");
+    const clearance = metadata.layoutQuality?.surfaceClearance;
+    if (clearance?.terrainBreakthroughSamples !== 0) failures.push("Baku road/terrain clearance audit failed");
+    const coastal = metadata.elevationProfile.filter((p) => p.distanceMeters > 4190 || p.distanceMeters < 270).map((p) => p.elevationMeters);
+    if (Math.max(...coastal) - Math.min(...coastal) > .1) failures.push("Baku coastal straight contains height waves");
+    for (const key of ["entrySourceGapMeters", "exitSourceGapMeters"]) if (metadata.layoutQuality?.pitLane?.[key] > .01) failures.push(`Baku pit ${key} disconnected`);
+  }
+
   if (modelId === "zandvoort") {
     const requiredAnchors = [
       ...Array.from({ length: 14 }, (_, index) => `Turn_${String(index + 1).padStart(2, "0")}`),
@@ -198,6 +227,241 @@ export async function validateTrackAsset({
     }
   }
 
+  if (modelId === "red-bull-ring") {
+    const requiredAnchors = [
+      ...Array.from({ length: 10 }, (_, index) => `Turn_${String(index + 1).padStart(2, "0")}`),
+      "SpeedTrap",
+      "StartFinish",
+      "SectorBoundary_02",
+      "SectorBoundary_03",
+      "HighPoint",
+      "LowPoint",
+    ];
+    const missingAnchors = requiredAnchors.filter(
+      (anchorName) => !metrics.anchorNames.includes(anchorName),
+    );
+    if (missingAnchors.length > 0) {
+      failures.push(`missing Red Bull Ring anchors: ${missingAnchors.join(", ")}`);
+    }
+    if (!metrics.extensionsRequired.includes("EXT_meshopt_compression")) {
+      failures.push("Red Bull Ring GLB must use local Meshopt-compatible compression");
+    }
+    for (const materialName of [
+      "Terrain_Styria_Orthophoto_2024",
+      "RedBullRing_Real_Asphalt",
+      "RedBullRing_Current_OSM_DSM_Buildings",
+      "RedBullRing_Current_Grandstands",
+      "RedBullRing_2026_Race_Motorhomes",
+      "RedBullRing_Pit_Wall_Concrete",
+      "RedBullRing_Real_Gravel_Runoff",
+      "Sector_1_Glow",
+      "Sector_2_Glow",
+      "Sector_3_Glow",
+    ]) {
+      if (!metrics.materialNames.includes(materialName)) {
+        failures.push(`missing Red Bull Ring real-world material: ${materialName}`);
+      }
+    }
+    for (const meshName of [
+      "FIA_Red_Bull_Ring_Centreline_12_5m_Mesh",
+      "FIA_Pit_Lane_Markings_32_Boxes_Mesh",
+      "RedBullRing_2026_32_Garage_Pit_Complex_Mesh",
+      "RedBullRing_2026_Current_Grandstands_Mesh",
+    ]) {
+      if (!metrics.meshNames.includes(meshName)) {
+        failures.push(`missing Red Bull Ring circuit mesh: ${meshName}`);
+      }
+    }
+
+    validateRedBullRingMetadata(metadata, failures);
+    if (sourceDirectory) {
+      await validateSourceFiles(sourceDirectory, metadata.sourceManifest, failures);
+    }
+  }
+
+  if (modelId === "montreal") {
+    const requiredAnchors = [
+      ...Array.from({ length: 14 }, (_, index) => `Turn_${String(index + 1).padStart(2, "0")}`),
+      "SpeedTrap",
+      "StartFinish",
+      "SectorBoundary_02",
+      "SectorBoundary_03",
+      "HighPoint",
+      "LowPoint",
+    ];
+    const missingAnchors = requiredAnchors.filter(
+      (anchorName) => !metrics.anchorNames.includes(anchorName),
+    );
+    if (missingAnchors.length > 0) {
+      failures.push(`missing Montreal anchors: ${missingAnchors.join(", ")}`);
+    }
+    if (!metrics.extensionsRequired.includes("EXT_meshopt_compression")) {
+      failures.push("Montreal GLB must use local Meshopt-compatible compression");
+    }
+    for (const materialName of [
+      "Terrain_CMM_Orthophoto_2019",
+      "Montreal_Real_Asphalt",
+      "Montreal_Current_OSM_HRDEM_Buildings",
+      "Montreal_Current_Grandstands",
+      "Montreal_Pit_Wall_Concrete",
+      "Montreal_Asphalt_Runoff",
+      "Sector_1_Glow",
+      "Sector_2_Glow",
+      "Sector_3_Glow",
+    ]) {
+      if (!metrics.materialNames.includes(materialName)) {
+        failures.push(`missing Montreal real-world material: ${materialName}`);
+      }
+    }
+    for (const meshName of [
+      "FIA_Montreal_Centreline_10_5m_Mesh",
+      "FIA_Pit_Lane_Markings_43_Boxes_Mesh",
+      "FIA_Pit_Exit_Continuous_White_Guide_Line_Mesh",
+      "Montreal_2026_43_Garage_Pit_Complex_Mesh",
+      "Montreal_2026_Event_Grandstands_Mesh",
+    ]) {
+      if (!metrics.meshNames.includes(meshName)) {
+        failures.push(`missing Montreal circuit mesh: ${meshName}`);
+      }
+    }
+
+    validateMontrealMetadata(metadata, failures);
+    if (sourceDirectory) {
+      await validateSourceFiles(sourceDirectory, metadata.sourceManifest, failures);
+    }
+  }
+
+  if (modelId === "catalunya") {
+    const requiredAnchors = [
+      ...Array.from({ length: 14 }, (_, index) => `Turn_${String(index + 1).padStart(2, "0")}`),
+      "SpeedTrap",
+      "StartFinish",
+      "SectorBoundary_02",
+      "SectorBoundary_03",
+      "HighPoint",
+      "LowPoint",
+    ];
+    const missingAnchors = requiredAnchors.filter((anchorName) => !metrics.anchorNames.includes(anchorName));
+    if (missingAnchors.length > 0) {
+      failures.push(`missing Catalunya anchors: ${missingAnchors.join(", ")}`);
+    }
+    if (!metrics.extensionsRequired.includes("EXT_meshopt_compression")) {
+      failures.push("Catalunya GLB must use local Meshopt-compatible compression");
+    }
+    for (const materialName of [
+      "Terrain_ICGC_Orthophoto_2025",
+      "Catalunya_Real_Asphalt",
+      "Catalunya_Current_OSM_ICGC_DSM_Buildings",
+      "Catalunya_Grandstand_Seats_Red",
+      "Catalunya_2026_Race_Motorhomes",
+      "Catalunya_Pit_Wall_Concrete",
+      "Catalunya_Real_Gravel_Runoff",
+      "Sector_1_Glow",
+      "Sector_2_Glow",
+      "Sector_3_Glow",
+    ]) {
+      if (!metrics.materialNames.includes(materialName)) {
+        failures.push(`missing Catalunya real-world material: ${materialName}`);
+      }
+    }
+    for (const meshName of [
+      "FIA_Catalunya_Centreline_12m_Mesh",
+      "FIA_Pit_Lane_Markings_40_Boxes_Mesh",
+      "FIA_Pit_Wall_Concrete_And_Fence_Mesh",
+      "Catalunya_2026_40_Garage_Pit_Complex_Grandstand_Mesh",
+      "Catalunya_Current_OSM_Official_Map_Grandstands_Mesh",
+    ]) {
+      if (!metrics.meshNames.includes(meshName)) {
+        failures.push(`missing Catalunya circuit mesh: ${meshName}`);
+      }
+    }
+    validateCatalunyaMetadata(metadata, failures);
+    if (sourceDirectory) {
+      await validateSourceFiles(sourceDirectory, metadata.sourceManifest, failures);
+    }
+  }
+
+  if (modelId === "monza") {
+    const requiredAnchors = [
+      ...Array.from({ length: 11 }, (_, index) => `Turn_${String(index + 1).padStart(2, "0")}`),
+      "SpeedTrap", "StartFinish", "SectorBoundary_02", "SectorBoundary_03", "HighPoint", "LowPoint",
+    ];
+    const missingAnchors = requiredAnchors.filter((name) => !metrics.anchorNames.includes(name));
+    if (missingAnchors.length > 0) failures.push(`missing Monza anchors: ${missingAnchors.join(", ")}`);
+    if (!metrics.extensionsRequired.includes("EXT_meshopt_compression")) {
+      failures.push("Monza GLB must use local Meshopt-compatible compression");
+    }
+    for (const materialName of [
+      "Terrain_PCN_Orthophoto_2012", "Monza_Real_Asphalt", "Monza_Current_OSM_PCN_DSM_Buildings",
+      "Monza_Grandstand_Seats_Red", "Monza_2026_Race_Motorhomes", "Monza_Pit_Wall_Concrete",
+      "Monza_Real_Gravel_Runoff", "Sector_1_Glow", "Sector_2_Glow", "Sector_3_Glow",
+    ]) {
+      if (!metrics.materialNames.includes(materialName)) failures.push(`missing Monza real-world material: ${materialName}`);
+    }
+    for (const meshName of [
+      "FIA_Monza_Centreline_12m_Mesh", "FIA_Pit_Lane_Markings_60_Boxes_Mesh",
+      "Monza_2026_60_Garage_Pit_Complex_Grandstand_Mesh", "Monza_Current_OSM_Official_Map_Grandstands_Mesh",
+    ]) {
+      if (!metrics.meshNames.includes(meshName)) failures.push(`missing Monza circuit mesh: ${meshName}`);
+    }
+    validateMonzaMetadata(metadata, failures);
+    if (sourceDirectory) await validateSourceFiles(sourceDirectory, metadata.sourceManifest, failures);
+  }
+
+  if (modelId === "monaco") {
+    const requiredAnchors = [
+      ...Array.from({ length: 19 }, (_, index) => `Turn_${String(index + 1).padStart(2, "0")}`),
+      "SpeedTrap",
+      "StartFinish",
+      "SectorBoundary_02",
+      "SectorBoundary_03",
+      "HighPoint",
+      "LowPoint",
+    ];
+    const missingAnchors = requiredAnchors.filter(
+      (anchorName) => !metrics.anchorNames.includes(anchorName),
+    );
+    if (missingAnchors.length > 0) {
+      failures.push(`missing Monaco anchors: ${missingAnchors.join(", ")}`);
+    }
+    if (!metrics.extensionsRequired.includes("EXT_meshopt_compression")) {
+      failures.push("Monaco GLB must use local Meshopt-compatible compression");
+    }
+    for (const materialName of [
+      "Terrain_Monaco_Government_Orthophoto_2020",
+      "Monaco_Street_Circuit_Asphalt",
+      "Monaco_Current_OSM_Buildings",
+      "Monaco_Grandstand_Frame",
+      "Monaco_2026_Race_Motorhomes",
+      "Monaco_Pit_Wall_Concrete",
+      "Monaco_Tunnel_Concrete",
+      "Sector_1_Glow",
+      "Sector_2_Glow",
+      "Sector_3_Glow",
+    ]) {
+      if (!metrics.materialNames.includes(materialName)) {
+        failures.push(`missing Monaco real-world material: ${materialName}`);
+      }
+    }
+    for (const meshName of [
+      "FIA_Monaco_Centreline_9m_Mesh",
+      "FIA_Pit_Lane_Markings_11_Boxes_Mesh",
+      "Monaco_2026_11_Team_Pit_Complex_Mesh",
+      "Monaco_2026_Current_Grandstands_Mesh",
+      "Monaco_Current_OSM_Buildings_Mesh",
+      "Monaco_Tunnel_Shell_Mesh",
+    ]) {
+      if (!metrics.meshNames.includes(meshName)) {
+        failures.push(`missing Monaco circuit mesh: ${meshName}`);
+      }
+    }
+
+    validateMonacoMetadata(metadata, failures);
+    if (sourceDirectory) {
+      await validateSourceFiles(sourceDirectory, metadata.sourceManifest, failures);
+    }
+  }
+
   if (modelId === "silverstone") {
     const requiredAnchors = [
       ...Array.from({ length: 18 }, (_, index) => `Turn_${String(index + 1).padStart(2, "0")}`),
@@ -248,6 +512,47 @@ export async function validateTrackAsset({
     if (sourceDirectory) {
       await validateSourceFiles(sourceDirectory, metadata.sourceManifest, failures);
     }
+  }
+
+  if (modelId === "madring") {
+    const { auditMadringSurfaces } = await import("./audit-madring-surfaces.mjs");
+    metrics.decodedSurfaceAudit = await auditMadringSurfaces(glbBuffer);
+    for (const name of ["edgeLines", "pitMarkings"]) {
+      const audit = metrics.decodedSurfaceAudit[name];
+      if (!(audit.triangles > 2000) || audit.degenerateTriangles || audit.missingSupport || audit.intersections || !(audit.minimumClearanceMeters > .005)) failures.push(`Madring decoded ${name} collapses or intersects asphalt`);
+    }
+    const runoffAudit = metrics.decodedSurfaceAudit.runoff;
+    if (!(runoffAudit.samples > 10000) || runoffAudit.intersections || runoffAudit.missingSupport || !(runoffAudit.minimumClearanceMeters > .005)) failures.push("Madring decoded runoff intersects terrain");
+    const requiredAnchors = [
+      ...Array.from({ length: 22 }, (_, index) => `Turn_${String(index + 1).padStart(2, "0")}`),
+      "Turn_05A", "Turn_20A", "SpeedTrap", "StartFinish", "SectorBoundary_02", "SectorBoundary_03", "HighPoint", "LowPoint",
+    ];
+    for (const anchor of requiredAnchors) {
+      if (!metrics.anchorNames.includes(anchor)) failures.push(`missing Madring anchor: ${anchor}`);
+    }
+    if (!metrics.extensionsRequired.includes("EXT_meshopt_compression")) failures.push("Madring requires Meshopt compression");
+    for (const [name, mode] of Object.entries(metrics.materialAlphaModes)) {
+      if (name.startsWith("Madring_") && mode !== "OPAQUE") failures.push(`${name} must be opaque`);
+    }
+    if (metadata.coordinateReferenceSystem !== "EPSG:25830" || metadata.verticalExaggeration !== 1 || metadata.realWorldScale !== "1 Blender unit = 1 metre") failures.push("Madring must retain native metre coordinates without vertical exaggeration");
+    if (!(metadata.geometry?.lengthErrorPercent < 0.5) || metadata.geometry.officialLengthMeters !== 5416) failures.push("Madring length differs from the official 5.416 km");
+    if (metadata.geometry?.bankingPercent !== 24 || Math.abs(metadata.geometry.bankingAngleDegrees - Math.atan(0.24) * 180 / Math.PI) > 0.001) failures.push("La Monumental requires 24 percent banking, not 24 degrees");
+    for (const key of ["surfaceClearance", "pitClearance"]) {
+      if (!(metadata[key]?.sampleCount > 5000) || metadata[key].terrainPenetrations !== 0 || !(metadata[key].minimumClearanceMeters > 0)) failures.push(`Madring ${key} has missing or failed terrain audit`);
+    }
+    if (metadata.tunnels?.length !== 2 || metadata.tunnels.some((t) => t.minimumHeadroomMeters < 4.8 || !t.portalElevationsMeters.every(Number.isFinite))) failures.push("Madring requires two continuous road underpasses with measured portals");
+    if (metadata.pitLane?.pitBoxes !== 14 || metadata.pitBuilding?.garages !== 14 || !metadata.pitLane?.fastLaneSeparator || metadata.pitLane?.entryGapMeters !== 0 || metadata.pitLane?.exitGapMeters !== 0 || !(metadata.pitLane?.physicalWall?.lengthMeters > 400)) failures.push("Madring pit complex is incomplete");
+    if (!(metadata.buildings?.renderedCount > 100) || metadata.buildings.sourceToRenderCentroidDriftMeters !== 0 || metadata.buildings.remainingCorridorConflicts !== 0) failures.push("Madring LoD2 alignment failed");
+    if (!(metadata.grandstands?.renderedSections > 50) || metadata.grandstands.remainingBlockOverlaps !== 0 || metadata.grandstands.remainingTrackConflicts !== 0) failures.push("Madring grandstand reservations failed");
+    if (!(metadata.asphaltRunoffSourceRecords?.length > 20)) failures.push("Madring municipal runoff geometry is missing");
+    if (!metadata.elevationProfile?.every((p) => [p.distanceMeters, p.elevationMeters, p.x, p.y].every(Number.isFinite))) failures.push("Madring elevation profile contains invalid samples");
+    if (!metadata.officialControlPoints?.authority?.includes("map-derived")) failures.push("Madring must distinguish map-derived controls from surveyed FIA timing");
+    const sources = metadata.sourceManifest?.sources ?? [];
+    if (sources.length !== 16 || sources.filter((s) => s.file.startsWith("lidar-")).length !== 5) failures.push("Madring pinned source set is incomplete");
+    for (const source of sources) {
+      if (![source.url, source.license, source.date, source.retrievedAt, source.crs, source.resolution, source.role].every(Boolean) || !/^[a-f0-9]{64}$/.test(source.sha256)) failures.push(`Madring source provenance missing: ${source.file}`);
+    }
+    if (sourceDirectory) await validateSourceFiles(sourceDirectory, metadata.sourceManifest, failures);
   }
 
   if (failures.length > 0) {
@@ -301,7 +606,7 @@ function inspectGltf(gltf, bytes, previewBytes) {
 
   const anchorNames = (gltf.nodes ?? [])
     .map((node) => node.name)
-    .filter((name) => typeof name === "string" && /^(Turn_\d{2}|SpeedTrap|StartFinish|SectorBoundary_\d{2}|HighPoint|LowPoint)$/.test(name))
+    .filter((name) => typeof name === "string" && /^(Turn_\d{2}[A-Z]?|SpeedTrap|StartFinish|SectorBoundary_\d{2}|HighPoint|LowPoint)$/.test(name))
     .sort();
 
   return {
@@ -310,6 +615,11 @@ function inspectGltf(gltf, bytes, previewBytes) {
     bytes,
     drawCalls,
     extensionsRequired: gltf.extensionsRequired ?? [],
+    materialAlphaModes: Object.fromEntries(
+      (gltf.materials ?? [])
+        .filter((material) => material.name)
+        .map((material) => [material.name, material.alphaMode ?? "OPAQUE"]),
+    ),
     materialNames: (gltf.materials ?? []).map((material) => material.name).filter(Boolean),
     materials: gltf.materials?.length ?? 0,
     meshNames: (gltf.meshes ?? []).map((mesh) => mesh.name).filter(Boolean),
@@ -787,6 +1097,553 @@ function validateHungaroringMetadata(metadata, failures) {
   if (!officialSources.some((source) => source.url?.includes("hungaroring.hu"))) {
     failures.push("current official Hungaroring renovation confirmation is missing from model metadata");
   }
+}
+
+function validateMonacoMetadata(metadata, failures) {
+  const quality = metadata.layoutQuality;
+  const expectedTurns = [
+    198, 604, 769, 892, 1_123, 1_242, 1_325, 1_414, 1_750, 2_086,
+    2_142, 2_375, 2_527, 2_556, 2_694, 2_716, 2_788, 2_911, 3_004,
+  ];
+
+  if (metadata.schemaVersion !== 5) {
+    failures.push(`unexpected Monaco metadata schema: ${metadata.schemaVersion}`);
+  }
+  if (metadata.realWorldScale !== "1 unit = 1 metre; no vertical exaggeration") {
+    failures.push("Monaco metadata must confirm real scale without vertical exaggeration");
+  }
+  if (metadata.coordinateReferenceSystem !== "EPSG:32632 + source DEM metres") {
+    failures.push(`unexpected Monaco coordinate reference system: ${metadata.coordinateReferenceSystem}`);
+  }
+  if (metadata.lapLength?.officialFiaMeters !== 3_337) {
+    failures.push(`official FIA Monaco lap length is not 3,337 m: ${metadata.lapLength?.officialFiaMeters}`);
+  }
+  if (!(metadata.lapLength?.relativeErrorPercent <= 0.5)) {
+    failures.push(`Monaco centreline differs from FIA length by ${metadata.lapLength?.relativeErrorPercent}%`);
+  }
+  if (metadata.objects?.turnAnchors !== 19) {
+    failures.push(`expected 19 Monaco turn anchors, got ${metadata.objects?.turnAnchors}`);
+  }
+  if (JSON.stringify(metadata.sectorBoundaryDistancesMeters) !== JSON.stringify([1_051, 2_470])) {
+    failures.push(`unexpected Monaco sector boundaries: ${metadata.sectorBoundaryDistancesMeters}`);
+  }
+  if (JSON.stringify(metadata.turnAnchorDistancesMeters) !== JSON.stringify(expectedTurns)) {
+    failures.push(`unexpected Monaco turn apex anchors: ${metadata.turnAnchorDistancesMeters}`);
+  }
+  if ((metadata.objects?.buildingsTotal ?? 0) < 800) {
+    failures.push(`expected Monaco city context, got ${metadata.objects?.buildingsTotal} buildings`);
+  }
+  if ((metadata.objects?.mappedGrandstands ?? 0) < 9 || (metadata.objects?.grandstandSections ?? 0) < 25) {
+    failures.push("Monaco current grandstand inventory is incomplete");
+  }
+  if ((metadata.objects?.fenceSegments ?? 0) < 250) {
+    failures.push(`expected current Monaco barriers, got ${metadata.objects?.fenceSegments} segments`);
+  }
+  if ((metadata.objects?.mappedTrees ?? 0) < 75) {
+    failures.push(`expected mapped Monaco trees, got ${metadata.objects?.mappedTrees}`);
+  }
+  if (metadata.objects?.raceMotorhomes !== 11) {
+    failures.push(`expected 11 Monaco paddock motorhomes, got ${metadata.objects?.raceMotorhomes}`);
+  }
+  if (quality?.buildings?.remainingTrackConflicts !== 0) {
+    failures.push("Monaco buildings must not intersect the circuit corridor");
+  }
+  if (
+    quality?.buildings?.roofedFootprints !== metadata.objects?.buildingsTotal
+    || quality?.buildings?.opaqueRoofMaterial !== true
+  ) {
+    failures.push("Monaco buildings must have complete opaque roof caps");
+  }
+  if (!(quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters >= 0.15)) {
+    failures.push(`Monaco track-to-terrain clearance is ${quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters ?? "missing"} m`);
+  }
+  if (quality?.surfaceClearance?.terrainBreakthroughSamples !== 0) {
+    failures.push(`terrain breaks through Monaco outside the tunnel at ${quality?.surfaceClearance?.terrainBreakthroughSamples ?? "missing"} samples`);
+  }
+  if (
+    quality?.surfaceClearance?.tunnelExcludedFromTerrainClearance !== true
+    || !(quality?.surfaceClearance?.tunnelUndergroundSamples > 0)
+  ) {
+    failures.push("Monaco tunnel must retain a separately measured underground road profile");
+  }
+  if (quality?.surfaceSmoothing?.wholeLap?.applied !== true) {
+    failures.push("Monaco racing surface was not smoothed around the full lap");
+  }
+  if (!(quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters <= 4)) {
+    failures.push(`Monaco surface correction outside the tunnel is excessive: ${quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters ?? "missing"} m`);
+  }
+  if (
+    quality?.tunnel?.roofed !== true
+    || !(quality?.tunnel?.lengthMeters >= 450 && quality?.tunnel?.lengthMeters <= 480)
+  ) {
+    failures.push(`Monaco tunnel shell is invalid: ${quality?.tunnel?.lengthMeters ?? "missing"} m`);
+  }
+  if (quality?.pitLane?.pitBoxes !== 11 || quality?.pitLane?.pitComplex?.garageBoxes !== 11) {
+    failures.push("Monaco pit lane must contain the 11 current team garages from FIA Document 7");
+  }
+  if (!(quality?.pitLane?.lengthMeters >= 560 && quality?.pitLane?.lengthMeters <= 610)) {
+    failures.push(`Monaco pit-lane length is invalid: ${quality?.pitLane?.lengthMeters ?? "missing"} m`);
+  }
+  if (quality?.pitLane?.fastLaneSeparator !== true) {
+    failures.push("Monaco pit lane is missing its fast-lane separator");
+  }
+  if (
+    quality?.pitLane?.pitComplex?.coveredGrandstand !== true
+    || quality?.pitLane?.pitComplex?.canopyMaterialOpaque !== true
+  ) {
+    failures.push("Monaco pit complex must keep its opaque covered spectator structure");
+  }
+  const licenses = new Set(metadata.sourceManifest?.sources?.map((source) => source.license));
+  if (!licenses.has("ODbL 1.0")) {
+    failures.push("Monaco source manifest is missing ODbL 1.0 data");
+  }
+  if (!metadata.sourceManifest?.sources?.some((source) =>
+    source.file === "terrain-tile-manifest.json"
+    && source.license?.includes("Monaco public information reuse")
+  )) {
+    failures.push("Monaco source manifest is missing the official government orthophoto");
+  }
+  const officialSources = metadata.officialSources ?? [];
+  if (!officialSources.some((source) => source.url?.includes("2026_monaco_event"))) {
+    failures.push("official FIA 2026 Monaco circuit map is missing from model metadata");
+  }
+  if (!officialSources.some((source) => source.url?.includes("monaco-grandprix.com"))) {
+    failures.push("official ACM 2026 event source is missing from model metadata");
+  }
+}
+
+function validateRedBullRingMetadata(metadata, failures) {
+  const quality = metadata.layoutQuality;
+
+  if (metadata.schemaVersion !== 5) {
+    failures.push(`unexpected Red Bull Ring metadata schema: ${metadata.schemaVersion}`);
+  }
+  if (metadata.realWorldScale !== "1 unit = 1 metre; no vertical exaggeration") {
+    failures.push("Red Bull Ring metadata must confirm real scale without vertical exaggeration");
+  }
+  if (metadata.coordinateReferenceSystem !== "EPSG:32633 + official Styria orthometric metres") {
+    failures.push(`unexpected Red Bull Ring coordinate reference system: ${metadata.coordinateReferenceSystem}`);
+  }
+  if (metadata.lapLength?.officialFiaMeters !== 4_326) {
+    failures.push(`official FIA Red Bull Ring lap length is not 4,326 m: ${metadata.lapLength?.officialFiaMeters}`);
+  }
+  if (!(metadata.lapLength?.relativeErrorPercent <= 0.5)) {
+    failures.push(`Red Bull Ring centreline differs from FIA length by ${metadata.lapLength?.relativeErrorPercent}%`);
+  }
+  if (metadata.objects?.turnAnchors !== 10) {
+    failures.push(`expected 10 Red Bull Ring turn anchors, got ${metadata.objects?.turnAnchors}`);
+  }
+  if (JSON.stringify(metadata.sectorBoundaryDistancesMeters) !== JSON.stringify([1_215, 2_912])) {
+    failures.push(`unexpected Red Bull Ring sector boundaries: ${metadata.sectorBoundaryDistancesMeters}`);
+  }
+  if (
+    JSON.stringify(metadata.turnAnchorDistancesMeters) !==
+    JSON.stringify([453, 759, 1_392, 2_200, 2_462, 2_758, 3_021, 3_168, 3_781, 3_989])
+  ) {
+    failures.push(`unexpected Red Bull Ring turn apex anchors: ${metadata.turnAnchorDistancesMeters}`);
+  }
+  if ((metadata.objects?.buildingsTotal ?? 0) < 40) {
+    failures.push(`expected at least 40 current Red Bull Ring buildings, got ${metadata.objects?.buildingsTotal}`);
+  }
+  if ((metadata.objects?.mappedGrandstands ?? 0) < 9) {
+    failures.push(`expected all 9 mapped Red Bull Ring grandstands, got ${metadata.objects?.mappedGrandstands}`);
+  }
+  if ((metadata.objects?.fenceSegments ?? 0) < 150) {
+    failures.push(`expected at least 150 mapped Red Bull Ring barrier segments, got ${metadata.objects?.fenceSegments}`);
+  }
+  if ((metadata.objects?.raceMotorhomes ?? 0) < 10) {
+    failures.push(`expected Red Bull Ring paddock race motorhomes, got ${metadata.objects?.raceMotorhomes}`);
+  }
+  if (quality?.motorhomes?.remainingTrackConflicts !== 0) {
+    failures.push("Red Bull Ring race motorhomes must stay outside the circuit and pit-lane ribbons");
+  }
+  if (quality?.buildings?.remainingTrackConflicts !== 0) {
+    failures.push("Red Bull Ring buildings must not intersect the circuit safety corridor");
+  }
+  if (!(quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters >= 0.15)) {
+    failures.push(`Red Bull Ring track-to-terrain clearance is ${quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters ?? "missing"} m`);
+  }
+  if (quality?.surfaceClearance?.terrainBreakthroughSamples !== 0) {
+    failures.push(`terrain breaks through Red Bull Ring at ${quality?.surfaceClearance?.terrainBreakthroughSamples ?? "missing"} samples`);
+  }
+  if (quality?.surfaceSmoothing?.wholeLap?.applied !== true) {
+    failures.push("Red Bull Ring racing surface was not smoothed around the full lap");
+  }
+  if (!(quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters <= 4)) {
+    failures.push(`Red Bull Ring surface smoothing correction is excessive: ${quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters ?? "missing"} m`);
+  }
+  if (!(quality?.curbs?.widthMeters >= 1.1) || !(quality?.curbs?.visibleHeightMeters >= 0.1)) {
+    failures.push("Red Bull Ring curbs are not visibly modelled outside the asphalt ribbon");
+  }
+  if (quality?.pitLane?.pitBoxes !== 32) {
+    failures.push(`expected 32 Red Bull Ring garage slots, got ${quality?.pitLane?.pitBoxes ?? "missing"}`);
+  }
+  if (!(quality?.pitLane?.lengthMeters >= 950 && quality?.pitLane?.lengthMeters <= 1_050)) {
+    failures.push(`Red Bull Ring pit-lane length is invalid: ${quality?.pitLane?.lengthMeters ?? "missing"} m`);
+  }
+  if (quality?.pitLane?.fastLaneSeparator !== true) {
+    failures.push("Red Bull Ring pit lane is missing its fast-lane separator");
+  }
+  if (!(quality?.pitLane?.entryMinimumWidthMeters >= 4)) {
+    failures.push(`Red Bull Ring pit-lane entry is incomplete: ${quality?.pitLane?.entryMinimumWidthMeters ?? "missing"} m`);
+  }
+  if (!(quality?.pitLane?.pitWall?.lengthMeters >= 700)) {
+    failures.push(`Red Bull Ring pit wall is too short: ${quality?.pitLane?.pitWall?.lengthMeters ?? "missing"} m`);
+  }
+  if (quality?.pitLane?.pitComplex?.garageBoxes !== 32) {
+    failures.push(`Red Bull Ring pit complex must contain 32 garage boxes, got ${quality?.pitLane?.pitComplex?.garageBoxes ?? "missing"}`);
+  }
+  if (
+    quality?.pitLane?.pitComplex?.coveredGrandstand !== true ||
+    quality?.pitLane?.pitComplex?.canopyMaterialOpaque !== true
+  ) {
+    failures.push("Red Bull Ring start/finish grandstand must have an opaque covered canopy");
+  }
+  if (quality?.grandstands?.roofedStructures !== metadata.objects?.mappedGrandstands) {
+    failures.push("Red Bull Ring mapped grandstands are missing covered roofs");
+  }
+  if (
+    quality?.grandstands?.openSeatingBowls !== metadata.objects?.mappedGrandstands ||
+    quality?.grandstands?.opaqueRoofMaterial !== true
+  ) {
+    failures.push("Red Bull Ring grandstands must have open seating bowls and opaque covered roofs");
+  }
+  if (
+    quality?.buildings?.roofedFootprints !== metadata.objects?.buildingsTotal ||
+    quality?.buildings?.opaqueRoofMaterial !== true
+  ) {
+    failures.push("Red Bull Ring current buildings must have complete opaque roof caps");
+  }
+  if (quality?.grandstands?.currentEventConfirmation !== "all grandstands open for Formula 1 2026") {
+    failures.push("current Red Bull Ring Formula 1 grandstand configuration is not confirmed");
+  }
+  const licenses = new Set(metadata.sourceManifest?.sources?.map((source) => source.license));
+  for (const requiredLicense of ["CC BY 4.0 AT", "ODbL 1.0"]) {
+    if (!licenses.has(requiredLicense)) {
+      failures.push(`Red Bull Ring source manifest is missing ${requiredLicense} data`);
+    }
+  }
+  const officialSources = metadata.officialSources ?? [];
+  if (!officialSources.some((source) => source.url?.includes("season-2026-2072"))) {
+    failures.push("official FIA 2026 Austrian GP document index is missing from model metadata");
+  }
+  if (!officialSources.some((source) => source.url?.includes("redbullring.com"))) {
+    failures.push("current official Red Bull Ring event source is missing from model metadata");
+  }
+}
+
+function validateMontrealMetadata(metadata, failures) {
+  const quality = metadata.layoutQuality;
+
+  if (metadata.schemaVersion !== 7) {
+    failures.push(`unexpected Montreal metadata schema: ${metadata.schemaVersion}`);
+  }
+  if (metadata.realWorldScale !== "1 unit = 1 metre; no vertical exaggeration") {
+    failures.push("Montreal metadata must confirm real scale without vertical exaggeration");
+  }
+  if (metadata.coordinateReferenceSystem !== "EPSG:32188 + CGVD2013") {
+    failures.push(`unexpected Montreal coordinate reference system: ${metadata.coordinateReferenceSystem}`);
+  }
+  if (metadata.verticalDatum !== "Canadian Geodetic Vertical Datum of 2013 (CGVD2013); no vertical exaggeration") {
+    failures.push(`unexpected Montreal vertical datum: ${metadata.verticalDatum}`);
+  }
+  if (metadata.lapLength?.officialFiaMeters !== 4_361) {
+    failures.push(`official FIA Montreal lap length is not 4,361 m: ${metadata.lapLength?.officialFiaMeters}`);
+  }
+  if (!(metadata.lapLength?.relativeErrorPercent <= 0.1)) {
+    failures.push(`Montreal centreline differs from FIA length by ${metadata.lapLength?.relativeErrorPercent}%`);
+  }
+  if (metadata.objects?.turnAnchors !== 14) {
+    failures.push(`expected 14 Montreal turn anchors, got ${metadata.objects?.turnAnchors}`);
+  }
+  if (JSON.stringify(metadata.sectorBoundaryDistancesMeters) !== JSON.stringify([1_092, 2_488])) {
+    failures.push(`unexpected Montreal sector boundaries: ${metadata.sectorBoundaryDistancesMeters}`);
+  }
+  if (
+    JSON.stringify(metadata.turnAnchorDistancesMeters) !==
+    JSON.stringify([226, 329, 708, 766, 995, 1_242, 1_301, 1_988, 2_070, 2_678, 2_773, 3_152, 3_869, 3_903])
+  ) {
+    failures.push(`unexpected Montreal turn apex anchors: ${metadata.turnAnchorDistancesMeters}`);
+  }
+  if ((metadata.objects?.buildingsTotal ?? 0) < 25) {
+    failures.push(`expected at least 25 current Montreal buildings, got ${metadata.objects?.buildingsTotal}`);
+  }
+  if ((metadata.objects?.mappedGrandstands ?? 0) < 8) {
+    failures.push(`expected at least 8 permanent Montreal spectator structures, got ${metadata.objects?.mappedGrandstands}`);
+  }
+  if ((metadata.objects?.grandstandSections ?? 0) < 35) {
+    failures.push(`expected the current Montreal GP grandstand layout, got ${metadata.objects?.grandstandSections} sections`);
+  }
+  if ((metadata.objects?.fenceSegments ?? 0) < 100) {
+    failures.push(`expected at least 100 mapped Montreal barrier segments, got ${metadata.objects?.fenceSegments}`);
+  }
+  if ((metadata.objects?.trees ?? 0) < 50) {
+    failures.push(`expected HRDEM tree context around Montreal, got ${metadata.objects?.trees}`);
+  }
+  if (
+    metadata.objects?.raceMotorhomes !== 0 ||
+    quality?.motorhomes?.pitPlatformObjectsRemoved !== true
+  ) {
+    failures.push("Montreal must not contain motorhomes on the narrow pit platform");
+  }
+  if (quality?.buildings?.remainingTrackConflicts !== 0) {
+    failures.push("Montreal buildings must not intersect the circuit safety corridor");
+  }
+  if (!(quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters >= 0.15)) {
+    failures.push(`Montreal track-to-terrain clearance is ${quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters ?? "missing"} m`);
+  }
+  if (quality?.surfaceClearance?.terrainBreakthroughSamples !== 0) {
+    failures.push(`terrain breaks through Montreal at ${quality?.surfaceClearance?.terrainBreakthroughSamples ?? "missing"} samples`);
+  }
+  if (quality?.surfaceSmoothing?.wholeLap?.applied !== true) {
+    failures.push("Montreal racing surface was not smoothed around the full lap");
+  }
+  if (!(quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters <= 4)) {
+    failures.push(`Montreal surface smoothing correction is excessive: ${quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters ?? "missing"} m`);
+  }
+  if (quality?.pitLane?.pitBoxes !== 43) {
+    failures.push(`expected 43 Montreal garage slots, got ${quality?.pitLane?.pitBoxes ?? "missing"}`);
+  }
+  if (!(quality?.pitLane?.lengthMeters >= 780 && quality?.pitLane?.lengthMeters <= 880)) {
+    failures.push(`Montreal pit-lane length is invalid: ${quality?.pitLane?.lengthMeters ?? "missing"} m`);
+  }
+  if (
+    quality?.pitLane?.fastLaneSeparator !== true ||
+    !(quality?.pitLane?.entryMinimumWidthMeters >= 0.5) ||
+    quality?.pitLane?.entryJunction !== "smooth flush asphalt taper without a grey wedge"
+  ) {
+    failures.push("Montreal pit lane is missing its continuous entry or fast-lane separator");
+  }
+  if (
+    !(quality?.pitLane?.exitMinimumWidthMeters >= 0.5) ||
+    quality?.pitLane?.exitJunction !==
+      "smooth flush asphalt merge with FIA 2026 continuous white line" ||
+    quality?.pitLane?.entryWedgeBuildingRemoved !== true ||
+    quality?.pitLane?.exitGuideLine?.present !== true ||
+    quality?.pitLane?.exitGuideLine?.style !== "continuous white" ||
+    !(quality?.pitLane?.exitGuideLine?.lengthMeters >= 55)
+  ) {
+    failures.push("Montreal pit entry/exit must keep the reviewed clear wedge and FIA continuous merge line");
+  }
+  if (
+    !(quality?.pitLane?.pitWall?.wallHeightMeters >= 1) ||
+    !(quality?.pitLane?.pitWall?.fenceHeightMeters >= 1.8) ||
+    quality?.pitLane?.pitWall?.gatedOpenings !== true ||
+    !(quality?.pitLane?.pitWall?.gatePanels >= 2)
+  ) {
+    failures.push("Montreal pit wall must use a real-height concrete wall, high debris fence and gated openings");
+  }
+  if (
+    JSON.stringify(quality?.runoff?.excludedTurns) !== JSON.stringify([1, 2, 13, 14]) ||
+    quality?.runoff?.syntheticRunoffAtPitExit !== false
+  ) {
+    failures.push("Montreal pit entry and exit must not contain synthetic grey runoff wedges");
+  }
+  if (quality?.pitLane?.pitComplex?.garageBoxes !== 43) {
+    failures.push(`Montreal pit complex must contain 43 garage boxes, got ${quality?.pitLane?.pitComplex?.garageBoxes ?? "missing"}`);
+  }
+  if (
+    quality?.pitLane?.pitComplex?.garageSide !== "left" ||
+    quality?.pitLane?.pitComplex?.garageFrontFacesPitLane !== true ||
+    !(quality?.pitLane?.pitComplex?.buildingDepthMeters >= 30)
+  ) {
+    failures.push("Montreal pit boxes must face the pit lane and fill the platform toward the rowing basin");
+  }
+  if (quality?.grandstands?.configuredGrandstands !== 10) {
+    failures.push("Montreal visual review must retain ten corrected current-event grandstand zones");
+  }
+  if (
+    JSON.stringify(quality?.grandstands?.removedAfterVisualReview) !==
+      JSON.stringify(["Grandstand 1", "Grandstand 10", "Grandstand 12"]) ||
+    JSON.stringify(quality?.grandstands?.relocatedAfterVisualReview) !==
+      JSON.stringify(["Grandstand 31", "Grandstand 15"])
+  ) {
+    failures.push("Montreal grandstand review corrections are missing from metadata");
+  }
+  if (
+    quality?.grandstands?.remainingBlockOverlaps !== 0 ||
+    quality?.grandstands?.remainingTrackConflicts !== 0
+  ) {
+    failures.push("Montreal event grandstands contain unresolved overlaps");
+  }
+  if (quality?.mappedGrandstands?.openSeatingBowls !== metadata.objects?.mappedGrandstands) {
+    failures.push("Montreal permanent spectator structures must use open stepped seating bowls");
+  }
+  if (!(quality?.buildings?.maximumCentroidDriftMeters <= 0.1)) {
+    failures.push(`Montreal building centroid drift is ${quality?.buildings?.maximumCentroidDriftMeters ?? "missing"} m`);
+  }
+  const expectedExclusions =
+    (quality?.buildings?.excludedReplacedCircuitStructures ?? 0)
+    + (quality?.buildings?.excludedTrackConflicts ?? 0)
+    + (quality?.buildings?.excludedGrandstandConflicts ?? 0);
+  if (quality?.buildings?.excludedObjects?.length !== expectedExclusions) {
+    failures.push("Montreal filtered building conflicts are missing IDs or reasons");
+  }
+  if (!(quality?.terrainSurface?.textureWidth >= 2_000 && quality?.terrainSurface?.textureHeight >= 4_000)) {
+    failures.push("Montreal terrain texture is below the 2K × 4K delivery target");
+  }
+  const licenses = new Set(metadata.sourceManifest?.sources?.map((source) => source.license));
+  for (const requiredLicense of ["Open Government Licence - Canada", "ODbL 1.0"]) {
+    if (!licenses.has(requiredLicense)) {
+      failures.push(`Montreal source manifest is missing ${requiredLicense} data`);
+    }
+  }
+  const officialSources = metadata.officialSources ?? [];
+  if (!officialSources.some((source) => source.url?.includes("Canadian%20Grand%20Prix"))) {
+    failures.push("official FIA 2026 Canadian GP document index is missing from model metadata");
+  }
+  if (!officialSources.some((source) => source.url?.includes("gpcanada.ca"))) {
+    failures.push("current official Canadian GP grandstand catalogue is missing from model metadata");
+  }
+  if (!officialSources.some((source) => source.url?.includes("guide-visiteurwebsite.pdf"))) {
+    failures.push("official Canadian GP venue map is missing from model metadata");
+  }
+}
+
+function validateCatalunyaMetadata(metadata, failures) {
+  const quality = metadata.layoutQuality;
+  if (metadata.schemaVersion !== 6) {
+    failures.push(`unexpected Catalunya metadata schema: ${metadata.schemaVersion}`);
+  }
+  if (metadata.realWorldScale !== "1 unit = 1 metre; no vertical exaggeration") {
+    failures.push("Catalunya metadata must confirm real scale without vertical exaggeration");
+  }
+  if (metadata.coordinateReferenceSystem !== "EPSG:25831 + ICGC source elevation metres") {
+    failures.push(`unexpected Catalunya coordinate reference system: ${metadata.coordinateReferenceSystem}`);
+  }
+  if (metadata.lapLength?.officialFiaMeters !== 4_657) {
+    failures.push(`official FIA Catalunya lap length is not 4,657 m: ${metadata.lapLength?.officialFiaMeters}`);
+  }
+  if (!(metadata.lapLength?.relativeErrorPercent <= 0.5)) {
+    failures.push(`Catalunya centreline differs from FIA length by ${metadata.lapLength?.relativeErrorPercent}%`);
+  }
+  if (metadata.objects?.turnAnchors !== 14) {
+    failures.push(`expected 14 Catalunya turn anchors, got ${metadata.objects?.turnAnchors}`);
+  }
+  if (JSON.stringify(metadata.sectorBoundaryDistancesMeters) !== JSON.stringify([1_273, 3_038])) {
+    failures.push(`unexpected Catalunya sector boundaries: ${metadata.sectorBoundaryDistancesMeters}`);
+  }
+  if ((metadata.objects?.buildingsTotal ?? 0) < 80) {
+    failures.push(`expected at least 80 current Catalunya buildings, got ${metadata.objects?.buildingsTotal}`);
+  }
+  if ((metadata.objects?.grandstandSections ?? 0) < 15) {
+    failures.push(`expected current Catalunya grandstand sections, got ${metadata.objects?.grandstandSections}`);
+  }
+  if ((metadata.objects?.fenceSegments ?? 0) < 100) {
+    failures.push(`expected at least 100 mapped Catalunya barrier segments, got ${metadata.objects?.fenceSegments}`);
+  }
+  if ((metadata.objects?.runoffSections ?? 0) < 150) {
+    failures.push(`expected modelled Catalunya runoff sections, got ${metadata.objects?.runoffSections}`);
+  }
+  if ((metadata.objects?.raceMotorhomes ?? 0) < 8) {
+    failures.push(`expected Catalunya paddock race motorhomes, got ${metadata.objects?.raceMotorhomes}`);
+  }
+  if (quality?.motorhomes?.remainingTrackConflicts !== 0) {
+    failures.push("Catalunya race motorhomes must stay outside the circuit and pit-lane ribbons");
+  }
+  if (quality?.buildings?.remainingTrackConflicts !== 0) {
+    failures.push("Catalunya buildings must not intersect the circuit safety corridor");
+  }
+  if (!(quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters >= 0.15)) {
+    failures.push(`Catalunya track-to-terrain clearance is ${quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters ?? "missing"} m`);
+  }
+  if (quality?.surfaceClearance?.terrainBreakthroughSamples !== 0) {
+    failures.push(`terrain breaks through Catalunya at ${quality?.surfaceClearance?.terrainBreakthroughSamples ?? "missing"} samples`);
+  }
+  if (quality?.surfaceSmoothing?.wholeLap?.applied !== true) {
+    failures.push("Catalunya racing surface was not smoothed around the full lap");
+  }
+  if (!(quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters <= 4)) {
+    failures.push(`Catalunya surface smoothing correction is excessive: ${quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters ?? "missing"} m`);
+  }
+  if (quality?.pitLane?.pitBoxes !== 40) {
+    failures.push(`expected 40 Catalunya garage slots, got ${quality?.pitLane?.pitBoxes ?? "missing"}`);
+  }
+  if (!(quality?.pitLane?.lengthMeters >= 900 && quality?.pitLane?.lengthMeters <= 1_150)) {
+    failures.push(`Catalunya pit-lane length is invalid: ${quality?.pitLane?.lengthMeters ?? "missing"} m`);
+  }
+  if (quality?.pitLane?.fastLaneSeparator !== true || !(quality?.pitLane?.entryMinimumWidthMeters >= 4)) {
+    failures.push("Catalunya pit lane is missing its continuous entry or fast-lane separator");
+  }
+  if (
+    quality?.pitLane?.pitComplex?.garageBoxes !== 40
+    || quality?.pitLane?.pitComplex?.coveredGrandstand !== true
+    || !(quality?.pitLane?.pitComplex?.grandstandRows >= 8)
+  ) {
+    failures.push("Catalunya pit complex is missing its 40 garage boxes or covered upper grandstand");
+  }
+  if (
+    quality?.buildings?.excludedReplacedCircuitStructures !== 1
+    || JSON.stringify(quality?.buildings?.replacedOsmBuildingIds) !== JSON.stringify([33_742_578])
+  ) {
+    failures.push("the grey OSM Boxes footprint must be replaced by the detailed Catalunya pit complex");
+  }
+  if (Math.abs((quality?.pitLane?.pitWall?.lengthMeters ?? 0) - 475) > 1) {
+    failures.push(`Catalunya pit-wall fence must match the 475 m source system, got ${quality?.pitLane?.pitWall?.lengthMeters ?? "missing"} m`);
+  }
+  if (
+    quality?.pitLane?.pitWall?.sourceSystemLengthMeters !== 475
+    || !(quality?.pitLane?.pitWall?.wallHeightMeters >= 1)
+    || !(quality?.pitLane?.pitWall?.fenceHeightMeters >= 2)
+  ) {
+    failures.push("Catalunya pit lane is missing its concrete wall and top-mounted debris fence");
+  }
+  if (
+    JSON.stringify(quality?.circuitConfiguration?.currentFinalSectorWayIds)
+      !== JSON.stringify([893_732_520, 831_804_325, 990_483_278])
+    || quality?.circuitConfiguration?.deprecatedChicaneExcluded !== true
+  ) {
+    failures.push("Catalunya must use the current FIA T13-T14 bypass instead of the deprecated chicane");
+  }
+  if (JSON.stringify(quality?.grandstands?.excludedCurrentEventStandIds) !== JSON.stringify([725_695_175])) {
+    failures.push("the requested T13-T14 grandstand exclusion is missing");
+  }
+  if (!(quality?.terrainSurface?.buildingSurfaceSamples >= 15)) {
+    failures.push("Catalunya permanent structures are missing ICGC surface-height samples");
+  }
+  if (!(quality?.terrainSurface?.textureWidth >= 2_000 && quality?.terrainSurface?.textureHeight >= 1_800)) {
+    failures.push("Catalunya terrain texture is below the 2K delivery target");
+  }
+  const licenses = new Set(metadata.sourceManifest?.sources?.map((source) => source.license));
+  for (const requiredLicense of ["CC BY 4.0", "ODbL 1.0"]) {
+    if (!licenses.has(requiredLicense)) failures.push(`Catalunya source manifest is missing ${requiredLicense} data`);
+  }
+  const officialSources = metadata.officialSources ?? [];
+  if (!officialSources.some((source) => source.url?.includes("2026_barcelona_event"))) {
+    failures.push("official FIA 2026 Catalunya circuit map is missing from model metadata");
+  }
+  if (!officialSources.some((source) => source.url?.includes("circuitcat.com"))) {
+    failures.push("official Circuit de Barcelona-Catalunya event map is missing from model metadata");
+  }
+  if (!officialSources.some((source) => source.url?.includes("pit_lane_drawing"))) {
+    failures.push("official FIA 2026 Catalunya pit-lane drawing is missing from model metadata");
+  }
+}
+
+function validateMonzaMetadata(metadata, failures) {
+  const quality = metadata.layoutQuality;
+  if (metadata.schemaVersion !== 1) failures.push(`unexpected Monza metadata schema: ${metadata.schemaVersion}`);
+  if (metadata.realWorldScale !== "1 unit = 1 metre; no vertical exaggeration") failures.push("Monza metadata must confirm real scale without vertical exaggeration");
+  if (metadata.coordinateReferenceSystem !== "EPSG:32632 + Terrarium DEM metres") failures.push(`unexpected Monza coordinate reference system: ${metadata.coordinateReferenceSystem}`);
+  if (metadata.lapLength?.officialFiaMeters !== 5_793) failures.push(`official Monza lap length is not 5,793 m: ${metadata.lapLength?.officialFiaMeters}`);
+  if (!(metadata.lapLength?.relativeErrorPercent <= 0.5)) failures.push(`Monza centreline differs from official length by ${metadata.lapLength?.relativeErrorPercent}%`);
+  if (metadata.objects?.turnAnchors !== 11) failures.push(`expected 11 Monza turn anchors, got ${metadata.objects?.turnAnchors}`);
+  if (JSON.stringify(metadata.sectorBoundaryDistancesMeters) !== JSON.stringify([1_919, 3_745])) failures.push(`unexpected Monza sector boundaries: ${metadata.sectorBoundaryDistancesMeters}`);
+  if ((metadata.objects?.grandstandSections ?? 0) < 19) failures.push(`expected current Monza grandstand sections, got ${metadata.objects?.grandstandSections}`);
+  if ((metadata.objects?.raceMotorhomes ?? 0) < 8) failures.push(`expected Monza paddock motorhomes, got ${metadata.objects?.raceMotorhomes}`);
+  if (quality?.motorhomes?.remainingTrackConflicts !== 0) failures.push("Monza motorhomes intersect a circuit ribbon");
+  if (quality?.buildings?.remainingTrackConflicts !== 0) failures.push("Monza buildings intersect the circuit safety corridor");
+  if (!(quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters >= 0.15) || quality?.surfaceClearance?.terrainBreakthroughSamples !== 0) failures.push("Monza terrain breaks through the racing surface");
+  if (quality?.surfaceSmoothing?.wholeLap?.applied !== true) failures.push("Monza full-lap surface smoothing is missing");
+  if (quality?.pitLane?.pitBoxes !== 60 || quality?.pitLane?.fastLaneSeparator !== true) failures.push("Monza pit lane is missing 60 box markings or its fast-lane separator");
+  if (quality?.pitLane?.pitComplex?.garageBoxes !== 60) failures.push("Monza pit complex is missing its 60 FIA positions");
+  if (!(quality?.pitLane?.pitWall?.wallHeightMeters >= 1) || !(quality?.pitLane?.pitWall?.fenceHeightMeters >= 2)) failures.push("Monza pit wall or debris fence is incomplete");
+  if (!(quality?.terrainSurface?.textureWidth >= 2_000 && quality?.terrainSurface?.textureHeight >= 2_000)) failures.push("Monza terrain texture is below the 2K target");
+  const licenses = new Set(metadata.sourceManifest?.sources?.map((source) => source.license));
+  if (!licenses.has("ODbL 1.0")) failures.push("Monza source manifest is missing ODbL data");
+  const officialSources = metadata.officialSources ?? [];
+  if (!officialSources.some((source) => source.url?.includes("monzanet.it/en/circuit"))) failures.push("official Monza circuit specification is missing from metadata");
+  if (!officialSources.some((source) => source.url?.includes("GP_F1_2026"))) failures.push("official Monza 2026 grandstand map is missing from metadata");
 }
 
 function validateSilverstoneMetadata(metadata, failures) {

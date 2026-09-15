@@ -30,7 +30,7 @@ export default async function ForgotPasswordPage({
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   return (
-    <AppShell>
+    <AppShell hideAds>
       <PageHeading title="Восстановление доступа" />
 
       <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">

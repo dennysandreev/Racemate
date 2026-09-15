@@ -8,6 +8,10 @@ import {
 } from "./ops-watcher-rules.mjs";
 import { upsertServiceHeartbeat } from "./ops-heartbeat.mjs";
 import { runDailyPublicSmoke } from "./ops-browser-smoke.mjs";
+import {
+  escapeSupportTelegramHtml,
+  sendSupportTelegramMessage,
+} from "./support-telegram.mjs";
 
 const activeStatuses = ["open", "acknowledged", "action_pending", "fixing", "monitoring"];
 
@@ -169,7 +173,8 @@ async function loadOpsSnapshot(client, options) {
     socialSources,
     notificationFailures,
     aiBudget,
-    aiUsage,
+    aiSpend,
+    telemetryTasks,
     publicHealth,
   ] = await Promise.all([
     client.from("ops_service_heartbeats").select("service_name, status, checked_at").order("checked_at", { ascending: false }).limit(50),
@@ -178,11 +183,12 @@ async function loadOpsSnapshot(client, options) {
     client.from("social_sources").select("id, name, is_active, fetch_interval_minutes, last_success_at, last_error").eq("is_active", true),
     client.from("notification_queue").select("id", { count: "exact", head: true }).eq("status", "failed"),
     client.from("admin_ai_budgets").select("monthly_limit_usd").eq("scope", "default").maybeSingle(),
-    client.from("ai_usage_logs").select("estimated_cost_usd").gte("created_at", monthStart.toISOString()).limit(10_000),
+    client.rpc("get_ops_ai_monthly_spend", { p_since: monthStart.toISOString() }),
+    client.from("telemetry_tasks").select("id, status, updated_at").gte("updated_at", dayAgo).order("updated_at", { ascending: false }).limit(100),
     checkPublicHealth(options.healthUrl),
   ]);
 
-  for (const result of [heartbeats, jobs, newsSources, socialSources, notificationFailures, aiBudget, aiUsage]) {
+  for (const result of [heartbeats, jobs, newsSources, socialSources, notificationFailures, aiBudget, aiSpend, telemetryTasks]) {
     if (result.error) throw result.error;
   }
 
@@ -193,7 +199,8 @@ async function loadOpsSnapshot(client, options) {
     socialSources: socialSources.data ?? [],
     notificationFailedCount: notificationFailures.count ?? 0,
     aiBudget: aiBudget.data,
-    aiMonthlySpend: (aiUsage.data ?? []).reduce((sum, row) => sum + Number(row.estimated_cost_usd ?? 0), 0),
+    aiMonthlySpend: Number(aiSpend.data ?? 0),
+    telemetryTasks: telemetryTasks.data ?? [],
     publicHealth,
   };
 }
@@ -261,54 +268,28 @@ async function recordActionProposal(client, findingId, finding, proposal) {
 }
 
 async function alertAdmins(client, findingId, finding, options) {
-  const botToken = options.botToken ?? process.env.TELEGRAM_BOT_TOKEN;
-  if (!botToken) return 0;
-  const { data: admins, error: adminsError } = await client.from("admin_users").select("user_id");
-  if (adminsError) throw adminsError;
-  const adminIds = (admins ?? []).map((admin) => admin.user_id);
-  if (!adminIds.length) return 0;
-  const { data: accounts, error } = await client
-    .from("telegram_accounts")
-    .select("chat_id")
-    .in("user_id", adminIds)
-    .eq("is_active", true);
-  if (error) throw error;
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://raceside.online").replace(/\/$/, "");
   const text = [
     `🚨 <b>RaceSide ${finding.severity}</b>`,
     "",
-    escapeHtml(finding.title),
-    escapeHtml(finding.description),
+    escapeSupportTelegramHtml(finding.title),
+    escapeSupportTelegramHtml(finding.description),
   ].join("\n");
-  let delivered = 0;
-  for (const account of accounts ?? []) {
-    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        chat_id: account.chat_id,
-        text,
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-        reply_markup: { inline_keyboard: [[{ text: "Открыть находку", url: `${siteUrl}/admin/findings` }]] },
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (response.ok) delivered += 1;
-  }
-  if (delivered) {
+  const delivery = await sendSupportTelegramMessage({
+    text,
+    replyMarkup: {
+      inline_keyboard: [[{ text: "Открыть находку", url: `${siteUrl}/admin/findings` }]],
+    },
+  }, { ...options, client });
+  if (delivery.ok) {
     const result = await client.rpc("mark_admin_finding_alerted", { p_finding_id: findingId });
     if (result.error) throw result.error;
   }
-  return delivered;
+  return delivery.ok ? 1 : 0;
 }
 
 function isWatcherEvidence(value) {
   return Boolean(value) && typeof value === "object" && typeof value.ruleKey === "string";
-}
-
-function escapeHtml(value) {
-  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
 function normalizeRelease(value) {

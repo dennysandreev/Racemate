@@ -79,7 +79,7 @@ const circuitAssets = [
     src: "/f1/circuits/2026/15-azerbaijan.webp",
   },
   {
-    aliases: ["malaysia", "sepang", "kuala lumpur", "bahrain grand prix in malaysia"],
+    aliases: ["malaysia", "malaysian grand prix", "sepang", "kuala lumpur", "bahrain grand prix in malaysia"],
     src: "/f1/circuits/2026/16-malaysia.webp",
   },
   {
@@ -174,7 +174,7 @@ const teamAssets = [
     code: "RB",
     logo: "/f1/teams/logos/2026/rb.webp",
     color: "#6692FF",
-    aliases: ["racing bulls", "rb", "visa cash app rb", "vcarb", "racingbulls"],
+    aliases: ["racing bulls", "rb f1 team", "rb", "rbx", "visa cash app rb", "vcarb", "racingbulls"],
   },
   {
     name: "Red Bull Racing",

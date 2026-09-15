@@ -1,4 +1,12 @@
-const PRACTICE_SESSION_TYPES = new Set(["fp1", "fp2", "fp3", "practice", "practice_1", "practice_2", "practice_3"]);
+const PRACTICE_SESSION_TYPES = new Set([
+  "fp1",
+  "fp2",
+  "fp3",
+  "practice",
+  "practice_1",
+  "practice_2",
+  "practice_3",
+]);
 const QUALIFYING_SESSION_TYPES = new Set(["qualifying", "sprint_qualifying"]);
 const RACE_SESSION_TYPES = new Set(["race", "sprint"]);
 
@@ -17,12 +25,21 @@ export const OPENF1_RESULT_SESSION_TYPES = Object.freeze([
 ]);
 
 export function isOpenF1ResultSessionType(value) {
-  return OPENF1_RESULT_SESSION_TYPES.includes(String(value ?? "").toLowerCase());
+  return OPENF1_RESULT_SESSION_TYPES.includes(
+    String(value ?? "").toLowerCase(),
+  );
+}
+
+export function normalizeOpenF1SessionKey(value) {
+  return positiveIntegerOrNull(value);
 }
 
 export function isOpenF1TimedSessionType(value) {
   const sessionType = String(value ?? "").toLowerCase();
-  return PRACTICE_SESSION_TYPES.has(sessionType) || QUALIFYING_SESSION_TYPES.has(sessionType);
+  return (
+    PRACTICE_SESSION_TYPES.has(sessionType) ||
+    QUALIFYING_SESSION_TYPES.has(sessionType)
+  );
 }
 
 export function isOpenF1ResultProbeDue({
@@ -38,18 +55,36 @@ export function isOpenF1ResultProbeDue({
     return false;
   }
 
-  const delayMinutes = hasLiveAccess ? liveDelayMinutes : historicalDelayMinutes;
+  const delayMinutes = hasLiveAccess
+    ? liveDelayMinutes
+    : historicalDelayMinutes;
   return nowMs >= endMs + Math.max(0, Number(delayMinutes) || 0) * 60_000;
 }
 
 export function normalizeOpenF1SessionClassification(payload, sessionType) {
   const normalizedType = String(sessionType ?? "").toLowerCase();
+  const rows = Array.isArray(payload) ? payload : [];
+  let nextUnclassifiedPosition =
+    rows.reduce(
+      (maximum, row) =>
+        Math.max(maximum, positiveIntegerOrNull(row?.position) ?? 0),
+      0,
+    ) + 1;
   const seenDrivers = new Set();
   const results = [];
 
-  for (const row of Array.isArray(payload) ? payload : []) {
+  for (const row of rows) {
     const driverNumber = positiveIntegerOrNull(row?.driver_number);
-    const position = positiveIntegerOrNull(row?.position);
+    let position = positiveIntegerOrNull(row?.position);
+
+    if (
+      !position &&
+      RACE_SESSION_TYPES.has(normalizedType) &&
+      isTerminalRaceResult(row)
+    ) {
+      position = nextUnclassifiedPosition;
+      nextUnclassifiedPosition += 1;
+    }
 
     if (!driverNumber || !position || seenDrivers.has(driverNumber)) {
       continue;
@@ -63,6 +98,7 @@ export function normalizeOpenF1SessionClassification(payload, sessionType) {
       position,
       classifiedPosition: getClassifiedPosition(row, position),
       laps: nonNegativeIntegerOrNull(row?.number_of_laps),
+      points: nonNegativeNumberOrNull(row?.points),
       status,
       timeText: getOpenF1ResultTimeText(row, normalizedType),
       rawPayload: row,
@@ -72,12 +108,62 @@ export function normalizeOpenF1SessionClassification(payload, sessionType) {
   return results.sort((left, right) => left.position - right.position);
 }
 
+export function normalizeLiveRaceClassification(snapshot) {
+  return Object.values(snapshot?.drivers ?? {})
+    .map((driver) => {
+      const driverNumber = positiveIntegerOrNull(driver?.driverNumber);
+      const position = positiveIntegerOrNull(driver?.position);
+      const laps = nonNegativeIntegerOrNull(driver?.lap);
+      if (!driverNumber || !position || laps === null) return null;
+
+      const terminal = ["DNF", "DNS", "DSQ", "RETIRED"].includes(
+        String(driver.status ?? "").toUpperCase(),
+      );
+      const status =
+        String(driver.status ?? "").toUpperCase() === "RETIRED"
+          ? "DNF"
+          : terminal
+            ? String(driver.status).toUpperCase()
+            : "Финиш";
+      return {
+        driverNumber,
+        position,
+        classifiedPosition: terminal ? status : String(position),
+        laps,
+        points: null,
+        status,
+        timeText: position === 1 ? null : formatGapToLeader(driver.gap),
+        rawPayload: {
+          driver_number: driverNumber,
+          position,
+          number_of_laps: laps,
+          gap_to_leader: driver.gap ?? null,
+          interval: driver.interval ?? null,
+          live_status: driver.status ?? null,
+          provisional: true,
+        },
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => left.position - right.position);
+}
+
+function isTerminalRaceResult(row) {
+  return Boolean(row?.dnf || row?.dns || row?.dsq);
+}
+
 export function getOpenF1ParticipantIdentity(row) {
   const driverNumber = positiveIntegerOrNull(row?.driver_number);
   const firstName = cleanName(row?.first_name);
   const lastName = cleanName(row?.last_name);
-  const fullName = cleanName(row?.full_name) || [firstName, lastName].filter(Boolean).join(" ");
-  const code = String(row?.name_acronym ?? "").trim().toUpperCase().slice(0, 3) || null;
+  const fullName =
+    cleanName(row?.full_name) ||
+    [firstName, lastName].filter(Boolean).join(" ");
+  const code =
+    String(row?.name_acronym ?? "")
+      .trim()
+      .toUpperCase()
+      .slice(0, 3) || null;
   const identitySlug = slugifyIdentity(fullName || code);
 
   if (!driverNumber || !identitySlug || !fullName) {
@@ -97,15 +183,25 @@ export function getOpenF1ParticipantIdentity(row) {
   };
 }
 
-export function isOpenF1ClassificationReady(results, { minimumRows = 10 } = {}) {
-  if (!Array.isArray(results) || results.length < Math.max(1, Number(minimumRows) || 10)) {
+export function isOpenF1ClassificationReady(
+  results,
+  { minimumRows = 10 } = {},
+) {
+  if (
+    !Array.isArray(results) ||
+    results.length < Math.max(1, Number(minimumRows) || 10)
+  ) {
     return false;
   }
 
   const driverNumbers = new Set(results.map((result) => result.driverNumber));
   const positions = new Set(results.map((result) => result.position));
 
-  return driverNumbers.size === results.length && positions.size === results.length && positions.has(1);
+  return (
+    driverNumbers.size === results.length &&
+    positions.size === results.length &&
+    positions.has(1)
+  );
 }
 
 export function getOpenF1ResultTimeText(row, sessionType) {
@@ -130,9 +226,11 @@ export function getOpenF1ResultStatus(row, sessionType) {
   const normalizedType = String(sessionType ?? "").toLowerCase();
 
   if (QUALIFYING_SESSION_TYPES.has(normalizedType)) {
-    const duration = Array.isArray(row?.duration) ? row.duration : [row?.duration];
+    const duration = Array.isArray(row?.duration)
+      ? row.duration
+      : [row?.duration];
     const lastTimedIndex = duration.reduce(
-      (latest, value, index) => positiveNumberOrNull(value) ? index : latest,
+      (latest, value, index) => (positiveNumberOrNull(value) ? index : latest),
       -1,
     );
 
@@ -222,13 +320,21 @@ function nonNegativeIntegerOrNull(value) {
   return Number.isInteger(number) && number >= 0 ? number : null;
 }
 
+function nonNegativeNumberOrNull(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
 function positiveNumberOrNull(value) {
   const number = Number(value);
   return Number.isFinite(number) && number > 0 ? number : null;
 }
 
 function cleanName(value) {
-  const text = String(value ?? "").normalize("NFKC").replace(/\s+/g, " ").trim();
+  const text = String(value ?? "")
+    .normalize("NFKC")
+    .replace(/\s+/g, " ")
+    .trim();
 
   if (!text) {
     return null;
@@ -236,7 +342,10 @@ function cleanName(value) {
 
   return text
     .toLowerCase()
-    .replace(/(^|[\s-])(\p{L})/gu, (_, prefix, letter) => `${prefix}${letter.toUpperCase()}`);
+    .replace(
+      /(^|[\s-])(\p{L})/gu,
+      (_, prefix, letter) => `${prefix}${letter.toUpperCase()}`,
+    );
 }
 
 function slugifyIdentity(value) {

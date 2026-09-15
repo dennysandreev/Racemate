@@ -3,10 +3,20 @@
 !.env.example
 .next
 .playwright-mcp
+.playwright-cli
+.codex-tmp
+.track-model-build
 .pnpm-store
 node_modules
 output
 coverage
 dist
+design-references
+tmp
+Avatars f1
+RaceSide-creators-*.pptx
+*.inspect.ndjson
 *.tsbuildinfo
 racemate-*.png
+raceside-*.png
+.live-spool

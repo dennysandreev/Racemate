@@ -1,21 +1,26 @@
-import { ChevronDown, ListFilter, Newspaper, Sparkles } from "lucide-react";
+import { Newspaper, Search, Sparkles } from "lucide-react";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
+import { IntentLink as Link } from "@/components/racemate/intent-link";
 
+import { PublicPageSkeleton } from "@/components/racemate/public-page-loading";
 import { AppShell } from "@/components/racemate/app-shell";
+import { FeedFiltersDisclosure } from "@/components/racemate/feed-filters-disclosure";
 import { JsonLd } from "@/components/racemate/json-ld";
 import { PageTitle } from "@/components/racemate/page-title";
 import { NewsImage } from "@/components/racemate/news-image";
 import { NewsQuickFilters } from "@/components/racemate/news-quick-filters";
 import { MobileNewsDigestDialog } from "@/components/racemate/mobile-news-digest-dialog";
 import {
-  StitchMetric,
   StitchPanel,
   StitchPanelHeader,
+  StitchSegmentedLinks,
 } from "@/components/racemate/stitch-primitives";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   getFavoriteNewsFilters,
   getLatestDailyDigest,
@@ -34,6 +39,7 @@ type NewsSearchParams = {
   filter?: string;
   page?: string;
   race?: string;
+  q?: string;
   tag?: string;
 };
 
@@ -44,7 +50,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const query = await searchParams;
   const page = Math.max(1, Number(query.page ?? 1) || 1);
-  const isFiltered = Boolean(query.filter || query.race || query.tag);
+  const isFiltered = Boolean(query.filter || query.q || query.race || query.tag);
   const path = !isFiltered && page > 1 ? `/news?page=${page}` : "/news";
 
   return createPageMetadata({
@@ -63,7 +69,20 @@ export default async function NewsPage({
 }: {
   searchParams: Promise<NewsSearchParams>;
 }) {
-  const { filter, page, tag, race } = await searchParams;
+  const query = await searchParams;
+  return (
+    <AppShell>
+      <Suspense fallback={<PublicPageSkeleton label="Новости загружаются" variant="feed" />}>
+        <NewsContent query={query} />
+      </Suspense>
+    </AppShell>
+  );
+}
+
+async function NewsContent({ query }: {
+  query: NewsSearchParams;
+}) {
+  const { filter, page, q, tag, race } = query;
   const currentPage = Math.max(1, Number(page ?? 1) || 1);
   const activeFavoriteFilter = filter === "favorites";
   const userPromise = getSessionUser();
@@ -80,11 +99,12 @@ export default async function NewsPage({
   const publicNewsPromise = activeFavoriteFilter
     ? null
     : withServerTtlCache(
-        `public:news:list:${JSON.stringify([currentPage, tag ?? null, race ?? null])}`,
+        `public:news:list:${JSON.stringify([currentPage, q ?? null, tag ?? null, race ?? null])}`,
         60_000,
         () => getNewsItems({
           page: currentPage,
           pageSize: 21,
+          search: q,
           tagSlug: tag,
           race,
         }),
@@ -98,22 +118,21 @@ export default async function NewsPage({
     ...favoriteFilters.drivers.map((item) => item.slug),
     ...favoriteFilters.teams.map((item) => item.slug),
   ];
-  const [[digest, driverTags, teamTags], newsResult] = await Promise.all([
-    sidebarDataPromise,
-    publicNewsPromise ?? getNewsItems({
-      page: currentPage,
-      pageSize: 21,
-      tagSlug: tag,
-      tagSlugs: favoriteTagSlugs,
-      race,
-    }),
-  ]);
+  const hasFavoriteSelections = favoriteTagSlugs.length > 0;
+  const newsResult = await (publicNewsPromise ?? getNewsItems({
+    page: currentPage,
+    pageSize: 21,
+    search: q,
+    tagSlug: tag,
+    tagSlugs: favoriteTagSlugs,
+    race,
+  }));
   const [featured, ...restItems] = newsResult.items;
-  const isIndexableList = !activeFavoriteFilter && !tag && !race;
+  const isIndexableList = !activeFavoriteFilter && !q && !tag && !race;
   const listPath = currentPage > 1 ? `/news?page=${currentPage}` : "/news";
 
   return (
-    <AppShell>
+    <>
       {isIndexableList ? (
         <JsonLd
           data={{
@@ -136,7 +155,7 @@ export default async function NewsPage({
           }}
         />
       ) : null}
-      <section className="relative overflow-hidden rounded-xl border border-border bg-card p-5 lg:h-40">
+      <section className="relative min-h-[11.5rem] overflow-hidden rounded-xl border border-border bg-card p-5 lg:h-40 lg:min-h-0">
         <Image
           alt=""
           className="object-cover opacity-80"
@@ -147,43 +166,54 @@ export default async function NewsPage({
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/76 to-background/18" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgb(255_255_255_/_0.06),transparent_44%)]" />
-        <div className="relative grid gap-5 lg:h-full lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
+        <div className="relative z-10 flex min-h-[9rem] flex-col gap-5 lg:h-full lg:min-h-0">
+          <div className="absolute right-0 top-0 lg:hidden">
+            <Suspense fallback={<Skeleton className="size-10" />}><NewsMobileDigest data={sidebarDataPromise} /></Suspense>
+          </div>
           <div className="min-w-0 lg:absolute lg:left-0 lg:top-0 lg:max-w-[calc(100%-20rem)]">
-            <div className="flex items-center justify-between gap-3 lg:block">
-              <p className="stitch-label flex items-center gap-2 text-primary">
-                <Newspaper aria-hidden="true" className="size-3.5" />
-                Новости · сезон {new Date().getUTCFullYear()}
-              </p>
-              <MobileNewsDigestDialog digest={digest} />
-            </div>
-            <PageTitle className="mt-2 max-w-4xl">
+            <p className="stitch-label flex items-center gap-2 pr-14 text-primary lg:pr-0">
+              <Newspaper aria-hidden="true" className="size-3.5" />
+              Новости · сезон {new Date().getUTCFullYear()}
+            </p>
+            <PageTitle className="mt-2 max-w-4xl pr-12 lg:pr-0">
               Новости Формулы-1
             </PageTitle>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               Всё главное из мира Формулы-1 в одном месте, свежие новости и разбор этапов
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3 [&>div]:border-foreground/15 [&>div]:bg-background/85 [&>div]:shadow-sm [&>div]:backdrop-blur-md [&_p:first-child]:text-foreground/70 [&_p:last-child]:text-xl lg:absolute lg:right-0 lg:top-1/2 lg:w-[18rem] lg:-translate-y-1/2">
-            <StitchMetric label="Материалов" tone="red" value={String(newsResult.totalCount)} />
-            <StitchMetric label="Страница" value={`${newsResult.page}/${newsResult.totalPages}`} />
+          <div className="mt-auto w-full lg:absolute lg:right-0 lg:top-1/2 lg:mt-0 lg:w-auto lg:-translate-y-1/2">
+            <StitchSegmentedLinks
+              className="grid w-full grid-cols-2 sm:inline-flex sm:w-auto"
+              items={[
+                {
+                  active: !activeFavoriteFilter,
+                  href: getNewsModeHref("main", { q, race, tag }),
+                  label: "Главное",
+                },
+                {
+                  active: activeFavoriteFilter,
+                  href: user
+                    ? getNewsModeHref("favorites", { q, race, tag })
+                    : `/auth?next=${encodeURIComponent(getNewsModeHref("favorites", { q, race, tag }))}`,
+                  label: "Моя лента",
+                },
+              ]}
+              linkClassName="inline-flex min-h-10 items-center justify-center px-4 font-display font-bold leading-none"
+            />
           </div>
         </div>
       </section>
 
       <section className="grid gap-4 py-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-5 lg:py-8">
         <div className="order-1 lg:hidden">
-          <PersonalNewsPanel
-            activeFavoriteFilter={activeFavoriteFilter}
-            activeTag={tag}
-            collapsible
-            drivers={driverTags}
-            isAuthenticated={Boolean(user)}
-            teams={teamTags}
-          />
+          <Suspense fallback={<Skeleton className="h-12 w-full" />}>
+            <NewsFilters data={sidebarDataPromise} activeFavoriteFilter={activeFavoriteFilter} activeSearch={q} activeTag={tag} collapsible />
+          </Suspense>
         </div>
 
         <div className="order-2 grid content-start gap-5 lg:col-start-1 lg:row-span-2 lg:row-start-1">
-          {tag || race || activeFavoriteFilter ? (
+          {q || tag || race || activeFavoriteFilter ? (
             <div className="stitch-panel flex flex-wrap items-center justify-between gap-3 p-3">
               <span className="text-sm text-muted-foreground">
                 Показаны новости по выбранному фильтру
@@ -198,7 +228,6 @@ export default async function NewsPage({
             <Link
               className="group stitch-panel relative grid min-h-[11rem] content-end overflow-hidden p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[13rem] sm:p-5"
               href={`/news/${featured.slug}`}
-              prefetch={false}
             >
               <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgb(255_255_255_/_0.07),transparent_44%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.18))]" />
               <div className="relative">
@@ -213,13 +242,23 @@ export default async function NewsPage({
                   alt={featured.title}
                   className="relative mt-4 aspect-video overflow-hidden rounded-lg border border-border/70 bg-muted"
                   priority
+                  sizes="(min-width: 1280px) 44rem, (min-width: 1024px) calc(100vw - 26rem), 100vw"
                   src={featured.imageUrl}
                 />
               </div>
             </Link>
           ) : (
             <div className="stitch-panel p-5 text-sm text-muted-foreground">
-              Свежих обработанных новостей пока нет.
+              {activeFavoriteFilter && !hasFavoriteSelections
+                ? "Добавьте любимых пилотов и команд, чтобы собрать свою ленту."
+                : activeFavoriteFilter
+                  ? "По вашим любимым пилотам и командам пока нет свежих новостей."
+                  : "Свежих обработанных новостей пока нет."}
+              {activeFavoriteFilter && !hasFavoriteSelections ? (
+                <Button asChild className="mt-4 flex w-fit" size="sm" variant="secondary">
+                  <Link href="/onboarding">Настроить любимых</Link>
+                </Button>
+              ) : null}
             </div>
           )}
 
@@ -230,7 +269,6 @@ export default async function NewsPage({
                   className="group stitch-panel grid content-between gap-4 p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   href={`/news/${item.slug}`}
                   key={item.slug}
-                  prefetch={false}
                 >
                   <NewsMeta item={item} />
                   <h2 className="line-clamp-3 text-lg font-semibold leading-6 transition-colors group-hover:text-primary">
@@ -239,7 +277,7 @@ export default async function NewsPage({
                   <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
                     {item.summary}
                   </p>
-                  <NewsImage alt={item.title} src={item.imageUrl} />
+                  <NewsImage alt={item.title} sizes="(min-width: 1280px) 22rem, (min-width: 1024px) calc((100vw - 28rem) / 2), (min-width: 640px) 50vw, 100vw" src={item.imageUrl} />
                 </Link>
               ))}
             </div>
@@ -258,7 +296,7 @@ export default async function NewsPage({
               >
                 <Link
                   aria-disabled={newsResult.page <= 1}
-                  href={getNewsHref(newsResult.page - 1, { filter, race, tag })}
+                  href={getNewsHref(newsResult.page - 1, { filter, q, race, tag })}
                   tabIndex={newsResult.page <= 1 ? -1 : undefined}
                 >
                   Назад
@@ -274,7 +312,7 @@ export default async function NewsPage({
               >
                 <Link
                   aria-disabled={newsResult.page >= newsResult.totalPages}
-                  href={getNewsHref(newsResult.page + 1, { filter, race, tag })}
+                  href={getNewsHref(newsResult.page + 1, { filter, q, race, tag })}
                   tabIndex={newsResult.page >= newsResult.totalPages ? -1 : undefined}
                 >
                   Вперед
@@ -285,115 +323,98 @@ export default async function NewsPage({
         </div>
 
         <aside className="order-3 hidden content-start gap-5 lg:order-2 lg:col-start-2 lg:row-start-1 lg:grid">
-          <PersonalNewsPanel
-            activeFavoriteFilter={activeFavoriteFilter}
-            activeTag={tag}
-            drivers={driverTags}
-            isAuthenticated={Boolean(user)}
-            teams={teamTags}
-          />
-          <DailyDigestPanel digest={digest} />
+          <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+            <NewsFilters data={sidebarDataPromise} activeFavoriteFilter={activeFavoriteFilter} activeSearch={q} activeTag={tag} />
+            <NewsDigest data={sidebarDataPromise} />
+          </Suspense>
         </aside>
       </section>
-    </AppShell>
+    </>
   );
+}
+
+type NewsSidebarData = Promise<[DailyDigest | null, NewsTagFilter[], NewsTagFilter[]]>;
+
+async function NewsMobileDigest({ data }: { data: NewsSidebarData }) {
+  const [digest] = await data;
+  return <MobileNewsDigestDialog digest={digest} />;
+}
+
+async function NewsDigest({ data }: { data: NewsSidebarData }) {
+  const [digest] = await data;
+  return <DailyDigestPanel digest={digest} />;
+}
+
+async function NewsFilters({ data, ...props }: {
+  data: NewsSidebarData;
+  activeFavoriteFilter: boolean;
+  activeSearch?: string;
+  activeTag?: string;
+  collapsible?: boolean;
+}) {
+  const [, drivers, teams] = await data;
+  return <PersonalNewsPanel {...props} drivers={drivers} teams={teams} />;
 }
 
 function PersonalNewsPanel({
   activeFavoriteFilter,
+  activeSearch,
   activeTag,
   collapsible = false,
   drivers,
-  isAuthenticated,
   teams,
 }: {
   activeFavoriteFilter: boolean;
+  activeSearch?: string;
   activeTag?: string;
   collapsible?: boolean;
   drivers: NewsTagFilter[];
-  isAuthenticated: boolean;
   teams: NewsTagFilter[];
 }) {
+  const searchForm = (
+    <form action="/news" className="flex items-center gap-2">
+      {activeFavoriteFilter ? <input name="filter" type="hidden" value="favorites" /> : null}
+      <div className="relative min-w-0 flex-1">
+        <Search
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+        />
+        <Input
+          className="h-10 pl-9"
+          defaultValue={activeSearch}
+          maxLength={100}
+          name="q"
+          placeholder="Найти статью"
+          type="search"
+        />
+      </div>
+      <Button aria-label="Найти статью" className="size-10 shrink-0" size="icon" type="submit">
+        <Search aria-hidden="true" className="size-4" />
+      </Button>
+    </form>
+  );
+
   const filters = (
     <>
-      <div className="flex justify-end">
-        {isAuthenticated ? (
-          <Button
-            asChild
-            className="shrink-0"
-            size="sm"
-            variant={activeFavoriteFilter ? "default" : "secondary"}
-          >
-            <Link href={activeFavoriteFilter ? "/news" : "/news?filter=favorites"}>
-              Мои новости
-            </Link>
-          </Button>
-        ) : (
-          <Button asChild className="shrink-0" size="sm" variant="secondary">
-            <Link href="/auth">Войти</Link>
-          </Button>
-        )}
-      </div>
+      {searchForm}
       <NewsQuickFilters activeTag={activeTag} drivers={drivers} teams={teams} />
     </>
   );
 
   if (collapsible) {
     return (
-      <StitchPanel>
-        <details className="group">
-          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
-            <span className="flex min-w-0 items-center gap-2.5">
-              <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                <ListFilter aria-hidden="true" className="size-4" />
-              </span>
-              <span className="font-display text-sm font-bold text-foreground">
-                Персональная лента
-              </span>
-            </span>
-            <ChevronDown
-              aria-hidden="true"
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-            />
-          </summary>
-          <div className="grid gap-3 border-t border-border/70 p-3">
-            {filters}
-          </div>
-        </details>
-      </StitchPanel>
+      <FeedFiltersDisclosure>
+        <div className="grid gap-3 border-t border-border/70 p-3">
+          {filters}
+        </div>
+      </FeedFiltersDisclosure>
     );
   }
 
   return (
     <StitchPanel>
-      <div className="grid gap-4 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-              <ListFilter aria-hidden="true" className="size-4" />
-            </span>
-            <p className="font-display text-sm font-bold text-foreground">
-              Персональная лента
-            </p>
-          </div>
-          {isAuthenticated ? (
-            <Button
-              asChild
-              className="shrink-0"
-              size="sm"
-              variant={activeFavoriteFilter ? "default" : "secondary"}
-            >
-              <Link href={activeFavoriteFilter ? "/news" : "/news?filter=favorites"}>
-                Мои новости
-              </Link>
-            </Button>
-          ) : (
-            <Button asChild className="shrink-0" size="sm" variant="secondary">
-              <Link href="/auth">Войти</Link>
-            </Button>
-          )}
-        </div>
-        <NewsQuickFilters activeTag={activeTag} drivers={drivers} teams={teams} />
+      <div className="grid gap-3 p-4">
+        {filters}
       </div>
     </StitchPanel>
   );
@@ -420,7 +441,7 @@ function DailyDigestPanel({ digest }: { digest: DailyDigest | null }) {
 
 function getNewsHref(
   page: number,
-  filters: { filter?: string; tag?: string; race?: string },
+  filters: { filter?: string; q?: string; tag?: string; race?: string },
 ) {
   const params = new URLSearchParams();
 
@@ -430,6 +451,10 @@ function getNewsHref(
 
   if (filters.filter) {
     params.set("filter", filters.filter);
+  }
+
+  if (filters.q) {
+    params.set("q", filters.q);
   }
 
   if (filters.tag) {
@@ -443,6 +468,16 @@ function getNewsHref(
   const query = params.toString();
 
   return query ? `/news?${query}` : "/news";
+}
+
+function getNewsModeHref(
+  mode: "main" | "favorites",
+  filters: { q?: string; tag?: string; race?: string },
+) {
+  return getNewsHref(1, {
+    ...filters,
+    filter: mode === "favorites" ? "favorites" : undefined,
+  });
 }
 
 function NewsMeta({
@@ -459,14 +494,18 @@ function NewsMeta({
   const raceTag = visibleTag?.name ?? item.raceTag;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Badge variant="outline">{item.source}</Badge>
+    <div className="grid justify-items-start gap-2">
       {raceTag ? (
         <Badge variant="warning">{raceTag}</Badge>
       ) : null}
-      <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-        {item.time}
-      </span>
+      <div className="flex max-w-full items-center gap-2">
+        <span className="shrink-0 whitespace-nowrap font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+          {item.time}
+        </span>
+        <Badge className="min-w-0 max-w-full truncate" variant="outline">
+          {item.source}
+        </Badge>
+      </div>
     </div>
   );
 }

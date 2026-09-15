@@ -1,11 +1,14 @@
-import { BellRing } from "lucide-react";
+import { BellRing, Crown } from "lucide-react";
 
 import {
   disconnectTelegramAction,
   sendTestNotificationAction,
+  grantSubscriptionAction,
+  revokeSubscriptionAction,
 } from "@/app/admin/operations";
 import { AdminActionForm } from "@/components/admin/admin-action-form";
 import { AdminConfirmedAction } from "@/components/admin/admin-confirmed-action";
+import { AdminConfirmedForm } from "@/components/admin/admin-confirmed-form";
 import { AdminFilters } from "@/components/admin/admin-filters";
 import {
   AdminEmpty,
@@ -15,6 +18,7 @@ import {
   AdminSection,
   AdminStatusBadge,
 } from "@/components/admin/admin-ui";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -41,7 +45,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
   return (
     <AdminPage>
       <AdminPageHeader
-        description="Профиль, onboarding, избранное, прогнозы, лиги и состояние Telegram. Email и пароль здесь не меняются."
+        description="Профиль, первоначальная настройка, избранное, прогнозы, лиги и состояние Telegram. Email и пароль здесь не меняются."
         title="Пользователи"
       />
       <AdminSection description={`${data.total} профилей по текущему запросу.`} title="Поддержка пользователей">
@@ -53,11 +57,12 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Профиль</TableHead>
-                    <TableHead>Onboarding</TableHead>
+                    <TableHead>Профиль настроен</TableHead>
                     <TableHead>Избранное</TableHead>
                     <TableHead>Прогнозы</TableHead>
                     <TableHead>Лиги</TableHead>
                     <TableHead>Telegram</TableHead>
+                    <TableHead>Plus</TableHead>
                     <TableHead className="text-right">Поддержка</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -65,7 +70,10 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                   {data.items.map((profile) => (
                     <TableRow key={profile.id}>
                       <TableCell>
-                        <p className="font-medium">{profile.display_name || "Без имени"}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium">{profile.display_name || "Без имени"}</p>
+                          {profile.is_bot ? <Badge variant="outline">Бот</Badge> : null}
+                        </div>
                         <p className="text-xs text-muted-foreground">{profile.email || "Email не указан"}</p>
                       </TableCell>
                       <TableCell><AdminStatusBadge status={profile.onboarding_completed ? "success" : "pending"} /></TableCell>
@@ -75,8 +83,9 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                       <TableCell>
                         <AdminStatusBadge status={profile.telegram?.is_active ? "active" : profile.telegram ? "warning" : "unknown"} />
                       </TableCell>
+                      <TableCell><SubscriptionStatus subscription={profile.subscription} /></TableCell>
                       <TableCell>
-                        <div className="flex justify-end gap-2">
+                        <div className="flex flex-col items-end gap-2">
                           {profile.telegram?.is_active ? (
                             <>
                               <AdminActionForm action={sendTestNotificationAction} submitLabel="Проверить" submitVariant="secondary">
@@ -94,6 +103,8 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                               </AdminConfirmedAction>
                             </>
                           ) : null}
+                          <details className="w-64 rounded-md border border-border p-2 text-left"><summary className="cursor-pointer text-xs font-bold">{subscriptionActionLabel(profile.subscription)}</summary><GrantSubscriptionForm email={profile.email} name={profile.display_name} subscription={profile.subscription} userId={profile.id} /></details>
+                          {isActiveSubscription(profile.subscription) ? <RevokeSubscriptionForm userId={profile.id} /> : null}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -106,7 +117,10 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                 <article className="grid gap-4 border-b border-border p-4 last:border-b-0" key={profile.id}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h2 className="truncate font-medium">{profile.display_name || "Без имени"}</h2>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="truncate font-medium">{profile.display_name || "Без имени"}</h2>
+                        {profile.is_bot ? <Badge variant="outline">Бот</Badge> : null}
+                      </div>
                       <p className="mt-1 truncate text-sm text-muted-foreground">{profile.email || "Email не указан"}</p>
                     </div>
                     <AdminStatusBadge status={profile.onboarding_completed ? "success" : "pending"} />
@@ -116,6 +130,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                     <div><dt className="text-xs text-muted-foreground">Прогнозы</dt><dd className="mt-1 font-mono">{profile.predictions}</dd></div>
                     <div><dt className="text-xs text-muted-foreground">Лиги</dt><dd className="mt-1 font-mono">{profile.leagues}</dd></div>
                   </dl>
+                  <div className="rounded-md border border-border p-3"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-medium">RaceSide Plus</p><p className="mt-1 text-xs text-muted-foreground">{subscriptionLabel(profile.subscription)}</p></div><SubscriptionStatus subscription={profile.subscription} /></div></div>
                   <div className="rounded-md border border-border p-3">
                     <div className="flex items-center justify-between gap-3">
                       <div>
@@ -146,6 +161,8 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                       </div>
                     ) : null}
                   </div>
+                  <GrantSubscriptionForm email={profile.email} name={profile.display_name} subscription={profile.subscription} userId={profile.id} />
+                  {isActiveSubscription(profile.subscription) ? <RevokeSubscriptionForm userId={profile.id} /> : null}
                 </article>
               ))}
             </div>
@@ -157,4 +174,40 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
       </AdminSection>
     </AdminPage>
   );
+}
+
+function GrantSubscriptionForm({ email, name, subscription, userId }: { email: string | null; name: string | null; subscription: { status: string; current_period_end: string | null } | null; userId: string }) {
+  const actionLabel = subscriptionActionLabel(subscription);
+  return <AdminConfirmedForm action={grantSubscriptionAction} confirmLabel={actionLabel} description="Новый срок начнётся после уже активного, если подписка ещё действует. Действие сохранится в журнале админки." submitLabel={actionLabel} title={`${actionLabel} пользователю?`}>
+    <div className="rounded-md bg-muted p-2 text-xs"><p className="font-medium">{name || "Без имени"}</p><p className="mt-0.5 text-muted-foreground">{email || "Email не указан"}</p></div>
+    <input name="userId" type="hidden" value={userId} /><input name="idempotencyKey" type="hidden" value={crypto.randomUUID()} />
+    <label className="grid gap-1 text-sm"><span className="text-xs text-muted-foreground">Срок</span><select className="h-9 rounded-md border border-border bg-background px-3" defaultValue="month" name="duration"><option value="month">1 месяц</option><option value="year">1 год</option><option value="custom">До выбранной даты</option></select></label>
+    <label className="grid gap-1 text-sm"><span className="text-xs text-muted-foreground">Дата окончания для своего срока</span><input className="h-9 rounded-md border border-border bg-background px-3" name="customEnd" type="datetime-local" /></label>
+    <label className="grid gap-1 text-sm"><span className="text-xs text-muted-foreground">Причина</span><input className="h-9 rounded-md border border-border bg-background px-3" maxLength={500} minLength={3} name="reason" placeholder="Например, подарок победителю конкурса" required /></label>
+  </AdminConfirmedForm>;
+}
+
+function RevokeSubscriptionForm({ userId }: { userId: string }) {
+  return <AdminConfirmedForm action={revokeSubscriptionAction} confirmLabel="Отозвать Plus" description="LIVE, полная телеметрия и Telegram-уведомления закроются сразу. Действие сохранится в журнале админки." submitLabel="Отозвать" submitVariant="outline" title="Отозвать подписку?">
+    <input name="userId" type="hidden" value={userId} />
+    <label className="grid gap-1 text-sm"><span className="text-xs text-muted-foreground">Причина</span><input className="h-9 rounded-md border border-border bg-background px-3" maxLength={500} minLength={3} name="reason" placeholder="Например, подписка выдана по ошибке" required /></label>
+  </AdminConfirmedForm>;
+}
+
+function SubscriptionStatus({ subscription }: { subscription: { status: string; current_period_end: string | null } | null }) {
+  const active = isActiveSubscription(subscription);
+  return <span className={active ? "inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-1 text-xs font-bold text-success" : "text-xs text-muted-foreground"}>{active ? <Crown className="size-3" /> : null}{active ? "Активен" : "Нет"}</span>;
+}
+
+function subscriptionLabel(subscription: { status: string; current_period_end: string | null } | null) {
+  return isActiveSubscription(subscription) && subscription?.current_period_end ? `До ${new Intl.DateTimeFormat("ru-RU").format(new Date(subscription.current_period_end))}` : subscription?.status === "revoked" ? "Доступ отозван" : "Подписка не активна";
+}
+
+function isActiveSubscription(subscription: { status: string; current_period_end: string | null } | null) {
+  return subscription?.status === "active" && Boolean(subscription.current_period_end) && Date.parse(subscription.current_period_end ?? "") > Date.now();
+}
+
+function subscriptionActionLabel(subscription: { status: string; current_period_end: string | null } | null) {
+  if (isActiveSubscription(subscription)) return "Продлить Plus";
+  return subscription ? "Выдать снова" : "Выдать Plus";
 }

@@ -52,7 +52,7 @@ export default async function AdminOverviewPage() {
             <input name="jobName" type="hidden" value="rss.fetch_all" />
           </AdminActionForm>
         )}
-        description="Свежесть данных, очереди и ошибки в одном месте. Интервалы рассчитаны по расписанию каждой worker-задачи."
+        description="Свежесть данных, очереди и ошибки в одном месте. Интервалы рассчитаны по расписанию каждой фоновой задачи."
         title="Операционный обзор"
       />
 
@@ -61,7 +61,7 @@ export default async function AdminOverviewPage() {
           <AlertTriangle aria-hidden="true" />
           <AlertTitle>Нужна проверка</AlertTitle>
           <AlertDescription>
-            Требуют внимания проверки или находки: {urgentSignals}. Подробности доступны
+            Требуют внимания проверки или проблемы: {urgentSignals}. Подробности доступны
             в операционных разделах.
           </AlertDescription>
         </Alert>
@@ -70,7 +70,7 @@ export default async function AdminOverviewPage() {
       <section className="grid grid-cols-2 gap-x-0 gap-y-5 border-b border-border pb-5 lg:grid-cols-4">
         <AdminMetric
           helper={`${overview.metrics.urgentFindings} срочных`}
-          label="Находки"
+          label="Проблемы"
           tone={overview.metrics.activeFindings ? "warning" : "success"}
           value={String(overview.metrics.activeFindings)}
         />

@@ -15,8 +15,16 @@ output/playwright
 output/circuit-map-review
 .playwright-mcp
 .playwright-cli
+.codex-tmp/
 .track-model-build
 supabase/.temp
 /*.png
+/*.webp
+/*.pptx
+/*.inspect.ndjson
 racemate-*.png
 raceside-*.png
+.live-spool/
+design-references/
+output/
+tmp/

@@ -183,7 +183,7 @@ export default async function DriverProfilePage({ params, searchParams }: Driver
           },
         ]}
       />
-      <div className="grid gap-4 pb-6 sm:gap-5">
+      <div className="sport-profile-page grid gap-4 pb-6 sm:gap-5">
         <DriverHero
           availableSeasons={availableSeasons}
           profile={profile}
@@ -247,6 +247,11 @@ function DriverHero({
           background: `radial-gradient(circle at 82% 0%, ${hexWithAlpha(profile.team.color, 0.3) ?? "rgb(225 6 0 / 0.24)"}, transparent 30rem), linear-gradient(135deg, rgb(255 255 255 / 0.06), transparent 40%)`,
         }}
       />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-1"
+        style={{ backgroundColor: teamColor }}
+      />
       <span
         aria-hidden="true"
         className="pointer-events-none absolute -right-4 -top-10 select-none font-display text-[11rem] font-black leading-none tracking-tighter opacity-[0.07] sm:text-[16rem]"
@@ -255,77 +260,76 @@ function DriverHero({
         {profile.number ?? profile.code ?? ""}
       </span>
 
-      <div className="relative grid gap-4 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-5">
-        <div className="contents lg:flex lg:min-h-64 lg:min-w-0 lg:flex-col">
-          <div className="order-1 flex min-w-0 items-start justify-between gap-3 lg:block">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <Badge variant="secondary">
-                <RaceFlag
-                  className="mr-1 align-[-0.08em]"
-                  countryCode={profile.countryCode}
-                  label={profile.country ?? "Страна"}
-                />
-                {profile.country ?? "Страна уточняется"}
+      <div className="relative grid gap-4 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:grid-rows-[auto_minmax(0,1fr)] lg:items-start lg:gap-5">
+        <div className="order-1 flex min-w-0 items-start justify-between gap-3 lg:col-span-2 lg:order-none lg:items-center">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <Badge variant="secondary">
+              <RaceFlag
+                className="mr-1 align-[-0.08em]"
+                countryCode={profile.countryCode}
+                label={profile.country ?? "Страна"}
+              />
+              {profile.country ?? "Страна уточняется"}
+            </Badge>
+            <Badge variant="outline">
+              <span className="font-telemetry">№ {profile.number ?? profile.code ?? "—"}</span>
+            </Badge>
+            {isChampion ? (
+              <Badge className="border-[#f4c95d]/55 bg-[#f4c95d]/15 text-[#8a6500] dark:text-[#f4c95d]" variant="outline">
+                <Trophy aria-hidden="true" className="mr-1 size-3" />
+                Чемпион {profile.season}
               </Badge>
-              <Badge variant="outline">
-                <span className="font-telemetry">№ {profile.number ?? profile.code ?? "—"}</span>
-              </Badge>
-              {isChampion ? (
-                <Badge className="border-[#f4c95d]/55 bg-[#f4c95d]/15 text-[#8a6500] dark:text-[#f4c95d]" variant="outline">
-                  <Trophy aria-hidden="true" className="mr-1 size-3" />
-                  Чемпион {profile.season}
-                </Badge>
-              ) : null}
-            </div>
-
-            <SeasonSwitcher
-              activeSeason={profile.season}
-              className="w-[9rem] shrink-0 lg:mt-3 lg:w-auto lg:self-start"
-              loadingLabel="Обновляем сезон"
-              pathname={`/drivers/${profile.slug}`}
-              query={query}
-              seasons={availableSeasons}
-            />
+            ) : null}
           </div>
 
-          <div className="order-3 mt-1 lg:mt-auto">
-            <h1 className="text-balance font-display leading-[0.94] tracking-[-0.04em]">
-              <span className="block text-xl font-bold text-muted-foreground sm:text-3xl">
-                {profile.firstName}
-              </span>
-              <span className="block text-4xl font-black uppercase sm:text-6xl">
-                {profile.lastName}
-              </span>
-            </h1>
+          <SeasonSwitcher
+            activeSeason={profile.season}
+            className="w-[9rem] shrink-0 sm:w-auto"
+            expandDirection="left"
+            loadingLabel="Обновляем сезон"
+            pathname={`/drivers/${profile.slug}`}
+            query={query}
+            seasons={availableSeasons}
+          />
+        </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Link
-                className="group inline-flex min-w-0 items-center gap-2.5 rounded-md border border-border/70 bg-background/40 py-1.5 pl-1.5 pr-2.5 transition-colors hover:border-primary/40 hover:bg-accent/50"
-                href={teamSlug
-                  ? `/teams/${teamSlug}?season=${profile.season}`
-                  : `/leaderboard?season=${profile.season}&table=constructors`}
-                prefetch={false}
-              >
-                <TeamLogo
-                  code={profile.team.code}
-                  color={profile.team.color}
-                  logo={profile.team.logo}
-                  name={profile.team.name}
-                  season={profile.season}
-                  size="sm"
-                />
-                <span className="min-w-0 truncate text-sm font-bold">{profile.team.name}</span>
-                <ChevronRight
-                  aria-hidden="true"
-                  className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
-                />
-              </Link>
-              <FavoriteAction profile={profile} signedIn={signedIn} />
-            </div>
+        <div className="order-3 mt-1 min-w-0 lg:col-start-1 lg:row-start-2 lg:mt-0 lg:flex lg:min-h-64 lg:flex-col lg:justify-end">
+          <h1 className="text-balance font-display leading-[0.94] tracking-[-0.04em]">
+            <span className="block text-xl font-bold text-muted-foreground sm:text-3xl">
+              {profile.firstName}
+            </span>
+            <span className="block text-4xl font-black uppercase sm:text-6xl">
+              {profile.lastName}
+            </span>
+          </h1>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Link
+              className="group inline-flex min-w-0 items-center gap-2.5 rounded-md border border-border/70 bg-background/40 py-1.5 pl-1.5 pr-2.5 transition-colors hover:border-primary/40 hover:bg-accent/50"
+              href={teamSlug
+                ? `/teams/${teamSlug}?season=${profile.season}`
+                : `/leaderboard?season=${profile.season}&table=constructors`}
+              prefetch={false}
+            >
+              <TeamLogo
+                code={profile.team.code}
+                color={profile.team.color}
+                logo={profile.team.logo}
+                name={profile.team.name}
+                season={profile.season}
+                size="sm"
+              />
+              <span className="min-w-0 truncate text-sm font-bold">{profile.team.name}</span>
+              <ChevronRight
+                aria-hidden="true"
+                className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+              />
+            </Link>
+            <FavoriteAction profile={profile} signedIn={signedIn} />
           </div>
         </div>
 
-        <div className="relative order-2 mx-auto w-full max-w-[15rem] lg:order-none lg:mx-0 lg:max-w-none">
+        <div className="relative order-2 mx-auto w-full max-w-[15rem] lg:col-start-2 lg:row-start-2 lg:mx-0 lg:max-w-none">
           {avatarUrl ? (
             <div className="relative h-56 sm:h-64">
               <Image
@@ -335,6 +339,7 @@ function DriverHero({
                 priority
                 sizes="(min-width: 1024px) 17rem, 15rem"
                 src={avatarUrl}
+                unoptimized={profile.season !== CURRENT_F1_SEASON}
               />
               <span
                 aria-hidden="true"

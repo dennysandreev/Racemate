@@ -1,3 +1,5 @@
+import { Suspense, type ComponentProps } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { Radio } from "lucide-react";
@@ -74,9 +76,9 @@ export default async function SocialPage({
     race: params.race ?? "",
   };
   const user = mode === "mine" ? await getSessionUser() : null;
-  const [initialResult, filterOptions, favoriteFilters] = await Promise.all([
+  const filterOptionsPromise = getSocialFilterOptions();
+  const [initialResult, favoriteFilters] = await Promise.all([
     getSocialPosts({ pageSize: 12, platform, mode, ...activeFilters }),
-    getSocialFilterOptions(),
     mode === "mine"
       ? getFavoriteSocialFilters(user?.id)
       : Promise.resolve({ drivers: [], teams: [] }),
@@ -128,13 +130,9 @@ export default async function SocialPage({
       </section>
 
       <section className="grid gap-4 pb-8 pt-5">
-        <SocialFilterBar
-          active={activeFilters}
-          mode={mode}
-          options={filterOptions}
-          platform={platform}
-          platforms={platformFilters}
-        />
+        <Suspense fallback={<Skeleton className="h-12 w-full" />}>
+          <SocialFilters active={activeFilters} mode={mode} optionsPromise={filterOptionsPromise} platform={platform} platforms={platformFilters} />
+        </Suspense>
 
         <div className="min-w-0">
           <SocialFeed
@@ -149,6 +147,12 @@ export default async function SocialPage({
       </section>
     </AppShell>
   );
+}
+
+async function SocialFilters({ optionsPromise, ...props }: Omit<ComponentProps<typeof SocialFilterBar>, "options"> & {
+  optionsPromise: ReturnType<typeof getSocialFilterOptions>;
+}) {
+  return <SocialFilterBar {...props} options={await optionsPromise} />;
 }
 
 function getSocialHref(values: Record<string, string | undefined>) {

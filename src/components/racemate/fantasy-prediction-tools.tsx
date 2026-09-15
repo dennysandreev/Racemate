@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PreviousPredictionResult, PredictionResultPick } from "@/types/racemate";
 
-export function QualifyingResultsButton({
-  qualifyingResults,
+export function StartingGridButton({
+  startingGrid,
 }: {
-  qualifyingResults: SessionWithResults | null;
+  startingGrid: SessionWithResults | null;
 }) {
   const [selected, setSelected] = useState<SessionWithResults | null>(null);
   const [emptyOpen, setEmptyOpen] = useState(false);
@@ -23,8 +23,12 @@ export function QualifyingResultsButton({
       <Button
         className="min-h-11 w-full justify-center px-4 sm:w-auto"
         onClick={() => {
-          if (qualifyingResults) {
-            setSelected(qualifyingResults);
+          if (startingGrid) {
+            setSelected({
+              ...startingGrid,
+              title: "Стартовая решётка",
+              view: "starting-grid",
+            });
             return;
           }
 
@@ -34,18 +38,18 @@ export function QualifyingResultsButton({
         variant="secondary"
       >
         <ClipboardList aria-hidden="true" className="size-4" />
-        Результаты квалификации
+        <span>Стартовая решётка</span>
       </Button>
-      {qualifyingResults ? (
+      {startingGrid ? (
         <SessionResultsDialog onClose={() => setSelected(null)} selected={selected} />
       ) : (
         <PredictionInfoDialog
           onClose={() => setEmptyOpen(false)}
           open={emptyOpen}
-          title="Результаты квалификации"
+          title="Стартовая решётка"
         >
           <p className="text-sm leading-6 text-muted-foreground">
-            Результаты квалификации появятся после синхронизации.
+            Стартовая решётка появится после квалификации и обновится с учётом штрафов.
           </p>
         </PredictionInfoDialog>
       )}
@@ -54,10 +58,12 @@ export function QualifyingResultsButton({
 }
 
 export function PreviousPredictionResultButton({
+  children,
   className,
   previousResult,
   triggerLabel = "Прошлый прогноз",
 }: {
+  children?: ReactNode;
   className?: string;
   previousResult: PreviousPredictionResult | null;
   triggerLabel?: string;
@@ -66,16 +72,27 @@ export function PreviousPredictionResultButton({
 
   return (
     <>
-      <Button
-        className={className}
-        onClick={() => setOpen(true)}
-        size="sm"
-        type="button"
-        variant="secondary"
-      >
-        <CheckCircle2 aria-hidden="true" className="size-4" />
-        {triggerLabel}
-      </Button>
+      {children ? (
+        <button
+          aria-label="Открыть результат прошлого этапа"
+          className={className}
+          onClick={() => setOpen(true)}
+          type="button"
+        >
+          {children}
+        </button>
+      ) : (
+        <Button
+          className={className}
+          onClick={() => setOpen(true)}
+          size="sm"
+          type="button"
+          variant="secondary"
+        >
+          <CheckCircle2 aria-hidden="true" className="size-4" />
+          {triggerLabel}
+        </Button>
+      )}
       <PredictionInfoDialog
         onClose={() => setOpen(false)}
         open={open}

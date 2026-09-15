@@ -5,7 +5,7 @@ const severityOrder = new Map([
   ["P3", 3],
 ]);
 
-export const OPS_WATCHER_RULESET_VERSION = "2026-08-06.1";
+export const OPS_WATCHER_RULESET_VERSION = "2026-09-14.1";
 
 export function evaluateOpsSnapshot(snapshot, now = new Date()) {
   const findings = [];
@@ -19,7 +19,7 @@ export function evaluateOpsSnapshot(snapshot, now = new Date()) {
     }
   }
 
-  for (const serviceName of ["web", "admin-job-runner", "cron"]) {
+  for (const serviceName of ["web", "live", "admin-job-runner", "cron"]) {
     const heartbeat = latestHeartbeat.get(serviceName);
     const ageMinutes = heartbeat
       ? Math.max(0, (nowMs - Date.parse(heartbeat.checked_at)) / 60_000)
@@ -29,7 +29,7 @@ export function evaluateOpsSnapshot(snapshot, now = new Date()) {
         ruleKey: "service-heartbeat-stale",
         subject: serviceName,
         category: "availability",
-        severity: serviceName === "web" ? "P0" : "P1",
+        severity: serviceName === "web" || serviceName === "live" ? "P0" : "P1",
         title: `${serviceLabel(serviceName)} не подтверждает работу`,
         description: heartbeat
           ? `Последняя служебная отметка была ${Math.round(ageMinutes)} мин назад.`
@@ -38,6 +38,20 @@ export function evaluateOpsSnapshot(snapshot, now = new Date()) {
         route: "/admin/systems",
       }));
     }
+  }
+
+  const failedTelemetry = (snapshot.telemetryTasks ?? []).filter((task) => task.status === "failed");
+  if (failedTelemetry.length > 0) {
+    findings.push(makeFinding({
+      ruleKey: "telemetry-task-failed",
+      subject: "telemetry",
+      category: "data",
+      severity: failedTelemetry.length >= 3 ? "P1" : "P2",
+      title: "Подготовка телеметрии завершается ошибкой",
+      description: `Не удалось подготовить запросов: ${failedTelemetry.length}.`,
+      evidence: { failedCount: failedTelemetry.length },
+      route: "/admin/systems#service-telemetry",
+    }));
   }
 
   if (!snapshot.publicHealth?.ok) {
@@ -195,6 +209,7 @@ function safeLabel(value) {
 function serviceLabel(value) {
   return ({
     web: "Сайт",
+    live: "LIVE-центр",
     "admin-job-runner": "Исполнитель задач",
     cron: "Планировщик",
   })[value] ?? "Сервис";

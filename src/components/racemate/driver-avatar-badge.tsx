@@ -1,5 +1,8 @@
 import Image from "next/image";
 
+import historicalFallbackAvatar from "../../../public/drivers/avatars/archive-helmet-neutral-v2.png";
+
+import { normalizeDriverAvatarSlug } from "@/lib/driver-avatar-slug";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { cn } from "@/lib/utils";
 
@@ -28,16 +31,16 @@ const localDriverAvatarSlugs = new Set([
   "valtteri-bottas",
 ]);
 
-const historicalFallbackAvatar = "/drivers/avatars/archive-helmet-neutral.png";
-
 export function getLocalDriverAvatarSrc(slug?: string | null, season = CURRENT_F1_SEASON) {
-  return season === CURRENT_F1_SEASON && slug && localDriverAvatarSlugs.has(slug)
-    ? `/drivers/avatars/${season}/${slug}.webp`
+  const normalizedSlug = normalizeDriverAvatarSlug(slug);
+
+  return season === CURRENT_F1_SEASON && normalizedSlug && localDriverAvatarSlugs.has(normalizedSlug)
+    ? `/drivers/avatars/${season}/${normalizedSlug}.webp`
     : null;
 }
 
 export function getHistoricalDriverFallbackSrc(season: number) {
-  return season >= 2020 && season <= 2025 ? historicalFallbackAvatar : null;
+  return season >= 2020 && season <= 2025 ? historicalFallbackAvatar.src : null;
 }
 
 type DriverAvatarBadgeProps = {
@@ -90,6 +93,7 @@ export function DriverAvatarBadge({
           fill
           sizes={sizes}
           src={avatarSrc}
+          unoptimized={usesHistoricalFallback}
         />
       ) : (
         <span

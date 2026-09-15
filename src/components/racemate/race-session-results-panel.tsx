@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Trophy } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatSessionName } from "@/lib/session-display";
 import type { SessionResult, WeekendSession } from "@/types/racemate";
@@ -29,10 +28,28 @@ export function RaceSessionResultsPanel({
   const [activeSessionId, setActiveSessionId] = useState(
     initialSessionId ?? fallbackSessionId,
   );
+  const tabListRef = useRef<HTMLDivElement>(null);
   const selected = useMemo(
     () => sessions.find((item) => item.session.id === activeSessionId) ?? sessions[0] ?? null,
     [activeSessionId, sessions],
   );
+
+  useEffect(() => {
+    const tabList = tabListRef.current;
+    const activeTab = activeSessionId
+      ? document.getElementById(getSessionTabId(activeSessionId))
+      : null;
+
+    if (!tabList || !activeTab || window.matchMedia("(min-width: 768px)").matches) {
+      return;
+    }
+
+    const targetLeft = activeTab.offsetLeft - (tabList.clientWidth - activeTab.clientWidth) / 2;
+    tabList.scrollTo({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      left: Math.max(0, targetLeft),
+    });
+  }, [activeSessionId]);
 
   function selectSession(sessionId?: string) {
     if (!sessionId) {
@@ -46,6 +63,32 @@ export function RaceSessionResultsPanel({
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
   }
 
+  function moveSessionFocus(event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) {
+    const isPrevious = event.key === "ArrowLeft" || event.key === "ArrowUp";
+    const isNext = event.key === "ArrowRight" || event.key === "ArrowDown";
+
+    if (!isPrevious && !isNext && event.key !== "Home" && event.key !== "End") {
+      return;
+    }
+
+    event.preventDefault();
+    const targetIndex = event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? sessions.length - 1
+        : (currentIndex + (isPrevious ? -1 : 1) + sessions.length) % sessions.length;
+    const targetSessionId = sessions[targetIndex]?.session.id;
+
+    if (!targetSessionId) {
+      return;
+    }
+
+    selectSession(targetSessionId);
+    window.requestAnimationFrame(() => {
+      document.getElementById(getSessionTabId(targetSessionId))?.focus();
+    });
+  }
+
   if (!selected) {
     return (
       <div className="rounded-md border border-border/70 p-5 text-sm text-muted-foreground">
@@ -55,54 +98,63 @@ export function RaceSessionResultsPanel({
   }
 
   const { results, session } = selected;
-  const sessionStatus = results.length ? "Завершена" : session.status;
   const stats = getSessionStats(session, results, includeWeather);
 
   return (
-    <div className="grid min-w-0 gap-4">
+    <div className="grid min-w-0 gap-3 sm:gap-5">
       <div
         aria-label="Сессии этапа"
-        className="flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]"
+        className="flex min-w-0 snap-x snap-mandatory gap-2 overflow-x-auto pb-1 overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:overflow-visible md:pb-0"
+        ref={tabListRef}
         role="tablist"
+        style={{ gridTemplateColumns: `repeat(${sessions.length}, minmax(0, 1fr))` }}
       >
-        {sessions.map((item) => {
+        {sessions.map((item, index) => {
           const isActive = item.session.id === session.id;
+          const tabStatus = item.results.length ? "Есть результаты" : item.session.status;
+          const sessionStart = splitSessionStart(item.session.startsAt);
 
           return (
             <button
+              aria-controls={item.session.id ? getSessionPanelId(item.session.id) : undefined}
               aria-selected={isActive}
+              aria-label={`${formatSessionName(item.session.name)}, ${item.session.startsAt}, ${tabStatus}`}
               className={cn(
-                "min-h-10 shrink-0 rounded-md border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "grid min-h-[4.75rem] w-[9.25rem] flex-none snap-start content-between overflow-hidden rounded-md border px-3 py-2.5 text-left transition-[background-color,border-color,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-px md:h-16 md:min-h-0 md:w-auto md:min-w-0 md:px-3 md:py-2",
                 isActive
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-muted/45 text-muted-foreground hover:bg-accent hover:text-foreground",
+                  ? "border-primary bg-primary/12 text-foreground"
+                  : "border-border bg-background/65 text-muted-foreground hover:border-foreground/20 hover:bg-accent hover:text-foreground",
               )}
+              id={item.session.id ? getSessionTabId(item.session.id) : undefined}
               key={item.session.id ?? item.session.name}
               onClick={() => selectSession(item.session.id)}
+              onKeyDown={(event) => moveSessionFocus(event, index)}
               role="tab"
+              tabIndex={isActive ? 0 : -1}
               type="button"
             >
-              {formatSessionName(item.session.name)}
+              <span className="line-clamp-2 text-sm font-bold leading-4 md:truncate">
+                {formatSessionName(item.session.name)}
+              </span>
+              <span className={cn(
+                "mt-1 block min-w-0 font-telemetry text-[0.64rem] font-semibold leading-[1.2]",
+                isActive && "text-primary",
+              )}>
+                {sessionStart.time ? <span className="block whitespace-nowrap">{sessionStart.time}</span> : null}
+                <span className={cn("block whitespace-nowrap", sessionStart.time && "mt-0.5")}>{sessionStart.date}</span>
+              </span>
             </button>
           );
         })}
       </div>
 
-      <section aria-live="polite" className="min-w-0 overflow-hidden rounded-md border border-border/70">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-3 py-3 sm:px-4">
-          <div className="min-w-0">
-            <h3 className="font-display text-lg font-bold leading-tight">
-              {formatSessionName(session.name)}
-            </h3>
-            <p className="mt-1 font-telemetry text-xs font-semibold text-muted-foreground">
-              {session.startsAt}
-            </p>
-          </div>
-          <Badge variant={sessionStatus === "Завершена" ? "success" : "warning"}>
-            {sessionStatus}
-          </Badge>
-        </header>
-
+      <section
+        aria-labelledby={session.id ? getSessionTabId(session.id) : undefined}
+        aria-live="polite"
+        className="-mx-4 -mb-4 min-w-0 overflow-hidden border-y border-border/80 bg-transparent sm:mx-0 sm:mb-0 sm:rounded-lg sm:border sm:bg-background/35"
+        id={session.id ? getSessionPanelId(session.id) : undefined}
+        role="tabpanel"
+      >
         <div
           className={cn(
             "grid gap-px border-b border-border/70 bg-border/70",
@@ -110,16 +162,16 @@ export function RaceSessionResultsPanel({
           )}
         >
           {stats.map((stat) => (
-            <div className="min-h-16 bg-card px-3 py-2.5 sm:px-4" key={stat.label}>
+            <div className="min-h-[3.75rem] bg-card px-3 py-2.5 sm:min-h-[4.75rem] sm:px-5 sm:py-3" key={stat.label}>
               <p className="text-xs font-semibold text-muted-foreground">{stat.label}</p>
-              <div className="mt-1">{stat.value}</div>
+              <div className="mt-1 sm:mt-1.5">{stat.value}</div>
             </div>
           ))}
         </div>
 
         {results.length ? (
           <div className="min-w-0">
-            <div className="hidden grid-cols-[2.75rem_minmax(10rem,1.3fr)_minmax(7.5rem,0.8fr)_minmax(6.75rem,0.75fr)_3.5rem_3.5rem] gap-2 border-b border-border/70 bg-muted/15 px-4 py-2.5 text-xs font-semibold text-muted-foreground md:grid">
+            <div className="hidden grid-cols-[2.75rem_minmax(10rem,1.3fr)_minmax(7.5rem,0.8fr)_minmax(6.75rem,0.75fr)_3.5rem_3.5rem] gap-2 border-b border-border/70 bg-muted/25 px-5 py-2.5 text-xs font-semibold text-muted-foreground md:grid">
               <span>Поз.</span>
               <span>Пилот</span>
               <span>Команда</span>
@@ -153,15 +205,36 @@ export function RaceSessionResultsPanel({
   );
 }
 
+function splitSessionStart(value: string) {
+  const separatorIndex = value.lastIndexOf(",");
+
+  if (separatorIndex < 0) {
+    return { date: value, time: null };
+  }
+
+  return {
+    date: value.slice(0, separatorIndex).trim(),
+    time: value.slice(separatorIndex + 1).trim() || null,
+  };
+}
+
 function ResultRow({ result, season }: { result: SessionResult; season: number }) {
   const resultValue = result.time && result.time !== "-"
     ? result.time
     : result.status || "—";
 
   return (
-    <li className="grid min-w-0 grid-cols-[2.35rem_minmax(0,1fr)_auto] items-center gap-x-2.5 px-3 py-3 transition-colors hover:bg-accent/35 md:grid-cols-[2.75rem_minmax(10rem,1.3fr)_minmax(7.5rem,0.8fr)_minmax(6.75rem,0.75fr)_3.5rem_3.5rem] md:gap-2 md:px-4 md:py-3">
-      <span className="font-telemetry text-sm font-extrabold text-muted-foreground">
-        {result.position ? `P${result.position}` : "—"}
+    <li
+      className={cn(
+        "grid min-w-0 grid-cols-[2.35rem_minmax(0,1fr)_auto] items-center gap-x-2.5 px-3 py-3 transition-colors hover:bg-accent/35 md:grid-cols-[2.75rem_minmax(10rem,1.3fr)_minmax(7.5rem,0.8fr)_minmax(6.75rem,0.75fr)_3.5rem_3.5rem] md:gap-2 md:px-5 md:py-3.5",
+        result.position && result.position <= 3 && "bg-primary/[0.035]",
+      )}
+    >
+      <span className={cn(
+        "font-telemetry text-sm font-extrabold text-muted-foreground",
+        result.position === 1 && "text-primary",
+      )}>
+        {result.position ? `P${result.position}` : "-"}
       </span>
 
       <div className="flex min-w-0 items-center gap-2.5">
@@ -210,13 +283,21 @@ function ResultRow({ result, season }: { result: SessionResult; season: number }
         {resultValue}
       </span>
       <span className="hidden font-telemetry text-sm text-muted-foreground md:block">
-        {result.laps ?? "—"}
+        {result.laps ?? "-"}
       </span>
       <span className="hidden text-right font-telemetry text-sm font-bold md:block">
-        {result.points ?? "—"}
+        {result.points ?? "-"}
       </span>
     </li>
   );
+}
+
+function getSessionTabId(sessionId: string) {
+  return `session-tab-${sessionId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+}
+
+function getSessionPanelId(sessionId: string) {
+  return `session-panel-${sessionId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 }
 
 function TeamDot({ color }: { color?: string }) {
@@ -242,19 +323,19 @@ function getSessionStats(
   const stats: Array<{ label: string; value: ReactNode }> = [
     {
       label: "Участников",
-      value: <MetricValue>{results.length ? String(results.length) : "—"}</MetricValue>,
+      value: <MetricValue>{results.length ? String(results.length) : "-"}</MetricValue>,
     },
   ];
 
   if (isRace || isQualifying) {
     stats.push({
       label: "Победитель",
-      value: <MetricValue>{bestResult?.driver ?? "—"}</MetricValue>,
+      value: <MetricValue>{bestResult?.driver ?? "-"}</MetricValue>,
     });
   } else {
     stats.push({
       label: "Лидер",
-      value: <MetricValue>{bestResult?.driver ?? "—"}</MetricValue>,
+      value: <MetricValue>{bestResult?.driver ?? "-"}</MetricValue>,
     });
   }
 
@@ -262,7 +343,7 @@ function getSessionStats(
     label: isRace ? "Лучший круг" : "Время",
     value: isRace ? (
       <div className="grid min-w-0 gap-0.5">
-        <MetricValue>{fastestLap?.time ?? "—"}</MetricValue>
+        <MetricValue>{fastestLap?.time ?? "-"}</MetricValue>
         {fastestLap ? (
           <span className="truncate text-xs font-semibold text-muted-foreground">
             {fastestLap.driver}
@@ -270,7 +351,7 @@ function getSessionStats(
         ) : null}
       </div>
     ) : (
-      <MetricValue>{bestResult?.time ?? "—"}</MetricValue>
+      <MetricValue>{bestResult?.time ?? "-"}</MetricValue>
     ),
   });
 

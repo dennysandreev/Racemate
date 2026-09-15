@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 import {
   BellRing,
@@ -9,6 +10,7 @@ import {
   Newspaper,
   Send,
   ShieldCheck,
+  LockKeyhole,
   Sparkles,
   Unplug,
 } from "lucide-react";
@@ -30,6 +32,7 @@ import {
 } from "@/lib/notification-preferences";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { getSubscriptionAccess } from "@/lib/billing/access";
 
 type TelegramAccount = {
   username: string | null;
@@ -51,6 +54,10 @@ const sessionRows: Array<{
 ];
 
 export async function TelegramSettings({ userId }: { userId: string | null }) {
+  const access = await getSubscriptionAccess(userId);
+  if (!access.entitlements.telegram_notifications) {
+    return <section className="stitch-panel overflow-hidden p-0" id="telegram"><div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-md border border-border bg-secondary/50"><LockKeyhole className="size-5 text-primary" /></span><div><h2 className="font-display text-lg font-bold">Уведомления в Telegram</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Напоминания о сессиях, прогнозах и важных новостях входят в RaceSide Plus.</p></div></div><Button asChild className="shrink-0"><Link href="/plus#plans">Открыть с Plus</Link></Button></div></section>;
+  }
   const supabase = await createSupabaseServerClient();
   const [accountResult, preferencesResult] = userId && supabase
     ? await Promise.all([

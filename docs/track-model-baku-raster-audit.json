@@ -1,0 +1,44 @@
+{
+  "modelId": "baku",
+  "crs": "EPSG:32639",
+  "bounds": [
+    400500,
+    4468580,
+    402970,
+    4470180
+  ],
+  "surface": {
+    "allCenterlineVerticesCovered": true,
+    "allOutputPixelsCovered": true,
+    "sourceDate": "2018-04-09",
+    "sourcePixelGroundSpacingMeters": 0.7998759948193199,
+    "registrationInliers": 53,
+    "registrationRmsMeters": 2.21136638528961,
+    "registrationNote": "Internal fit residual, not independently surveyed absolute accuracy.",
+    "changes": "Similarity georegistration, crop, cubic resampling to 1 m grid, JPEG conversion.",
+    "attribution": "©2018 Planet Labs, Inc. / SkySat, CC BY-SA 4.0",
+    "licence": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  "terrain": {
+    "source": "GEDTM30 v1.1",
+    "verticalDatum": "EGM2008 EPSG:3855",
+    "rawScale": 0.1,
+    "sourceResolutionDegrees": [
+      0.00024999999999999643,
+      0.00024999999999999643
+    ],
+    "minMeters": -26.1,
+    "maxMeters": 14.600000000000001,
+    "rangeMeters": 40.7,
+    "referenceRangeMeters": 26.8,
+    "referenceUrl": "https://www.formula1.com/en/latest/article/highs-and-lows-which-f1-track-has-the-most-elevation-changes-.7I9JEcBw3R2AqXbnJ6hyvc.7I9JEcBw3R2AqXbnJ6hyvc",
+    "sampling": "nearest cell at each source centreline vertex; diagnostic only",
+    "acceptedAsRoadProfile": false
+  },
+  "publicationReady": false,
+  "remainingWork": [
+    "Validate a road elevation profile against independent ground control",
+    "Georeference and verify current event infrastructure",
+    "Build Blender scene, integrate viewer and complete visual acceptance"
+  ]
+}

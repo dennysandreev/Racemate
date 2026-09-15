@@ -34,6 +34,18 @@ test("Zandvoort loading preview keeps the fitted 3D framing", async () => {
   assert.equal(ZANDVOORT_TRACK_MODEL.webgl.previewPath, "/f1/tracks/3d/zandvoort-preview.webp");
 });
 
+test("Zandvoort 3D replay supports both the 2025 and 2026 Dutch Grands Prix", async () => {
+  const playerSource = await readFile(
+    new URL("../features/race-replay/components/race-replay-player.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    playerSource,
+    /\(replay\.sourceSeason === 2025 \|\| replay\.sourceSeason === 2026\)[\s\S]{0,300}return "zandvoort"/,
+  );
+});
+
 test("bottom map information stays above projected 3D annotations", async () => {
   const [viewerSource, replaySource] = await Promise.all([
     readFile(

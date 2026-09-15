@@ -12,6 +12,9 @@ import type { SessionResult, WeekendSession } from "@/types/racemate";
 export type SessionWithResults = {
   results: SessionResult[];
   session: WeekendSession;
+  title?: string;
+  updatedAt?: string;
+  view?: "results" | "starting-grid";
 };
 
 type SessionResultsDialogProps = {
@@ -47,6 +50,7 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
     return null;
   }
 
+  const isStartingGrid = selected.view === "starting-grid";
   const sessionStatus = selected.results.length ? "Завершена" : selected.session.status;
 
   return (
@@ -64,7 +68,7 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
       <div className="flex h-dvh max-h-dvh w-full max-w-4xl flex-col overflow-hidden bg-card shadow-2xl sm:h-auto sm:max-h-[88dvh] sm:rounded-lg sm:border sm:border-border">
         <div className="relative z-10 flex shrink-0 items-start justify-between gap-4 border-b border-border/70 bg-card px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] sm:p-5">
           <div>
-            <h2 className="text-xl font-semibold" id={titleId}>{formatSessionName(selected.session.name)}</h2>
+            <h2 className="text-xl font-semibold" id={titleId}>{selected.title ?? formatSessionName(selected.session.name)}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{selected.session.startsAt}</p>
           </div>
           <Button aria-label="Закрыть результаты" onClick={onClose} size="sm" type="button" variant="secondary">
@@ -77,7 +81,10 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded-md border border-border/70 bg-muted/50 p-3 text-sm sm:grid-cols-4 sm:gap-3">
-            <Metric label="Статус" value={sessionStatus} />
+            <Metric
+              label={isStartingGrid ? "Обновлено" : "Статус"}
+              value={isStartingGrid ? selected.updatedAt ?? "Время уточняется" : sessionStatus}
+            />
             <Metric label="Температура" value={selected.session.weather?.temperature ?? "Нет данных"} />
             <Metric label="Ветер" value={selected.session.weather?.wind ?? "Нет данных"} />
             <Metric label="Осадки" value={selected.session.weather?.precipitation ?? "Нет данных"} />
@@ -120,7 +127,7 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
                         <p className="font-telemetry whitespace-nowrap text-sm font-extrabold text-foreground">
                           {resultValue}
                         </p>
-                        {result.laps !== null || result.points !== null ? (
+                        {!isStartingGrid && (result.laps !== null || result.points !== null) ? (
                           <p className="mt-1 whitespace-nowrap text-[0.65rem] font-semibold text-muted-foreground">
                             {result.laps !== null ? `${result.laps} кр.` : null}
                             {result.laps !== null && result.points !== null ? " · " : null}
@@ -141,8 +148,8 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
                     <th className="px-4 py-3 font-medium">Пилот</th>
                     <th className="px-4 py-3 font-medium">Команда</th>
                     <th className="px-4 py-3 font-medium">Время</th>
-                    <th className="px-4 py-3 font-medium">Круги</th>
-                    <th className="px-4 py-3 text-right font-medium">Очки</th>
+                    {!isStartingGrid ? <th className="px-4 py-3 font-medium">Круги</th> : null}
+                    {!isStartingGrid ? <th className="px-4 py-3 text-right font-medium">Очки</th> : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -163,8 +170,8 @@ export function SessionResultsDialog({ onClose, selected }: SessionResultsDialog
                         </span>
                       </td>
                       <td className="px-4 py-3 font-mono text-muted-foreground">{result.time}</td>
-                      <td className="px-4 py-3 font-mono text-muted-foreground">{result.laps ?? "-"}</td>
-                      <td className="px-4 py-3 text-right font-mono">{result.points ?? "-"}</td>
+                      {!isStartingGrid ? <td className="px-4 py-3 font-mono text-muted-foreground">{result.laps ?? "-"}</td> : null}
+                      {!isStartingGrid ? <td className="px-4 py-3 text-right font-mono">{result.points ?? "-"}</td> : null}
                     </tr>
                   ))}
                 </tbody>

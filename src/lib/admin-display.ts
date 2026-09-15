@@ -13,7 +13,7 @@ const auditActionCopy: Record<string, AdminDisplayCopy> = {
   },
   "ai_prompt.publish": {
     title: "Инструкция AI опубликована",
-    description: "Новая версия начнёт применяться к следующим worker-задачам.",
+    description: "Новая версия начнёт применяться к следующим фоновым задачам.",
   },
   "ai_prompt.save_draft": {
     title: "Черновик инструкции AI сохранён",
@@ -50,6 +50,14 @@ const auditActionCopy: Record<string, AdminDisplayCopy> = {
   "news.update": {
     title: "Материал изменён",
     description: "Сохранены редакционный текст, теги или состояние публикации.",
+  },
+  "news.hide": {
+    title: "Материал убран из ленты",
+    description: "Материал сохранён в админке как черновик и больше не виден читателям.",
+  },
+  "external_api_budget.update": {
+    title: "Бюджет X API изменён",
+    description: "Сохранены цена чтения поста, дневной и месячный пределы расходов.",
   },
   "news_source.pause": {
     title: "RSS-источник поставлен на паузу",
@@ -99,6 +107,10 @@ const auditActionCopy: Record<string, AdminDisplayCopy> = {
     title: "Публикация из соцсети отклонена",
     description: "Пост снят с очереди модерации и не показывается в ленте.",
   },
+  "social.hide": {
+    title: "Публикация убрана из ленты",
+    description: "Публикация сохранена в админке и больше не видна читателям.",
+  },
   "social.retry": {
     title: "Публикация отправлена на переработку",
     description: "Русский текст, тема и решение о публикации будут подготовлены заново.",
@@ -119,11 +131,36 @@ const auditActionCopy: Record<string, AdminDisplayCopy> = {
     title: "Связь с Telegram отключена",
     description: "Проблемное подключение удалено, аккаунт RaceSide остался активным.",
   },
+  "subscription.grant": {
+    title: "RaceSide Plus выдан",
+    description: "Пользователю добавлен новый период доступа без платёжной операции.",
+  },
+  "subscription.revoke": {
+    title: "RaceSide Plus отозван",
+    description: "Доступ пользователя закрыт вручную с обязательной причиной.",
+  },
+  "billing.confirmation_resend": {
+    title: "Подтверждение отправлено повторно",
+    description: "Письмо по оплаченному заказу заново поставлено в очередь.",
+  },
+  "billing.payment_reconcile": {
+    title: "Оплата подтверждена вручную",
+    description: "Проверенная операция применена к заказу через защищённую транзакцию.",
+  },
+  "billing.refund_record": {
+    title: "Возврат зафиксирован",
+    description: "Фактически выполненный возврат сохранён, доступ пользователя пересчитан.",
+  },
+  "user_error_report.update": {
+    title: "Сообщение об ошибке обновлено",
+    description: "Сохранены состояние обращения и заметка администратора.",
+  },
 };
 
 const entityLabels: Record<string, string> = {
   ai_budget: "Лимиты AI",
   ai_prompt: "Инструкция AI",
+  external_api_budget: "Бюджет внешнего API",
   digest: "Дневная сводка",
   driver: "Гонщик",
   grand_prix_report: "Отчёт Гран-при",
@@ -137,6 +174,9 @@ const entityLabels: Record<string, string> = {
   job_schedule: "Расписание",
   social_post: "Публикация из соцсети",
   social_source: "Социальный источник",
+  subscription: "Подписка RaceSide Plus",
+  billing_order: "Заказ RaceSide Plus",
+  user_error_report: "Сообщение об ошибке",
 };
 
 const aiPurposeLabels: Record<string, string> = {

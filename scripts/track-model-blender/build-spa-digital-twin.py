@@ -473,7 +473,14 @@ def create_paddock_motorhomes(config, pit_points, raster, center, base_elevation
 
 
 def create_pit_complex(
-    config, pit_points, raster, center, base_elevation, materials, collection,
+    config,
+    pit_points,
+    raster,
+    center,
+    base_elevation,
+    materials,
+    collection,
+    covered_grandstand=False,
 ):
     builder = base.MeshBuilder()
     cumulative, total = base.line_distance(pit_points)
@@ -538,6 +545,38 @@ def create_pit_complex(
             row_top = [(x, y, row_height) for x, y, _ in row_strip]
             builder.add_volume(row_bottom, row_top, material_index=2 if row % 3 else 1)
 
+    canopy_thickness = 0.38
+    if covered_grandstand:
+        canopy_front = front_offset + (rear_offset - front_offset) * 0.08
+        canopy_rear = front_offset + (rear_offset - front_offset) * 0.98
+        canopy_surface = [
+            base.road_surface_point(
+                pit_points,
+                cumulative,
+                distance,
+                lateral,
+                raster,
+                center,
+                base_elevation,
+                base.PIT_LANE_WIDTH_METERS,
+                z_offset=base.TRACK_SURFACE_Z_OFFSET + 0.04,
+                closed=False,
+            )
+            for distance, lateral in (
+                (start, canopy_front),
+                (end, canopy_front),
+                (end, canopy_rear),
+                (start, canopy_rear),
+            )
+        ]
+        canopy_bottom = [
+            (x, y, z + garage_height + 7.2) for x, y, z in canopy_surface
+        ]
+        canopy_top = [
+            (x, y, z + canopy_thickness) for x, y, z in canopy_bottom
+        ]
+        builder.add_volume(canopy_bottom, canopy_top, material_index=3)
+
     obj = builder.create_object(
         "Spa_42_Garage_Pit_Complex_Grandstand",
         materials,
@@ -548,6 +587,9 @@ def create_pit_complex(
         "buildingDepthMeters": round(abs(rear_offset - front_offset), 2),
         "garageBoxes": garage_boxes,
         "grandstandRows": grandstand_rows,
+        "coveredGrandstand": covered_grandstand,
+        "canopyMaterialOpaque": covered_grandstand,
+        "canopyThicknessMeters": canopy_thickness if covered_grandstand else 0,
         "lengthMeters": round(end - start, 2),
         "pitLaneClearanceMeters": round(abs(front_offset) - base.PIT_LANE_WIDTH_METERS / 2, 2),
     }

@@ -75,12 +75,12 @@ export function GrandPrixReportDialog({
   const biggestDrop = asHighlight(report.highlights.biggestDrop);
   const bestTeam = asHighlight(report.highlights.bestTeam, "team", "points");
   const fastestLap = asHighlight(report.highlights.fastestLap);
-  const fastestPitStop = asHighlight(report.highlights.fastestPitStop, "driver", "duration");
+  const fastestPitStop = asPitStopHighlight(report.highlights.fastestPitStop);
   const safetyCarSummary = asText(report.highlights.safetyCarSummary);
   const mostCommonStrategy = asHighlight(report.highlights.mostCommonStrategy, "sequence", "drivers");
   const biggestDropTeam = getTeamVisualFromHighlight(report.highlights.biggestDrop, report.results);
   const bestTeamVisual = getTeamVisualFromHighlight(report.highlights.bestTeam, report.results, "team");
-  const fastestPitStopTeam = getTeamVisualFromHighlight(report.highlights.fastestPitStop, report.results);
+  const fastestPitStopTeam = getFastestPitStopTeamVisual(report.highlights.fastestPitStop, report.results);
   const newsSummary = getNewsSummary(report.newsSummary);
   const summaryParagraphs = getSummaryParagraphs(report.aiSummary);
 
@@ -332,7 +332,7 @@ export function GrandPrixReportDialog({
                 value={fastestPitStop ?? "Нет данных"}
               />
               {hasRaceControlEventSummary(safetyCarSummary) ? (
-                <ReportStat icon={Flag} label="SC / VSC / красный флаг" value={safetyCarSummary} />
+                <ReportStat icon={Flag} label="Флаги и нейтрализации" value={safetyCarSummary} />
               ) : null}
               <ReportStat icon={Trophy} label="Частая стратегия" value={mostCommonStrategy ?? "Нет данных"} />
               <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
@@ -463,6 +463,19 @@ function getTeamVisualFromHighlight(
   return nameKey === "team" ? getTeamAsset(name) : getTeamAssetForDriver(name, results);
 }
 
+function getFastestPitStopTeamVisual(value: unknown, results: GrandPrixReport["results"]) {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const team = asText(record.team);
+
+  return team
+    ? getTeamAsset(team)
+    : getTeamVisualFromHighlight(value, results);
+}
+
 function ReportStat({
   color,
   icon: Icon,
@@ -540,6 +553,24 @@ function asHighlight(
   const metric = record[metricKey];
 
   return metric === null || metric === undefined ? name : `${name} (${metric})`;
+}
+
+function asPitStopHighlight(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const name = asText(record.team) ?? asText(record.driver);
+  const duration = Number(record.duration);
+
+  if (!name) {
+    return null;
+  }
+
+  return Number.isFinite(duration)
+    ? `${name} (${new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 3 }).format(duration)} с)`
+    : name;
 }
 
 function getSummaryParagraphs(summary?: string | null) {

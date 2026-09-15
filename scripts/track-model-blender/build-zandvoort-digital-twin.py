@@ -189,7 +189,15 @@ class MeshBuilder:
         return obj
 
 
-def create_material(name, color, roughness=0.8, metallic=0.0, use_vertex_color=False, emission_strength=0.0):
+def create_material(
+    name,
+    color,
+    roughness=0.8,
+    metallic=0.0,
+    use_vertex_color=False,
+    emission_strength=0.0,
+    use_vertex_alpha=False,
+):
     material = bpy.data.materials.new(name)
     material.use_nodes = True
     material.diffuse_color = color
@@ -213,7 +221,10 @@ def create_material(name, color, roughness=0.8, metallic=0.0, use_vertex_color=F
         vertex_color = nodes.new("ShaderNodeVertexColor")
         vertex_color.layer_name = "SurfaceColor"
         material.node_tree.links.new(vertex_color.outputs["Color"], principled.inputs["Base Color"])
-        material.node_tree.links.new(vertex_color.outputs["Alpha"], principled.inputs["Alpha"])
+        if use_vertex_alpha:
+            material.node_tree.links.new(vertex_color.outputs["Alpha"], principled.inputs["Alpha"])
+            material.surface_render_method = "DITHERED"
+            material.use_transparency_overlap = False
     return material
 
 
@@ -1663,10 +1674,19 @@ def create_track_annotations(config, osm_data, centerline, cumulative, total, ra
     marker_builder = MeshBuilder()
     turn_anchors = []
     for turn in config["model"]["turns"]:
-        side = -1 if turn["number"] in (1, 3, 4, 7, 8, 10, 14) else 1
+        side = turn.get(
+            "anchorSide",
+            -1 if turn["number"] in (1, 3, 4, 7, 8, 10, 14) else 1,
+        )
         anchor = anchor_at(
-            f"Turn_{turn['number']:02d}", turn["distanceMeters"], centerline, cumulative, total,
-            raster, center, base_elevation, collection, side=side, offset=19, height=7,
+            f"Turn_{turn['number']:02d}", turn.get("anchorDistanceMeters", turn["distanceMeters"]), centerline, cumulative, total,
+            raster,
+            center,
+            base_elevation,
+            collection,
+            side=side,
+            offset=turn.get("anchorOffsetMeters", 19),
+            height=turn.get("anchorHeightMeters", 7),
         )
         anchor["turn_name"] = turn["name"]
         turn_anchors.append(anchor)

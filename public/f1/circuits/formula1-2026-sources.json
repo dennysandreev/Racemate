@@ -1,5 +1,13 @@
 {
   "downloadedAt": "2026-07-01T16:52:33.001Z",
+  "partiallyRefreshedAt": "2026-09-15T14:39:46.000Z",
+  "refreshedFiles": [
+    "/f1/circuits/hungary.webp",
+    "/f1/circuits/netherlands.webp",
+    "/f1/circuits/italy.webp",
+    "/f1/circuits/baku.webp",
+    "/f1/circuits/spain.webp"
+  ],
   "sources": [
     {
       "file": "/f1/circuits/australia.webp",
@@ -64,12 +72,12 @@
     {
       "file": "/f1/circuits/italy.webp",
       "pageUrl": "https://www.formula1.com/en/racing/2026/italy",
-      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmonzadetailed.webp"
+      "sourceUrl": "https://media.formula1.com/image/upload/f_auto/q_auto/v1751632445/common/f1/2026/track/2026trackmonzadetailed.png"
     },
     {
       "file": "/f1/circuits/baku.webp",
       "pageUrl": "https://www.formula1.com/en/racing/2026/azerbaijan",
-      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackbakudetailed.webp"
+      "sourceUrl": "https://media.formula1.com/image/upload/f_auto/q_auto/v1751632392/common/f1/2026/track/2026trackbakudetailed.png"
     },
     {
       "file": "/f1/circuits/malaysia.webp",
@@ -104,7 +112,7 @@
     {
       "file": "/f1/circuits/spain.webp",
       "pageUrl": "https://www.formula1.com/en/racing/2026/spain",
-      "sourceUrl": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackmadringdetailed.webp"
+      "sourceUrl": "https://media.formula1.com/image/upload/f_auto/q_auto/v1756285390/common/f1/2026/track/2026trackmadringdetailed.png"
     },
     {
       "file": "/f1/circuits/qatar.webp",

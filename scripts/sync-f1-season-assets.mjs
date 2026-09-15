@@ -47,6 +47,7 @@ const eventSlugOverrides = {
   "Azerbaijan Grand Prix": "azerbaijan",
   "Bahrain Grand Prix": "bahrain",
   "Bahrain Grand Prix in Malaysia": "bahrain",
+  "Malaysian Grand Prix": "bahrain",
   "Barcelona Grand Prix": "barcelona-catalunya",
   "Belgian Grand Prix": "belgium",
   "Brazilian Grand Prix": "brazil",

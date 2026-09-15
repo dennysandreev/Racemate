@@ -39,7 +39,7 @@ export function NewsQuickFilters({
         <span className="shrink-0 text-xs font-semibold text-muted-foreground">Команда</span>
         <select
           aria-label="Фильтр новостей по команде"
-          className="min-w-0 flex-1 appearance-none bg-transparent pr-5 text-right text-sm font-medium outline-none"
+          className="feed-filter-select min-w-0 flex-1 appearance-none bg-transparent pr-5 text-right text-sm font-medium outline-none"
           id="news-team-filter"
           onChange={(event) => applyTag(event.target.value)}
           value={teams.some((item) => item.slug === activeTag) ? activeTag : ""}
@@ -59,7 +59,7 @@ export function NewsQuickFilters({
         <span className="shrink-0 text-xs font-semibold text-muted-foreground">Пилот</span>
         <select
           aria-label="Фильтр новостей по пилоту"
-          className="min-w-0 flex-1 appearance-none bg-transparent pr-5 text-right text-sm font-medium outline-none"
+          className="feed-filter-select min-w-0 flex-1 appearance-none bg-transparent pr-5 text-right text-sm font-medium outline-none"
           id="news-driver-filter"
           onChange={(event) => applyTag(event.target.value)}
           value={drivers.some((item) => item.slug === activeTag) ? activeTag : ""}

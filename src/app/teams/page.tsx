@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ChevronRight, Flag, Trophy } from "lucide-react";
 
+import { PublicPageSkeleton } from "@/components/racemate/public-page-loading";
 import { AppShell } from "@/components/racemate/app-shell";
 import { JsonLd } from "@/components/racemate/json-ld";
 import { NavigationLoadingLink } from "@/components/racemate/navigation-loading-link";
@@ -58,10 +60,22 @@ export default async function TeamsPage({
     notFound();
   }
 
+  return (
+    <AppShell>
+      <Suspense fallback={<PublicPageSkeleton label="Команды загружаются" variant="cards" />}>
+        <TeamsContent query={query} season={season} publishedSeasons={publishedSeasons} />
+      </Suspense>
+    </AppShell>
+  );
+}
+
+async function TeamsContent({ query, season, publishedSeasons }: {
+  query: SeasonSearchParams; season: number; publishedSeasons: number[];
+}) {
   const teams = await getTeamProfiles(season);
 
   return (
-    <AppShell>
+    <>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -123,7 +137,6 @@ export default async function TeamsPage({
                 key={team.id}
                 loadingLabel="Загружаем профиль команды"
                 loadingVariant="profile"
-                prefetch={false}
                 style={{
                   backgroundImage: `radial-gradient(circle at 58% 35%, color-mix(in srgb, ${team.color} 22%, transparent), transparent 56%)`,
                 }}
@@ -187,7 +200,7 @@ export default async function TeamsPage({
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }
 

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "modelId": "baku",
+  "sources": [
+    {
+      "file": ".track-model-build/baku-source/planet-skysat-2018-04-09.jpg",
+      "bytes": 2688857,
+      "sha256": "6a7e3fd15872a65e6360b8b7780b4cdeccb9d38715fe14ff8489ff02b4c13c98",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6d/Baku_City_Circuit%2C_April_9%2C_2018_SkySat.jpg",
+      "referenceUrl": "https://commons.wikimedia.org/wiki/File:Baku_City_Circuit,_April_9,_2018_SkySat.jpg",
+      "license": "CC BY-SA 4.0",
+      "role": "licensed surface-colour source",
+      "date": "2018-04-09"
+    },
+    {
+      "file": ".track-model-build/baku-source/worldview-reference-manifest.json",
+      "bytes": 39254,
+      "sha256": "5720f9cea23ccf96d3a43ef39bc505c6e27b5b0721e4ec8a0ec3cfd16efff6e0",
+      "role": "UTM 39N registration reference tile manifest",
+      "license": "Reference only; public texture redistribution not established"
+    },
+    {
+      "file": "docs/track-model-baku-skysat-registration.json",
+      "bytes": 12514,
+      "sha256": "10b9f291d486caab56624f1e123f75336a57ddc3c2a02f5623da3835ef43d2ba",
+      "role": "reviewed image registration with 53 matching points"
+    },
+    {
+      "file": ".track-model-build/baku-source/gedtm30-baku-native.tif",
+      "bytes": 18228,
+      "sha256": "e225f2d6eeb1092c45e9a2e0cc958712b32fd3324344f9ce150f229da65eebcf",
+      "url": "https://s3.opengeohub.org/global/edtm/gedtm_rf_m_30m_s_20060101_20151231_go_epsg.4326.3855_v20250611.tif",
+      "role": "diagnostic terrain subset; not accepted road profile",
+      "license": "CC BY 4.0",
+      "verticalDatum": "EGM2008 EPSG:3855",
+      "rawScale": 0.1
+    }
+  ],
+  "derived": [
+    {
+      "file": ".track-model-build/baku-prepared/baku-skysat-ground.jpg",
+      "bytes": 1650939,
+      "sha256": "2b255d9dd905217168fb42df91e3da757c7c218a1a1e842d433fbfa60ec03124",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "file": ".track-model-build/baku-prepared/baku-skysat-ground.tif",
+      "bytes": 9988432,
+      "sha256": "9dfb274c01e9481bcda4a82a2d0301ab818892966fd13c2ce56f05c909d75e81",
+      "license": "CC BY-SA 4.0"
+    }
+  ]
+}

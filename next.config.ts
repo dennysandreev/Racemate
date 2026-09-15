@@ -11,7 +11,7 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "base-uri 'self'",
-      "form-action 'self'",
+      "form-action 'self' https://yoomoney.ru",
       "frame-ancestors 'none'",
       "object-src 'none'",
       "img-src 'self' data: blob: https:",
@@ -65,11 +65,21 @@ const noIndexPaths = [
 ];
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["127.0.0.1"],
+  devIndicators: false,
+  async rewrites() {
+    return [{ source: "/ws/live", destination: `${process.env.LIVE_INTERNAL_ORIGIN ?? "http://127.0.0.1:3002"}/ws/live` }];
+  },
   async headers() {
     return [
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        source: "/f1/circuits/:path*",
+        has: [{ type: "query", key: "v", value: "[a-f0-9]{16}" }],
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       ...noIndexPaths.map((source) => ({
         headers: noIndexHeaders,
@@ -87,6 +97,10 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    localPatterns: [
+      { pathname: "/**", search: "" },
+      { pathname: "/f1/circuits/**" },
+    ],
     remotePatterns: [
       {
         protocol: "https",

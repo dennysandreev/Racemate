@@ -32,7 +32,7 @@ export default async function AdminSchedulesPage() {
         <AlertTitle>Без произвольных cron-команд</AlertTitle>
         <AlertDescription>
           Каждое расписание связано с одной разрешённой задачей. Команды, секреты
-          и аргументы worker-процесса нельзя подменить из браузера.
+          и служебные параметры нельзя подменить из браузера.
         </AlertDescription>
       </Alert>
       <AdminSection

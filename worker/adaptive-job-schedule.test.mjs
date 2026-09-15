@@ -5,7 +5,9 @@ import {
   getAdaptiveReportCheckPlan,
   getAdaptiveReportRefreshPlan,
   getAdaptiveResultPlan,
+  getAdaptiveStartingGridPlan,
   getLatestStartedRound,
+  isStoredResultComplete,
 } from "./adaptive-job-schedule.mjs";
 
 const NOW = Date.parse("2026-07-24T18:00:00.000Z");
@@ -19,6 +21,39 @@ test("keeps result checks daily when there is no relevant session", () => {
 
   assert.equal(plan.mode, "daily");
   assert.equal(plan.nextRunAt, "2026-07-25T18:00:00.000Z");
+});
+
+test("checks the starting grid hourly only between qualifying and the race", () => {
+  const active = getAdaptiveStartingGridPlan({
+    nowMs: NOW,
+    weekends: [{
+      qualifyingEndAt: "2026-07-24T16:00:00.000Z",
+      raceStartAt: "2026-07-25T14:00:00.000Z",
+    }],
+  });
+  const afterRace = getAdaptiveStartingGridPlan({
+    nowMs: NOW,
+    weekends: [{
+      qualifyingEndAt: "2026-07-23T16:00:00.000Z",
+      raceStartAt: "2026-07-24T17:00:00.000Z",
+    }],
+  });
+
+  assert.equal(active.mode, "grid_updates");
+  assert.equal(active.intervalMinutes, 60);
+  assert.equal(afterRace.mode, "daily");
+});
+
+test("stops grid polling when the next hourly check would be after lights out", () => {
+  const plan = getAdaptiveStartingGridPlan({
+    nowMs: NOW,
+    weekends: [{
+      qualifyingEndAt: "2026-07-24T16:00:00.000Z",
+      raceStartAt: "2026-07-24T18:30:00.000Z",
+    }],
+  });
+
+  assert.equal(plan.mode, "daily");
 });
 
 test("opens the OpenF1 fast window after the provider delay", () => {
@@ -124,4 +159,48 @@ test("scheduled Jolpica sync targets only the latest started round", () => {
     { round: 11, startAt: "2026-07-24T15:00:00.000Z" },
     { round: 12, startAt: "2026-08-02T13:00:00.000Z" },
   ], NOW), 11);
+});
+
+test("Jolpica race stays incomplete until the starting grid is available", () => {
+  const base = {
+    minimumRows: 20,
+    provider: "jolpica",
+    sessionType: "race",
+  };
+
+  assert.equal(isStoredResultComplete({
+    ...base,
+    counts: { jolpica: 22, jolpicaGrid: 0, openf1: 0 },
+  }), false);
+  assert.equal(isStoredResultComplete({
+    ...base,
+    counts: { jolpica: 22, jolpicaGrid: 22, openf1: 0 },
+  }), true);
+  assert.equal(isStoredResultComplete({
+    ...base,
+    sessionType: "qualifying",
+    counts: { jolpica: 22, jolpicaGrid: 0, openf1: 0 },
+  }), true);
+});
+
+test("OpenF1 race stays incomplete until championship points are persisted", () => {
+  const base = {
+    minimumRows: 20,
+    provider: "openf1",
+    sessionType: "race",
+  };
+
+  assert.equal(isStoredResultComplete({
+    ...base,
+    counts: { jolpica: 0, jolpicaGrid: 0, openf1: 22, openf1WithPoints: 0 },
+  }), false);
+  assert.equal(isStoredResultComplete({
+    ...base,
+    counts: { jolpica: 0, jolpicaGrid: 0, openf1: 22, openf1WithPoints: 22 },
+  }), true);
+  assert.equal(isStoredResultComplete({
+    ...base,
+    sessionType: "qualifying",
+    counts: { jolpica: 0, jolpicaGrid: 0, openf1: 22, openf1WithPoints: 0 },
+  }), true);
 });

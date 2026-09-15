@@ -3,6 +3,7 @@ import {
   runAdminJobAction,
 } from "@/app/admin/operations";
 import { AdminActionForm } from "@/components/admin/admin-action-form";
+import { AdminUrlTabs } from "@/components/admin/admin-url-tabs";
 import { AdminConfirmedAction } from "@/components/admin/admin-confirmed-action";
 import { AdminFilters } from "@/components/admin/admin-filters";
 import {
@@ -16,7 +17,7 @@ import {
 } from "@/components/admin/admin-ui";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { loadAdminJobs, parseAdminTableQuery } from "@/data/admin-repository";
 import { sanitizeAdminAuditPayload } from "@/lib/admin-audit";
 import { getAdminJobCopy } from "@/lib/admin-display";
@@ -41,7 +42,7 @@ export default async function AdminJobsPage({ searchParams }: PageProps) {
         description="Только разрешённые действия и проверенные параметры. Произвольные служебные команды из интерфейса недоступны."
         title="Фоновые задачи"
       />
-      <Tabs defaultValue="runs">
+      <AdminUrlTabs defaultValue="runs" values={["runs", "catalog"]}>
         <TabsList variant="line">
           <TabsTrigger value="runs">Очередь и история</TabsTrigger>
           <TabsTrigger value="catalog">Каталог задач</TabsTrigger>
@@ -76,7 +77,7 @@ export default async function AdminJobsPage({ searchParams }: PageProps) {
                         <dl className="mt-3 grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
                           <div><dt className="text-xs text-muted-foreground">Обработано</dt><dd className="mt-1 font-mono">{job.itemsProcessed}</dd></div>
                           <div><dt className="text-xs text-muted-foreground">Попытка</dt><dd className="mt-1 font-mono">{job.attemptCount}/{job.maxAttempts}</dd></div>
-                          <div><dt className="text-xs text-muted-foreground">Взята worker</dt><dd className="mt-1">{job.claimedAt ? formatDate(job.claimedAt) : "нет"}</dd></div>
+                          <div><dt className="text-xs text-muted-foreground">Начата обработка</dt><dd className="mt-1">{job.claimedAt ? formatDate(job.claimedAt) : "нет"}</dd></div>
                           <div><dt className="text-xs text-muted-foreground">Длительность</dt><dd className="mt-1">{formatDuration(job.startedAt, job.finishedAt)}</dd></div>
                         </dl>
                         {job.errorMessage ? <p className="mt-3 text-sm leading-6 text-danger">{job.errorMessage}</p> : null}
@@ -111,7 +112,7 @@ export default async function AdminJobsPage({ searchParams }: PageProps) {
             </div>
           </AdminSection>
         </TabsContent>
-      </Tabs>
+      </AdminUrlTabs>
     </AdminPage>
   );
 }
@@ -157,7 +158,7 @@ function JobDefinitionForm({ definition }: { definition: AdminJobDefinition }) {
         <AdminConfirmedAction
           action={runAdminJobAction}
           confirmLabel="Запустить задачу"
-          description={definition.confirmation ?? "Worker выполнит задачу после проверки параметров."}
+          description={definition.confirmation ?? "Фоновая обработка начнётся после проверки параметров."}
           title={`Запустить «${definition.title}»?`}
           triggerLabel="Проверить и запустить"
         >

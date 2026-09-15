@@ -32,6 +32,7 @@ import {
 import type { TrackModelDefinition } from "@/data/track-model-types";
 import {
   clampTrackModelPan,
+  getTrackModelInitialZoom,
   normalizeDegrees,
   orbitTrackModelCamera,
   pinchTrackModelCamera,
@@ -83,15 +84,20 @@ export function TrackModel3D({
   fill = false,
   model,
 }: TrackModel3DProps) {
+  const initialZoom = getTrackModelInitialZoom(
+    Boolean(model.webgl),
+    typeof window !== "undefined" && window.matchMedia("(min-width: 640px)").matches,
+  );
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const [rotationDeg, setRotationDeg] = useState(model.camera.rotationDeg);
   const [tiltDeg, setTiltDeg] = useState(model.camera.tiltDeg);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(initialZoom);
   const [pan, setPan] = useState<TrackModelPan>({ x: 0, y: 0 });
 
   const sharedViewportProps = {
     circuit,
     compact,
+    initialZoom,
     model,
     pan,
     rotationDeg,
@@ -134,6 +140,7 @@ export function TrackModel3D({
 
 type TrackModelViewportProps = TrackModel3DProps & {
   fullscreen?: boolean;
+  initialZoom: number;
   onFullscreenToggle: () => void;
   pan: TrackModelPan;
   rotationDeg: number;
@@ -150,6 +157,7 @@ function TrackModelViewport({
   compact = false,
   fill = false,
   fullscreen = false,
+  initialZoom,
   model,
   onFullscreenToggle,
   pan,
@@ -355,7 +363,7 @@ function TrackModelViewport({
     const reset = {
       pan: { x: 0, y: 0 },
       rotationDeg: model.camera.rotationDeg,
-      zoom: 1,
+      zoom: initialZoom,
     };
     cameraStateRef.current = reset;
     tiltRef.current = model.camera.tiltDeg;
@@ -610,7 +618,7 @@ function TrackModelViewport({
         tiltDeg={tiltDeg}
       />
 
-      <div className="absolute right-3 top-3 flex items-center gap-2">
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
         <Button
           aria-label="Отдалить трассу"
           className="size-11 sm:size-10"
@@ -628,7 +636,7 @@ function TrackModelViewport({
           disabled={
             rotationDeg === model.camera.rotationDeg &&
             tiltDeg === model.camera.tiltDeg &&
-            zoom === 1 &&
+            zoom === initialZoom &&
             pan.x === 0 &&
             pan.y === 0
           }
@@ -688,7 +696,8 @@ function TrackModelViewport({
             })} км
           </span>
           <span aria-hidden="true" className="h-4 w-px shrink-0 bg-border" />
-          <ElevationProfile scene={scene} />
+          <ElevationProfile approximate={model.webgl?.elevationApproximate} scene={scene} />
+          {!model.webgl?.elevationApproximate && <>
           <span className="hidden shrink-0 items-center gap-1 whitespace-nowrap @lg/track:flex">
             <TrendingUp aria-hidden="true" className="size-3.5" />
             {model.data.maxUphillPercent.toLocaleString("ru-RU")}%
@@ -697,6 +706,7 @@ function TrackModelViewport({
             <TrendingDown aria-hidden="true" className="size-3.5" />
             {model.data.maxDownhillPercent.toLocaleString("ru-RU")}%
           </span>
+          </>}
         </div>
       </figcaption>
 
@@ -707,7 +717,7 @@ function TrackModelViewport({
   );
 }
 
-function ElevationProfile({ scene }: { scene: ReturnType<typeof createTrackModelScene> }) {
+function ElevationProfile({ approximate = false, scene }: { approximate?: boolean; scene: ReturnType<typeof createTrackModelScene> }) {
   const width = 122;
   const height = 30;
   const minElevation = scene.lowPoint.elevationM;
@@ -723,7 +733,8 @@ function ElevationProfile({ scene }: { scene: ReturnType<typeof createTrackModel
     .join(" ");
 
   return (
-    <span className="flex min-w-0 shrink-0 items-center gap-1.5">
+    <span className="flex min-w-0 shrink-0 items-center gap-1.5" title={approximate ? "Высоты приблизительные: по спутниковой модели рельефа" : undefined}>
+      {approximate && <span aria-label="Приблизительный перепад высот">≈</span>}
       <span className="hidden text-muted-foreground @md/track:inline">Перепад</span>
       <svg
         aria-hidden="true"

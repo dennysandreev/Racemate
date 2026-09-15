@@ -36,32 +36,30 @@ export default async function AdminFindingsPage({ searchParams }: PageProps) {
   if (!admin) throw new Error("Серверный клиент админки недоступен");
   const query = parseAdminTableQuery(await searchParams, { pageSize: 20 });
   const data = await loadAdminFindings(admin, query);
-  const active = data.items.filter(({ finding }) => !["resolved", "ignored"].includes(finding.status));
-  const urgent = active.filter(({ finding }) => finding.severity === "P0" || finding.severity === "P1");
   const latestRun = data.runs[0] ?? null;
   const latestWatcherHeartbeat = data.heartbeats.find((heartbeat) => heartbeat.service_name === "watcher") ?? null;
 
   return (
     <AdminPage>
       <AdminPageHeader
-        description="Watcher круглосуточно проверяет сайт по фиксированным правилам. Сейчас он только наблюдает, фиксирует отклонения и сообщает о критичных событиях."
-        title="Находки администратора"
+        description="Автоматическая проверка круглосуточно следит за сайтом, фиксирует отклонения и сообщает о критичных событиях."
+        title="Проблемы и проверки"
       />
 
       <section className="grid grid-cols-2 gap-y-5 border-b border-border pb-5 lg:grid-cols-4">
-        <AdminMetric label="Активные" tone={active.length ? "warning" : "success"} value={String(active.length)} />
-        <AdminMetric label="Срочные" tone={urgent.length ? "danger" : "default"} value={String(urgent.length)} />
-        <AdminMetric label="Режим" helper="R2-действия выключены" value={modeLabel(data.settings.mode)} />
+        <AdminMetric label="Активные" tone={data.metrics.active ? "warning" : "success"} value={String(data.metrics.active)} />
+        <AdminMetric label="Срочные" tone={data.metrics.urgent ? "danger" : "default"} value={String(data.metrics.urgent)} />
+        <AdminMetric label="Режим" helper="Автоисправления выключены" value={modeLabel(data.settings.mode)} />
         <AdminMetric
           helper={latestRun ? `последний запуск ${formatDate(latestRun.started_at)}` : "запусков ещё не было"}
-          label="Watcher"
+          label="Проверка"
           tone={latestWatcherHeartbeat?.status === "healthy" ? "success" : "warning"}
           value={latestWatcherHeartbeat?.status === "healthy" ? "Работает" : "Ожидание"}
         />
       </section>
 
       <AdminSection
-        description="Kill switch действует со следующего цикла. Режим исправлений станет доступен только после отдельного решения по итогам shadow-периода."
+        description="Аварийная остановка действует со следующего цикла. Автоисправления можно будет включить только после отдельного решения по итогам периода наблюдения."
         title="Режим работы"
       >
         <AdminActionForm
@@ -96,7 +94,7 @@ export default async function AdminFindingsPage({ searchParams }: PageProps) {
       </AdminSection>
 
       <AdminSection
-        description={`${data.total} находок по текущему запросу. Повторные срабатывания объединяются в одну запись.`}
+        description={`${data.total} записей по текущему запросу. Повторные срабатывания объединяются.`}
         title="Журнал"
       >
         <AdminFilters
@@ -119,7 +117,7 @@ export default async function AdminFindingsPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <AdminEmpty
-            description="Watcher продолжает проверять доступность, очереди, источники и бюджет."
+            description="Автоматическая проверка продолжает следить за доступностью, очередями, источниками и бюджетом."
             title="Отклонений не найдено"
           />
         )}
@@ -200,7 +198,7 @@ function severityVariant(severity: string) {
 }
 
 function modeLabel(mode: string) {
-  return ({ shadow: "Shadow", recommend: "Советы", limited: "Limited" })[mode] ?? mode;
+  return ({ shadow: "Наблюдение", recommend: "Рекомендации", limited: "Ограниченный" })[mode] ?? mode;
 }
 
 function categoryLabel(category: string) {

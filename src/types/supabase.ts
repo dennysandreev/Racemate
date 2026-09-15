@@ -16,6 +16,129 @@ type TableDefinition<Row, Insert = Partial<Row>, Update = Partial<Insert>> = {
 export type Database = {
   public: {
     Tables: {
+      subscription_plans: TableDefinition<{
+        id: string;
+        code: string;
+        name: string;
+        entitlements: string[];
+        active: boolean;
+        created_at: string;
+        updated_at: string;
+      }>;
+      subscription_prices: TableDefinition<{
+        id: string;
+        plan_id: string;
+        code: string;
+        amount_minor: number;
+        currency: string;
+        duration_months: number;
+        first_purchase_only: boolean;
+        active: boolean;
+        valid_from: string;
+        valid_until: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      billing_orders: TableDefinition<{
+        id: string;
+        order_number: string;
+        user_id: string;
+        plan_id: string;
+        price_id: string;
+        provider: "tribute" | "yoomoney";
+        payment_method: "tribute" | "yoomoney_card" | "yoomoney_wallet";
+        amount_minor: number;
+        currency: string;
+        duration_months: number;
+        plan_name_snapshot: string;
+        price_name_snapshot: string;
+        provider_label: string | null;
+        provider_order_id: string | null;
+        checkout_url: string | null;
+        idempotency_key: string;
+        status: "pending" | "paid" | "failed" | "refunded" | "partially_refunded";
+        failure_reason: string | null;
+        expires_at: string;
+        paid_at: string | null;
+        failed_at: string | null;
+        refunded_at: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      payment_transactions: TableDefinition<{
+        id: string;
+        order_id: string;
+        provider: "tribute" | "yoomoney";
+        provider_transaction_id: string;
+        payment_method: string;
+        gross_amount_minor: number;
+        net_amount_minor: number;
+        provider_fee_minor: number;
+        currency: string;
+        occurred_at: string;
+        created_at: string;
+      }>;
+      subscriptions: TableDefinition<{
+        id: string;
+        user_id: string;
+        plan_id: string;
+        status: "active" | "expired" | "revoked";
+        current_period_start: string | null;
+        current_period_end: string | null;
+        last_paid_order_id: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      subscription_periods: TableDefinition<{
+        id: string;
+        subscription_id: string;
+        order_id: string | null;
+        starts_at: string;
+        ends_at: string;
+        status: "active" | "revoked" | "refunded";
+        source: "payment" | "admin_grant" | "admin_adjustment" | "refund";
+        created_by_admin_id: string | null;
+        admin_reason: string | null;
+        idempotency_key: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      billing_notification_events: TableDefinition<{
+        id: string;
+        provider: "tribute" | "yoomoney";
+        provider_event_id: string;
+        provider_event_type: string;
+        provider_reference: string | null;
+        signature_valid: boolean;
+        status: "received" | "processed" | "rejected" | "failed";
+        payload_hash: string;
+        safe_payload: Json;
+        attempts: number;
+        last_error: string | null;
+        received_at: string;
+        processed_at: string | null;
+      }>;
+      billing_email_deliveries: TableDefinition<{
+        id: string;
+        order_id: string;
+        template: string;
+        recipient_email: string | null;
+        status: "queued" | "sending" | "sent" | "failed" | "skipped";
+        attempts: number;
+        provider_message_id: string | null;
+        last_error: string | null;
+        available_at: string;
+        sent_at: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      billing_rate_limits: TableDefinition<{
+        scope: string;
+        identity_hash: string;
+        window_started_at: string;
+        request_count: number;
+        updated_at: string;
+      }>;
       profiles: TableDefinition<{
         id: string;
         email: string | null;
@@ -23,6 +146,7 @@ export type Database = {
         language: string;
         timezone: string;
         onboarding_completed: boolean;
+        is_bot: boolean;
         created_at: string;
         updated_at: string;
       }>;
@@ -144,6 +268,51 @@ export type Database = {
         updated_by: string | null;
         updated_at: string;
       }>;
+      admin_external_api_costs: TableDefinition<{
+        provider: "x";
+        resource_type: "post_read";
+        unit_cost_usd: number;
+        daily_limit_usd: number;
+        monthly_limit_usd: number;
+        updated_by: string | null;
+        updated_at: string;
+      }>;
+      external_api_usage_events: TableDefinition<{
+        id: string;
+        provider: "x";
+        resource_type: "post_read";
+        resource_id: string;
+        billing_date: string;
+        unit_cost_usd: number;
+        estimated_cost_usd: number;
+        source_id: string | null;
+        metadata: Json;
+        created_at: string;
+      }>;
+      user_error_reports: TableDefinition<{
+        id: string;
+        article_id: string | null;
+        reporter_user_id: string | null;
+        message: string;
+        status: "new" | "in_progress" | "resolved" | "dismissed";
+        page_path: string;
+        article_slug: string;
+        article_title: string;
+        source_name: string | null;
+        referrer_path: string | null;
+        user_agent: string | null;
+        release_sha: string | null;
+        request_fingerprint: string | null;
+        technical_context: Json;
+        telegram_status: string;
+        telegram_error: string | null;
+        telegram_sent_at: string | null;
+        admin_note: string | null;
+        resolved_by: string | null;
+        resolved_at: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
       ai_prompt_versions: TableDefinition<{
         id: string;
         prompt_key: string;
@@ -178,12 +347,28 @@ export type Database = {
         updated_at: string;
       }>;
       ops_service_heartbeats: TableDefinition<{
-        service_name: "web" | "worker" | "cron" | "admin-job-runner" | "watcher";
+        service_name: "web" | "worker" | "cron" | "admin-job-runner" | "watcher" | "live";
         instance_id: string;
         release_sha: string | null;
         status: "healthy" | "degraded" | "unhealthy";
         summary: Json;
         checked_at: string;
+        updated_at: string;
+      }>;
+      telemetry_cache: TableDefinition<{
+        key: string;
+        payload: Json;
+        expires_at: string | null;
+        updated_at: string;
+      }>;
+      telemetry_tasks: TableDefinition<{
+        id: string;
+        request_key: string;
+        task: Json;
+        status: "queued" | "ready" | "failed";
+        result_key: string | null;
+        error_code: string | null;
+        job_id: string | null;
         updated_at: string;
       }>;
       admin_agent_runs: TableDefinition<{
@@ -588,6 +773,16 @@ export type Database = {
         share_image_version: number | null;
         created_at: string;
       }>;
+      user_consents: TableDefinition<{
+        id: string;
+        user_id: string;
+        consent_type: string;
+        document_version: string;
+        granted: boolean;
+        source: string;
+        created_at: string;
+        updated_at: string;
+      }>;
       tags: TableDefinition<{
         id: string;
         type: string;
@@ -745,6 +940,11 @@ export type Database = {
         official_url: string | null;
         race_start_at: string | null;
         status: string;
+        tyre_hard_compound: string | null;
+        tyre_medium_compound: string | null;
+        tyre_soft_compound: string | null;
+        tyre_allocation_source_url: string | null;
+        tyre_allocation_updated_at: string | null;
         created_at: string;
         updated_at: string;
       }>;
@@ -795,6 +995,18 @@ export type Database = {
         points: number | null;
         status: string | null;
         time_text: string | null;
+        raw_payload: Json | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+      race_starting_grid: TableDefinition<{
+        race_id: string;
+        driver_id: string;
+        team_id: string | null;
+        position: number;
+        lap_time_text: string | null;
+        source: string;
+        source_session_key: number | null;
         raw_payload: Json | null;
         created_at: string;
         updated_at: string;
@@ -971,6 +1183,7 @@ export type Database = {
         requested_by: string | null;
         available_at: string | null;
         claimed_at: string | null;
+        lease_expires_at: string | null;
         worker_id: string | null;
         attempt_count: number;
         max_attempts: number;
@@ -994,6 +1207,117 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      billing_apply_payment: {
+        Args: {
+          p_order_id: string;
+          p_provider: string;
+          p_provider_event_id: string;
+          p_provider_event_type: string;
+          p_provider_reference: string;
+          p_provider_transaction_id: string;
+          p_payment_method: string;
+          p_gross_amount_minor: number;
+          p_net_amount_minor: number;
+          p_currency: string;
+          p_occurred_at: string;
+          p_payload_hash: string;
+          p_safe_payload?: Json;
+        };
+        Returns: Array<{
+          applied: boolean;
+          subscription_id: string;
+          period_id: string;
+          period_end: string;
+        }>;
+      };
+      billing_admin_grant: {
+        Args: {
+          p_target_user_id: string;
+          p_actor_user_id: string;
+          p_duration_kind: string;
+          p_custom_end: string | null;
+          p_reason: string;
+          p_idempotency_key: string;
+          p_now?: string;
+        };
+        Returns: Array<{
+          period_id: string;
+          starts_at: string;
+          ends_at: string;
+        }>;
+      };
+      billing_apply_refund: {
+        Args: {
+          p_order_id: string;
+          p_amount_minor: number;
+          p_provider: string;
+          p_provider_event_id: string;
+          p_provider_event_type: string;
+          p_payload_hash: string;
+        };
+        Returns: boolean;
+      };
+      billing_consume_rate_limit: {
+        Args: {
+          p_scope: string;
+          p_identity_hash: string;
+          p_limit: number;
+          p_window_seconds: number;
+          p_now?: string;
+        };
+        Returns: Array<{
+          allowed: boolean;
+          remaining: number;
+          reset_at: string;
+        }>;
+      };
+      billing_admin_revoke: {
+        Args: {
+          p_target_user_id: string;
+          p_actor_user_id: string;
+          p_reason: string;
+          p_now?: string;
+        };
+        Returns: Array<{
+          revoked: boolean;
+          previous_period_end: string | null;
+        }>;
+      };
+      admin_save_news_article: {
+        Args: {
+          p_actor_user_id: string;
+          p_article_id: string;
+          p_body: string | null;
+          p_now: string;
+          p_publication_status: string;
+          p_summary: string | null;
+          p_tag_names: string[];
+          p_title: string | null;
+        };
+        Returns: undefined;
+      };
+      admin_moderate_social_post: {
+        Args: {
+          p_action: string;
+          p_actor_user_id: string;
+          p_now: string;
+          p_post_id: string;
+          p_request_key: string;
+          p_topic_name: string | null;
+          p_topic_slug: string | null;
+        };
+        Returns: string | null;
+      };
+      admin_save_poll: {
+        Args: {
+          p_closes_at: string | null;
+          p_options: string[];
+          p_poll_id: string | null;
+          p_question: string;
+          p_status: string;
+        };
+        Returns: string;
+      };
       is_admin: {
         Args: never;
         Returns: boolean;
@@ -1003,6 +1327,13 @@ export type Database = {
           p_worker_id: string;
         };
         Returns: Database["public"]["Tables"]["job_runs"]["Row"][];
+      };
+      renew_admin_job_lease: {
+        Args: {
+          p_job_id: string;
+          p_worker_id: string;
+        };
+        Returns: boolean;
       };
       record_admin_finding: {
         Args: {
@@ -1055,6 +1386,17 @@ export type Database = {
           unpriced_count: number;
         }>;
       };
+      get_admin_cost_timeline: {
+        Args: {
+          p_since: string;
+        };
+        Returns: Array<{
+          day: string;
+          ai_cost_usd: number;
+          x_api_cost_usd: number;
+          x_post_count: number;
+        }>;
+      };
       save_admin_ai_prompt_version: {
         Args: {
           p_prompt_key: string;
@@ -1078,13 +1420,47 @@ export type Database = {
           p_purpose: string;
         };
         Returns: Array<{
-          scope: "default" | "social_x";
+          scope: "default";
           daily_limit_usd: number;
           monthly_limit_usd: number;
           daily_spend_usd: number;
           monthly_spend_usd: number;
           allowed: boolean;
         }>;
+      };
+      get_x_api_budget_guard: {
+        Args: never;
+        Returns: Array<{
+          unit_cost_usd: number;
+          daily_limit_usd: number;
+          monthly_limit_usd: number;
+          daily_spend_usd: number;
+          monthly_spend_usd: number;
+          daily_post_count: number;
+          monthly_post_count: number;
+          allowed: boolean;
+        }>;
+      };
+      submit_news_error_report: {
+        Args: {
+          p_article_id: string;
+          p_message: string;
+          p_page_path: string;
+          p_referrer_path?: string | null;
+          p_user_agent?: string | null;
+          p_release_sha?: string | null;
+          p_request_fingerprint?: string | null;
+          p_technical_context?: Json;
+        };
+        Returns: string;
+      };
+      finish_news_error_report_delivery: {
+        Args: {
+          p_report_id: string;
+          p_status: "sent" | "failed" | "not_configured";
+          p_error?: string | null;
+        };
+        Returns: boolean;
       };
       enqueue_due_admin_schedules: {
         Args: {

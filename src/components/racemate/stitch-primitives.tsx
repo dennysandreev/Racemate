@@ -54,8 +54,15 @@ export function StitchPanelHeader({
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 border-b stitch-divider p-4">
       <div className="min-w-0">
-        <h2 className="flex min-w-0 items-center gap-2 font-display text-lg font-bold leading-tight">
-          {Icon ? <Icon aria-hidden="true" className="size-5 shrink-0" /> : null}
+        <h2
+          className="flex min-w-0 items-center gap-2 font-display text-lg font-bold leading-tight"
+          data-slot="stitch-panel-title"
+        >
+          {Icon ? (
+            <span className="contents" data-slot="stitch-panel-icon">
+              <Icon aria-hidden="true" className="size-5 shrink-0" />
+            </span>
+          ) : null}
           <span className="truncate">{title}</span>
         </h2>
         {meta ? <div className="mt-2 text-sm text-muted-foreground">{meta}</div> : null}

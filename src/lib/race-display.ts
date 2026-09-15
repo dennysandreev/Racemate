@@ -5,7 +5,7 @@ const GRAND_PRIX_NAMES_RU: Record<string, string> = {
   "Austrian Grand Prix": "Гран-при Австрии",
   "Azerbaijan Grand Prix": "Гран-при Азербайджана",
   "Bahrain Grand Prix": "Гран-при Бахрейна",
-  "Bahrain Grand Prix in Malaysia": "Гран-при Бахрейна в Малайзии",
+  "Bahrain Grand Prix in Malaysia": "Гран-при Малайзии",
   "Barcelona Grand Prix": "Гран-при Барселоны",
   "Belgian Grand Prix": "Гран-при Бельгии",
   "Brazilian Grand Prix": "Гран-при Бразилии",
@@ -20,6 +20,9 @@ const GRAND_PRIX_NAMES_RU: Record<string, string> = {
   "Italian Grand Prix": "Гран-при Италии",
   "Japanese Grand Prix": "Гран-при Японии",
   "Las Vegas Grand Prix": "Гран-при Лас-Вегаса",
+  "Madrid Grand Prix": "Гран-при Мадрида",
+  "Malaysian Grand Prix": "Гран-при Малайзии",
+  "Mexico Grand Prix": "Гран-при Мексики",
   "Mexico City Grand Prix": "Гран-при Мехико",
   "Miami Grand Prix": "Гран-при Майами",
   "Monaco Grand Prix": "Гран-при Монако",
@@ -31,13 +34,53 @@ const GRAND_PRIX_NAMES_RU: Record<string, string> = {
   "Singapore Grand Prix": "Гран-при Сингапура",
   "Spanish Grand Prix": "Гран-при Испании",
   "Styrian Grand Prix": "Гран-при Штирии",
+  "Sao Paulo Grand Prix": "Гран-при Сан-Паулу",
   "São Paulo Grand Prix": "Гран-при Сан-Паулу",
   "Turkish Grand Prix": "Гран-при Турции",
   "Tuscan Grand Prix": "Гран-при Тосканы",
   "United States Grand Prix": "Гран-при США",
 };
 
+const CANONICAL_GRAND_PRIX_NAMES: Record<string, string> = {
+  "Bahrain Grand Prix in Malaysia": "Malaysian Grand Prix",
+};
+
+export function getCanonicalGrandPrixName(raceName: string) {
+  const normalized = raceName.trim().replace(/\s+/g, " ");
+  return CANONICAL_GRAND_PRIX_NAMES[normalized] ?? normalized;
+}
+
 export function formatGrandPrixNameRu(raceName: string) {
-  const normalized = raceName.trim();
-  return GRAND_PRIX_NAMES_RU[normalized] ?? normalized;
+  const normalized = getCanonicalGrandPrixName(raceName);
+
+  if (!normalized || /^гран-при\b/i.test(normalized)) {
+    return normalized;
+  }
+
+  const exactMatch = GRAND_PRIX_NAMES_RU[normalized];
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const normalizedKey = normalized.toLocaleLowerCase("en-US");
+  const caseInsensitiveMatch = Object.entries(GRAND_PRIX_NAMES_RU).find(
+    ([name]) => name.toLocaleLowerCase("en-US") === normalizedKey,
+  );
+
+  return caseInsensitiveMatch?.[1] ?? normalized;
+}
+
+export function formatGrandPrixTagNameRu(tagName: string) {
+  const normalized = tagName.trim().replace(/\s+/g, " ");
+  const match = normalized.match(/^(.+? Grand Prix)(.*)$/i);
+
+  if (!match) {
+    return formatGrandPrixNameRu(normalized);
+  }
+
+  const localizedRaceName = formatGrandPrixNameRu(match[1]);
+  return localizedRaceName === match[1]
+    ? normalized
+    : `${localizedRaceName}${match[2]}`;
 }

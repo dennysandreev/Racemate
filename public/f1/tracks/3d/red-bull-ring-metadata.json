@@ -1,0 +1,1098 @@
+{
+  "boundsMeters": {
+    "depth": 2140,
+    "width": 2510
+  },
+  "coordinateReferenceSystem": "EPSG:32633 + official Styria orthometric metres",
+  "elevationProfile": [
+    {
+      "distanceMeters": 0.0,
+      "elevationMeters": 677.576
+    },
+    {
+      "distanceMeters": 24.06,
+      "elevationMeters": 677.767
+    },
+    {
+      "distanceMeters": 48.12,
+      "elevationMeters": 677.629
+    },
+    {
+      "distanceMeters": 72.18,
+      "elevationMeters": 677.47
+    },
+    {
+      "distanceMeters": 96.24,
+      "elevationMeters": 677.622
+    },
+    {
+      "distanceMeters": 120.3,
+      "elevationMeters": 677.414
+    },
+    {
+      "distanceMeters": 144.36,
+      "elevationMeters": 677.3
+    },
+    {
+      "distanceMeters": 168.43,
+      "elevationMeters": 677.659
+    },
+    {
+      "distanceMeters": 192.49,
+      "elevationMeters": 677.869
+    },
+    {
+      "distanceMeters": 216.55,
+      "elevationMeters": 678.11
+    },
+    {
+      "distanceMeters": 240.61,
+      "elevationMeters": 678.693
+    },
+    {
+      "distanceMeters": 264.67,
+      "elevationMeters": 679.567
+    },
+    {
+      "distanceMeters": 288.73,
+      "elevationMeters": 680.465
+    },
+    {
+      "distanceMeters": 312.79,
+      "elevationMeters": 681.784
+    },
+    {
+      "distanceMeters": 336.85,
+      "elevationMeters": 682.937
+    },
+    {
+      "distanceMeters": 360.91,
+      "elevationMeters": 682.377
+    },
+    {
+      "distanceMeters": 384.97,
+      "elevationMeters": 685.028
+    },
+    {
+      "distanceMeters": 409.03,
+      "elevationMeters": 688.949
+    },
+    {
+      "distanceMeters": 433.09,
+      "elevationMeters": 691.27
+    },
+    {
+      "distanceMeters": 457.16,
+      "elevationMeters": 693.088
+    },
+    {
+      "distanceMeters": 481.22,
+      "elevationMeters": 694.228
+    },
+    {
+      "distanceMeters": 505.28,
+      "elevationMeters": 695.254
+    },
+    {
+      "distanceMeters": 529.34,
+      "elevationMeters": 695.927
+    },
+    {
+      "distanceMeters": 553.4,
+      "elevationMeters": 696.322
+    },
+    {
+      "distanceMeters": 577.46,
+      "elevationMeters": 696.543
+    },
+    {
+      "distanceMeters": 601.52,
+      "elevationMeters": 696.511
+    },
+    {
+      "distanceMeters": 625.58,
+      "elevationMeters": 696.556
+    },
+    {
+      "distanceMeters": 649.64,
+      "elevationMeters": 696.358
+    },
+    {
+      "distanceMeters": 673.7,
+      "elevationMeters": 695.979
+    },
+    {
+      "distanceMeters": 697.76,
+      "elevationMeters": 696.031
+    },
+    {
+      "distanceMeters": 721.82,
+      "elevationMeters": 696.234
+    },
+    {
+      "distanceMeters": 745.89,
+      "elevationMeters": 696.258
+    },
+    {
+      "distanceMeters": 769.95,
+      "elevationMeters": 696.691
+    },
+    {
+      "distanceMeters": 794.01,
+      "elevationMeters": 697.186
+    },
+    {
+      "distanceMeters": 818.07,
+      "elevationMeters": 697.564
+    },
+    {
+      "distanceMeters": 842.13,
+      "elevationMeters": 698.201
+    },
+    {
+      "distanceMeters": 866.19,
+      "elevationMeters": 698.615
+    },
+    {
+      "distanceMeters": 890.25,
+      "elevationMeters": 699.302
+    },
+    {
+      "distanceMeters": 914.31,
+      "elevationMeters": 699.75
+    },
+    {
+      "distanceMeters": 938.37,
+      "elevationMeters": 700.479
+    },
+    {
+      "distanceMeters": 962.43,
+      "elevationMeters": 700.925
+    },
+    {
+      "distanceMeters": 986.49,
+      "elevationMeters": 701.738
+    },
+    {
+      "distanceMeters": 1010.55,
+      "elevationMeters": 702.461
+    },
+    {
+      "distanceMeters": 1034.62,
+      "elevationMeters": 703.477
+    },
+    {
+      "distanceMeters": 1058.68,
+      "elevationMeters": 704.582
+    },
+    {
+      "distanceMeters": 1082.74,
+      "elevationMeters": 705.927
+    },
+    {
+      "distanceMeters": 1106.8,
+      "elevationMeters": 707.518
+    },
+    {
+      "distanceMeters": 1130.86,
+      "elevationMeters": 709.341
+    },
+    {
+      "distanceMeters": 1154.92,
+      "elevationMeters": 711.233
+    },
+    {
+      "distanceMeters": 1178.98,
+      "elevationMeters": 713.601
+    },
+    {
+      "distanceMeters": 1203.04,
+      "elevationMeters": 715.881
+    },
+    {
+      "distanceMeters": 1227.1,
+      "elevationMeters": 718.394
+    },
+    {
+      "distanceMeters": 1251.16,
+      "elevationMeters": 721.134
+    },
+    {
+      "distanceMeters": 1275.22,
+      "elevationMeters": 723.99
+    },
+    {
+      "distanceMeters": 1299.28,
+      "elevationMeters": 726.846
+    },
+    {
+      "distanceMeters": 1323.35,
+      "elevationMeters": 729.755
+    },
+    {
+      "distanceMeters": 1347.41,
+      "elevationMeters": 732.691
+    },
+    {
+      "distanceMeters": 1371.47,
+      "elevationMeters": 735.622
+    },
+    {
+      "distanceMeters": 1395.53,
+      "elevationMeters": 738.523
+    },
+    {
+      "distanceMeters": 1419.59,
+      "elevationMeters": 739.426
+    },
+    {
+      "distanceMeters": 1443.65,
+      "elevationMeters": 739.937
+    },
+    {
+      "distanceMeters": 1467.71,
+      "elevationMeters": 739.977
+    },
+    {
+      "distanceMeters": 1491.77,
+      "elevationMeters": 739.796
+    },
+    {
+      "distanceMeters": 1515.83,
+      "elevationMeters": 739.471
+    },
+    {
+      "distanceMeters": 1539.89,
+      "elevationMeters": 739.057
+    },
+    {
+      "distanceMeters": 1563.95,
+      "elevationMeters": 738.239
+    },
+    {
+      "distanceMeters": 1588.01,
+      "elevationMeters": 737.089
+    },
+    {
+      "distanceMeters": 1612.08,
+      "elevationMeters": 735.63
+    },
+    {
+      "distanceMeters": 1636.14,
+      "elevationMeters": 734.281
+    },
+    {
+      "distanceMeters": 1660.2,
+      "elevationMeters": 733.244
+    },
+    {
+      "distanceMeters": 1684.26,
+      "elevationMeters": 732.502
+    },
+    {
+      "distanceMeters": 1708.32,
+      "elevationMeters": 731.898
+    },
+    {
+      "distanceMeters": 1732.38,
+      "elevationMeters": 731.045
+    },
+    {
+      "distanceMeters": 1756.44,
+      "elevationMeters": 730.172
+    },
+    {
+      "distanceMeters": 1780.5,
+      "elevationMeters": 729.403
+    },
+    {
+      "distanceMeters": 1804.56,
+      "elevationMeters": 728.985
+    },
+    {
+      "distanceMeters": 1828.62,
+      "elevationMeters": 728.562
+    },
+    {
+      "distanceMeters": 1852.68,
+      "elevationMeters": 727.645
+    },
+    {
+      "distanceMeters": 1876.74,
+      "elevationMeters": 727.197
+    },
+    {
+      "distanceMeters": 1900.81,
+      "elevationMeters": 727.351
+    },
+    {
+      "distanceMeters": 1924.87,
+      "elevationMeters": 726.908
+    },
+    {
+      "distanceMeters": 1948.93,
+      "elevationMeters": 726.079
+    },
+    {
+      "distanceMeters": 1972.99,
+      "elevationMeters": 725.172
+    },
+    {
+      "distanceMeters": 1997.05,
+      "elevationMeters": 724.023
+    },
+    {
+      "distanceMeters": 2021.11,
+      "elevationMeters": 722.8
+    },
+    {
+      "distanceMeters": 2045.17,
+      "elevationMeters": 721.56
+    },
+    {
+      "distanceMeters": 2069.23,
+      "elevationMeters": 720.242
+    },
+    {
+      "distanceMeters": 2093.29,
+      "elevationMeters": 719.019
+    },
+    {
+      "distanceMeters": 2117.35,
+      "elevationMeters": 717.81
+    },
+    {
+      "distanceMeters": 2141.41,
+      "elevationMeters": 716.556
+    },
+    {
+      "distanceMeters": 2165.47,
+      "elevationMeters": 715.31
+    },
+    {
+      "distanceMeters": 2189.54,
+      "elevationMeters": 714.097
+    },
+    {
+      "distanceMeters": 2213.6,
+      "elevationMeters": 712.657
+    },
+    {
+      "distanceMeters": 2237.66,
+      "elevationMeters": 711.313
+    },
+    {
+      "distanceMeters": 2261.72,
+      "elevationMeters": 709.931
+    },
+    {
+      "distanceMeters": 2285.78,
+      "elevationMeters": 708.67
+    },
+    {
+      "distanceMeters": 2309.84,
+      "elevationMeters": 707.666
+    },
+    {
+      "distanceMeters": 2333.9,
+      "elevationMeters": 706.899
+    },
+    {
+      "distanceMeters": 2357.96,
+      "elevationMeters": 706.351
+    },
+    {
+      "distanceMeters": 2382.02,
+      "elevationMeters": 706.159
+    },
+    {
+      "distanceMeters": 2406.08,
+      "elevationMeters": 706.28
+    },
+    {
+      "distanceMeters": 2430.14,
+      "elevationMeters": 706.659
+    },
+    {
+      "distanceMeters": 2454.2,
+      "elevationMeters": 707.145
+    },
+    {
+      "distanceMeters": 2478.27,
+      "elevationMeters": 707.518
+    },
+    {
+      "distanceMeters": 2502.33,
+      "elevationMeters": 707.797
+    },
+    {
+      "distanceMeters": 2526.39,
+      "elevationMeters": 708.116
+    },
+    {
+      "distanceMeters": 2550.45,
+      "elevationMeters": 708.818
+    },
+    {
+      "distanceMeters": 2574.51,
+      "elevationMeters": 709.154
+    },
+    {
+      "distanceMeters": 2598.57,
+      "elevationMeters": 709.311
+    },
+    {
+      "distanceMeters": 2622.63,
+      "elevationMeters": 709.462
+    },
+    {
+      "distanceMeters": 2646.69,
+      "elevationMeters": 709.594
+    },
+    {
+      "distanceMeters": 2670.75,
+      "elevationMeters": 709.512
+    },
+    {
+      "distanceMeters": 2694.81,
+      "elevationMeters": 709.095
+    },
+    {
+      "distanceMeters": 2718.87,
+      "elevationMeters": 708.36
+    },
+    {
+      "distanceMeters": 2742.93,
+      "elevationMeters": 707.369
+    },
+    {
+      "distanceMeters": 2767.0,
+      "elevationMeters": 706.078
+    },
+    {
+      "distanceMeters": 2791.06,
+      "elevationMeters": 704.489
+    },
+    {
+      "distanceMeters": 2815.12,
+      "elevationMeters": 702.683
+    },
+    {
+      "distanceMeters": 2839.18,
+      "elevationMeters": 700.619
+    },
+    {
+      "distanceMeters": 2863.24,
+      "elevationMeters": 698.489
+    },
+    {
+      "distanceMeters": 2887.3,
+      "elevationMeters": 696.523
+    },
+    {
+      "distanceMeters": 2911.36,
+      "elevationMeters": 694.691
+    },
+    {
+      "distanceMeters": 2935.42,
+      "elevationMeters": 693.092
+    },
+    {
+      "distanceMeters": 2959.48,
+      "elevationMeters": 691.896
+    },
+    {
+      "distanceMeters": 2983.54,
+      "elevationMeters": 690.891
+    },
+    {
+      "distanceMeters": 3007.6,
+      "elevationMeters": 690.282
+    },
+    {
+      "distanceMeters": 3031.66,
+      "elevationMeters": 689.886
+    },
+    {
+      "distanceMeters": 3055.72,
+      "elevationMeters": 689.819
+    },
+    {
+      "distanceMeters": 3079.79,
+      "elevationMeters": 690.114
+    },
+    {
+      "distanceMeters": 3103.85,
+      "elevationMeters": 690.536
+    },
+    {
+      "distanceMeters": 3127.91,
+      "elevationMeters": 691.32
+    },
+    {
+      "distanceMeters": 3151.97,
+      "elevationMeters": 691.754
+    },
+    {
+      "distanceMeters": 3176.03,
+      "elevationMeters": 692.182
+    },
+    {
+      "distanceMeters": 3200.09,
+      "elevationMeters": 692.452
+    },
+    {
+      "distanceMeters": 3224.15,
+      "elevationMeters": 692.586
+    },
+    {
+      "distanceMeters": 3248.21,
+      "elevationMeters": 692.687
+    },
+    {
+      "distanceMeters": 3272.27,
+      "elevationMeters": 692.724
+    },
+    {
+      "distanceMeters": 3296.33,
+      "elevationMeters": 692.898
+    },
+    {
+      "distanceMeters": 3320.39,
+      "elevationMeters": 693.354
+    },
+    {
+      "distanceMeters": 3344.45,
+      "elevationMeters": 693.895
+    },
+    {
+      "distanceMeters": 3368.52,
+      "elevationMeters": 694.41
+    },
+    {
+      "distanceMeters": 3392.58,
+      "elevationMeters": 695.625
+    },
+    {
+      "distanceMeters": 3416.64,
+      "elevationMeters": 696.825
+    },
+    {
+      "distanceMeters": 3440.7,
+      "elevationMeters": 697.987
+    },
+    {
+      "distanceMeters": 3464.76,
+      "elevationMeters": 699.18
+    },
+    {
+      "distanceMeters": 3488.82,
+      "elevationMeters": 700.09
+    },
+    {
+      "distanceMeters": 3512.88,
+      "elevationMeters": 700.679
+    },
+    {
+      "distanceMeters": 3536.94,
+      "elevationMeters": 701.079
+    },
+    {
+      "distanceMeters": 3561.0,
+      "elevationMeters": 701.232
+    },
+    {
+      "distanceMeters": 3585.06,
+      "elevationMeters": 701.223
+    },
+    {
+      "distanceMeters": 3609.12,
+      "elevationMeters": 701.247
+    },
+    {
+      "distanceMeters": 3633.18,
+      "elevationMeters": 701.137
+    },
+    {
+      "distanceMeters": 3657.25,
+      "elevationMeters": 700.903
+    },
+    {
+      "distanceMeters": 3681.31,
+      "elevationMeters": 700.527
+    },
+    {
+      "distanceMeters": 3705.37,
+      "elevationMeters": 699.969
+    },
+    {
+      "distanceMeters": 3729.43,
+      "elevationMeters": 699.177
+    },
+    {
+      "distanceMeters": 3753.49,
+      "elevationMeters": 697.995
+    },
+    {
+      "distanceMeters": 3777.55,
+      "elevationMeters": 696.858
+    },
+    {
+      "distanceMeters": 3801.61,
+      "elevationMeters": 696.059
+    },
+    {
+      "distanceMeters": 3825.67,
+      "elevationMeters": 694.795
+    },
+    {
+      "distanceMeters": 3849.73,
+      "elevationMeters": 693.287
+    },
+    {
+      "distanceMeters": 3873.79,
+      "elevationMeters": 691.836
+    },
+    {
+      "distanceMeters": 3897.85,
+      "elevationMeters": 690.226
+    },
+    {
+      "distanceMeters": 3921.91,
+      "elevationMeters": 688.452
+    },
+    {
+      "distanceMeters": 3945.98,
+      "elevationMeters": 686.574
+    },
+    {
+      "distanceMeters": 3970.04,
+      "elevationMeters": 684.88
+    },
+    {
+      "distanceMeters": 3994.1,
+      "elevationMeters": 683.524
+    },
+    {
+      "distanceMeters": 4018.16,
+      "elevationMeters": 682.209
+    },
+    {
+      "distanceMeters": 4042.22,
+      "elevationMeters": 681.411
+    },
+    {
+      "distanceMeters": 4066.28,
+      "elevationMeters": 680.896
+    },
+    {
+      "distanceMeters": 4090.34,
+      "elevationMeters": 680.516
+    },
+    {
+      "distanceMeters": 4114.4,
+      "elevationMeters": 680.177
+    },
+    {
+      "distanceMeters": 4138.46,
+      "elevationMeters": 679.935
+    },
+    {
+      "distanceMeters": 4162.52,
+      "elevationMeters": 679.469
+    },
+    {
+      "distanceMeters": 4186.58,
+      "elevationMeters": 679.281
+    },
+    {
+      "distanceMeters": 4210.64,
+      "elevationMeters": 678.883
+    },
+    {
+      "distanceMeters": 4234.71,
+      "elevationMeters": 678.421
+    },
+    {
+      "distanceMeters": 4258.77,
+      "elevationMeters": 678.323
+    },
+    {
+      "distanceMeters": 4282.83,
+      "elevationMeters": 677.837
+    },
+    {
+      "distanceMeters": 4306.89,
+      "elevationMeters": 677.576
+    }
+  ],
+  "elevationsMeters": {
+    "high": 739.996,
+    "low": 677.277
+  },
+  "finishDistanceMeters": 0,
+  "generatedWith": "Blender 5.2.0 LTS",
+  "lapLength": {
+    "geometryMeters": 4306.888,
+    "officialFiaMeters": 4326,
+    "relativeErrorPercent": 0.4418
+  },
+  "layoutQuality": {
+    "buildings": {
+      "excludedGrandstandConflicts": 0,
+      "excludedReplacedCircuitStructures": 1,
+      "excludedTrackConflicts": 0,
+      "renderedCurrentFootprints": 415,
+      "remainingGrandstandConflicts": 0,
+      "remainingTrackConflicts": 0,
+      "downwardFacingRoofTriangles": 0,
+      "roofTriangles": 1311,
+      "roofWindingRepairs": 1046,
+      "sourceCurrentFootprints": 425,
+      "opaqueRoofMaterial": true,
+      "roofedFootprints": 415
+    },
+    "curbs": {
+      "innerOffsetMeters": 6.33,
+      "sections": 442,
+      "visibleHeightMeters": 0.1,
+      "widthMeters": 1.25
+    },
+    "grandstands": {
+      "canopyTriangles": 108,
+      "downwardFacingRoofTriangles": 0,
+      "openSeatingBowls": 9,
+      "opaqueRoofMaterial": true,
+      "redRoofSurfaces": 0,
+      "roofTriangles": 18,
+      "roofWindingRepairs": 0,
+      "roofedStructures": 9,
+      "roofSlabThicknessMeters": 0.38,
+      "seatingTiers": 88,
+      "currentEventConfirmation": "all grandstands open for Formula 1 2026"
+    },
+    "motorhomes": {
+      "configuredObjects": 11,
+      "renderedObjects": 11,
+      "remainingTrackConflicts": 0,
+      "trackConflictNames": [],
+      "trackConflictDetails": [],
+      "sourceResolutionMetersPerPixel": 0.2,
+      "behindPitComplex": true,
+      "clusterSpanMeters": 61.5,
+      "compactCluster": true,
+      "rearTowardPitGrandstand": true
+    },
+    "pitLane": {
+      "entryGapMeters": 0.0,
+      "entryMinimumWidthMeters": 4.2,
+      "entrySurface": "asphalt",
+      "exitGapMeters": 0.0,
+      "exitMinimumWidthMeters": 0.55,
+      "fastLaneSeparator": true,
+      "lengthMeters": 1000.563,
+      "pitBoxes": 32,
+      "taperMeters": 30.0,
+      "taperProfile": "smoothstep",
+      "widthMeters": 11.0,
+      "pitWall": {
+        "fenceHeightMeters": 0.62,
+        "lengthMeters": 740.416,
+        "panels": 247,
+        "wallHeightMeters": 0.52,
+        "placement": "between main circuit and pit lane"
+      },
+      "pitComplex": {
+        "buildingDepthMeters": 14.5,
+        "garageBoxes": 32,
+        "grandstandRows": 10,
+        "coveredGrandstand": true,
+        "canopyMaterialOpaque": true,
+        "canopyThicknessMeters": 0.38,
+        "lengthMeters": 550.31,
+        "pitLaneClearanceMeters": 0.85
+      }
+    },
+    "runoff": {
+      "excludedTurns": [
+        2,
+        5,
+        7,
+        8
+      ],
+      "pitEntrySurface": "asphalt",
+      "syntheticGravelAtPitEntry": false,
+      "syntheticRunoffAtPitEntry": false
+    },
+    "surfaceClearance": {
+      "minimumTrackTerrainClearanceMeters": 0.527,
+      "startStraightMinimumClearanceMeters": 0.527,
+      "terrainBreakthroughSamples": 0
+    },
+    "surfaceSmoothing": {
+      "wholeLap": {
+        "applied": true,
+        "intervalMeters": 3.0,
+        "maximumCorrectionMeters": 1.605,
+        "maximumRawStepMeters": 0.722,
+        "maximumSmoothedStepMeters": 0.471,
+        "method": "closed-loop upper-envelope smoothing",
+        "sampleCount": 1436
+      }
+    },
+    "terrainSurface": {
+      "orthophotoState": "2024-04-26",
+      "sourceResolutionMeters": 0.2
+    }
+  },
+  "objects": {
+    "buildingsTotal": 415,
+    "fenceSegments": 475,
+    "mappedGrandstands": 9,
+    "mappedTrees": 2,
+    "pitGarageBoxes": 32,
+    "raceMotorhomes": 11,
+    "runoffSections": 126,
+    "turnAnchors": 10
+  },
+  "officialSources": [
+    {
+      "role": "FIA 2026 circuit and pit-lane map: 4.326 km, 10 turns, sectors, speed trap and 32 pit boxes",
+      "url": "https://www.fia.com/documents/season/season-2026-2072/championships/fia-formula-one-world-championship-14/event/Austrian%20Grand%20Prix"
+    },
+    {
+      "role": "official 2026 venue specifications and named turns",
+      "url": "https://www.redbullring.com/en/events-tickets/formula-1/formula-1-circuit/"
+    },
+    {
+      "role": "official confirmation that all current grandstands are open for the event",
+      "url": "https://www.redbullring.com/en/events-tickets/formula-1/glossary/"
+    },
+    {
+      "role": "Styria current orthophoto 2022\u20132024, 20 cm source resolution",
+      "url": "https://data.steiermark.at/cms/beitrag/12920756/97428847/"
+    },
+    {
+      "role": "Styria 1 m ALS DTM/DSM open data, CC BY 4.0",
+      "url": "https://www.landesentwicklung.steiermark.at/cms/beitrag/12803182/143660187/"
+    }
+  ],
+  "realWorldScale": "1 unit = 1 metre; no vertical exaggeration",
+  "schemaVersion": 5,
+  "sectorBoundaryDistancesMeters": [
+    1215,
+    2912
+  ],
+  "sourceManifest": {
+    "bounds": {
+      "minX": 480650,
+      "minY": 5228810,
+      "maxX": 483160,
+      "maxY": 5230950
+    },
+    "coordinateReferenceSystem": "WGS 84 / UTM zone 33N (EPSG:32633)",
+    "generatedAt": "2026-08-13T07:17:55.622Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 3339734,
+        "crs": "EPSG:4326 / document reference",
+        "date": "live snapshot at retrieval",
+        "file": "openstreetmap-map.osm",
+        "license": "ODbL 1.0",
+        "resolution": "surveyed vector geometry",
+        "role": "current circuit, pit lane, buildings, barriers and mapped trees",
+        "sha256": "add7a7483161068f0e682d471204cf502f937968ecee316f5717af56e0fec992",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=14.7445,47.2125,14.7775,47.2318",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 63234,
+        "crs": "EPSG:4326 / document reference",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-raceway.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready raceway layer",
+        "sha256": "5bcfc1eed1405ec71b358f93cd6e391ab880b97bb5ce42b190004081fbe05292",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 336828,
+        "crs": "EPSG:4326 / document reference",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-buildings.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready buildings layer",
+        "sha256": "89a547e5b43709513723dd057f5e432bf1aacebe5cd2ef2a9952c3a4c2890f18",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 63218,
+        "crs": "EPSG:4326 / document reference",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-barriers.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready barriers layer",
+        "sha256": "cd4547d1fa72fa59e531406180444184a97b135ebdd4bb351d5bdc7729793640",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 618,
+        "crs": "EPSG:4326 / document reference",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-trees.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready trees layer",
+        "sha256": "944f83e90b54754095f70c365f38602fa0538b2e7e1114b71adff48b94d79a8a",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 7784168,
+        "crs": "EPSG:4326 / document reference",
+        "date": "2026-06-25",
+        "file": "fia-2026-austrian-grand-prix-doc-7.pdf",
+        "license": "official FIA event document; reference use",
+        "resolution": "vector PDF",
+        "role": "4.326 km lap, sectors, speed trap, 10 turns and 32-box pit-lane drawing",
+        "sha256": "00e1595eb783c7edd279ad9e3dd1030c909c9c9edf0e7e423b7eb220db064a90",
+        "url": "https://www.fia.com/system/files/decision-document/2026_austrian_grand_prix_-_competition_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_and_red_zone.pdf",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 106104,
+        "crs": "EPSG:4326 / document reference",
+        "date": "2026 season",
+        "file": "formula1-2026-austria-circuit-map.webp",
+        "license": "official Formula1.com event image; reference use",
+        "resolution": "1252 \u00d7 704 px",
+        "role": "official visual cross-check for circuit direction and control markers",
+        "sha256": "97b1614b0b5328f4c9bd9e9c12b523d158c6e9f09ec1d39333eeafd0e1aa2c8e",
+        "url": "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000001/common/f1/2026/track/2026trackspielbergdetailed.webp",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 2908188,
+        "crs": "EPSG:32633",
+        "date": "state 2024-04-26",
+        "file": "styria-orthophoto-2024.jpg",
+        "license": "CC BY 4.0 AT",
+        "resolution": "20 cm source; 4096 \u00d7 3492 export",
+        "role": "current terrain colour and measured surface context",
+        "sha256": "42f9306baf39ed326aa23214f76056f18779b9da9e6a4ba1d90054e7f3f6ffb0",
+        "url": "https://gis.stmk.gv.at/image/rest/services/OGD_DOP/Orthofotos_akt/ImageServer/exportImage?f=image&bbox=480650%2C5228810%2C483160%2C5230950&bboxSR=32633&imageSR=32633&size=4096%2C3492&format=jpg&pixelType=U8&noData=0",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 22286137,
+        "crs": "EPSG:32633",
+        "date": "official ALS terrain model",
+        "file": "styria-dtm-1m.tif",
+        "license": "CC BY 4.0 AT",
+        "resolution": "1 m GeoTIFF",
+        "role": "unexaggerated bare-earth terrain and track elevation profile",
+        "sha256": "f0b820282b17cc7f3ecdb62954d8065e18aa49fe8551d58d2adf67429a4ca744",
+        "url": "https://gis.stmk.gv.at/arcgis/services/OGD/ALSGelaendeinformation_1m_UTM33N/MapServer/WCSServer?service=WCS&version=1.0.0&request=GetCoverage&coverage=4&crs=EPSG%3A32633&response_crs=EPSG%3A32633&bbox=480650%2C5228810%2C483160%2C5230950&width=2510&height=2140&format=GeoTIFF",
+        "verticalDatum": "official source orthometric metres"
+      },
+      {
+        "bbox": {
+          "minX": 480650,
+          "minY": 5228810,
+          "maxX": 483160,
+          "maxY": 5230950
+        },
+        "bytes": 22286137,
+        "crs": "EPSG:32633",
+        "date": "official ALS surface model",
+        "file": "styria-dsm-1m.tif",
+        "license": "CC BY 4.0 AT",
+        "resolution": "1 m GeoTIFF",
+        "role": "height support for permanent buildings and grandstands",
+        "sha256": "0f66b091f696e6a2d8a59e96f15cca1f6ab398d90226099c0d92d09d7b657066",
+        "url": "https://gis.stmk.gv.at/arcgis/services/OGD/ALSHoeheninformation_1m_UTM33N/MapServer/WCSServer?service=WCS&version=1.0.0&request=GetCoverage&coverage=4&crs=EPSG%3A32633&response_crs=EPSG%3A32633&bbox=480650%2C5228810%2C483160%2C5230950&width=2510&height=2140&format=GeoTIFF",
+        "verticalDatum": "official source orthometric metres"
+      }
+    ],
+    "sourceNotes": {
+      "officialTerrainAndSurfaceData": "https://www.landesentwicklung.steiermark.at/cms/beitrag/12803182/143660187/",
+      "orthophoto": "https://data.steiermark.at/cms/beitrag/12920756/97428847/",
+      "orthophotoService": "https://gis.stmk.gv.at/image/rest/services/OGD_DOP/Orthofotos_akt/ImageServer"
+    },
+    "verticalDatum": "official source orthometric metres; no vertical exaggeration"
+  },
+  "turnAnchorDistancesMeters": [
+    453,
+    759,
+    1392,
+    2200,
+    2462,
+    2758,
+    3021,
+    3168,
+    3781,
+    3989
+  ],
+  "verticalDatum": "official Styria orthometric metres; no vertical exaggeration"
+}

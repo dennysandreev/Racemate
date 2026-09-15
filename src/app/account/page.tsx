@@ -14,6 +14,7 @@ import {
   UserRound,
   Vote,
   Warehouse,
+  Crown,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 
@@ -34,6 +35,7 @@ import {
 import { ensureProfile } from "@/lib/auth";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSubscriptionAccess } from "@/lib/billing/access";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -94,13 +96,14 @@ export default async function AccountPage() {
     "Гость RaceSide";
   const email = profile?.email ?? "Почта не указана";
   const timezone = profile?.timezone ?? "Europe/Moscow";
-  const [overview, predictionState, driversMatrix, constructorsMatrix, leaderboard, extras] = await Promise.all([
+  const [overview, predictionState, driversMatrix, constructorsMatrix, leaderboard, extras, subscription] = await Promise.all([
     getAccountOverview(profile?.id ?? null),
     getPredictionState(profile?.id ?? null),
     getDriverChampionshipMatrix(CURRENT_F1_SEASON),
     getConstructorChampionshipMatrix(CURRENT_F1_SEASON),
     getGlobalFantasyLeaderboard(),
     getAccountExtras(profile?.id ?? null),
+    getSubscriptionAccess(profile?.id ?? null),
   ]);
   const favoriteDrivers = enrichFavoriteDrivers(overview.favoriteDrivers, driversMatrix.rows).slice(0, 2);
   const favoriteTeam = enrichFavoriteTeams(overview.favoriteTeams, constructorsMatrix.rows)[0] ?? null;
@@ -187,6 +190,10 @@ export default async function AccountPage() {
         </section>
 
         <GaragePanel accentColor={accentColor} drivers={favoriteDrivers} team={favoriteTeam} />
+        <section className="stitch-panel flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/10"><Crown className="size-5 text-primary" /></span><div><h2 className="font-display text-lg font-bold">RaceSide Plus</h2><p className="mt-1 text-sm text-muted-foreground">{subscription.active && subscription.periodEnd ? `Доступ открыт до ${new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" }).format(new Date(subscription.periodEnd))}` : "LIVE, полная телеметрия, Telegram и просмотр без рекламы."}</p></div></div>
+          <Button asChild variant={subscription.active ? "secondary" : "default"}><Link href="/account/subscription">{subscription.active ? "Моя подписка" : "Подробнее"}<ChevronRight aria-hidden="true" data-icon="inline-end" /></Link></Button>
+        </section>
         <TelegramSettings userId={profile?.id ?? null} />
       </section>
     </AppShell>

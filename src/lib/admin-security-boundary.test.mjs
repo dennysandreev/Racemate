@@ -6,6 +6,7 @@ const adminPageSources = [
   "page.tsx",
   "news/page.tsx",
   "social/page.tsx",
+  "issues/page.tsx",
   "reports/page.tsx",
   "sport/page.tsx",
   "community/page.tsx",

@@ -65,9 +65,10 @@ export function TrackModelWebGL({
 
   return (
     <TrackModelErrorBoundary
-      fallback={<TrackModelStaticPreview circuit={circuit} previewPath={previewPath} />}
+      fallback={<TrackModelStaticPreview circuit={circuit} previewPath={previewPath} zoom={zoom} />}
     >
-      <div aria-hidden="true" className="absolute inset-0 size-full overflow-hidden">
+      {/* Keep projected HTML labels inside the scene layer, below map controls. */}
+      <div aria-hidden="true" className="absolute inset-0 isolate z-0 size-full overflow-hidden">
         <TrackModelStaticPreview
           circuit={circuit}
           className={cn(
@@ -75,6 +76,7 @@ export function TrackModelWebGL({
             isReady && "opacity-0",
           )}
           previewPath={previewPath}
+          zoom={zoom}
         />
         <Canvas
           camera={{ far: 10_000, near: 1, position: [1_500, 1_700, 1_500], zoom: 0.3 }}
@@ -84,7 +86,7 @@ export function TrackModelWebGL({
           )}
           dpr={[1, 1.5]}
           events={createDisabledEventManager}
-          fallback={<TrackModelStaticPreview circuit={circuit} previewPath={previewPath} />}
+          fallback={<TrackModelStaticPreview circuit={circuit} previewPath={previewPath} zoom={zoom} />}
           frameloop="demand"
           gl={{
             alpha: true,
@@ -125,10 +127,12 @@ export function TrackModelStaticPreview({
   circuit,
   className,
   previewPath,
+  zoom = 1,
 }: {
   circuit: string;
   className?: string;
   previewPath: string;
+  zoom?: number;
 }) {
   return (
     <div className={cn("absolute inset-0 size-full overflow-hidden", className)}>
@@ -140,6 +144,7 @@ export function TrackModelStaticPreview({
         loading="eager"
         sizes="(max-width: 768px) 100vw, 720px"
         src={previewPath}
+        style={{ transform: `scale(${zoom})` }}
       />
     </div>
   );
@@ -324,12 +329,20 @@ function cloneScene(source: Object3D) {
 
 function readAnchors(scene: Object3D, turnCount: number) {
   scene.updateMatrixWorld(true);
-  const turns = Array.from({ length: turnCount }, (_, index) => {
+  const turns: { number: number | string; position: Vector3 }[] = Array.from({ length: turnCount }, (_, index) => {
     const number = index + 1;
     const anchor = scene.getObjectByName(`Turn_${String(number).padStart(2, "0")}`);
 
     return anchor ? { number, position: anchor.getWorldPosition(new Vector3()) } : null;
   }).filter((anchor): anchor is { number: number; position: Vector3 } => anchor !== null);
+
+  // Official maps can include lettered corners without increasing the numbered
+  // turn count (Madring's 5A and 20A). Their positions still travel with the GLB.
+  scene.traverse((anchor) => {
+    if (/^Turn_\d+[A-Z]$/.test(anchor.name) && typeof anchor.userData.turn_label === "string") {
+      turns.push({ number: anchor.userData.turn_label, position: anchor.getWorldPosition(new Vector3()) });
+    }
+  });
 
   return {
     highPoint: readElevationAnchor(scene, "HighPoint"),

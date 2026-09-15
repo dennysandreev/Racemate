@@ -6,6 +6,7 @@ const JOLPICA_SESSION_TYPES = new Set(["qualifying", "sprint", "race"]);
 
 export const ADAPTIVE_JOB_NAMES = Object.freeze([
   "openf1.sync_results",
+  "openf1.sync_starting_grid",
   "jolpica.sync_results",
   "reports.check_latest",
   "reports.refresh_due",
@@ -13,6 +14,22 @@ export const ADAPTIVE_JOB_NAMES = Object.freeze([
 
 export function isAdaptiveJobName(jobName) {
   return ADAPTIVE_JOB_NAMES.includes(jobName);
+}
+
+export function isStoredResultComplete({ counts, minimumRows, provider, sessionType }) {
+  const jolpicaRows = Number(counts?.jolpica ?? 0);
+  const jolpicaGridRows = Number(counts?.jolpicaGrid ?? 0);
+  const openF1Rows = Number(counts?.openf1 ?? 0);
+  const openF1RowsWithPoints = Number(counts?.openf1WithPoints ?? 0);
+  const requiresStartingGrid = ["race", "sprint"].includes(String(sessionType ?? "").toLowerCase());
+  const hasCompleteJolpicaClassification = jolpicaRows >= minimumRows
+    && (!requiresStartingGrid || jolpicaGridRows >= minimumRows);
+  const hasCompleteOpenF1Classification = openF1Rows >= minimumRows
+    && (!requiresStartingGrid || openF1RowsWithPoints >= minimumRows);
+
+  return provider === "openf1"
+    ? hasCompleteOpenF1Classification || jolpicaRows >= minimumRows
+    : hasCompleteJolpicaClassification;
 }
 
 export function getAdaptiveResultPlan({
@@ -79,6 +96,49 @@ export function getAdaptiveResultPlan({
       return null;
     })
     .filter(Boolean);
+
+  return makePlan(candidates, idleAt);
+}
+
+export function getAdaptiveStartingGridPlan({
+  nowMs = Date.now(),
+  weekends = [],
+}) {
+  const idleAt = nowMs + DAY_MS;
+  const candidates = weekends.flatMap((weekend) => {
+    const qualifyingEndMs = parseDateMs(weekend.qualifyingEndAt);
+    const raceStartMs = parseDateMs(weekend.raceStartAt);
+
+    if (qualifyingEndMs === null || raceStartMs === null || raceStartMs <= nowMs) {
+      return [];
+    }
+
+    const firstCheckMs = qualifyingEndMs + 10 * MINUTE_MS;
+
+    if (firstCheckMs >= raceStartMs) {
+      return [];
+    }
+
+    if (nowMs < firstCheckMs) {
+      return [{
+        mode: "waiting_for_grid",
+        nextRunMs: firstCheckMs,
+        intervalMinutes: null,
+      }];
+    }
+
+    const nextRunMs = nowMs + HOUR_MS;
+
+    if (nextRunMs >= raceStartMs) {
+      return [];
+    }
+
+    return [{
+      mode: "grid_updates",
+      nextRunMs,
+      intervalMinutes: 60,
+    }];
+  });
 
   return makePlan(candidates, idleAt);
 }

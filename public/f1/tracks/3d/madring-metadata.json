@@ -1,0 +1,4132 @@
+{
+  "id": "madring",
+  "schemaVersion": 1,
+  "generatorVersion": "1.0.0",
+  "sourceManifest": {
+    "bounds": {
+      "minX": 446750,
+      "minY": 4479250,
+      "maxX": 448350,
+      "maxY": 4481500
+    },
+    "coordinateReferenceSystem": "ETRS89 / UTM zone 30N (EPSG:25830)",
+    "generatedAt": "2026-09-07T08:17:49.201Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 39790,
+        "crs": "EPSG:25830",
+        "date": "2026-07-03",
+        "file": "madrid-circuit.zip",
+        "license": "Madrid open-data reuse terms: attribution, update date and no endorsement; https://datos.madrid.es/pages/condiciones-generales-ayuntamiento-de-madrid",
+        "resolution": "surveyed vector geometry",
+        "role": "municipal centreline, track edges, asphalt runoff, pit boundaries, pit building and walls",
+        "sha256": "bffc62ec3bf687ad4fbc838095f3f6c6b909bbf789f72e8b82ac60b81fcae721",
+        "url": "https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/CIRCUITO_F1/CIRCUITO_F1_MADRING.zip",
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 9299304,
+        "crs": "EPSG:25830",
+        "date": "2026-06-13",
+        "file": "madrid-orthophoto-2026.png",
+        "license": "Madrid open-data reuse terms: attribution, update date and no endorsement; https://datos.madrid.es/pages/condiciones-generales-ayuntamiento-de-madrid",
+        "resolution": "7 cm native; 0.78125 m exported pixels",
+        "role": "current true orthophoto; service name 2026_07 is publication, not flight date",
+        "sha256": "381e46ddf35a7c68b96df3d552772170139c408e52a9732cf01d8be3b1e8bd62",
+        "url": "https://servpub.madrid.es/georaster/ORTOFOTOS_PARCIALES/ORTO_IFEMAF1_2026_07/ows?service=WMS&version=1.3.0&request=GetMap&layers=ORTO_IFEMAF1_2026_07&styles=&crs=EPSG:25830&bbox=446750,4479250,448350,4481500&width=2048&height=2880&format=image/png&transparent=true",
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 286774691,
+        "crs": "EPSG:25830",
+        "date": "2026-06-13",
+        "file": "lidar-446-4481.zip",
+        "license": "Madrid open-data reuse terms: attribution, update date and no endorsement; https://datos.madrid.es/pages/condiciones-generales-ayuntamiento-de-madrid",
+        "resolution": "60 points/m\u00b2; 5 cm stated vertical accuracy; aggregated to 2 m",
+        "role": "classified LiDAR terrain and surface elevations",
+        "sha256": "2cf4d2a34af96c6bc6f49f855671a16ea14fc0ad9ccc281854b0283c3f8636a0",
+        "url": "https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/ELEVACIONES/2026/NUBE_PUNTOS/LIDAR/F1/446-4481.zip",
+        "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 230658941,
+        "crs": "EPSG:25830",
+        "date": "2026-06-13",
+        "file": "lidar-447-4480.zip",
+        "license": "Madrid open-data reuse terms: attribution, update date and no endorsement; https://datos.madrid.es/pages/condiciones-generales-ayuntamiento-de-madrid",
+        "resolution": "60 points/m\u00b2; 5 cm stated vertical accuracy; aggregated to 2 m",
+        "role": "classified LiDAR terrain and surface elevations",
+        "sha256": "f80b2e28dc6c5170ad95cab124dfb616398ca88913ffa4a410cbc4ee6ca80970",
+        "url": "https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/ELEVACIONES/2026/NUBE_PUNTOS/LIDAR/F1/447-4480.zip",
+        "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 200727555,
+        "crs": "EPSG:25830",
+        "date": "2026-06-13",
+        "file": "lidar-447-4481.zip",
+        "license": "Madrid open-data reuse terms: attribution, update date and no endorsement; https://datos.madrid.es/pages/condiciones-generales-ayuntamiento-de-madrid",
+        "resolution": "60 points/m\u00b2; 5 cm stated vertical accuracy; aggregated to 2 m",
+        "role": "classified LiDAR terrain and surface elevations",
+        "sha256": "4575bc8f6e4e0ebdf87dd0f2b69ec93754e53262915cd8c2f9aeda31f6aaee26",
+        "url": "https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/ELEVACIONES/2026/NUBE_PUNTOS/LIDAR/F1/447-4481.zip",
+        "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 212123697,
+        "crs": "EPSG:25830",
+        "date": "2026-06-13",
+        "file": "lidar-447-4482.zip",
+        "license": "Madrid open-data reuse terms: attribution, update date and no endorsement; https://datos.madrid.es/pages/condiciones-generales-ayuntamiento-de-madrid",
+        "resolution": "60 points/m\u00b2; 5 cm stated vertical accuracy; aggregated to 2 m",
+        "role": "classified LiDAR terrain and surface elevations",
+        "sha256": "75e1a4e93e9ed0b498860931e091cfd90d5ce417d2919897dabb4eef35d5e4f9",
+        "url": "https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/ELEVACIONES/2026/NUBE_PUNTOS/LIDAR/F1/447-4482.zip",
+        "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 264253957,
+        "crs": "EPSG:25830",
+        "date": "2026-06-13",
+        "file": "lidar-448-4480.zip",
+        "license": "Madrid open-data reuse terms: attribution, update date and no endorsement; https://datos.madrid.es/pages/condiciones-generales-ayuntamiento-de-madrid",
+        "resolution": "60 points/m\u00b2; 5 cm stated vertical accuracy; aggregated to 2 m",
+        "role": "classified LiDAR terrain and surface elevations",
+        "sha256": "68c7e58b3c13a23be29393beeda35d445e944f1b66869ee35186b2c60944d592",
+        "url": "https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/ELEVACIONES/2026/NUBE_PUNTOS/LIDAR/F1/448-4480.zip",
+        "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 39815089,
+        "crs": "EPSG:25830",
+        "date": "2025-04-01",
+        "file": "madrid-lod2-hortaleza.zip",
+        "license": "Madrid open-data reuse terms: attribution, update date and no endorsement; https://datos.madrid.es/pages/condiciones-generales-ayuntamiento-de-madrid",
+        "resolution": "LoD2, municipal 1:1000 mapping",
+        "role": "municipal LoD2 buildings with measured roof geometry and elevations",
+        "sha256": "3ad839fa36e614b47898382aca3719827028b3e24330a2165c308984b5216747",
+        "url": "https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/CARTOGRAFIA/CARTOGRAFIA_ACTUALIZADA/3D_EDIFICACIONES_CONSTRUCCIONES/OBJ/16.Hortaleza_3D.ZIP",
+        "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 16979964,
+        "crs": "EPSG:25830",
+        "date": "2025-04-01",
+        "file": "madrid-lod2-barajas.zip",
+        "license": "Madrid open-data reuse terms: attribution, update date and no endorsement; https://datos.madrid.es/pages/condiciones-generales-ayuntamiento-de-madrid",
+        "resolution": "LoD2, municipal 1:1000 mapping",
+        "role": "municipal LoD2 buildings with measured roof geometry and elevations",
+        "sha256": "12482693b4bc19348686775cd545f61baf9c04de1e39df57164b33cfdefc2a95",
+        "url": "https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/CARTOGRAFIA/CARTOGRAFIA_ACTUALIZADA/3D_EDIFICACIONES_CONSTRUCCIONES/OBJ/21.Barajas_3D.ZIP",
+        "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 288760,
+        "crs": "EPSG:25830",
+        "date": "snapshot at retrieval",
+        "file": "ign-dtm.tif",
+        "license": "CC BY 4.0 IGN/CNIG",
+        "resolution": "5 m",
+        "role": "national DTM for gaps outside the current LiDAR coverage",
+        "sha256": "93f25e74239b900f6e192aac7be1853d6422b89424fe30810a5540224b861c9b",
+        "url": "https://servicios.idee.es/wcs-inspire/mdt?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=Elevacion25830_5&SUBSET=x(446750,448350)&SUBSET=y(4479250,4481500)&FORMAT=image/tiff",
+        "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 288760,
+        "crs": "EPSG:25830",
+        "date": "snapshot at retrieval",
+        "file": "ign-dsm.tif",
+        "license": "CC BY 4.0 IGN/CNIG",
+        "resolution": "5 m",
+        "role": "national DSM for cross-checking permanent infrastructure",
+        "sha256": "e584be9bb9f6edc710da5c5b8f4e998d442372eb67d37a3da763a4f2e71615cf",
+        "url": "https://wcs-mds.idee.es/mds?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=mds05&SUBSET=x(446750,448350)&SUBSET=y(4479250,4481500)&FORMAT=image/tiff",
+        "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 8666674,
+        "crs": "EPSG:4326",
+        "date": "snapshot at retrieval",
+        "file": "osm-map.xml",
+        "license": "ODbL 1.0 OpenStreetMap contributors",
+        "resolution": "OSM vectors",
+        "role": "current pit alignment, active building footprints, mapped trees and infrastructure",
+        "sha256": "8f050e839e3c9b6c7a0da7e336cd55d09f68309f03450f956ac2a3133f2fdb98",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-3.632,40.457,-3.607,40.482",
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 154563,
+        "crs": "reference document; not georeferenced",
+        "date": "2026 event",
+        "file": "official-circuit.html",
+        "license": "official promoter reference; not embedded in GLB",
+        "resolution": "official venue technical specifications",
+        "role": "turn numbering, widths, 24% banking, elevation extrema",
+        "sha256": "5226aab55aec9ae9d99907b3b2aa1133e3153958f7916f96277e07bc82e4afa2",
+        "url": "https://www.madring.com/en/circuit",
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 1145426,
+        "crs": "reference document; not georeferenced",
+        "date": "2026 event",
+        "file": "official-event-map.webp",
+        "license": "official promoter reference; not embedded in GLB",
+        "resolution": "official event map",
+        "role": "current grandstands, hospitality, paddock and access configuration",
+        "sha256": "b20b2702c06e15a48881a4e7877df7887d3529370347d424ee548d17295944f6",
+        "url": "https://www.madring.com/img/mapa-general-del-circuito-madring-gran-premio-espana-formula-1-2026-zonas-del-re/madring_map_eng_2026.webp",
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 56397,
+        "crs": "reference document; not georeferenced",
+        "date": "2026 event",
+        "file": "official-f1-map.png",
+        "license": "Formula One World Championship Limited; reference only",
+        "resolution": "official circuit diagram",
+        "role": "current F1 sector transitions, start/finish and speed trap; map-derived distances, not FIA surveyed timing positions",
+        "sha256": "685e24d73dc144a36f2713ef96fafbf6b4bfbedb6c97604090287be14dbdc824",
+        "url": "https://media.formula1.com/image/upload/f_auto/q_auto/v1756285390/common/f1/2026/track/2026trackmadringdetailed.png",
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      },
+      {
+        "bbox": {
+          "minX": 446750,
+          "minY": 4479250,
+          "maxX": 448350,
+          "maxY": 4481500
+        },
+        "bytes": 92037,
+        "crs": "reference document; not georeferenced",
+        "date": "2025-12-17",
+        "file": "official-pit-building.html",
+        "license": "official promoter reference; not embedded in GLB",
+        "resolution": "official construction specifications",
+        "role": "14 modular garages: 11 teams plus 3 FIA; three storeys, maximum 18.5 m",
+        "sha256": "0c53656c390f238d044bdcb97646268f11c64dede67e38bc51bc0b9738bd4771",
+        "url": "https://www.madring.com/en/press-releases/pit-building-paddock-club",
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-07T08:17:49.201Z"
+      }
+    ],
+    "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied."
+  },
+  "coordinateReferenceSystem": "EPSG:25830",
+  "center": {
+    "x": 447550,
+    "y": 4480375
+  },
+  "baseElevationMeters": 640.0,
+  "bounds": {
+    "minX": 446750,
+    "minY": 4479250,
+    "maxX": 448350,
+    "maxY": 4481500
+  },
+  "realWorldScale": "1 Blender unit = 1 metre",
+  "verticalExaggeration": 1,
+  "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+  "geometry": {
+    "source": "municipal CAD record 65, no scale/rotation/mirroring",
+    "lengthMeters": 5416.370684455954,
+    "officialLengthMeters": 5416,
+    "lengthErrorPercent": 0.006844247709634019,
+    "widthSourceRecords": [
+      6,
+      66
+    ],
+    "minimumWidthMeters": 10.999870644126435,
+    "maximumWidthMeters": 17.002650094558717,
+    "turnCount": 22,
+    "auxiliaryTurnLabels": [
+      "5A",
+      "20A"
+    ],
+    "bankingPercent": 24,
+    "bankingAngleDegrees": 13.495733280795811
+  },
+  "elevationProfile": [
+    {
+      "distanceMeters": 0.0,
+      "elevationMeters": 672.5888,
+      "x": 212.8409,
+      "y": -796.0665
+    },
+    {
+      "distanceMeters": 15.0455,
+      "elevationMeters": 672.5879,
+      "x": 197.9963,
+      "y": -798.517
+    },
+    {
+      "distanceMeters": 30.0909,
+      "elevationMeters": 672.5844,
+      "x": 183.1517,
+      "y": -800.9675
+    },
+    {
+      "distanceMeters": 45.1364,
+      "elevationMeters": 672.5761,
+      "x": 168.3072,
+      "y": -803.4179
+    },
+    {
+      "distanceMeters": 60.1819,
+      "elevationMeters": 672.5757,
+      "x": 153.4626,
+      "y": -805.8684
+    },
+    {
+      "distanceMeters": 75.2274,
+      "elevationMeters": 672.5758,
+      "x": 138.618,
+      "y": -808.3189
+    },
+    {
+      "distanceMeters": 90.2728,
+      "elevationMeters": 672.5804,
+      "x": 123.7734,
+      "y": -810.7694
+    },
+    {
+      "distanceMeters": 105.3183,
+      "elevationMeters": 672.5759,
+      "x": 108.9289,
+      "y": -813.2199
+    },
+    {
+      "distanceMeters": 120.3638,
+      "elevationMeters": 672.5797,
+      "x": 94.0843,
+      "y": -815.6703
+    },
+    {
+      "distanceMeters": 135.4093,
+      "elevationMeters": 672.5829,
+      "x": 79.2397,
+      "y": -818.1208
+    },
+    {
+      "distanceMeters": 150.4547,
+      "elevationMeters": 672.5837,
+      "x": 64.3951,
+      "y": -820.5713
+    },
+    {
+      "distanceMeters": 165.5002,
+      "elevationMeters": 672.5823,
+      "x": 49.5506,
+      "y": -823.0218
+    },
+    {
+      "distanceMeters": 180.5457,
+      "elevationMeters": 672.5831,
+      "x": 34.706,
+      "y": -825.4723
+    },
+    {
+      "distanceMeters": 195.5912,
+      "elevationMeters": 672.5876,
+      "x": 19.8614,
+      "y": -827.9228
+    },
+    {
+      "distanceMeters": 210.6366,
+      "elevationMeters": 672.5892,
+      "x": 5.0168,
+      "y": -830.3732
+    },
+    {
+      "distanceMeters": 225.6821,
+      "elevationMeters": 672.5893,
+      "x": -9.8277,
+      "y": -832.8237
+    },
+    {
+      "distanceMeters": 240.7276,
+      "elevationMeters": 672.5952,
+      "x": -24.6723,
+      "y": -835.2742
+    },
+    {
+      "distanceMeters": 255.7731,
+      "elevationMeters": 672.5958,
+      "x": -39.1094,
+      "y": -838.965
+    },
+    {
+      "distanceMeters": 270.8185,
+      "elevationMeters": 672.5883,
+      "x": -44.6009,
+      "y": -852.2507
+    },
+    {
+      "distanceMeters": 285.864,
+      "elevationMeters": 672.5451,
+      "x": -45.4107,
+      "y": -867.2743
+    },
+    {
+      "distanceMeters": 300.9095,
+      "elevationMeters": 672.361,
+      "x": -46.3369,
+      "y": -882.2868
+    },
+    {
+      "distanceMeters": 315.955,
+      "elevationMeters": 672.1242,
+      "x": -55.0233,
+      "y": -893.7551
+    },
+    {
+      "distanceMeters": 331.0004,
+      "elevationMeters": 671.8206,
+      "x": -69.73,
+      "y": -896.7269
+    },
+    {
+      "distanceMeters": 346.0459,
+      "elevationMeters": 671.55,
+      "x": -84.5761,
+      "y": -899.1679
+    },
+    {
+      "distanceMeters": 361.0914,
+      "elevationMeters": 671.3638,
+      "x": -99.4223,
+      "y": -901.6089
+    },
+    {
+      "distanceMeters": 376.1369,
+      "elevationMeters": 671.2041,
+      "x": -114.3432,
+      "y": -903.4587
+    },
+    {
+      "distanceMeters": 391.1823,
+      "elevationMeters": 671.1483,
+      "x": -129.3762,
+      "y": -903.3951
+    },
+    {
+      "distanceMeters": 406.2278,
+      "elevationMeters": 671.1964,
+      "x": -144.2314,
+      "y": -901.087
+    },
+    {
+      "distanceMeters": 421.2733,
+      "elevationMeters": 671.3655,
+      "x": -158.6536,
+      "y": -896.8568
+    },
+    {
+      "distanceMeters": 436.3187,
+      "elevationMeters": 671.6314,
+      "x": -172.5016,
+      "y": -891.0026
+    },
+    {
+      "distanceMeters": 451.3642,
+      "elevationMeters": 671.9475,
+      "x": -185.4963,
+      "y": -883.4465
+    },
+    {
+      "distanceMeters": 466.4097,
+      "elevationMeters": 672.2034,
+      "x": -197.5908,
+      "y": -874.5145
+    },
+    {
+      "distanceMeters": 481.4552,
+      "elevationMeters": 672.3793,
+      "x": -208.4081,
+      "y": -864.072
+    },
+    {
+      "distanceMeters": 496.5006,
+      "elevationMeters": 672.6053,
+      "x": -218.0175,
+      "y": -852.5128
+    },
+    {
+      "distanceMeters": 511.5461,
+      "elevationMeters": 672.8223,
+      "x": -226.3008,
+      "y": -839.9561
+    },
+    {
+      "distanceMeters": 526.5916,
+      "elevationMeters": 673.0495,
+      "x": -234.3037,
+      "y": -827.2156
+    },
+    {
+      "distanceMeters": 541.6371,
+      "elevationMeters": 673.2812,
+      "x": -242.3066,
+      "y": -814.4751
+    },
+    {
+      "distanceMeters": 556.6825,
+      "elevationMeters": 673.5257,
+      "x": -250.3095,
+      "y": -801.7346
+    },
+    {
+      "distanceMeters": 571.728,
+      "elevationMeters": 673.7637,
+      "x": -258.3124,
+      "y": -788.9942
+    },
+    {
+      "distanceMeters": 586.7735,
+      "elevationMeters": 673.9963,
+      "x": -266.3153,
+      "y": -776.2537
+    },
+    {
+      "distanceMeters": 601.819,
+      "elevationMeters": 674.2138,
+      "x": -273.9934,
+      "y": -763.317
+    },
+    {
+      "distanceMeters": 616.8644,
+      "elevationMeters": 674.449,
+      "x": -281.5468,
+      "y": -750.305
+    },
+    {
+      "distanceMeters": 631.9099,
+      "elevationMeters": 674.6645,
+      "x": -289.1002,
+      "y": -737.293
+    },
+    {
+      "distanceMeters": 646.9554,
+      "elevationMeters": 674.8728,
+      "x": -296.6536,
+      "y": -724.281
+    },
+    {
+      "distanceMeters": 662.0009,
+      "elevationMeters": 675.0801,
+      "x": -304.3608,
+      "y": -711.3618
+    },
+    {
+      "distanceMeters": 677.0463,
+      "elevationMeters": 675.2783,
+      "x": -312.3637,
+      "y": -698.6213
+    },
+    {
+      "distanceMeters": 692.0918,
+      "elevationMeters": 675.5046,
+      "x": -320.3666,
+      "y": -685.8808
+    },
+    {
+      "distanceMeters": 707.1373,
+      "elevationMeters": 675.7565,
+      "x": -328.3695,
+      "y": -673.1404
+    },
+    {
+      "distanceMeters": 722.1828,
+      "elevationMeters": 676.0037,
+      "x": -336.3724,
+      "y": -660.3999
+    },
+    {
+      "distanceMeters": 737.2282,
+      "elevationMeters": 676.2393,
+      "x": -344.3753,
+      "y": -647.6594
+    },
+    {
+      "distanceMeters": 752.2737,
+      "elevationMeters": 676.4697,
+      "x": -352.3782,
+      "y": -634.9189
+    },
+    {
+      "distanceMeters": 767.3192,
+      "elevationMeters": 676.7063,
+      "x": -360.3811,
+      "y": -622.1784
+    },
+    {
+      "distanceMeters": 782.3647,
+      "elevationMeters": 676.9588,
+      "x": -368.384,
+      "y": -609.4379
+    },
+    {
+      "distanceMeters": 797.4101,
+      "elevationMeters": 677.2228,
+      "x": -376.3869,
+      "y": -596.6974
+    },
+    {
+      "distanceMeters": 812.4556,
+      "elevationMeters": 677.443,
+      "x": -384.3898,
+      "y": -583.957
+    },
+    {
+      "distanceMeters": 827.5011,
+      "elevationMeters": 677.6212,
+      "x": -392.3927,
+      "y": -571.2165
+    },
+    {
+      "distanceMeters": 842.5466,
+      "elevationMeters": 677.953,
+      "x": -400.3626,
+      "y": -558.4554
+    },
+    {
+      "distanceMeters": 857.592,
+      "elevationMeters": 678.0221,
+      "x": -408.3277,
+      "y": -545.6912
+    },
+    {
+      "distanceMeters": 872.6375,
+      "elevationMeters": 678.2625,
+      "x": -416.3869,
+      "y": -532.9871
+    },
+    {
+      "distanceMeters": 887.683,
+      "elevationMeters": 678.529,
+      "x": -424.406,
+      "y": -520.2568
+    },
+    {
+      "distanceMeters": 902.7284,
+      "elevationMeters": 678.7893,
+      "x": -432.3196,
+      "y": -507.4622
+    },
+    {
+      "distanceMeters": 917.7739,
+      "elevationMeters": 679.0736,
+      "x": -439.5384,
+      "y": -494.2665
+    },
+    {
+      "distanceMeters": 932.8194,
+      "elevationMeters": 679.368,
+      "x": -446.0675,
+      "y": -480.7133
+    },
+    {
+      "distanceMeters": 947.8649,
+      "elevationMeters": 679.661,
+      "x": -452.291,
+      "y": -467.0177
+    },
+    {
+      "distanceMeters": 962.9103,
+      "elevationMeters": 679.8141,
+      "x": -458.2182,
+      "y": -453.1898
+    },
+    {
+      "distanceMeters": 977.9558,
+      "elevationMeters": 679.8581,
+      "x": -463.7223,
+      "y": -439.1872
+    },
+    {
+      "distanceMeters": 993.0013,
+      "elevationMeters": 679.8968,
+      "x": -468.8745,
+      "y": -425.0532
+    },
+    {
+      "distanceMeters": 1008.0468,
+      "elevationMeters": 680.0151,
+      "x": -473.7205,
+      "y": -410.8117
+    },
+    {
+      "distanceMeters": 1023.0922,
+      "elevationMeters": 680.2294,
+      "x": -478.2588,
+      "y": -396.4671
+    },
+    {
+      "distanceMeters": 1038.1377,
+      "elevationMeters": 680.487,
+      "x": -482.3162,
+      "y": -381.979
+    },
+    {
+      "distanceMeters": 1053.1832,
+      "elevationMeters": 680.7279,
+      "x": -486.0529,
+      "y": -367.407
+    },
+    {
+      "distanceMeters": 1068.2287,
+      "elevationMeters": 680.9516,
+      "x": -489.5464,
+      "y": -352.7732
+    },
+    {
+      "distanceMeters": 1083.2741,
+      "elevationMeters": 681.2153,
+      "x": -492.6616,
+      "y": -338.0546
+    },
+    {
+      "distanceMeters": 1098.3196,
+      "elevationMeters": 681.5245,
+      "x": -495.2774,
+      "y": -323.2419
+    },
+    {
+      "distanceMeters": 1113.3651,
+      "elevationMeters": 681.8628,
+      "x": -497.2665,
+      "y": -308.3322
+    },
+    {
+      "distanceMeters": 1128.4106,
+      "elevationMeters": 682.2351,
+      "x": -498.5881,
+      "y": -293.3501
+    },
+    {
+      "distanceMeters": 1143.456,
+      "elevationMeters": 682.6313,
+      "x": -499.1934,
+      "y": -278.3201
+    },
+    {
+      "distanceMeters": 1158.5015,
+      "elevationMeters": 683.0191,
+      "x": -499.1427,
+      "y": -263.2778
+    },
+    {
+      "distanceMeters": 1173.547,
+      "elevationMeters": 683.3567,
+      "x": -498.4361,
+      "y": -248.2518
+    },
+    {
+      "distanceMeters": 1188.5925,
+      "elevationMeters": 683.6121,
+      "x": -497.0749,
+      "y": -233.2706
+    },
+    {
+      "distanceMeters": 1203.6379,
+      "elevationMeters": 683.8111,
+      "x": -495.0616,
+      "y": -218.3626
+    },
+    {
+      "distanceMeters": 1218.6834,
+      "elevationMeters": 683.9662,
+      "x": -492.4001,
+      "y": -203.5563
+    },
+    {
+      "distanceMeters": 1233.7289,
+      "elevationMeters": 684.083,
+      "x": -489.0953,
+      "y": -188.8797
+    },
+    {
+      "distanceMeters": 1248.7744,
+      "elevationMeters": 684.1596,
+      "x": -485.1748,
+      "y": -174.3542
+    },
+    {
+      "distanceMeters": 1263.8198,
+      "elevationMeters": 684.2398,
+      "x": -480.8252,
+      "y": -159.9521
+    },
+    {
+      "distanceMeters": 1278.8653,
+      "elevationMeters": 684.3275,
+      "x": -475.9702,
+      "y": -145.7151
+    },
+    {
+      "distanceMeters": 1293.9108,
+      "elevationMeters": 684.4023,
+      "x": -470.3658,
+      "y": -131.7574
+    },
+    {
+      "distanceMeters": 1308.9562,
+      "elevationMeters": 684.445,
+      "x": -463.3562,
+      "y": -118.4523
+    },
+    {
+      "distanceMeters": 1324.0017,
+      "elevationMeters": 684.5812,
+      "x": -455.1412,
+      "y": -105.86
+    },
+    {
+      "distanceMeters": 1339.0472,
+      "elevationMeters": 684.8631,
+      "x": -445.9031,
+      "y": -93.9868
+    },
+    {
+      "distanceMeters": 1354.0927,
+      "elevationMeters": 684.9732,
+      "x": -442.7663,
+      "y": -80.2432
+    },
+    {
+      "distanceMeters": 1369.1381,
+      "elevationMeters": 684.7854,
+      "x": -454.8373,
+      "y": -72.2342
+    },
+    {
+      "distanceMeters": 1384.1836,
+      "elevationMeters": 684.8493,
+      "x": -461.7669,
+      "y": -59.6969
+    },
+    {
+      "distanceMeters": 1399.2291,
+      "elevationMeters": 685.1726,
+      "x": -455.701,
+      "y": -46.1606
+    },
+    {
+      "distanceMeters": 1414.2746,
+      "elevationMeters": 685.5194,
+      "x": -449.4221,
+      "y": -32.5683
+    },
+    {
+      "distanceMeters": 1429.32,
+      "elevationMeters": 685.52,
+      "x": -448.6052,
+      "y": -17.6397
+    },
+    {
+      "distanceMeters": 1444.3655,
+      "elevationMeters": 685.3603,
+      "x": -452.4605,
+      "y": -3.105
+    },
+    {
+      "distanceMeters": 1459.411,
+      "elevationMeters": 685.2006,
+      "x": -456.6644,
+      "y": 11.3412
+    },
+    {
+      "distanceMeters": 1474.4565,
+      "elevationMeters": 685.0409,
+      "x": -460.8683,
+      "y": 25.7875
+    },
+    {
+      "distanceMeters": 1489.5019,
+      "elevationMeters": 684.8812,
+      "x": -465.0722,
+      "y": 40.2337
+    },
+    {
+      "distanceMeters": 1504.5474,
+      "elevationMeters": 684.8306,
+      "x": -469.3899,
+      "y": 54.6444
+    },
+    {
+      "distanceMeters": 1519.5929,
+      "elevationMeters": 685.1095,
+      "x": -475.3517,
+      "y": 68.4316
+    },
+    {
+      "distanceMeters": 1534.6384,
+      "elevationMeters": 685.414,
+      "x": -483.3976,
+      "y": 81.136
+    },
+    {
+      "distanceMeters": 1549.6838,
+      "elevationMeters": 685.5172,
+      "x": -491.765,
+      "y": 93.6402
+    },
+    {
+      "distanceMeters": 1564.7293,
+      "elevationMeters": 685.4086,
+      "x": -500.0542,
+      "y": 106.1945
+    },
+    {
+      "distanceMeters": 1579.7748,
+      "elevationMeters": 685.675,
+      "x": -507.0605,
+      "y": 119.4847
+    },
+    {
+      "distanceMeters": 1594.8203,
+      "elevationMeters": 686.4782,
+      "x": -511.9104,
+      "y": 133.7038
+    },
+    {
+      "distanceMeters": 1609.8657,
+      "elevationMeters": 687.6215,
+      "x": -515.2491,
+      "y": 148.3723
+    },
+    {
+      "distanceMeters": 1624.9112,
+      "elevationMeters": 688.8965,
+      "x": -518.4658,
+      "y": 163.0699
+    },
+    {
+      "distanceMeters": 1639.9567,
+      "elevationMeters": 690.1389,
+      "x": -521.6825,
+      "y": 177.7675
+    },
+    {
+      "distanceMeters": 1655.0022,
+      "elevationMeters": 691.3709,
+      "x": -524.8992,
+      "y": 192.4651
+    },
+    {
+      "distanceMeters": 1670.0476,
+      "elevationMeters": 692.6369,
+      "x": -528.1159,
+      "y": 207.1627
+    },
+    {
+      "distanceMeters": 1685.0931,
+      "elevationMeters": 693.7694,
+      "x": -532.1736,
+      "y": 221.6368
+    },
+    {
+      "distanceMeters": 1700.1386,
+      "elevationMeters": 694.6382,
+      "x": -538.3497,
+      "y": 235.337
+    },
+    {
+      "distanceMeters": 1715.1841,
+      "elevationMeters": 695.2692,
+      "x": -546.3637,
+      "y": 248.0642
+    },
+    {
+      "distanceMeters": 1730.2295,
+      "elevationMeters": 695.688,
+      "x": -552.3098,
+      "y": 261.4903
+    },
+    {
+      "distanceMeters": 1745.275,
+      "elevationMeters": 695.68,
+      "x": -543.0976,
+      "y": 272.5331
+    },
+    {
+      "distanceMeters": 1760.3205,
+      "elevationMeters": 695.3062,
+      "x": -530.8642,
+      "y": 281.2676
+    },
+    {
+      "distanceMeters": 1775.3659,
+      "elevationMeters": 694.7167,
+      "x": -520.5517,
+      "y": 292.1819
+    },
+    {
+      "distanceMeters": 1790.4114,
+      "elevationMeters": 693.9759,
+      "x": -513.4658,
+      "y": 305.3642
+    },
+    {
+      "distanceMeters": 1805.4569,
+      "elevationMeters": 693.1807,
+      "x": -511.3323,
+      "y": 320.1624
+    },
+    {
+      "distanceMeters": 1820.5024,
+      "elevationMeters": 692.3809,
+      "x": -514.3398,
+      "y": 334.8098
+    },
+    {
+      "distanceMeters": 1835.5478,
+      "elevationMeters": 691.5749,
+      "x": -521.1098,
+      "y": 348.2386
+    },
+    {
+      "distanceMeters": 1850.5933,
+      "elevationMeters": 690.78,
+      "x": -528.1472,
+      "y": 361.5367
+    },
+    {
+      "distanceMeters": 1865.6388,
+      "elevationMeters": 690.0915,
+      "x": -535.1846,
+      "y": 374.8349
+    },
+    {
+      "distanceMeters": 1880.6843,
+      "elevationMeters": 689.4551,
+      "x": -542.222,
+      "y": 388.133
+    },
+    {
+      "distanceMeters": 1895.7297,
+      "elevationMeters": 688.881,
+      "x": -548.9397,
+      "y": 401.5861
+    },
+    {
+      "distanceMeters": 1910.7752,
+      "elevationMeters": 688.348,
+      "x": -551.7388,
+      "y": 416.2962
+    },
+    {
+      "distanceMeters": 1925.8207,
+      "elevationMeters": 687.8721,
+      "x": -551.7901,
+      "y": 431.3401
+    },
+    {
+      "distanceMeters": 1940.8662,
+      "elevationMeters": 687.4059,
+      "x": -551.7901,
+      "y": 446.3856
+    },
+    {
+      "distanceMeters": 1955.9116,
+      "elevationMeters": 686.9141,
+      "x": -551.7901,
+      "y": 461.4311
+    },
+    {
+      "distanceMeters": 1970.9571,
+      "elevationMeters": 686.3262,
+      "x": -551.7901,
+      "y": 476.4765
+    },
+    {
+      "distanceMeters": 1986.0026,
+      "elevationMeters": 685.7331,
+      "x": -551.7901,
+      "y": 491.522
+    },
+    {
+      "distanceMeters": 2001.0481,
+      "elevationMeters": 685.1308,
+      "x": -551.7901,
+      "y": 506.5675
+    },
+    {
+      "distanceMeters": 2016.0935,
+      "elevationMeters": 684.5229,
+      "x": -551.7901,
+      "y": 521.613
+    },
+    {
+      "distanceMeters": 2031.139,
+      "elevationMeters": 683.9756,
+      "x": -551.7901,
+      "y": 536.6584
+    },
+    {
+      "distanceMeters": 2046.1845,
+      "elevationMeters": 683.5682,
+      "x": -550.7467,
+      "y": 551.6392
+    },
+    {
+      "distanceMeters": 2061.23,
+      "elevationMeters": 683.2841,
+      "x": -546.2187,
+      "y": 565.9255
+    },
+    {
+      "distanceMeters": 2076.2754,
+      "elevationMeters": 683.057,
+      "x": -537.9559,
+      "y": 578.4312
+    },
+    {
+      "distanceMeters": 2091.3209,
+      "elevationMeters": 682.8299,
+      "x": -526.9895,
+      "y": 588.715
+    },
+    {
+      "distanceMeters": 2106.3664,
+      "elevationMeters": 682.6058,
+      "x": -515.2746,
+      "y": 598.1497
+    },
+    {
+      "distanceMeters": 2121.4119,
+      "elevationMeters": 682.4034,
+      "x": -503.0003,
+      "y": 606.8444
+    },
+    {
+      "distanceMeters": 2136.4573,
+      "elevationMeters": 682.2258,
+      "x": -490.76,
+      "y": 615.5715
+    },
+    {
+      "distanceMeters": 2151.5028,
+      "elevationMeters": 682.0471,
+      "x": -480.3083,
+      "y": 626.3429
+    },
+    {
+      "distanceMeters": 2166.5483,
+      "elevationMeters": 681.8766,
+      "x": -472.3199,
+      "y": 639.0477
+    },
+    {
+      "distanceMeters": 2181.5937,
+      "elevationMeters": 681.7234,
+      "x": -467.142,
+      "y": 653.1328
+    },
+    {
+      "distanceMeters": 2196.6392,
+      "elevationMeters": 681.6235,
+      "x": -464.9997,
+      "y": 667.9851
+    },
+    {
+      "distanceMeters": 2211.6847,
+      "elevationMeters": 681.536,
+      "x": -466.164,
+      "y": 682.9334
+    },
+    {
+      "distanceMeters": 2226.7302,
+      "elevationMeters": 681.5482,
+      "x": -470.7302,
+      "y": 697.2387
+    },
+    {
+      "distanceMeters": 2241.7756,
+      "elevationMeters": 681.7414,
+      "x": -476.1767,
+      "y": 711.2638
+    },
+    {
+      "distanceMeters": 2256.8211,
+      "elevationMeters": 682.0184,
+      "x": -481.6231,
+      "y": 725.2889
+    },
+    {
+      "distanceMeters": 2271.8666,
+      "elevationMeters": 682.3377,
+      "x": -487.0695,
+      "y": 739.3139
+    },
+    {
+      "distanceMeters": 2286.9121,
+      "elevationMeters": 682.7302,
+      "x": -492.5159,
+      "y": 753.339
+    },
+    {
+      "distanceMeters": 2301.9575,
+      "elevationMeters": 683.1381,
+      "x": -497.9624,
+      "y": 767.3641
+    },
+    {
+      "distanceMeters": 2317.003,
+      "elevationMeters": 683.4788,
+      "x": -503.4088,
+      "y": 781.3892
+    },
+    {
+      "distanceMeters": 2332.0485,
+      "elevationMeters": 683.7066,
+      "x": -508.0506,
+      "y": 795.6841
+    },
+    {
+      "distanceMeters": 2347.094,
+      "elevationMeters": 683.7905,
+      "x": -510.5788,
+      "y": 810.4931
+    },
+    {
+      "distanceMeters": 2362.1394,
+      "elevationMeters": 683.7067,
+      "x": -510.7444,
+      "y": 825.5226
+    },
+    {
+      "distanceMeters": 2377.1849,
+      "elevationMeters": 683.4934,
+      "x": -508.4847,
+      "y": 840.3781
+    },
+    {
+      "distanceMeters": 2392.2304,
+      "elevationMeters": 683.1094,
+      "x": -503.9783,
+      "y": 854.7059
+    },
+    {
+      "distanceMeters": 2407.2759,
+      "elevationMeters": 682.5898,
+      "x": -497.3294,
+      "y": 868.1771
+    },
+    {
+      "distanceMeters": 2422.3213,
+      "elevationMeters": 681.9824,
+      "x": -488.6493,
+      "y": 880.4479
+    },
+    {
+      "distanceMeters": 2437.3668,
+      "elevationMeters": 681.3363,
+      "x": -478.0967,
+      "y": 891.1465
+    },
+    {
+      "distanceMeters": 2452.4123,
+      "elevationMeters": 680.7179,
+      "x": -466.0357,
+      "y": 900.0981
+    },
+    {
+      "distanceMeters": 2467.4578,
+      "elevationMeters": 680.0987,
+      "x": -452.7441,
+      "y": 907.0981
+    },
+    {
+      "distanceMeters": 2482.5032,
+      "elevationMeters": 679.4661,
+      "x": -438.5171,
+      "y": 911.9467
+    },
+    {
+      "distanceMeters": 2497.5487,
+      "elevationMeters": 678.8891,
+      "x": -423.7274,
+      "y": 914.6373
+    },
+    {
+      "distanceMeters": 2512.5942,
+      "elevationMeters": 678.462,
+      "x": -408.7279,
+      "y": 915.6286
+    },
+    {
+      "distanceMeters": 2527.6397,
+      "elevationMeters": 678.2083,
+      "x": -393.7292,
+      "y": 914.5995
+    },
+    {
+      "distanceMeters": 2542.6851,
+      "elevationMeters": 678.1047,
+      "x": -378.9566,
+      "y": 911.8324
+    },
+    {
+      "distanceMeters": 2557.7306,
+      "elevationMeters": 678.1413,
+      "x": -364.6612,
+      "y": 907.18
+    },
+    {
+      "distanceMeters": 2572.7761,
+      "elevationMeters": 678.329,
+      "x": -351.0409,
+      "y": 900.8288
+    },
+    {
+      "distanceMeters": 2587.8215,
+      "elevationMeters": 678.6904,
+      "x": -338.3099,
+      "y": 892.8336
+    },
+    {
+      "distanceMeters": 2602.867,
+      "elevationMeters": 679.1973,
+      "x": -326.6952,
+      "y": 883.2964
+    },
+    {
+      "distanceMeters": 2617.9125,
+      "elevationMeters": 679.8563,
+      "x": -316.2956,
+      "y": 872.44
+    },
+    {
+      "distanceMeters": 2632.958,
+      "elevationMeters": 680.6447,
+      "x": -307.4145,
+      "y": 860.3139
+    },
+    {
+      "distanceMeters": 2648.0034,
+      "elevationMeters": 681.4607,
+      "x": -299.9731,
+      "y": 847.2504
+    },
+    {
+      "distanceMeters": 2663.0489,
+      "elevationMeters": 682.2855,
+      "x": -294.383,
+      "y": 833.2944
+    },
+    {
+      "distanceMeters": 2678.0944,
+      "elevationMeters": 683.111,
+      "x": -290.4157,
+      "y": 818.7963
+    },
+    {
+      "distanceMeters": 2693.1399,
+      "elevationMeters": 683.9087,
+      "x": -288.4016,
+      "y": 803.8981
+    },
+    {
+      "distanceMeters": 2708.1853,
+      "elevationMeters": 684.5856,
+      "x": -288.1179,
+      "y": 788.8704
+    },
+    {
+      "distanceMeters": 2723.2308,
+      "elevationMeters": 685.0467,
+      "x": -289.6831,
+      "y": 773.9189
+    },
+    {
+      "distanceMeters": 2738.2763,
+      "elevationMeters": 685.3153,
+      "x": -292.7061,
+      "y": 759.1901
+    },
+    {
+      "distanceMeters": 2753.3218,
+      "elevationMeters": 685.3847,
+      "x": -297.1443,
+      "y": 744.821
+    },
+    {
+      "distanceMeters": 2768.3672,
+      "elevationMeters": 685.2258,
+      "x": -302.6361,
+      "y": 730.8159
+    },
+    {
+      "distanceMeters": 2783.4127,
+      "elevationMeters": 684.8724,
+      "x": -308.8281,
+      "y": 717.1054
+    },
+    {
+      "distanceMeters": 2798.4582,
+      "elevationMeters": 684.326,
+      "x": -315.6306,
+      "y": 703.6883
+    },
+    {
+      "distanceMeters": 2813.5037,
+      "elevationMeters": 683.6941,
+      "x": -323.0301,
+      "y": 690.5916
+    },
+    {
+      "distanceMeters": 2828.5491,
+      "elevationMeters": 683.0365,
+      "x": -331.036,
+      "y": 677.857
+    },
+    {
+      "distanceMeters": 2843.5946,
+      "elevationMeters": 682.3685,
+      "x": -339.5756,
+      "y": 665.4748
+    },
+    {
+      "distanceMeters": 2858.6401,
+      "elevationMeters": 681.7059,
+      "x": -348.6518,
+      "y": 653.4803
+    },
+    {
+      "distanceMeters": 2873.6856,
+      "elevationMeters": 681.1426,
+      "x": -358.1407,
+      "y": 641.8057
+    },
+    {
+      "distanceMeters": 2888.731,
+      "elevationMeters": 680.7142,
+      "x": -367.792,
+      "y": 630.2636
+    },
+    {
+      "distanceMeters": 2903.7765,
+      "elevationMeters": 680.3977,
+      "x": -377.4434,
+      "y": 618.7216
+    },
+    {
+      "distanceMeters": 2918.822,
+      "elevationMeters": 680.1948,
+      "x": -387.0947,
+      "y": 607.1796
+    },
+    {
+      "distanceMeters": 2933.8675,
+      "elevationMeters": 680.1126,
+      "x": -396.746,
+      "y": 595.6376
+    },
+    {
+      "distanceMeters": 2948.9129,
+      "elevationMeters": 680.1536,
+      "x": -406.3974,
+      "y": 584.0956
+    },
+    {
+      "distanceMeters": 2963.9584,
+      "elevationMeters": 680.2749,
+      "x": -416.0487,
+      "y": 572.5536
+    },
+    {
+      "distanceMeters": 2979.0039,
+      "elevationMeters": 680.4448,
+      "x": -425.7001,
+      "y": 561.0116
+    },
+    {
+      "distanceMeters": 2994.0494,
+      "elevationMeters": 680.6389,
+      "x": -435.2901,
+      "y": 549.4195
+    },
+    {
+      "distanceMeters": 3009.0948,
+      "elevationMeters": 680.8158,
+      "x": -444.6355,
+      "y": 537.6301
+    },
+    {
+      "distanceMeters": 3024.1403,
+      "elevationMeters": 681.0082,
+      "x": -453.5293,
+      "y": 525.4948
+    },
+    {
+      "distanceMeters": 3039.1858,
+      "elevationMeters": 681.1737,
+      "x": -461.9085,
+      "y": 512.9989
+    },
+    {
+      "distanceMeters": 3054.2312,
+      "elevationMeters": 681.2927,
+      "x": -469.8195,
+      "y": 500.2032
+    },
+    {
+      "distanceMeters": 3069.2767,
+      "elevationMeters": 681.4049,
+      "x": -477.451,
+      "y": 487.2377
+    },
+    {
+      "distanceMeters": 3084.3222,
+      "elevationMeters": 681.521,
+      "x": -485.0033,
+      "y": 474.225
+    },
+    {
+      "distanceMeters": 3099.3677,
+      "elevationMeters": 681.6273,
+      "x": -492.2188,
+      "y": 461.037
+    },
+    {
+      "distanceMeters": 3114.4131,
+      "elevationMeters": 681.6428,
+      "x": -494.0821,
+      "y": 446.2651
+    },
+    {
+      "distanceMeters": 3129.4586,
+      "elevationMeters": 681.4759,
+      "x": -488.8969,
+      "y": 432.3203
+    },
+    {
+      "distanceMeters": 3144.5041,
+      "elevationMeters": 681.1755,
+      "x": -478.0181,
+      "y": 422.0778
+    },
+    {
+      "distanceMeters": 3159.5496,
+      "elevationMeters": 680.8349,
+      "x": -465.8769,
+      "y": 413.192
+    },
+    {
+      "distanceMeters": 3174.595,
+      "elevationMeters": 680.5197,
+      "x": -453.7357,
+      "y": 404.3062
+    },
+    {
+      "distanceMeters": 3189.6405,
+      "elevationMeters": 680.2732,
+      "x": -441.5945,
+      "y": 395.4204
+    },
+    {
+      "distanceMeters": 3204.686,
+      "elevationMeters": 680.1093,
+      "x": -429.4533,
+      "y": 386.5346
+    },
+    {
+      "distanceMeters": 3219.7315,
+      "elevationMeters": 679.9625,
+      "x": -417.3121,
+      "y": 377.6488
+    },
+    {
+      "distanceMeters": 3234.7769,
+      "elevationMeters": 679.8077,
+      "x": -405.1709,
+      "y": 368.763
+    },
+    {
+      "distanceMeters": 3249.8224,
+      "elevationMeters": 679.6625,
+      "x": -393.0296,
+      "y": 359.8772
+    },
+    {
+      "distanceMeters": 3264.8679,
+      "elevationMeters": 679.5298,
+      "x": -380.9006,
+      "y": 350.9755
+    },
+    {
+      "distanceMeters": 3279.9134,
+      "elevationMeters": 679.4412,
+      "x": -369.6983,
+      "y": 340.9601
+    },
+    {
+      "distanceMeters": 3294.9588,
+      "elevationMeters": 679.3893,
+      "x": -360.5382,
+      "y": 329.0465
+    },
+    {
+      "distanceMeters": 3310.0043,
+      "elevationMeters": 679.3488,
+      "x": -353.7407,
+      "y": 315.6428
+    },
+    {
+      "distanceMeters": 3325.0498,
+      "elevationMeters": 679.3061,
+      "x": -349.5458,
+      "y": 301.2117
+    },
+    {
+      "distanceMeters": 3340.0953,
+      "elevationMeters": 679.2516,
+      "x": -348.0892,
+      "y": 286.2554
+    },
+    {
+      "distanceMeters": 3355.1407,
+      "elevationMeters": 679.2048,
+      "x": -348.0715,
+      "y": 271.2103
+    },
+    {
+      "distanceMeters": 3370.1862,
+      "elevationMeters": 679.1378,
+      "x": -348.0715,
+      "y": 256.1648
+    },
+    {
+      "distanceMeters": 3385.2317,
+      "elevationMeters": 679.0239,
+      "x": -348.0715,
+      "y": 241.1194
+    },
+    {
+      "distanceMeters": 3400.2772,
+      "elevationMeters": 678.8913,
+      "x": -348.0715,
+      "y": 226.0739
+    },
+    {
+      "distanceMeters": 3415.3226,
+      "elevationMeters": 678.7415,
+      "x": -348.0715,
+      "y": 211.0284
+    },
+    {
+      "distanceMeters": 3430.3681,
+      "elevationMeters": 678.5871,
+      "x": -348.0715,
+      "y": 195.983
+    },
+    {
+      "distanceMeters": 3445.4136,
+      "elevationMeters": 678.4515,
+      "x": -347.1879,
+      "y": 180.9731
+    },
+    {
+      "distanceMeters": 3460.459,
+      "elevationMeters": 678.3856,
+      "x": -344.792,
+      "y": 166.1295
+    },
+    {
+      "distanceMeters": 3475.5045,
+      "elevationMeters": 678.3463,
+      "x": -340.5886,
+      "y": 151.6942
+    },
+    {
+      "distanceMeters": 3490.55,
+      "elevationMeters": 678.3128,
+      "x": -334.9399,
+      "y": 137.7597
+    },
+    {
+      "distanceMeters": 3505.5955,
+      "elevationMeters": 678.2826,
+      "x": -327.6113,
+      "y": 124.6314
+    },
+    {
+      "distanceMeters": 3520.6409,
+      "elevationMeters": 678.255,
+      "x": -318.9948,
+      "y": 112.3092
+    },
+    {
+      "distanceMeters": 3535.6864,
+      "elevationMeters": 678.2264,
+      "x": -308.9127,
+      "y": 101.1546
+    },
+    {
+      "distanceMeters": 3550.7319,
+      "elevationMeters": 678.199,
+      "x": -297.7604,
+      "y": 91.0697
+    },
+    {
+      "distanceMeters": 3565.7774,
+      "elevationMeters": 678.1708,
+      "x": -285.4392,
+      "y": 82.4518
+    },
+    {
+      "distanceMeters": 3580.8228,
+      "elevationMeters": 678.1382,
+      "x": -272.3126,
+      "y": 75.1199
+    },
+    {
+      "distanceMeters": 3595.8683,
+      "elevationMeters": 678.1091,
+      "x": -258.3788,
+      "y": 69.4696
+    },
+    {
+      "distanceMeters": 3610.9138,
+      "elevationMeters": 678.0883,
+      "x": -243.9444,
+      "y": 65.2629
+    },
+    {
+      "distanceMeters": 3625.9593,
+      "elevationMeters": 678.0321,
+      "x": -229.101,
+      "y": 62.8652
+    },
+    {
+      "distanceMeters": 3641.0047,
+      "elevationMeters": 677.9429,
+      "x": -214.0913,
+      "y": 61.9789
+    },
+    {
+      "distanceMeters": 3656.0502,
+      "elevationMeters": 677.8512,
+      "x": -199.0459,
+      "y": 61.9789
+    },
+    {
+      "distanceMeters": 3671.0957,
+      "elevationMeters": 677.7613,
+      "x": -184.0004,
+      "y": 61.9789
+    },
+    {
+      "distanceMeters": 3686.1412,
+      "elevationMeters": 677.6723,
+      "x": -168.9549,
+      "y": 61.9789
+    },
+    {
+      "distanceMeters": 3701.1866,
+      "elevationMeters": 677.5849,
+      "x": -153.9094,
+      "y": 61.9789
+    },
+    {
+      "distanceMeters": 3716.2321,
+      "elevationMeters": 677.4997,
+      "x": -138.864,
+      "y": 61.9789
+    },
+    {
+      "distanceMeters": 3731.2776,
+      "elevationMeters": 677.4106,
+      "x": -123.821,
+      "y": 62.0981
+    },
+    {
+      "distanceMeters": 3746.3231,
+      "elevationMeters": 677.2966,
+      "x": -108.93,
+      "y": 64.0312
+    },
+    {
+      "distanceMeters": 3761.3685,
+      "elevationMeters": 677.0521,
+      "x": -94.6514,
+      "y": 68.6882
+    },
+    {
+      "distanceMeters": 3776.414,
+      "elevationMeters": 676.6829,
+      "x": -81.3169,
+      "y": 75.6398
+    },
+    {
+      "distanceMeters": 3791.4595,
+      "elevationMeters": 676.2845,
+      "x": -68.1621,
+      "y": 82.9416
+    },
+    {
+      "distanceMeters": 3806.505,
+      "elevationMeters": 675.8677,
+      "x": -55.0073,
+      "y": 90.2434
+    },
+    {
+      "distanceMeters": 3821.5504,
+      "elevationMeters": 675.4742,
+      "x": -41.4109,
+      "y": 88.5239
+    },
+    {
+      "distanceMeters": 3836.5959,
+      "elevationMeters": 675.0677,
+      "x": -32.756,
+      "y": 76.2204
+    },
+    {
+      "distanceMeters": 3851.6414,
+      "elevationMeters": 674.6551,
+      "x": -24.1597,
+      "y": 63.8726
+    },
+    {
+      "distanceMeters": 3866.6868,
+      "elevationMeters": 674.2455,
+      "x": -15.5633,
+      "y": 51.5247
+    },
+    {
+      "distanceMeters": 3881.7323,
+      "elevationMeters": 673.8985,
+      "x": -7.1069,
+      "y": 39.0819
+    },
+    {
+      "distanceMeters": 3896.7778,
+      "elevationMeters": 673.7449,
+      "x": 0.7681,
+      "y": 26.2661
+    },
+    {
+      "distanceMeters": 3911.8233,
+      "elevationMeters": 673.5997,
+      "x": 8.1777,
+      "y": 13.1719
+    },
+    {
+      "distanceMeters": 3926.8687,
+      "elevationMeters": 673.4545,
+      "x": 15.569,
+      "y": 0.0672
+    },
+    {
+      "distanceMeters": 3941.9142,
+      "elevationMeters": 673.3094,
+      "x": 22.9604,
+      "y": -13.0376
+    },
+    {
+      "distanceMeters": 3956.9597,
+      "elevationMeters": 673.1642,
+      "x": 30.3518,
+      "y": -26.1423
+    },
+    {
+      "distanceMeters": 3972.0052,
+      "elevationMeters": 673.019,
+      "x": 37.7432,
+      "y": -39.247
+    },
+    {
+      "distanceMeters": 3987.0506,
+      "elevationMeters": 672.8739,
+      "x": 45.1346,
+      "y": -52.3517
+    },
+    {
+      "distanceMeters": 4002.0961,
+      "elevationMeters": 672.7287,
+      "x": 52.526,
+      "y": -65.4564
+    },
+    {
+      "distanceMeters": 4017.1416,
+      "elevationMeters": 672.5835,
+      "x": 59.9174,
+      "y": -78.5612
+    },
+    {
+      "distanceMeters": 4032.1871,
+      "elevationMeters": 672.4547,
+      "x": 68.1518,
+      "y": -91.113
+    },
+    {
+      "distanceMeters": 4047.2325,
+      "elevationMeters": 672.429,
+      "x": 79.2483,
+      "y": -101.1862
+    },
+    {
+      "distanceMeters": 4062.278,
+      "elevationMeters": 672.4532,
+      "x": 92.7135,
+      "y": -107.7697
+    },
+    {
+      "distanceMeters": 4077.3235,
+      "elevationMeters": 672.5273,
+      "x": 107.4271,
+      "y": -110.7719
+    },
+    {
+      "distanceMeters": 4092.369,
+      "elevationMeters": 672.629,
+      "x": 122.4408,
+      "y": -111.3249
+    },
+    {
+      "distanceMeters": 4107.4144,
+      "elevationMeters": 672.7698,
+      "x": 137.3787,
+      "y": -109.6483
+    },
+    {
+      "distanceMeters": 4122.4599,
+      "elevationMeters": 672.9181,
+      "x": 152.2202,
+      "y": -107.1796
+    },
+    {
+      "distanceMeters": 4137.5054,
+      "elevationMeters": 673.0724,
+      "x": 167.0618,
+      "y": -104.711
+    },
+    {
+      "distanceMeters": 4152.5509,
+      "elevationMeters": 673.2218,
+      "x": 181.9418,
+      "y": -102.4983
+    },
+    {
+      "distanceMeters": 4167.5963,
+      "elevationMeters": 673.359,
+      "x": 196.9491,
+      "y": -101.5798
+    },
+    {
+      "distanceMeters": 4182.6418,
+      "elevationMeters": 673.4596,
+      "x": 211.9797,
+      "y": -102.0545
+    },
+    {
+      "distanceMeters": 4197.6873,
+      "elevationMeters": 673.5049,
+      "x": 226.8778,
+      "y": -104.0893
+    },
+    {
+      "distanceMeters": 4212.7328,
+      "elevationMeters": 673.5027,
+      "x": 241.5362,
+      "y": -107.4492
+    },
+    {
+      "distanceMeters": 4227.7782,
+      "elevationMeters": 673.4593,
+      "x": 255.5927,
+      "y": -112.7723
+    },
+    {
+      "distanceMeters": 4242.8237,
+      "elevationMeters": 673.3819,
+      "x": 268.5608,
+      "y": -120.3689
+    },
+    {
+      "distanceMeters": 4257.8692,
+      "elevationMeters": 673.2638,
+      "x": 280.0831,
+      "y": -130.0153
+    },
+    {
+      "distanceMeters": 4272.9147,
+      "elevationMeters": 673.118,
+      "x": 289.8218,
+      "y": -141.4567
+    },
+    {
+      "distanceMeters": 4287.9601,
+      "elevationMeters": 672.9619,
+      "x": 297.3985,
+      "y": -154.4327
+    },
+    {
+      "distanceMeters": 4303.0056,
+      "elevationMeters": 672.8335,
+      "x": 302.54,
+      "y": -168.5553
+    },
+    {
+      "distanceMeters": 4318.0511,
+      "elevationMeters": 672.7613,
+      "x": 305.3767,
+      "y": -183.3264
+    },
+    {
+      "distanceMeters": 4333.0965,
+      "elevationMeters": 672.7372,
+      "x": 307.8531,
+      "y": -198.1667
+    },
+    {
+      "distanceMeters": 4348.142,
+      "elevationMeters": 672.745,
+      "x": 310.3294,
+      "y": -213.007
+    },
+    {
+      "distanceMeters": 4363.1875,
+      "elevationMeters": 672.7425,
+      "x": 312.8058,
+      "y": -227.8473
+    },
+    {
+      "distanceMeters": 4378.233,
+      "elevationMeters": 672.7495,
+      "x": 315.2821,
+      "y": -242.6876
+    },
+    {
+      "distanceMeters": 4393.2784,
+      "elevationMeters": 672.7392,
+      "x": 317.9283,
+      "y": -257.4968
+    },
+    {
+      "distanceMeters": 4408.3239,
+      "elevationMeters": 672.7396,
+      "x": 320.628,
+      "y": -272.2956
+    },
+    {
+      "distanceMeters": 4423.3694,
+      "elevationMeters": 672.7454,
+      "x": 323.1044,
+      "y": -287.1358
+    },
+    {
+      "distanceMeters": 4438.4149,
+      "elevationMeters": 672.7388,
+      "x": 325.5808,
+      "y": -301.9761
+    },
+    {
+      "distanceMeters": 4453.4603,
+      "elevationMeters": 672.7343,
+      "x": 328.0571,
+      "y": -316.8164
+    },
+    {
+      "distanceMeters": 4468.5058,
+      "elevationMeters": 672.7324,
+      "x": 330.5335,
+      "y": -331.6567
+    },
+    {
+      "distanceMeters": 4483.5513,
+      "elevationMeters": 672.7359,
+      "x": 333.0099,
+      "y": -346.497
+    },
+    {
+      "distanceMeters": 4498.5968,
+      "elevationMeters": 672.7228,
+      "x": 335.4862,
+      "y": -361.3372
+    },
+    {
+      "distanceMeters": 4513.6422,
+      "elevationMeters": 672.7347,
+      "x": 337.9626,
+      "y": -376.1775
+    },
+    {
+      "distanceMeters": 4528.6877,
+      "elevationMeters": 672.7768,
+      "x": 340.439,
+      "y": -391.0178
+    },
+    {
+      "distanceMeters": 4543.7332,
+      "elevationMeters": 672.8436,
+      "x": 342.9153,
+      "y": -405.8581
+    },
+    {
+      "distanceMeters": 4558.7787,
+      "elevationMeters": 672.8638,
+      "x": 345.3917,
+      "y": -420.6984
+    },
+    {
+      "distanceMeters": 4573.8241,
+      "elevationMeters": 672.787,
+      "x": 347.868,
+      "y": -435.5386
+    },
+    {
+      "distanceMeters": 4588.8696,
+      "elevationMeters": 672.722,
+      "x": 350.5311,
+      "y": -450.3395
+    },
+    {
+      "distanceMeters": 4603.9151,
+      "elevationMeters": 672.7109,
+      "x": 360.7509,
+      "y": -460.5658
+    },
+    {
+      "distanceMeters": 4618.9606,
+      "elevationMeters": 672.6976,
+      "x": 375.0325,
+      "y": -458.2167
+    },
+    {
+      "distanceMeters": 4634.006,
+      "elevationMeters": 672.6984,
+      "x": 387.0546,
+      "y": -449.1706
+    },
+    {
+      "distanceMeters": 4649.0515,
+      "elevationMeters": 672.6996,
+      "x": 399.8118,
+      "y": -441.3687
+    },
+    {
+      "distanceMeters": 4664.097,
+      "elevationMeters": 672.7113,
+      "x": 414.6576,
+      "y": -438.99
+    },
+    {
+      "distanceMeters": 4679.1425,
+      "elevationMeters": 672.7106,
+      "x": 429.562,
+      "y": -436.9343
+    },
+    {
+      "distanceMeters": 4694.1879,
+      "elevationMeters": 672.7091,
+      "x": 444.4664,
+      "y": -434.8786
+    },
+    {
+      "distanceMeters": 4709.2334,
+      "elevationMeters": 672.7049,
+      "x": 459.3708,
+      "y": -432.8229
+    },
+    {
+      "distanceMeters": 4724.2789,
+      "elevationMeters": 672.702,
+      "x": 474.3279,
+      "y": -431.2329
+    },
+    {
+      "distanceMeters": 4739.3243,
+      "elevationMeters": 672.6937,
+      "x": 489.3596,
+      "y": -430.689
+    },
+    {
+      "distanceMeters": 4754.3698,
+      "elevationMeters": 672.6859,
+      "x": 504.2831,
+      "y": -431.4592
+    },
+    {
+      "distanceMeters": 4769.4153,
+      "elevationMeters": 672.7468,
+      "x": 511.611,
+      "y": -444.0359
+    },
+    {
+      "distanceMeters": 4784.4608,
+      "elevationMeters": 672.7687,
+      "x": 516.5944,
+      "y": -458.2321
+    },
+    {
+      "distanceMeters": 4799.5062,
+      "elevationMeters": 672.7582,
+      "x": 521.4194,
+      "y": -472.4821
+    },
+    {
+      "distanceMeters": 4814.5517,
+      "elevationMeters": 672.754,
+      "x": 525.9787,
+      "y": -486.8178
+    },
+    {
+      "distanceMeters": 4829.5972,
+      "elevationMeters": 672.7528,
+      "x": 530.1015,
+      "y": -501.2874
+    },
+    {
+      "distanceMeters": 4844.6427,
+      "elevationMeters": 672.743,
+      "x": 533.6842,
+      "y": -515.8992
+    },
+    {
+      "distanceMeters": 4859.6881,
+      "elevationMeters": 672.7266,
+      "x": 536.8639,
+      "y": -530.6019
+    },
+    {
+      "distanceMeters": 4874.7336,
+      "elevationMeters": 672.7124,
+      "x": 539.7278,
+      "y": -545.3717
+    },
+    {
+      "distanceMeters": 4889.7791,
+      "elevationMeters": 672.7145,
+      "x": 542.3846,
+      "y": -560.1807
+    },
+    {
+      "distanceMeters": 4904.8246,
+      "elevationMeters": 672.7094,
+      "x": 545.0415,
+      "y": -574.9898
+    },
+    {
+      "distanceMeters": 4919.87,
+      "elevationMeters": 672.7092,
+      "x": 547.6983,
+      "y": -589.7988
+    },
+    {
+      "distanceMeters": 4934.9155,
+      "elevationMeters": 672.7097,
+      "x": 550.3552,
+      "y": -604.6078
+    },
+    {
+      "distanceMeters": 4949.961,
+      "elevationMeters": 672.7067,
+      "x": 553.0121,
+      "y": -619.4168
+    },
+    {
+      "distanceMeters": 4965.0065,
+      "elevationMeters": 672.7037,
+      "x": 555.6689,
+      "y": -634.2259
+    },
+    {
+      "distanceMeters": 4980.0519,
+      "elevationMeters": 672.7019,
+      "x": 558.3257,
+      "y": -649.0349
+    },
+    {
+      "distanceMeters": 4995.0974,
+      "elevationMeters": 672.7046,
+      "x": 560.9825,
+      "y": -663.844
+    },
+    {
+      "distanceMeters": 5010.1429,
+      "elevationMeters": 672.7029,
+      "x": 563.6392,
+      "y": -678.653
+    },
+    {
+      "distanceMeters": 5025.1884,
+      "elevationMeters": 672.6973,
+      "x": 566.2102,
+      "y": -693.4762
+    },
+    {
+      "distanceMeters": 5040.2338,
+      "elevationMeters": 672.6961,
+      "x": 567.7335,
+      "y": -708.4299
+    },
+    {
+      "distanceMeters": 5055.2793,
+      "elevationMeters": 672.7052,
+      "x": 563.3477,
+      "y": -722.6136
+    },
+    {
+      "distanceMeters": 5070.3248,
+      "elevationMeters": 672.7032,
+      "x": 552.6361,
+      "y": -732.9463
+    },
+    {
+      "distanceMeters": 5085.3703,
+      "elevationMeters": 672.6822,
+      "x": 538.575,
+      "y": -738.1699
+    },
+    {
+      "distanceMeters": 5100.4157,
+      "elevationMeters": 672.6363,
+      "x": 524.1288,
+      "y": -742.3728
+    },
+    {
+      "distanceMeters": 5115.4612,
+      "elevationMeters": 672.6058,
+      "x": 509.553,
+      "y": -746.0997
+    },
+    {
+      "distanceMeters": 5130.5067,
+      "elevationMeters": 672.591,
+      "x": 494.8495,
+      "y": -749.2868
+    },
+    {
+      "distanceMeters": 5145.5522,
+      "elevationMeters": 672.5949,
+      "x": 480.0433,
+      "y": -751.958
+    },
+    {
+      "distanceMeters": 5160.5976,
+      "elevationMeters": 672.5899,
+      "x": 465.1987,
+      "y": -754.4084
+    },
+    {
+      "distanceMeters": 5175.6431,
+      "elevationMeters": 672.5852,
+      "x": 450.3541,
+      "y": -756.8589
+    },
+    {
+      "distanceMeters": 5190.6886,
+      "elevationMeters": 672.5878,
+      "x": 435.5096,
+      "y": -759.3094
+    },
+    {
+      "distanceMeters": 5205.734,
+      "elevationMeters": 672.5869,
+      "x": 420.665,
+      "y": -761.7599
+    },
+    {
+      "distanceMeters": 5220.7795,
+      "elevationMeters": 672.5878,
+      "x": 405.8204,
+      "y": -764.2103
+    },
+    {
+      "distanceMeters": 5235.825,
+      "elevationMeters": 672.5793,
+      "x": 390.9758,
+      "y": -766.6608
+    },
+    {
+      "distanceMeters": 5250.8705,
+      "elevationMeters": 672.5778,
+      "x": 376.1312,
+      "y": -769.1113
+    },
+    {
+      "distanceMeters": 5265.9159,
+      "elevationMeters": 672.5791,
+      "x": 361.2867,
+      "y": -771.5618
+    },
+    {
+      "distanceMeters": 5280.9614,
+      "elevationMeters": 672.5927,
+      "x": 346.4421,
+      "y": -774.0122
+    },
+    {
+      "distanceMeters": 5296.0069,
+      "elevationMeters": 672.5889,
+      "x": 331.5975,
+      "y": -776.4627
+    },
+    {
+      "distanceMeters": 5311.0524,
+      "elevationMeters": 672.5897,
+      "x": 316.7529,
+      "y": -778.9132
+    },
+    {
+      "distanceMeters": 5326.0978,
+      "elevationMeters": 672.5875,
+      "x": 301.9084,
+      "y": -781.3637
+    },
+    {
+      "distanceMeters": 5341.1433,
+      "elevationMeters": 672.5897,
+      "x": 287.0638,
+      "y": -783.8141
+    },
+    {
+      "distanceMeters": 5356.1888,
+      "elevationMeters": 672.59,
+      "x": 272.2192,
+      "y": -786.2646
+    },
+    {
+      "distanceMeters": 5371.2343,
+      "elevationMeters": 672.587,
+      "x": 257.3746,
+      "y": -788.7151
+    },
+    {
+      "distanceMeters": 5386.2797,
+      "elevationMeters": 672.5903,
+      "x": 242.5301,
+      "y": -791.1656
+    },
+    {
+      "distanceMeters": 5401.3252,
+      "elevationMeters": 672.5885,
+      "x": 227.6855,
+      "y": -793.616
+    },
+    {
+      "distanceMeters": 5416.3707,
+      "elevationMeters": 672.5888,
+      "x": 212.8409,
+      "y": -796.0665
+    }
+  ],
+  "elevationsMeters": {
+    "low": 671.1483,
+    "high": 695.688
+  },
+  "surfaceClearance": {
+    "sampleCount": 31041,
+    "coveredTunnelSamples": 1458,
+    "minimumClearanceMeters": 0.0901,
+    "minimumClearanceLocation": {
+      "distanceMeters": 2575.5,
+      "lateralMeters": -6.015
+    },
+    "terrainPenetrations": 0,
+    "method": "BVH ray audit of actual rendered triangles, 9 lateral samples every 1.5 m; covered tunnel samples checked against separate ceiling headroom"
+  },
+  "pitClearance": {
+    "sampleCount": 5463,
+    "coveredTunnelSamples": 0,
+    "minimumClearanceMeters": 0.6526,
+    "minimumClearanceLocation": {
+      "distanceMeters": 631.5,
+      "lateralMeters": 6.0
+    },
+    "terrainPenetrations": 0,
+    "method": "BVH ray audit of actual rendered triangles, 9 lateral samples every 1.5 m; covered tunnel samples checked against separate ceiling headroom"
+  },
+  "tunnels": [
+    {
+      "name": "M11_West",
+      "start": 1420,
+      "end": 1500,
+      "deckStart": 1432,
+      "deckEnd": 1493,
+      "portalElevationsMeters": [
+        685.618869575939,
+        684.7698324211292
+      ],
+      "heightMethod": "linear between measured portals; not surveyed underground",
+      "minimumHeadroomMeters": 5.487,
+      "topSurfaceMethod": "continuous upper terrain; median LiDAR deck; no excavation across M-11"
+    },
+    {
+      "name": "M11_East",
+      "start": 3880,
+      "end": 4030,
+      "deckStart": 3893,
+      "deckEnd": 4018,
+      "portalElevationsMeters": [
+        673.9067501291889,
+        672.4594851831915
+      ],
+      "heightMethod": "linear between measured portals; not surveyed underground",
+      "minimumHeadroomMeters": 6.528,
+      "topSurfaceMethod": "continuous upper terrain; median LiDAR deck; no excavation across M-11"
+    }
+  ],
+  "surfaceExport": {
+    "meshoptPositionBits": 18,
+    "maximumPositionErrorMeters": 0.008,
+    "edgePaintWidthMeters": 0.17,
+    "paintClearanceMeters": 0.04,
+    "runoffMethod": "CAD polygons clipped against actual terrain triangles with 0.06 m clearance"
+  },
+  "pitLane": {
+    "sourceWayId": 1552567031,
+    "lengthMeters": 909.5167702032596,
+    "pitBoxes": 14,
+    "entryGapMeters": 0,
+    "exitGapMeters": 0,
+    "fastLaneSeparator": true,
+    "physicalWall": {
+      "fenceHeightMeters": 1.15,
+      "lengthMeters": 509.329,
+      "panels": 170,
+      "wallHeightMeters": 1.05
+    }
+  },
+  "buildings": {
+    "candidateCount": 755,
+    "renderedCount": 605,
+    "renderedIds": [
+      "120918",
+      "120929",
+      "120970",
+      "121007",
+      "121010",
+      "121045",
+      "121127",
+      "121156",
+      "122219",
+      "122220",
+      "122247",
+      "122254",
+      "122257",
+      "122260",
+      "122273",
+      "122274",
+      "122304",
+      "122312",
+      "122313",
+      "122319",
+      "122327",
+      "122330",
+      "122342",
+      "122353",
+      "122366",
+      "122373",
+      "122377",
+      "122378",
+      "122386",
+      "122399",
+      "122425",
+      "122437",
+      "122452",
+      "122455",
+      "123096",
+      "123097",
+      "123098",
+      "123099",
+      "123100",
+      "123101",
+      "123106",
+      "154410",
+      "40119825",
+      "40119947",
+      "40120064",
+      "40120065",
+      "40120162",
+      "40120238",
+      "40120338",
+      "40120404",
+      "40120461",
+      "40120636",
+      "40120887",
+      "40120980",
+      "40121017",
+      "40121033",
+      "40121039",
+      "40121396",
+      "40121433",
+      "40121563",
+      "40121603",
+      "40121653",
+      "40121786",
+      "40121962",
+      "40122255",
+      "40122350",
+      "40122586",
+      "40122587",
+      "40122742",
+      "40123328",
+      "40123681",
+      "40123747",
+      "40123958",
+      "40124226",
+      "40124234",
+      "40124518",
+      "40124566",
+      "40124782",
+      "40124970",
+      "40126517",
+      "40145842",
+      "40145845",
+      "40145859",
+      "40145884",
+      "40145893",
+      "40145903",
+      "40146333",
+      "40146354",
+      "40146357",
+      "40146359",
+      "40146360",
+      "40146361",
+      "40146424",
+      "40146428",
+      "40146436",
+      "40146443",
+      "40201087",
+      "40201304",
+      "41000817",
+      "41000870",
+      "41000887",
+      "41000925",
+      "41000996",
+      "41001004",
+      "42000942",
+      "42000943",
+      "42000945",
+      "42000952",
+      "63909",
+      "63910",
+      "63911",
+      "63912",
+      "63913",
+      "66923",
+      "66996",
+      "67003",
+      "67007",
+      "67010",
+      "67019",
+      "67050",
+      "67056",
+      "67098",
+      "67115",
+      "67158",
+      "67166",
+      "67178",
+      "67179",
+      "67184",
+      "67191",
+      "67224",
+      "67227",
+      "67228",
+      "67251",
+      "67277",
+      "67329",
+      "67342",
+      "67367",
+      "67379",
+      "67396",
+      "67411",
+      "67444",
+      "67455",
+      "67483",
+      "67521",
+      "67643",
+      "67648",
+      "67649",
+      "67665",
+      "67675",
+      "67715",
+      "67731",
+      "67737",
+      "67747",
+      "67749",
+      "67768",
+      "67809",
+      "67855",
+      "67891",
+      "67901",
+      "67920",
+      "67930",
+      "70720",
+      "70919",
+      "70944",
+      "71013",
+      "71162",
+      "71168",
+      "71243",
+      "71278",
+      "71296",
+      "71379",
+      "71400",
+      "71411",
+      "71445",
+      "71485",
+      "-199526",
+      "-199636",
+      "-199989",
+      "109782",
+      "109783",
+      "109784",
+      "109787",
+      "109788",
+      "109802",
+      "114572",
+      "114581",
+      "114582",
+      "114583",
+      "114591",
+      "114607",
+      "114674",
+      "114675",
+      "114680",
+      "114832",
+      "114833",
+      "114835",
+      "114838",
+      "114840",
+      "114841",
+      "114842",
+      "114844",
+      "114845",
+      "114848",
+      "114849",
+      "114850",
+      "114851",
+      "114854",
+      "115059",
+      "115060",
+      "115061",
+      "115062",
+      "115063",
+      "115065",
+      "115067",
+      "115068",
+      "115069",
+      "115070",
+      "115071",
+      "115073",
+      "115076",
+      "115077",
+      "115078",
+      "115079",
+      "115106",
+      "115123",
+      "115124",
+      "115196",
+      "115200",
+      "115259",
+      "115260",
+      "115261",
+      "115262",
+      "115263",
+      "118589",
+      "118595",
+      "118596",
+      "118597",
+      "118598",
+      "118599",
+      "118600",
+      "118607",
+      "118608",
+      "118609",
+      "118612",
+      "118613",
+      "118614",
+      "118615",
+      "118616",
+      "118617",
+      "118618",
+      "34858",
+      "34863",
+      "34876",
+      "40119752",
+      "40119763",
+      "40120055",
+      "40120132",
+      "40120255",
+      "40120417",
+      "40120422",
+      "40120428",
+      "40120430",
+      "40120450",
+      "40120452",
+      "40120713",
+      "40121264",
+      "40121387",
+      "40121484",
+      "40121872",
+      "40125259",
+      "40125595",
+      "40125764",
+      "40128208",
+      "40128209",
+      "40128308",
+      "40128309",
+      "40128367",
+      "40128368",
+      "40128491",
+      "40128492",
+      "40128687",
+      "40128688",
+      "40128779",
+      "40128780",
+      "40128849",
+      "40128850",
+      "40128898",
+      "40128899",
+      "40128917",
+      "40128918",
+      "40129060",
+      "40129061",
+      "40129151",
+      "40129206",
+      "40129208",
+      "40129342",
+      "40129381",
+      "40129384",
+      "40129385",
+      "40129388",
+      "40129636",
+      "40129646",
+      "40129651",
+      "40129652",
+      "40129723",
+      "40129724",
+      "40129725",
+      "40129727",
+      "40129728",
+      "40129753",
+      "40129768",
+      "40129771",
+      "40129794",
+      "40129823",
+      "40129900",
+      "40129901",
+      "40129902",
+      "40129907",
+      "40129910",
+      "40129917",
+      "40129918",
+      "40129982",
+      "40129983",
+      "40129984",
+      "40130018",
+      "40130123",
+      "40130124",
+      "40130156",
+      "40130157",
+      "40130158",
+      "40130159",
+      "40130160",
+      "40130161",
+      "40130162",
+      "40130163",
+      "40130164",
+      "40130165",
+      "40130166",
+      "40130178",
+      "40130251",
+      "40130252",
+      "40130315",
+      "40130353",
+      "40130354",
+      "40130355",
+      "40130356",
+      "40130358",
+      "40130366",
+      "40130419",
+      "40130420",
+      "40130428",
+      "40130450",
+      "40130523",
+      "40130524",
+      "40130560",
+      "40130561",
+      "40130582",
+      "40130583",
+      "40130584",
+      "40130606",
+      "40130618",
+      "40130620",
+      "40130627",
+      "40130628",
+      "40130633",
+      "40130634",
+      "40130635",
+      "40130655",
+      "40130656",
+      "40130686",
+      "40130696",
+      "40130722",
+      "40130772",
+      "40130773",
+      "40130780",
+      "40130782",
+      "40130787",
+      "40130789",
+      "40130801",
+      "40136505",
+      "40136517",
+      "40136518",
+      "40136537",
+      "40136549",
+      "40136551",
+      "40136552",
+      "40136561",
+      "40136562",
+      "40136563",
+      "40136564",
+      "40136565",
+      "40136566",
+      "40136583",
+      "40136592",
+      "40136625",
+      "40136631",
+      "40136632",
+      "40136633",
+      "40136653",
+      "40136664",
+      "40136695",
+      "40136696",
+      "40136745",
+      "40136747",
+      "40136748",
+      "40136754",
+      "40136781",
+      "40136790",
+      "40136830",
+      "40136837",
+      "40136838",
+      "40136839",
+      "40136840",
+      "40136841",
+      "40136842",
+      "40136843",
+      "40136849",
+      "40136850",
+      "40136852",
+      "40136873",
+      "40136878",
+      "40136891",
+      "40136892",
+      "40136893",
+      "40136894",
+      "40136895",
+      "40136896",
+      "40136904",
+      "40136914",
+      "40136929",
+      "40136949",
+      "40136986",
+      "40136987",
+      "40136994",
+      "40137006",
+      "40137007",
+      "40137008",
+      "40137011",
+      "40145778",
+      "40145927",
+      "40146275",
+      "40146276",
+      "40146278",
+      "40146279",
+      "40146289",
+      "40146292",
+      "40146294",
+      "40146296",
+      "40146297",
+      "40146298",
+      "40146299",
+      "40201223",
+      "40201232",
+      "40201233",
+      "40201234",
+      "40201236",
+      "40201307",
+      "40201310",
+      "41005810",
+      "41005814",
+      "41005816",
+      "41005817",
+      "41005861",
+      "41005863",
+      "41005893",
+      "41005947",
+      "41005948",
+      "41005949",
+      "41006127",
+      "41006128",
+      "41006129",
+      "41006130",
+      "41006131",
+      "41006132",
+      "41006133",
+      "41008016",
+      "41008017",
+      "41008018",
+      "41008019",
+      "41008023",
+      "41008024",
+      "41008027",
+      "41008030",
+      "41008031",
+      "41008032",
+      "41008033",
+      "41008034",
+      "41008040",
+      "41008041",
+      "41008042",
+      "41008043",
+      "41008044",
+      "52772",
+      "52774",
+      "52779",
+      "52780",
+      "52782",
+      "52783",
+      "52784",
+      "52785",
+      "52786",
+      "52787",
+      "52788",
+      "52789",
+      "52790",
+      "52791",
+      "52792",
+      "52795",
+      "52800",
+      "52994",
+      "52995",
+      "52996",
+      "52997",
+      "52998",
+      "53000",
+      "53001",
+      "53002",
+      "53003",
+      "53004",
+      "53005",
+      "53014",
+      "53017",
+      "53018",
+      "53019",
+      "53023",
+      "53024",
+      "53025",
+      "53026",
+      "53027",
+      "53040",
+      "53041",
+      "53042",
+      "53043",
+      "53044",
+      "53045",
+      "53051",
+      "53055",
+      "53056",
+      "53064",
+      "53065",
+      "53073",
+      "53074",
+      "53083",
+      "53084",
+      "53085",
+      "53086",
+      "53096",
+      "53097",
+      "53100",
+      "53101",
+      "53102",
+      "53103",
+      "53104",
+      "53105",
+      "53106",
+      "53107",
+      "53108",
+      "53109",
+      "53110",
+      "53115",
+      "53116",
+      "53117",
+      "53118",
+      "53119",
+      "53142",
+      "53143",
+      "53153",
+      "53170",
+      "53220",
+      "53221",
+      "53223",
+      "53224",
+      "53229",
+      "53231",
+      "53289",
+      "53328",
+      "53329",
+      "53332",
+      "53341",
+      "53563",
+      "53571",
+      "53572",
+      "53573",
+      "53576",
+      "53577",
+      "53578",
+      "53884",
+      "53900",
+      "53902",
+      "53903",
+      "63932",
+      "63955",
+      "63956",
+      "63959",
+      "63960",
+      "63962",
+      "63963",
+      "63965",
+      "63966",
+      "63967",
+      "63968",
+      "63971",
+      "63972",
+      "63973",
+      "63974"
+    ],
+    "excluded": [
+      {
+        "id": "120920",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "120933",
+        "reason": "2026 grandstand reservation"
+      },
+      {
+        "id": "120953",
+        "reason": "raceway or pit safety corridor"
+      },
+      {
+        "id": "120963",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "120986",
+        "reason": "raceway or pit safety corridor"
+      },
+      {
+        "id": "121004",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121018",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121022",
+        "reason": "raceway or pit safety corridor"
+      },
+      {
+        "id": "121026",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121030",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121049",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121052",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121063",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121073",
+        "reason": "raceway or pit safety corridor"
+      },
+      {
+        "id": "121084",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121103",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121110",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121113",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "121154",
+        "reason": "2026 grandstand reservation"
+      },
+      {
+        "id": "121162",
+        "reason": "raceway or pit safety corridor"
+      },
+      {
+        "id": "121168",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122229",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122233",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122235",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122242",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122244",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122248",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122255",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122262",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122272",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122283",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122285",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122297",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122298",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122300",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122303",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122307",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122310",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122314",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122316",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122320",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122322",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122323",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122325",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122333",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122341",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122349",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122367",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122390",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122392",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122398",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122413",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122416",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122419",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122426",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122428",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "122433",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40052921",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40121566",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40121977",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40122178",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40123983",
+        "reason": "raceway or pit safety corridor"
+      },
+      {
+        "id": "40124707",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40124797",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40126511",
+        "reason": "raceway or pit safety corridor"
+      },
+      {
+        "id": "40146442",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41000883",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "42000944",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "42000951",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "42000953",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "42000955",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "63907",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "63908",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "63914",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "66920",
+        "reason": "raceway or pit safety corridor"
+      },
+      {
+        "id": "66990",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "67018",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "67096",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "67130",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "67172",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "67302",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "67341",
+        "reason": "raceway or pit safety corridor"
+      },
+      {
+        "id": "67429",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "67617",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "67686",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "67785",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "70644",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "70791",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "71359",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "71464",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "114589",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "114687",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "114834",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "114836",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "114837",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "114839",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "114843",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "114846",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "114847",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "115021",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "115066",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "115072",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "115074",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "115075",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "115195",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40125492",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40129909",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40130619",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40130632",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40136663",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40136836",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40146290",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40201317",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "40201318",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41005815",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41005818",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41005896",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41005940",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41005941",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41005942",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41006122",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41006123",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41006124",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "41008026",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "52775",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "52781",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "52967",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "52968",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53046",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53209",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53217",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53218",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53219",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53225",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53226",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53227",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53230",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53302",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53324",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53566",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53574",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53575",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53580",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53632",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53636",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "53901",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "63936",
+        "reason": "2026 grandstand reservation"
+      },
+      {
+        "id": "63970",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "63975",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      },
+      {
+        "id": "63976",
+        "reason": "no active OSM footprint or matching June 2026 DSM roof"
+      }
+    ],
+    "sourceToRenderCentroidDriftMeters": 0,
+    "remainingCorridorConflicts": 0,
+    "roofGeometry": "original municipal LoD2 vertices and faces; no box replacement"
+  },
+  "pitBuilding": {
+    "footprintSourceRecord": 54,
+    "garages": 14,
+    "teamGarages": 11,
+    "fiaGarages": 3,
+    "heightMeters": 18.5,
+    "storeys": 3,
+    "sourceToRenderCentroidDriftMeters": 0
+  },
+  "grandstands": {
+    "candidateSections": 87,
+    "maximumPlatformStepMeters": 1.2,
+    "maximumSeatRowTwistMeters": 0.0,
+    "maximumSupportHeightMeters": 14.19,
+    "maximumSupportHeightByStandMeters": {
+      "GA1\u2013GA2": 1.084,
+      "GB1\u2013GB2": 1.007,
+      "GB4": 8.505,
+      "GC1\u2013GC2": 1.856,
+      "GC3\u2013GC5": 14.19,
+      "GE1\u2013GE3": 9.118,
+      "GE4\u2013GE6": 2.741,
+      "GE7\u2013GE9": 6.369,
+      "GE10\u2013GE13": 5.311,
+      "GD1\u2013GD15": 8.546,
+      "GE14\u2013GE15": 1.376,
+      "GE16\u2013GE17": 0.886,
+      "GE18\u2013GE19": 5.408,
+      "GE20\u2013GE22": 7.891,
+      "GE24": 0.887,
+      "GE25": 0.0,
+      "GF1\u2013GF3": 0.579
+    },
+    "minimumTrackClearanceMeters": 14.612,
+    "rejectedBlockConflicts": 1,
+    "rejectedTrackConflicts": 3,
+    "remainingBlockOverlaps": 0,
+    "remainingTrackConflicts": 0,
+    "renderedSections": 83
+  },
+  "mappedTrees": 95,
+  "municipalSafetyWallsLengthMeters": 10289.274,
+  "asphaltRunoffSourceRecords": [
+    1,
+    2,
+    3,
+    4,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    58,
+    61,
+    62,
+    63,
+    64,
+    67
+  ],
+  "terrain": {
+    "bounds": {
+      "minX": 446750,
+      "minY": 4479250,
+      "maxX": 448350,
+      "maxY": 4481500
+    },
+    "coordinateReferenceSystem": "EPSG:25830",
+    "verticalDatum": "Source metre elevations aligned with IGN MDT; municipal LAS specifies no vertical CRS. Alicante/REDNAP convention inferred, no vertical offset applied.",
+    "rasters": {
+      "dtm": {
+        "width": 801,
+        "height": 1126,
+        "minimum": 641.0,
+        "maximum": 705.8858125000002,
+        "mean": 673.4831040753635,
+        "sourceResolutionMeters": 2.0,
+        "nationalFallbackCells": 246000
+      },
+      "dsm": {
+        "width": 801,
+        "height": 1126,
+        "minimum": 641.0,
+        "maximum": 738.592,
+        "mean": 675.6896596461352,
+        "sourceResolutionMeters": 2.0,
+        "nationalFallbackCells": 209471
+      }
+    },
+    "lidar": {
+      "classifications": {
+        "1": 558868,
+        "2": 119408037,
+        "3": 2711625,
+        "4": 1859602,
+        "5": 21152128,
+        "6": 9271593
+      },
+      "tilePointCounts": {
+        "lidar-446-4481.zip": 16259916,
+        "lidar-447-4480.zip": 41098329,
+        "lidar-447-4481.zip": 53649105,
+        "lidar-447-4482.zip": 27366422,
+        "lidar-448-4480.zip": 16588081
+      },
+      "gridStepMeters": 2.0,
+      "groundCells": 655926
+    },
+    "lod2Candidates": 755,
+    "terrainSurface": {
+      "source": "Ayuntamiento de Madrid true orthophoto, flight 2026-06-13",
+      "nativeResolutionMeters": 0.07,
+      "textureWidth": 2048,
+      "textureHeight": 2880,
+      "exportResolutionMeters": 0.78125
+    },
+    "schemaVersion": 1,
+    "portalSplitTriangles": 109
+  },
+  "officialControlPoints": {
+    "drs": [],
+    "sectorBoundaries": [
+      {
+        "sector": 2,
+        "absoluteDistanceMeters": 1510
+      },
+      {
+        "sector": 3,
+        "absoluteDistanceMeters": 3630
+      }
+    ],
+    "speedTrap": {
+      "turn": 4,
+      "beforeTurnMeters": 20
+    },
+    "authority": "Official F1 2026 diagram, map-derived chainage; FIA event timing survey unavailable at retrieval"
+  },
+  "turns": [
+    {
+      "number": 1,
+      "distanceMeters": 261,
+      "name": "Curva 1",
+      "anchorOffsetMeters": 20,
+      "anchorSide": -1
+    },
+    {
+      "number": 2,
+      "distanceMeters": 312,
+      "name": "Curva 2",
+      "anchorOffsetMeters": 28,
+      "anchorSide": 1
+    },
+    {
+      "number": 3,
+      "distanceMeters": 447,
+      "name": "Curva 3",
+      "anchorOffsetMeters": 20,
+      "anchorSide": -1
+    },
+    {
+      "number": 4,
+      "distanceMeters": 1122,
+      "name": "Curva 4",
+      "anchorOffsetMeters": 20,
+      "anchorSide": 1
+    },
+    {
+      "number": 5,
+      "distanceMeters": 1353,
+      "name": "Curva 5",
+      "anchorOffsetMeters": 28,
+      "anchorSide": 1
+    },
+    {
+      "number": 6,
+      "distanceMeters": 1419,
+      "name": "Curva 6",
+      "anchorOffsetMeters": 28,
+      "anchorSide": 1
+    },
+    {
+      "number": 7,
+      "distanceMeters": 1731,
+      "name": "Curva 7",
+      "anchorOffsetMeters": 20,
+      "anchorSide": -1
+    },
+    {
+      "number": 8,
+      "distanceMeters": 1797,
+      "name": "Curva 8",
+      "anchorOffsetMeters": 28,
+      "anchorSide": 1
+    },
+    {
+      "number": 9,
+      "distanceMeters": 1896,
+      "name": "Curva 9",
+      "anchorOffsetMeters": 28,
+      "anchorSide": -1
+    },
+    {
+      "number": 10,
+      "distanceMeters": 2070,
+      "name": "Curva 10",
+      "anchorOffsetMeters": 20,
+      "anchorSide": 1
+    },
+    {
+      "number": 11,
+      "distanceMeters": 2208,
+      "name": "Curva 11",
+      "anchorOffsetMeters": 20,
+      "anchorSide": -1
+    },
+    {
+      "number": 12,
+      "distanceMeters": 2500,
+      "name": "La Monumental",
+      "anchorOffsetMeters": 20,
+      "anchorSide": 1
+    },
+    {
+      "number": 13,
+      "distanceMeters": 3108,
+      "name": "Curva 13",
+      "anchorOffsetMeters": 20,
+      "anchorSide": -1
+    },
+    {
+      "number": 14,
+      "distanceMeters": 3333,
+      "name": "Curva 14",
+      "anchorOffsetMeters": 20,
+      "anchorSide": 1
+    },
+    {
+      "number": 15,
+      "distanceMeters": 3531,
+      "name": "Curva 15",
+      "anchorOffsetMeters": 20,
+      "anchorSide": -1
+    },
+    {
+      "number": 16,
+      "distanceMeters": 3735,
+      "name": "Curva 16",
+      "anchorOffsetMeters": 28,
+      "anchorSide": 1
+    },
+    {
+      "number": 17,
+      "distanceMeters": 3816,
+      "name": "Curva 17",
+      "anchorOffsetMeters": 28,
+      "anchorSide": -1
+    },
+    {
+      "number": 18,
+      "distanceMeters": 4035,
+      "name": "Curva 18",
+      "anchorOffsetMeters": 20,
+      "anchorSide": 1
+    },
+    {
+      "number": 19,
+      "distanceMeters": 4272,
+      "name": "Curva 19",
+      "anchorOffsetMeters": 20,
+      "anchorSide": -1
+    },
+    {
+      "number": 20,
+      "distanceMeters": 4611,
+      "name": "Curva 20",
+      "anchorOffsetMeters": 28,
+      "anchorSide": 1
+    },
+    {
+      "number": 21,
+      "distanceMeters": 4755,
+      "name": "Curva 21",
+      "anchorOffsetMeters": 20,
+      "anchorSide": -1
+    },
+    {
+      "number": 22,
+      "distanceMeters": 5043,
+      "name": "Curva 22",
+      "anchorOffsetMeters": 20,
+      "anchorSide": 1
+    }
+  ],
+  "limitations": [
+    "FIA surveyed timing positions were unavailable; markers follow the official 2026 F1 diagram.",
+    "June 13 2026 orthophoto and LiDAR show construction before the September race.",
+    "Grandstand positions follow the official event map; depth, rows, colors and height remain visual estimates.",
+    "No event motorhomes are identifiable in the June source; none invented.",
+    "Underground road elevations interpolated between LiDAR-measured portals; wall and tunnel cross-sections are visual estimates."
+  ]
+}

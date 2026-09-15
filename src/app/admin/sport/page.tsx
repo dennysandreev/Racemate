@@ -8,6 +8,7 @@ import {
 } from "@/app/admin/operations";
 import { AdminActionForm } from "@/components/admin/admin-action-form";
 import { AdminConfirmedAction } from "@/components/admin/admin-confirmed-action";
+import { AdminUrlTabs } from "@/components/admin/admin-url-tabs";
 import {
   AdminEmpty,
   AdminMetric,
@@ -21,7 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { loadAdminSport } from "@/data/admin-repository";
 import { getAdminJobCopy } from "@/lib/admin-display";
 import { requireAdmin } from "@/lib/auth";
@@ -36,7 +37,7 @@ export default async function AdminSportPage() {
   return (
     <AdminPage>
       <AdminPageHeader
-        description="Спортивные данные остаются source-first. Результаты и таблицы исправляются только синхронизацией и repair-задачами."
+        description="Спортивные данные всегда сверяются с первичными источниками. Результаты и таблицы исправляются только повторной синхронизацией."
         title="Спортивные данные"
       />
       <Alert>
@@ -53,11 +54,11 @@ export default async function AdminSportPage() {
         <AdminMetric label="Командный зачёт" value={String(data.counts.constructorStandings)} />
       </section>
 
-      <Tabs defaultValue="health">
+      <AdminUrlTabs defaultValue="health" values={["health", "archive", "assets", "drivers", "replay"]}>
         <TabsList variant="line">
           <TabsTrigger value="health">Состояние</TabsTrigger>
           <TabsTrigger value="archive">Архив</TabsTrigger>
-          <TabsTrigger value="assets">Ассеты</TabsTrigger>
+          <TabsTrigger value="assets">Материалы</TabsTrigger>
           <TabsTrigger value="drivers">Гонщики</TabsTrigger>
           <TabsTrigger value="replay">Race Replay</TabsTrigger>
         </TabsList>
@@ -88,7 +89,7 @@ export default async function AdminSportPage() {
                 })}
               </div>
             </AdminSection>
-            <AdminSection description="Repair повторно загружает пропущенные классификации, не открывая ручной редактор." title="Восстановление">
+            <AdminSection description="Повторная загрузка восстанавливает пропущенные классификации без ручного изменения результатов." title="Восстановление">
               <div className="grid gap-4 p-4">
                 {[
                   ["jolpica.repair_race_results", "Восстановить гонки"],
@@ -121,7 +122,7 @@ export default async function AdminSportPage() {
               <AdminConfirmedAction
                 action={runAdminJobAction}
                 confirmLabel="Опубликовать архив"
-                description="Worker повторно проверит каждый сезон, результаты, профили и официальные ассеты. Публикация не начнётся при любой ошибке."
+                description="Фоновая проверка сверит каждый сезон, результаты, профили и официальные материалы. Публикация не начнётся при любой ошибке."
                 title="Опубликовать архив 2020-2025?"
                 triggerLabel="Опубликовать архив"
               >
@@ -138,8 +139,8 @@ export default async function AdminSportPage() {
                   {data.archivePublished
                     ? "Полный архив опубликован."
                     : data.archiveReady
-                      ? "Локальная проверка ассетов пройдена. Worker выполнит финальную проверку перед публикацией."
-                      : "Не все сезонные профили и ассеты прошли проверку."}
+                      ? "Локальная проверка материалов пройдена. Перед публикацией система выполнит финальную проверку."
+                      : "Не все сезонные профили и материалы прошли проверку."}
                 </p>
               </div>
               <AdminActionForm action={runAdminJobAction} submitLabel="Подготовить архив" submitVariant="secondary">
@@ -220,10 +221,10 @@ export default async function AdminSportPage() {
                     </Field>
                   </AdminActionForm>
                   {driver.ai_avatar_url ? (
-                    <AdminActionForm action={clearDriverAvatarAction} submitLabel="Убрать из профиля" submitVariant="secondary">
+                    <AdminConfirmedAction action={clearDriverAvatarAction} confirmLabel="Убрать" description="Аватар исчезнет из публичного профиля гонщика." title="Убрать аватар?" triggerLabel="Убрать из профиля" triggerVariant="secondary">
                       <input name="driverId" type="hidden" value={driver.id} />
                       <input name="slug" type="hidden" value={driver.slug ?? ""} />
-                    </AdminActionForm>
+                    </AdminConfirmedAction>
                   ) : null}
                 </article>
               ))}
@@ -252,7 +253,7 @@ export default async function AdminSportPage() {
             ) : <AdminEmpty description="Подготовь повтор после появления полной телеметрии гонки." title="Race Replay пока нет" />}
           </AdminSection>
         </TabsContent>
-      </Tabs>
+      </AdminUrlTabs>
     </AdminPage>
   );
 }

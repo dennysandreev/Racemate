@@ -1,9 +1,13 @@
+import { Suspense } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import type { Metadata } from "next";
+import { IntentLink as Link } from "@/components/racemate/intent-link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { ChevronRight, Trophy } from "lucide-react";
 
+import polymarketMark from "../../../public/brands/polymarket-mark-v2.png";
+
+import { PublicPageSkeleton } from "@/components/racemate/public-page-loading";
 import { AppShell } from "@/components/racemate/app-shell";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
 import { JsonLd } from "@/components/racemate/json-ld";
@@ -128,6 +132,18 @@ export default async function LeaderboardPage({
     notFound();
   }
 
+  return (
+    <AppShell leaderboardTable={activeTable}>
+      <Suspense fallback={<PublicPageSkeleton label="Таблица загружается" variant="table" />}>
+        <LeaderboardContent query={query} season={season} publishedSeasons={publishedSeasons} activeTable={activeTable} />
+      </Suspense>
+    </AppShell>
+  );
+}
+
+async function LeaderboardContent({ query, season, publishedSeasons, activeTable }: {
+  query: SeasonSearchParams; season: number; publishedSeasons: number[]; activeTable: "drivers" | "constructors";
+}) {
   const isCurrentSeason = season === CURRENT_F1_SEASON;
   const [drivers, constructors, calendar, driverOdds, constructorOdds] = await withServerTtlCache(
     `public:leaderboard:${season}`,
@@ -204,7 +220,7 @@ export default async function LeaderboardPage({
   const nextRace = seasonRaces.find((event) => event.status !== "Завершен") ?? null;
 
   return (
-    <AppShell leaderboardTable={activeTable}>
+    <>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -319,7 +335,7 @@ export default async function LeaderboardPage({
           </div>
         </section>
       </section>
-    </AppShell>
+    </>
   );
 }
 
@@ -334,7 +350,6 @@ function TableTab({ active, children, href }: { active: boolean; children: React
           : "text-muted-foreground hover:bg-accent hover:text-foreground",
       )}
       href={href}
-      prefetch={false}
     >
       {children}
     </Link>
@@ -387,12 +402,11 @@ function PodiumCard({
         >
           <span className="grid justify-items-center gap-0.5">
             <Image
-              alt=""
-              aria-hidden="true"
-              className="size-3 rounded-[2px] sm:size-3.5"
-              height={14}
-              src="/brands/polymarket-icon-blue.png"
-              width={14}
+              alt="Polymarket"
+              className="size-4 rounded-[2px]"
+              height={16}
+              src={polymarketMark}
+              width={16}
             />
             <span className="font-telemetry text-sm font-extrabold leading-none text-primary sm:text-base">
               {entry.titleOdds}
@@ -444,7 +458,6 @@ function PodiumCard({
               aria-label={`Открыть профиль ${entry.name}`}
               className="relative z-10 block size-full rounded-full p-1 outline-none transition-transform hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:p-2"
               href={entry.href}
-              prefetch={false}
             >
               <DriverAvatarBadge
                 className="size-full"
@@ -503,7 +516,6 @@ function PodiumCard({
           <Link
             className="block max-w-full truncate font-display text-sm font-extrabold leading-tight hover:text-primary sm:text-lg"
             href={entry.href}
-            prefetch={false}
           >
             {displayName}
           </Link>
@@ -517,7 +529,7 @@ function PodiumCard({
               style={{ backgroundColor: entry.teamColor ?? "var(--border)" }}
             />
             {entry.teamHref ? (
-              <Link className="truncate transition-colors hover:text-primary" href={entry.teamHref} prefetch={false}>
+              <Link className="truncate transition-colors hover:text-primary" href={entry.teamHref}>
                 {entry.subtitle}
               </Link>
             ) : (
@@ -584,7 +596,6 @@ function StandingRow({
           <Link
             className="group inline-flex max-w-full items-center gap-1 truncate text-sm font-bold hover:text-primary"
             href={entry.href}
-            prefetch={false}
           >
             <span className="truncate">{entry.name}</span>
             <ChevronRight aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
@@ -597,7 +608,6 @@ function StandingRow({
             <Link
               className="mt-0.5 block truncate text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
               href={entry.teamHref}
-              prefetch={false}
             >
               {entry.subtitle}
             </Link>
@@ -682,8 +692,7 @@ function RoundStrip({
               className="grid w-[1.6rem] gap-1 rounded-sm outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
               href={`/calendar/${season}/${round.round}`}
               key={round.round}
-              prefetch={false}
-              title={title}
+                  title={title}
             >
               <span
                 aria-hidden="true"
@@ -800,7 +809,6 @@ function VisualProfileLink({
         className,
       )}
       href={entry.href}
-      prefetch={false}
     >
       {children}
     </Link>

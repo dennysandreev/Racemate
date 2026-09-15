@@ -6,7 +6,6 @@ export type NewsItem = {
   title: string;
   summary: string;
   details?: string;
-  keyPoints?: string[];
   highlights?: string[];
   imageUrl?: string;
   sourceImageUrl?: string;
@@ -451,6 +450,47 @@ export type CalendarEvent = {
   trackMapUrl?: string | null;
 };
 
+export type SeasonGlobePhase = "completed" | "next" | "upcoming";
+
+export type SeasonGlobePodiumEntry = {
+  position: 1 | 2 | 3;
+  driverId: string | null;
+  driverName: string;
+  driverSlug: string | null;
+  driverNumber: number | null;
+  avatarUrl: string | null;
+  teamName: string;
+  teamCode: string | null;
+  teamColor: string | null;
+};
+
+export type SeasonGlobeEvent = {
+  id: string;
+  season: number;
+  round: number;
+  raceName: string;
+  circuitName: string;
+  country: string;
+  countryCode: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  weekendStartAtIso: string | null;
+  raceStartAtIso: string | null;
+  raceEndAtIso: string | null;
+  weekendDateLabel: string;
+  raceDateLabel: string;
+  phase: SeasonGlobePhase;
+  isLive: boolean;
+  href: string;
+  podium: SeasonGlobePodiumEntry[];
+};
+
+export type SeasonGlobeData = {
+  season: number;
+  nextRound: number | null;
+  events: SeasonGlobeEvent[];
+};
+
 export type RaceDetail = {
   id: string;
   season: number;
@@ -468,6 +508,15 @@ export type RaceDetail = {
   timezone?: string | null;
   layout?: TrackLayout | null;
   trackMapUrl?: string | null;
+  tyreAllocation?: RaceTyreAllocation | null;
+};
+
+export type RaceTyreAllocation = {
+  hard: string;
+  medium: string;
+  soft: string;
+  sourceUrl?: string | null;
+  updatedAt?: string | null;
 };
 
 export type CircuitStatsView = {
@@ -688,6 +737,7 @@ export type TrackMapDefinition = {
   id: string;
   circuitKey: string;
   circuitName: string;
+  marshalSectorCount?: number | null;
   countryName?: string | null;
   seasonSource: number;
   meetingKey: number | null;
@@ -810,7 +860,19 @@ export type ReplayLapTiming = {
   durationMs: number | null;
 };
 
+export type ReplayRadioText = {
+  id: string;
+  driverNumber: number;
+  timestamp: string;
+  offsetMs: number;
+  lap: number | null;
+  original: string | null;
+  ru: string | null;
+  status: string;
+};
+
 export type RaceReplaySnapshot = {
+  radio?: ReplayRadioText[];
   replaySessionId: string;
   sourceSessionKey: number;
   raceName: string;
@@ -870,6 +932,7 @@ export type SessionResult = {
   laps: number | null;
   points: number | null;
   bestLap?: string | null;
+  bestLapNumber?: number | null;
 };
 
 export type GrandPrixReportStatus =
@@ -961,6 +1024,8 @@ export type LeagueSummary = {
   isMember?: boolean;
   isOwner?: boolean;
   isPublic?: boolean;
+  lastRoundAverageScore?: number | null;
+  lastRoundName?: string | null;
   name: string;
   members: number;
   leader: string;
@@ -1025,6 +1090,7 @@ export type PreviousPredictionTop10Pick = {
 export type PreviousPredictionResult = {
   raceName: string;
   round: number;
+  season?: number;
   score: number;
   scoredAt: string | null;
   scoreBreakdown?: FantasyScoreBreakdown | null;
@@ -1049,6 +1115,7 @@ export type LeagueMemberPrediction = {
 export type LeagueHistoryEntry = {
   raceName: string;
   round: number;
+  season?: number;
   predictions: {
     userId: string;
     name: string;
@@ -1063,6 +1130,7 @@ export type LeagueHistoryEntry = {
 export type LeagueDetail = {
   avatarUrl?: string | null;
   id: string;
+  isMember?: boolean;
   isOwner?: boolean;
   isPublic?: boolean;
   name: string;
@@ -1262,12 +1330,15 @@ export type PollSummary = {
 };
 
 export type DriverOption = {
+  avatarUrl?: string | null;
   code?: string | null;
   id: string;
   name: string;
+  number?: number | null;
   slug?: string | null;
   team: string;
   teamCode?: string | null;
+  teamColor?: string | null;
 };
 
 export type TeamOption = {
@@ -1277,8 +1348,25 @@ export type TeamOption = {
 };
 
 export type RaceOption = {
+  country?: string | null;
+  fantasyVisual?: {
+    alt: string;
+    author: string;
+    cardUrl: string;
+    credit: string;
+    heroUrl: string;
+    height: number;
+    license: string;
+    reviewStatus: string;
+    sourcePageUrl: string;
+    thumbUrl: string;
+    visibleSegment: string;
+    width: number;
+  } | null;
   id: string;
   name: string;
+  round: number;
+  season: number;
   startsAt: string;
   qualifyingStartsAtIso?: string | null;
   raceStartsAtIso?: string | null;
@@ -1295,9 +1383,10 @@ export type PredictionState = {
     scoredPredictionCount: number;
     totalScore: number | null;
   };
-  qualifyingResults: {
+  startingGrid: {
     results: SessionResult[];
     session: WeekendSession;
+    updatedAt: string;
   } | null;
   previousResult: PreviousPredictionResult | null;
   current: {

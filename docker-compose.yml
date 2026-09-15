@@ -7,14 +7,38 @@ x-app-build: &app-build
     SENTRY_ORG: ${SENTRY_ORG:-}
     SENTRY_PROJECT: ${SENTRY_PROJECT:-}
     SENTRY_RELEASE: ${SENTRY_RELEASE:-${RACESIDE_RELEASE_SHA:-}}
+    RACESIDE_RELEASE_SHA: ${RACESIDE_RELEASE_SHA:-}
 
 services:
   web:
     build: *app-build
     env_file:
       - .env
+    environment:
+      HOSTNAME: "0.0.0.0"
+      LIVE_INTERNAL_ORIGIN: "http://live:3002"
     ports:
       - "3000:3000"
+    restart: unless-stopped
+
+  live:
+    build: *app-build
+    env_file:
+      - .env
+    environment:
+      LIVE_HOST: "0.0.0.0"
+      LIVE_PORT: "3002"
+      LIVE_SPOOL_DIR: "/app/live-spool"
+      LIVE_WEB_ORIGIN: "http://web:3000"
+    command: ["node", "worker/live/server.mjs"]
+    volumes:
+      - live-spool:/app/live-spool
+    expose:
+      - "3002"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
     restart: unless-stopped
 
   worker:
@@ -31,19 +55,15 @@ services:
     env_file:
       - .env
     command:
-      - sh
-      - -lc
-      - |
-        heartbeat_count=0
-        while true; do
-          if [ "$$heartbeat_count" -le 0 ]; then
-            node worker/cli.mjs ops.heartbeat --service admin-job-runner || true
-            heartbeat_count=10
-          fi
-          node worker/cli.mjs jobs.consume_queued --limit 3 || true
-          heartbeat_count=$$((heartbeat_count - 1))
-          sleep 3
-        done
+      - node
+      - worker/cli-loop.mjs
+      - --loop-idle-ms=15000
+      - --loop-busy-ms=1000
+      - --loop-max-backoff-ms=300000
+      - --loop-heartbeat-service=admin-job-runner
+      - jobs.consume_queued
+      - --limit
+      - "3"
     healthcheck:
       disable: true
     restart: unless-stopped
@@ -53,14 +73,18 @@ services:
     env_file:
       - .env
     command:
-      - sh
-      - -lc
-      - |
-        while true; do
-          node worker/cli.mjs ops.heartbeat --service cron || true
-          node worker/cli.mjs jobs.enqueue_schedules --limit 20 || true
-          sleep 15
-        done
+      - node
+      - worker/cli-loop.mjs
+      - --loop-idle-ms=60000
+      - --loop-busy-ms=60000
+      - --loop-max-backoff-ms=600000
+      - --loop-heartbeat-service=cron
+      - jobs.enqueue_schedules
+      - --limit
+      - "20"
     healthcheck:
       disable: true
     restart: unless-stopped
+
+volumes:
+  live-spool:

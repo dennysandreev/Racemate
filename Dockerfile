@@ -14,12 +14,17 @@ ARG NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE=0.1
 ARG SENTRY_ORG
 ARG SENTRY_PROJECT
 ARG SENTRY_RELEASE
+ARG RACESIDE_RELEASE_SHA
+ARG LIVE_INTERNAL_ORIGIN=http://live:3002
+ENV LIVE_INTERNAL_ORIGIN=$LIVE_INTERNAL_ORIGIN
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT
 ENV NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE=$NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE
 ENV SENTRY_ORG=$SENTRY_ORG
 ENV SENTRY_PROJECT=$SENTRY_PROJECT
 ENV SENTRY_RELEASE=$SENTRY_RELEASE
+ENV RACESIDE_RELEASE_SHA=$RACESIDE_RELEASE_SHA
+LABEL org.opencontainers.image.revision=$RACESIDE_RELEASE_SHA
 RUN corepack enable
 COPY --from=deps /root/.cache/node/corepack /root/.cache/node/corepack
 COPY --from=deps /app/node_modules ./node_modules
@@ -27,8 +32,10 @@ COPY . .
 RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN,required=false pnpm build
 
 FROM node:22-bookworm-slim AS runner
+ARG RACESIDE_RELEASE_SHA
 WORKDIR /app
 ENV NODE_ENV=production
+ENV RACESIDE_RELEASE_SHA=$RACESIDE_RELEASE_SHA
 ENV FASTF1_PYTHON_BIN=/opt/fastf1/bin/python
 RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 python3-venv python3-pip \
@@ -41,6 +48,7 @@ COPY --from=builder /app/public ./public
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/worker ./worker
 COPY --from=builder /app/sentry-scrub.mjs ./sentry-scrub.mjs
+COPY --from=builder /app/scripts/warm-public-pages.mjs ./scripts/warm-public-pages.mjs
 COPY --from=builder /app/src/config/admin-jobs.json ./src/config/admin-jobs.json
 COPY --from=builder /app/src/config/ai-prompts.json ./src/config/ai-prompts.json
 COPY --from=builder /app/scripts/telegram-authorize.mjs ./scripts/telegram-authorize.mjs

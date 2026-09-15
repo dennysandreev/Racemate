@@ -7,6 +7,8 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -38,6 +40,8 @@
   --foreground: #e5e2e1;
   --card: rgb(18 18 18 / 0.72);
   --card-foreground: #e5e2e1;
+  --popover: #121212;
+  --popover-foreground: #e5e2e1;
   --primary: #e10600;
   --primary-foreground: #fff2f0;
   --secondary: #201f1f;
@@ -108,6 +112,21 @@
   --track-model-height-text: #f4f2ee;
   --track-model-profile-fill: #264f32;
   --track-model-profile-line: #c9ff4b;
+  --season-globe-ocean: #101718;
+  --season-globe-land: #5b605f;
+  --season-globe-host-land: #82504c;
+  --season-globe-border: #aaa5a2;
+  --season-globe-route-completed: #6d7372;
+  --season-globe-route-next: #e10600;
+  --season-globe-route-upcoming: #9b625d;
+  --season-globe-route-upcoming-outline: #271b1a;
+  --season-globe-marker-completed: #9b9f9e;
+  --season-globe-marker-completed-text: #0b0d0d;
+  --season-globe-marker-next: #e10600;
+  --season-globe-marker-next-text: #fff7f6;
+  --season-globe-marker-upcoming: #d6aaa2;
+  --season-globe-marker-upcoming-text: #231817;
+  --season-globe-marker-selected: #f2ecea;
   --sidebar: #101010;
   --sidebar-foreground: #e5e2e1;
   --sidebar-primary: #e10600;
@@ -124,6 +143,8 @@ html[data-theme="light"] {
   --foreground: #191313;
   --card: rgb(255 255 255 / 0.86);
   --card-foreground: #191313;
+  --popover: #ffffff;
+  --popover-foreground: #191313;
   --primary: #d90000;
   --primary-foreground: #fff7f6;
   --secondary: #ece7e5;
@@ -187,6 +208,21 @@ html[data-theme="light"] {
   --track-model-height-text: #1e2b1f;
   --track-model-profile-fill: #aac398;
   --track-model-profile-line: #426d2e;
+  --season-globe-ocean: #edf2f0;
+  --season-globe-land: #c7cfcb;
+  --season-globe-host-land: #d9a6a1;
+  --season-globe-border: #78847e;
+  --season-globe-route-completed: #3f4c47;
+  --season-globe-route-next: #d90000;
+  --season-globe-route-upcoming: #d90000;
+  --season-globe-route-upcoming-outline: #fffaf8;
+  --season-globe-marker-completed: #f8faf9;
+  --season-globe-marker-completed-text: #26312d;
+  --season-globe-marker-next: #d90000;
+  --season-globe-marker-next-text: #fff7f6;
+  --season-globe-marker-upcoming: #9c5f58;
+  --season-globe-marker-upcoming-text: #fff7f6;
+  --season-globe-marker-selected: #211817;
   --sidebar: #eee9e7;
   --sidebar-foreground: #2a211f;
   --sidebar-primary: #d90000;
@@ -197,8 +233,68 @@ html[data-theme="light"] {
   --sidebar-ring: #d90000;
 }
 
+.feed-filter-select {
+  color-scheme: dark;
+}
+
+.feed-filter-select option {
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+}
+
+html[data-theme="light"] .feed-filter-select {
+  color-scheme: light;
+}
+
 * {
   box-sizing: border-box;
+}
+
+.season-globe-static-sphere {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 34% 26%,
+      rgb(255 255 255 / 0.12),
+      transparent 42%
+    ),
+    var(--season-globe-ocean);
+  box-shadow: inset -1.1rem -1.2rem 2.4rem rgb(0 0 0 / 0.22);
+}
+
+.season-globe-static-sphere::after {
+  position: absolute;
+  inset: 0;
+  background-image: url("/geo/world-admin0-110m-mask.webp");
+  background-position: center;
+  background-size: 205% 100%;
+  content: "";
+  filter: grayscale(1);
+  mix-blend-mode: screen;
+  opacity: 0.12;
+}
+
+.season-globe-focus-target:focus-visible {
+  border-radius: 0.375rem;
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.season-globe-details {
+  animation: season-globe-details-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes season-globe-details-in {
+  from {
+    opacity: 0.76;
+    transform: translateX(-0.2rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 html {
@@ -212,7 +308,11 @@ body {
   margin: 0;
   background:
     radial-gradient(circle at 18% 0%, rgb(225 6 0 / 0.22), transparent 34rem),
-    radial-gradient(circle at 86% 12%, rgb(0 210 190 / 0.12), transparent 28rem),
+    radial-gradient(
+      circle at 86% 12%,
+      rgb(0 210 190 / 0.12),
+      transparent 28rem
+    ),
     linear-gradient(180deg, #131313 0, #0b0b0b 36rem);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
@@ -223,18 +323,52 @@ body {
 html[data-theme="light"] body {
   background:
     radial-gradient(circle at 16% 0%, rgb(225 6 0 / 0.1), transparent 34rem),
-    radial-gradient(circle at 86% 12%, rgb(0 210 190 / 0.07), transparent 28rem),
+    radial-gradient(
+      circle at 86% 12%,
+      rgb(0 210 190 / 0.07),
+      transparent 28rem
+    ),
     linear-gradient(180deg, #faf8f7 0, #f0ecea 36rem);
+}
+
+.fantasy-dashboard-hero-scrim {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(7 7 7 / 0.96) 0%,
+      rgb(7 7 7 / 0.82) 38%,
+      rgb(7 7 7 / 0.2) 72%
+    ),
+    linear-gradient(0deg, rgb(7 7 7 / 0.9) 0%, transparent 52%);
+}
+
+html[data-theme="light"] .fantasy-dashboard-hero-scrim {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(250 248 247 / 0.97) 0%,
+      rgb(250 248 247 / 0.88) 42%,
+      rgb(250 248 247 / 0.28) 76%
+    ),
+    linear-gradient(0deg, rgb(244 241 240 / 0.92) 0%, transparent 54%);
 }
 
 html[data-theme="light"] .glass-card {
   background: rgb(255 255 255 / 0.74);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.82), 0 14px 40px rgb(74 43 35 / 0.1);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.82),
+    0 14px 40px rgb(74 43 35 / 0.1);
 }
 
 html[data-theme="light"] .stitch-panel {
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.96), rgb(250 247 246 / 0.92));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 16px 44px rgb(74 43 35 / 0.08);
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.96),
+    rgb(250 247 246 / 0.92)
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 16px 44px rgb(74 43 35 / 0.08);
 }
 
 html[data-theme="light"] .stitch-divider {
@@ -257,7 +391,11 @@ html[data-theme="light"] .race-track-surface .race-track-image-stage {
 }
 
 html[data-theme="light"] .race-track-surface .race-track-overlay {
-  background: radial-gradient(circle at 24% 18%, rgb(225 6 0 / 0.1), transparent 15rem);
+  background: radial-gradient(
+    circle at 24% 18%,
+    rgb(225 6 0 / 0.1),
+    transparent 15rem
+  );
 }
 
 html[data-theme="light"] .weekend-hero-glow {
@@ -265,6 +403,14 @@ html[data-theme="light"] .weekend-hero-glow {
     radial-gradient(circle at 18% 0%, rgb(225 6 0 / 0.2), transparent 24rem),
     linear-gradient(125deg, rgb(255 255 255 / 0.64), transparent 38%),
     linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(239 232 228 / 0.9));
+}
+
+.weekend-next-session-icon {
+  background: #000;
+}
+
+html[data-theme="light"] .weekend-next-session-icon {
+  background: #fff;
 }
 
 html[data-theme="light"] .bg-primary.text-primary-foreground {
@@ -298,7 +444,8 @@ h3,
 }
 
 .font-telemetry {
-  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .glass-card {
@@ -332,8 +479,31 @@ h3,
     0 20px 70px rgb(0 0 0 / 0.24);
 }
 
+.sport-profile-page [data-slot="stitch-panel-title"] {
+  gap: 0.625rem;
+  font-size: 1rem;
+  line-height: 1.25rem;
+}
+
+.sport-profile-page [data-slot="stitch-panel-icon"] {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  border-radius: 0.375rem;
+  background: rgb(225 6 0 / 0.1);
+  color: var(--primary);
+}
+
+.sport-profile-page [data-slot="stitch-panel-icon"] > svg {
+  width: 1rem;
+  height: 1rem;
+}
+
 .stitch-label {
-  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -351,8 +521,16 @@ h3,
 
 .race-replay-map-stage {
   background:
-    radial-gradient(circle at 58% 42%, rgb(57 255 20 / 0.045), transparent 22rem),
-    linear-gradient(180deg, var(--race-replay-map-bg), var(--race-replay-map-bg));
+    radial-gradient(
+      circle at 58% 42%,
+      rgb(57 255 20 / 0.045),
+      transparent 22rem
+    ),
+    linear-gradient(
+      180deg,
+      var(--race-replay-map-bg),
+      var(--race-replay-map-bg)
+    );
 }
 
 html[data-theme="light"] .race-replay-map-stage {
@@ -379,9 +557,14 @@ html[data-theme="light"] .race-replay-map-stage {
   inset-block: 0;
   left: 0;
   width: 100%;
-  background: linear-gradient(90deg, hsl(var(--primary) / 0.18), hsl(var(--primary) / 0.72));
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary) / 0.18),
+    hsl(var(--primary) / 0.72)
+  );
   transform-origin: left;
-  animation: racemate-loading-progress 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  animation: racemate-loading-progress 1.8s cubic-bezier(0.65, 0, 0.35, 1)
+    infinite;
 }
 
 .racemate-loading-progress span {
@@ -390,7 +573,12 @@ html[data-theme="light"] .race-replay-map-stage {
   left: -28%;
   width: 32%;
   border-radius: inherit;
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.9), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.9),
+    transparent
+  );
   animation: racemate-loading-sheen 1.05s ease-in-out infinite;
 }
 
@@ -398,7 +586,8 @@ html[data-theme="light"] .race-replay-map-stage {
   border: 1px solid rgb(255 255 255 / 0.08);
   border-radius: 0.35rem;
   color: hsl(var(--muted-foreground));
-  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -529,4 +718,106 @@ html[data-theme="light"] .race-replay-map-stage {
 
 .admin-shell {
   background: var(--background);
+}
+
+.plus-theme-image[data-theme-image="light"] {
+  display: none;
+}
+
+html[data-theme="light"] .plus-theme-image[data-theme-image="dark"] {
+  display: none;
+}
+
+html[data-theme="light"] .plus-theme-image[data-theme-image="light"] {
+  display: block;
+}
+
+/* Desktop navigation fits the viewport; admin-only entries may scroll. */
+.raceside-desktop-sidebar {
+  padding-block: 12px;
+}
+.raceside-sidebar-brand {
+  padding-bottom: 12px;
+  flex-shrink: 0;
+}
+.raceside-sidebar-session {
+  padding-bottom: 12px;
+  flex-shrink: 0;
+}
+.raceside-sidebar-session > .glass-card {
+  padding: 12px;
+}
+.raceside-sidebar-session .mt-4 {
+  margin-top: 10px;
+}
+.raceside-sidebar-account {
+  gap: 8px;
+  padding-top: 12px;
+  flex-shrink: 0;
+}
+.raceside-desktop-navigation {
+  grid-auto-rows: minmax(0, 40px);
+  gap: 2px;
+  overflow: hidden;
+}
+.raceside-desktop-navigation > a {
+  min-height: 0;
+  padding-block: 0;
+  gap: 12px;
+}
+.raceside-desktop-navigation > a > svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.raceside-desktop-navigation > a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -3px;
+}
+.raceside-desktop-navigation:has(a[href="/admin"]) {
+  grid-auto-rows: 40px;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+@media (max-height: 650px) {
+  .raceside-desktop-sidebar {
+    padding-block: 8px;
+  }
+  .raceside-sidebar-brand {
+    padding-bottom: 6px;
+  }
+  .raceside-sidebar-brand > a {
+    padding-block: 2px;
+  }
+  .raceside-sidebar-session {
+    padding-bottom: 8px;
+  }
+  .raceside-sidebar-session > .glass-card {
+    padding: 10px 12px;
+  }
+  .raceside-sidebar-session .mt-2 {
+    margin-top: 4px;
+  }
+  .raceside-sidebar-session .mt-4 {
+    margin-top: 6px;
+  }
+  .raceside-sidebar-session .leading-5 {
+    line-height: 16px;
+  }
+  .raceside-sidebar-account {
+    padding-top: 8px;
+    gap: 6px;
+  }
+  .raceside-sidebar-account > * {
+    min-height: 36px;
+    height: 36px;
+    padding-block: 3px;
+  }
+  .raceside-desktop-navigation {
+    gap: 0;
+    grid-auto-rows: minmax(0, 36px);
+  }
+  .raceside-desktop-navigation:has(a[href="/admin"]) {
+    grid-auto-rows: 36px;
+  }
 }

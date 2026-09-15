@@ -1,3 +1,5 @@
+import { getTelemetryCatalogPages } from "@/features/telemetry/lib/server";
+import { telemetryFlags } from "@/features/telemetry/lib/flags";
 import type { MetadataRoute } from "next";
 
 import { legalPages, staticDocumentPages } from "@/content/static-pages";
@@ -107,6 +109,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Keep the static sitemap available during a temporary database outage.
   }
 
+  if (telemetryFlags.telemetryHub) {
+    entries.push({ url: absoluteUrl("/telemetry") });
+    for (const { meeting, sessions } of await getTelemetryCatalogPages()) {
+      entries.push({ url: absoluteUrl(`/telemetry/${meeting.season}/${meeting.slug}`) });
+      for (const session of sessions) entries.push({ url: absoluteUrl(`/telemetry/${meeting.season}/${meeting.slug}/${session.slug}`) });
+    }
+  }
   return deduplicateSitemap(entries);
 }
 

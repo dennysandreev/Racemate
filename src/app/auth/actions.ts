@@ -5,10 +5,14 @@ import { redirect } from "next/navigation";
 import { normalizeAuthNext } from "@/lib/auth-redirect";
 import { getSiteUrl } from "@/lib/env";
 import { consumeIpRateLimit, consumeRateLimit } from "@/lib/rate-limit";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  createSupabaseAdminClient,
+  createSupabaseServerClient,
+} from "@/lib/supabase/server";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const MIN_PASSWORD_LENGTH = 8;
+const CONSENT_DOCUMENT_VERSION = "2026-07-01";
 
 export async function signInWithPassword(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -56,6 +60,9 @@ export async function signUpWithPassword(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const passwordConfirmation = String(formData.get("passwordConfirmation") ?? "");
+  const acceptsTerms = formData.get("acceptTerms") === "on";
+  const acceptsPersonalData = formData.get("personalDataConsent") === "on";
+  const acceptsMarketing = formData.get("marketingConsent") === "on";
   const next = normalizeAuthNext(formData.get("next"));
   const signupUrl = (message: string) =>
     authUrl("/auth", { message, mode: "signup", next });
@@ -70,6 +77,10 @@ export async function signUpWithPassword(formData: FormData) {
 
   if (password.length < MIN_PASSWORD_LENGTH) {
     redirect(signupUrl("password-too-short"));
+  }
+
+  if (!acceptsTerms || !acceptsPersonalData) {
+    redirect(signupUrl("required-consents"));
   }
 
   const [ipLimit, turnstileOk] = await Promise.all([
@@ -97,16 +108,37 @@ export async function signUpWithPassword(formData: FormData) {
   callbackUrl.searchParams.set("flow", "signup");
   callbackUrl.searchParams.set("next", "/onboarding");
 
+  const consentedAt = new Date().toISOString();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: callbackUrl.toString(),
+      data: {
+        consent_document_version: CONSENT_DOCUMENT_VERSION,
+        marketing_consent: acceptsMarketing,
+        marketing_consent_at: acceptsMarketing ? consentedAt : null,
+        personal_data_consent_at: consentedAt,
+        terms_accepted_at: consentedAt,
+      },
     },
   });
 
   if (error) {
     redirect(signupUrl("signup-failed"));
+  }
+
+  if (data.user?.id && (data.session || (data.user.identities?.length ?? 0) > 0)) {
+    const admin = createSupabaseAdminClient();
+
+    await admin?.from("user_consents").upsert(
+      [
+        { consent_type: "terms", document_version: CONSENT_DOCUMENT_VERSION, granted: true, updated_at: consentedAt, user_id: data.user.id },
+        { consent_type: "personal_data", document_version: CONSENT_DOCUMENT_VERSION, granted: true, updated_at: consentedAt, user_id: data.user.id },
+        { consent_type: "marketing", document_version: CONSENT_DOCUMENT_VERSION, granted: acceptsMarketing, updated_at: consentedAt, user_id: data.user.id },
+      ],
+      { onConflict: "user_id,consent_type,document_version" },
+    );
   }
 
   if (data.session) {

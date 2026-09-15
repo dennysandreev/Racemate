@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "modelId": "baku",
+  "sources": [
+    {
+      "file": "openstreetmap-map.osm",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=49.826,40.357,49.860,40.377",
+      "license": "OpenStreetMap contributors, ODbL 1.0",
+      "role": "circuit, pit lane, buildings and mapped infrastructure",
+      "resolution": "original vector nodes, EPSG:4326",
+      "bytes": 7784329,
+      "sha256": "b991c276c0fe6b2c03f67e77f77c594a716bdfb06639a4d9aa23c78b2e4b3fa9",
+      "bboxWgs84": [
+        49.826,
+        40.357,
+        49.86,
+        40.377
+      ],
+      "verticalDatum": null
+    },
+    {
+      "file": "fia-2025-event-notes.pdf",
+      "url": "https://www.fia.com/system/files/decision-document/2025_azerbaijan_grand_prix_-_event_notes_-_circuit_map_pit_lane_quarantine_zone_and_red_zone.pdf",
+      "license": "FIA / Formula One; reference only, not a texture redistribution licence",
+      "role": "2025 layout, separate start/control lines, sectors, speed trap and pit drawing",
+      "resolution": "vector PDF, document reference, issued 2025-09-18",
+      "bytes": 7658838,
+      "sha256": "48b475a35de6b0f9b42b0900764fe8a06e2f2278fba8ae48e6d127696ce47855",
+      "bboxWgs84": [
+        49.826,
+        40.357,
+        49.86,
+        40.377
+      ],
+      "verticalDatum": null
+    },
+    {
+      "file": "official-tickets-2026.html",
+      "url": "https://www.bakucitycircuit.com/buy-now",
+      "license": "Baku City Circuit; reference only",
+      "role": "2026 grandstand inventory and location images",
+      "resolution": "HTML, schematic location references",
+      "bytes": 167497,
+      "sha256": "f15aca52a9e663d60b74c44852d48a1988aa22f8c2235bf5bcc38355f340af79",
+      "bboxWgs84": [
+        49.826,
+        40.357,
+        49.86,
+        40.377
+      ],
+      "verticalDatum": null
+    }
+  ],
+  "coordinateReferenceSystem": "EPSG:32639",
+  "bboxWgs84": [
+    49.826,
+    40.357,
+    49.86,
+    40.377
+  ],
+  "retrievedAt": "2026-09-14"
+}

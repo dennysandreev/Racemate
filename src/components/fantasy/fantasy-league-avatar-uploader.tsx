@@ -14,6 +14,7 @@ import {
   FANTASY_LEAGUE_AVATAR_DIMENSION,
   FANTASY_LEAGUE_AVATAR_MAX_BYTES,
 } from "@/lib/fantasy-league-avatar";
+import { cn } from "@/lib/utils";
 
 const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
 const SUPPORTED_SOURCE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -21,11 +22,13 @@ const SUPPORTED_SOURCE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]
 export function FantasyLeagueAvatarUploader({
   avatarUrl,
   canEdit,
+  className,
   leagueId,
   leagueName,
 }: {
   avatarUrl?: string | null;
   canEdit: boolean;
+  className?: string;
   leagueId: string;
   leagueName: string;
 }) {
@@ -88,7 +91,7 @@ export function FantasyLeagueAvatarUploader({
   }
 
   return (
-    <div className="relative size-18 shrink-0 sm:size-20">
+    <div className={cn("relative size-18 shrink-0 sm:size-20", className)}>
       <FantasyLeagueAvatar
         avatarUrl={previewUrl}
         className="size-full border-primary/45 text-lg"

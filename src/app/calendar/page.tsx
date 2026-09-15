@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { IntentLink as Link } from "@/components/racemate/intent-link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CalendarDays, Trophy, Zap } from "lucide-react";
 
+import { PublicPageSkeleton } from "@/components/racemate/public-page-loading";
 import { AppShell } from "@/components/racemate/app-shell";
 import { JsonLd } from "@/components/racemate/json-ld";
 import { PageTitle } from "@/components/racemate/page-title";
@@ -22,6 +24,7 @@ import {
 } from "@/lib/season-navigation";
 import { absoluteUrl, buildSeasonPath, createPageMetadata } from "@/lib/seo";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
+import { versionedCircuitAsset } from "@/lib/versioned-public-asset";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/types/racemate";
 
@@ -65,6 +68,18 @@ export default async function CalendarPage({
     notFound();
   }
 
+  return (
+    <AppShell>
+      <Suspense fallback={<PublicPageSkeleton label="Календарь загружается" variant="cards" />}>
+        <CalendarContent query={query} season={season} publishedSeasons={publishedSeasons} />
+      </Suspense>
+    </AppShell>
+  );
+}
+
+async function CalendarContent({ query, season, publishedSeasons }: {
+  query: SeasonSearchParams; season: number; publishedSeasons: number[];
+}) {
   const calendarEvents = await withServerTtlCache(
     `public:calendar:${season}`,
     season === CURRENT_F1_SEASON ? 30_000 : 5 * 60_000,
@@ -75,7 +90,7 @@ export default async function CalendarPage({
   const nextRace = calendarEvents.find((event) => event.status !== "Завершен") ?? null;
 
   return (
-    <AppShell>
+    <>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -112,7 +127,7 @@ export default async function CalendarPage({
           ))}
         </div>
       </section>
-    </AppShell>
+    </>
   );
 }
 
@@ -172,7 +187,7 @@ function CalendarHero({
   );
 }
 
-function CalendarRaceCard({ event }: { event: CalendarEvent }) {
+async function CalendarRaceCard({ event }: { event: CalendarEvent }) {
   const isCurrentSeason = event.season === CURRENT_F1_SEASON;
   const href = event.status === "Текущий этап" && isCurrentSeason ? "/weekend" : event.href;
   const legacyAsset = isCurrentSeason ? getCircuitAsset(event.circuit || event.country) : null;
@@ -184,23 +199,22 @@ function CalendarRaceCard({ event }: { event: CalendarEvent }) {
   return (
     <Link
       className={cn(
-        "group block overflow-hidden rounded-xl border border-border bg-card transition-transform duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-transform duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         isCurrent && "border-primary/70 bg-primary/10",
       )}
       href={href}
-      prefetch={false}
     >
-      <div className="relative h-32 bg-surface-muted">
+      <div className="relative h-[8.5rem] shrink-0 bg-surface-muted">
         {assetSrc ? (
           <Image
             alt={`Схема трассы ${event.circuit}`}
             className={cn(
-              "object-contain p-4 transition-all duration-500 group-hover:scale-105",
+              "object-contain px-4 pb-3 pt-11 transition-all duration-500 group-hover:scale-105",
               isMapMuted && "grayscale group-hover:grayscale-0",
             )}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 20rem"
-            src={assetSrc}
+            src={await versionedCircuitAsset(assetSrc)}
           />
         ) : (
           <div className="grid h-full place-items-center font-telemetry text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
@@ -223,20 +237,20 @@ function CalendarRaceCard({ event }: { event: CalendarEvent }) {
           </Badge>
         ) : null}
       </div>
-      <div className="grid gap-4 p-5">
+      <div className="flex flex-1 flex-col p-4">
         <div>
           <p className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
             {event.date}
           </p>
-          <h3 className="mt-2 min-h-10 text-balance font-display text-base font-bold leading-tight">
+          <h3 className="mt-2 text-balance font-display text-base font-bold leading-tight">
             {event.race}
           </h3>
-          <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">
+          <p className="mt-1.5 line-clamp-1 text-sm text-muted-foreground">
             {event.circuit}, {event.country}
           </p>
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <StitchStatusBadge tone={isCurrent ? "red" : isCompleted ? "neutral" : "warning"}>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <StitchStatusBadge tone={isCurrent ? "red" : isCompleted ? "live" : "warning"}>
             {event.status}
           </StitchStatusBadge>
           {isCompleted && event.winner ? (

@@ -4,10 +4,11 @@ type NewsImageProps = {
   alt: string;
   className?: string;
   priority?: boolean;
+  sizes?: string;
   src?: string;
 };
 
-export function NewsImage({ alt, className, priority = false, src }: NewsImageProps) {
+export function NewsImage({ alt, className, priority = false, sizes = "(max-width: 768px) 100vw, 48rem", src }: NewsImageProps) {
   if (!src) {
     return null;
   }
@@ -24,7 +25,7 @@ export function NewsImage({ alt, className, priority = false, src }: NewsImagePr
         className="object-cover"
         fill
         priority={priority}
-        sizes="(max-width: 768px) 100vw, 48rem"
+        sizes={sizes}
         src={src}
       />
     </div>

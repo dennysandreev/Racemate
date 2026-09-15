@@ -30,7 +30,7 @@ export async function getDriverShareAvatarDataUrl(
   }
 
   return readPublicShareImageDataUrl(
-    "/drivers/avatars/archive-helmet-neutral.png",
+    "/drivers/avatars/archive-helmet-neutral-v2.png",
   );
 }
 

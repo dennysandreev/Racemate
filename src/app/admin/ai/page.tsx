@@ -5,9 +5,13 @@ import {
   reprocessNewsArticleAction,
   runAdminJobAction,
   saveAiBudgetAction,
+  saveXApiBudgetAction,
 } from "@/app/admin/operations";
 import { AdminActionForm } from "@/components/admin/admin-action-form";
+import { AdminConfirmedAction } from "@/components/admin/admin-confirmed-action";
+import { AdminUrlTabs } from "@/components/admin/admin-url-tabs";
 import { AdminAiPromptRegistry } from "@/components/admin/admin-ai-prompt-registry";
+import { AdminCostChart } from "@/components/admin/admin-cost-chart";
 import {
   AdminEmpty,
   AdminMetric,
@@ -19,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -69,21 +73,13 @@ export default async function AdminAiPage() {
         <AdminMetric label="Обращения к AI" value={formatInteger(data.totalRuns)} />
         <AdminMetric label="Токены" value={formatCompactInteger(totalTokens)} />
         <AdminMetric
-          label="X за 30 дней"
-          tone={data.xSpend30Days >= Number(data.xBudget.monthly_limit_usd) ? "danger" : "default"}
-          value={`$${data.xSpend30Days.toFixed(2)}`}
+          helper={`${formatInteger(data.xApiPosts30Days)} прочитанных постов`}
+          label="X API за 30 дней"
+          tone={data.xApiSpend30Days >= Number(data.xApiBudget.monthly_limit_usd) ? "danger" : "default"}
+          value={`$${data.xApiSpend30Days.toFixed(2)}`}
         />
       </section>
-      {data.unpricedRuns ? (
-        <Alert>
-          <AlertTitle>В истории есть вызовы без цены</AlertTitle>
-          <AlertDescription>
-            Для {formatInteger(data.unpricedRuns)} старых вызовов токены учтены, но OpenRouter-стоимость не была сохранена.
-            Итог в долларах пока является нижней границей; новые ответы записываются с фактически списанной стоимостью.
-          </AlertDescription>
-        </Alert>
-      ) : null}
-      <Tabs defaultValue="prompts">
+      <AdminUrlTabs defaultValue="prompts" values={["prompts", "usage", "problems", "limits"]}>
         <TabsList variant="line">
           <TabsTrigger value="prompts">Промпты и задачи</TabsTrigger>
           <TabsTrigger value="usage">Расходы</TabsTrigger>
@@ -108,6 +104,14 @@ export default async function AdminAiPage() {
           </AdminSection>
         </TabsContent>
         <TabsContent value="usage">
+          <AdminSection
+            description="AI API считается по записанной стоимости OpenRouter, X API — по числу прочитанных постов и установленной цене за один пост."
+            title="Расходы по дням"
+          >
+            <div className="max-w-full overflow-x-auto p-4">
+              <AdminCostChart data={data.costTimeline} />
+            </div>
+          </AdminSection>
           <div className="grid gap-5 xl:grid-cols-3">
             <UsageTable rows={data.byDay} title="По дням" />
             <UsageTable rows={data.byModel} title="По моделям" />
@@ -174,10 +178,10 @@ export default async function AdminAiPage() {
                         <AdminStatusBadge status={post.status} />
                       </div>
                       <p className="text-xs leading-5 text-danger">{post.last_processing_error}</p>
-                      <AdminActionForm action={moderateSocialPostAction} submitLabel="Переработать публикацию" submitVariant="secondary">
+                      <AdminConfirmedAction action={moderateSocialPostAction} confirmLabel="Переработать" description="Публикация снова попадёт в очередь AI-обработки." title="Запустить обработку заново?" triggerLabel="Переработать публикацию" triggerVariant="secondary">
                         <input name="postId" type="hidden" value={post.id} />
                         <input name="moderationAction" type="hidden" value="retry" />
-                      </AdminActionForm>
+                      </AdminConfirmedAction>
                     </article>
                   ))}
                 </div>
@@ -204,26 +208,30 @@ export default async function AdminAiPage() {
               </FieldGroup>
             </AdminActionForm>
           </AdminSection>
-          <AdminSection description="Дополнительный предел только для AI-обработки публикаций из X. Он действует вместе с общим бюджетом." title="Бюджет публикаций из X">
-            <AdminActionForm action={saveAiBudgetAction} className="p-4" submitLabel="Сохранить бюджет X">
-              <input name="scope" type="hidden" value="social_x" />
+          <AdminSection description="Оценка расходов на чтение постов через X API. Цена применяется к новым обращениям и не меняет уже записанную историю." title="Бюджет X API">
+            <AdminActionForm action={saveXApiBudgetAction} className="p-4" submitLabel="Сохранить бюджет X API">
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="ai-x-daily-limit">Дневной лимит, USD</FieldLabel>
-                  <Input defaultValue={Number(data.xBudget.daily_limit_usd)} id="ai-x-daily-limit" min="0.01" name="dailyLimitUsd" step="0.01" type="number" />
-                  <FieldDescription>Сегодня на X: ${data.xSpendToday.toFixed(2)}.</FieldDescription>
+                  <FieldLabel htmlFor="x-unit-cost">Цена чтения одного поста, USD</FieldLabel>
+                  <Input defaultValue={Number(data.xApiBudget.unit_cost_usd)} id="x-unit-cost" min="0.000001" name="unitCostUsd" step="0.000001" type="number" />
+                  <FieldDescription>Сейчас один прочитанный пост оценивается в ${Number(data.xApiBudget.unit_cost_usd).toFixed(6)}.</FieldDescription>
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="ai-x-monthly-limit">Лимит на 30 дней, USD</FieldLabel>
-                  <Input defaultValue={Number(data.xBudget.monthly_limit_usd)} id="ai-x-monthly-limit" min="0.01" name="monthlyLimitUsd" step="0.01" type="number" />
-                  <FieldDescription>За последние 30 дней: ${data.xSpend30Days.toFixed(2)}.</FieldDescription>
+                  <FieldLabel htmlFor="x-daily-limit">Дневной лимит, USD</FieldLabel>
+                  <Input defaultValue={Number(data.xApiBudget.daily_limit_usd)} id="x-daily-limit" min="0.01" name="dailyLimitUsd" step="0.01" type="number" />
+                  <FieldDescription>Сегодня: ${data.xApiSpendToday.toFixed(2)} за {formatInteger(data.xApiPostsToday)} постов.</FieldDescription>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="x-monthly-limit">Лимит на 30 дней, USD</FieldLabel>
+                  <Input defaultValue={Number(data.xApiBudget.monthly_limit_usd)} id="x-monthly-limit" min="0.01" name="monthlyLimitUsd" step="0.01" type="number" />
+                  <FieldDescription>За 30 дней: ${data.xApiSpend30Days.toFixed(2)} за {formatInteger(data.xApiPosts30Days)} постов.</FieldDescription>
                 </Field>
               </FieldGroup>
             </AdminActionForm>
           </AdminSection>
           </div>
         </TabsContent>
-      </Tabs>
+      </AdminUrlTabs>
     </AdminPage>
   );
 }

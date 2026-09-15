@@ -1,0 +1,76 @@
+{
+  "session": {
+    "id": 11357,
+    "meetingId": 1293,
+    "season": 2026,
+    "name": "Qualifying",
+    "type": "Qualifying",
+    "circuit": "Monza",
+    "circuitKey": 39,
+    "country": "Italy",
+    "start": "2026-09-05T14:00:00+00:00",
+    "end": "2026-09-05T15:00:00+00:00",
+    "slug": "qualifying-11357"
+  },
+  "calls": 4,
+  "prepareMs": 8485.597,
+  "traces": [
+    {
+      "driver": "GAS",
+      "lap": 17,
+      "time": 81.786,
+      "points": 308,
+      "quality": {
+        "coverage": 1,
+        "maxGapSeconds": 0.959,
+        "sampleIntervalSeconds": 0.24,
+        "timingError": 0,
+        "warnings": [
+          "ESTIMATED_DISTANCE"
+        ],
+        "comparable": true,
+        "method": "speed-integral/lap-length"
+      },
+      "channels": {
+        "speed": 308,
+        "throttle": 295,
+        "brake": 295,
+        "gear": 308,
+        "rpm": 308,
+        "drs": 0
+      }
+    },
+    {
+      "driver": "RUS",
+      "lap": 16,
+      "time": 81.846,
+      "points": 306,
+      "quality": {
+        "coverage": 0.9999999999999998,
+        "maxGapSeconds": 0.959,
+        "sampleIntervalSeconds": 0.24,
+        "timingError": 0,
+        "warnings": [
+          "ESTIMATED_DISTANCE"
+        ],
+        "comparable": true,
+        "method": "speed-integral/lap-length"
+      },
+      "channels": {
+        "speed": 306,
+        "throttle": 306,
+        "brake": 306,
+        "gear": 306,
+        "rpm": 306,
+        "drs": 0
+      }
+    }
+  ],
+  "finishDelta": [
+    0,
+    0.06
+  ],
+  "responsePoints": 209,
+  "responseBytes": 111492,
+  "track": "monza"
+}

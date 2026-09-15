@@ -34,6 +34,7 @@ test("builds a bounded heartbeat without leaking arbitrary environment data", ()
 
 test("rejects unknown services and malformed release identifiers", () => {
   assert.equal(normalizeHeartbeatRelease("release-latest"), null);
+  assert.equal(buildServiceHeartbeat({ serviceName: "live" }).service_name, "live");
   assert.throws(
     () => buildServiceHeartbeat({ serviceName: "shell" }),
     /Invalid heartbeat service name/,

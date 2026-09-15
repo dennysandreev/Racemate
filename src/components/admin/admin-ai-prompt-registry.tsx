@@ -382,7 +382,7 @@ function PromptEditorForm({
         <AlertTitle>Защищённый формат ответа</AlertTitle>
         <AlertDescription>
           <p>
-            Эта часть всегда добавляется worker-процессом и недоступна для изменения,
+            Эта часть всегда добавляется фоновой обработкой и недоступна для изменения,
             чтобы новости, отчёты и опросы не ломались из-за неверного JSON.
           </p>
           <pre className="mt-3 max-h-36 overflow-auto whitespace-pre-wrap rounded-sm bg-muted p-3 font-mono text-xs leading-5 text-foreground">

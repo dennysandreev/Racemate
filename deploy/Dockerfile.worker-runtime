@@ -1,0 +1,8 @@
+ARG BASE_IMAGE=app-web
+FROM ${BASE_IMAGE}
+
+WORKDIR /app
+
+COPY worker/cli-loop.mjs ./worker/cli-loop.mjs
+COPY worker/ops-watcher.mjs ./worker/ops-watcher.mjs
+COPY scripts/warm-public-pages.mjs ./scripts/warm-public-pages.mjs

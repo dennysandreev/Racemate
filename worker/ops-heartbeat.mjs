@@ -6,6 +6,7 @@ const serviceNames = new Set([
   "cron",
   "admin-job-runner",
   "watcher",
+  "live",
 ]);
 const releasePattern = /^[0-9a-f]{7,64}$/;
 

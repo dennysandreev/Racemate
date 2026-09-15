@@ -148,7 +148,7 @@ export default async function TeamProfilePage({ params, searchParams }: TeamPage
           },
         ]}
       />
-      <div className="grid min-w-0 gap-5 pb-6 sm:gap-6 sm:pb-8">
+      <div className="sport-profile-page grid min-w-0 gap-5 pb-6 sm:gap-6 sm:pb-8">
         <TeamHero availableSeasons={availableSeasons} query={query} team={team} />
 
         <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_23rem]">

@@ -190,7 +190,7 @@ export async function saveFantasyPrediction(formData: FormData) {
   revalidatePath("/predictions");
   revalidatePath(`/prediction/${shareSlug}`);
   const shareScope = scope === "qualification" ? "qualification" : "race";
-  redirect(`/fantasy?tab=picks&saved=1&share=${encodeURIComponent(shareSlug)}&shareScope=${shareScope}&v=${shareImageVersion}`);
+  redirect(`/fantasy/prediction?saved=1&share=${encodeURIComponent(shareSlug)}&shareScope=${shareScope}&v=${shareImageVersion}`);
 }
 
 export async function createFantasyLeague(formData: FormData) {
@@ -277,20 +277,30 @@ export async function joinFantasyLeague(formData: FormData) {
   const inviteCode = String(formData.get("inviteCode") ?? "")
     .trim()
     .toUpperCase();
+  const leagueId = String(formData.get("leagueId") ?? "").trim();
+  const returnPath = leagueId ? `/fantasy/leagues/${leagueId}` : "/fantasy";
 
-  if (!inviteCode || inviteCode.length > 16) {
-    redirect("/fantasy?message=code");
+  if ((!inviteCode && !leagueId) || inviteCode.length > 16 || leagueId.length > 80) {
+    redirect(`${returnPath}?message=code`);
   }
 
   const db = admin ?? supabase;
-  const { data: league } = await db
+  let leagueQuery = db
     .from("prediction_leagues")
-    .select("id")
-    .eq("invite_code", inviteCode)
-    .maybeSingle();
+    .select("id, is_public");
+
+  if (leagueId) {
+    leagueQuery = leagueQuery.eq("id", leagueId);
+  }
+
+  leagueQuery = inviteCode
+    ? leagueQuery.eq("invite_code", inviteCode)
+    : leagueQuery.eq("is_public", true);
+
+  const { data: league } = await leagueQuery.maybeSingle();
 
   if (!league) {
-    redirect("/fantasy?message=not-found");
+    redirect(`${returnPath}?message=not-found`);
   }
 
   const { error } = await db.from("prediction_league_members").upsert({
@@ -300,7 +310,7 @@ export async function joinFantasyLeague(formData: FormData) {
   });
 
   if (error) {
-    redirect("/fantasy?message=join");
+    redirect(`${returnPath}?message=join`);
   }
 
   revalidatePath("/fantasy");
@@ -316,7 +326,7 @@ export async function updateFantasyLeague(formData: FormData) {
   const leagueId = String(formData.get("leagueId") ?? "").trim();
 
   if (!supabase || !leagueId) {
-    redirect("/fantasy?tab=leagues");
+    redirect("/fantasy/leagues");
   }
 
   if (!profile) {
@@ -370,7 +380,7 @@ export async function deleteFantasyLeague(formData: FormData) {
   const confirmName = String(formData.get("confirmName") ?? "").trim();
 
   if (!supabase || !leagueId) {
-    redirect("/fantasy?tab=leagues");
+    redirect("/fantasy/leagues");
   }
 
   if (!profile) {
@@ -412,7 +422,7 @@ export async function deleteFantasyLeague(formData: FormData) {
 
   revalidatePath("/fantasy");
   revalidatePath("/leagues");
-  redirect("/fantasy?tab=leagues&deleted=1");
+  redirect("/fantasy/leagues?deleted=1");
 }
 
 export async function leaveFantasyLeague(formData: FormData) {
@@ -422,7 +432,7 @@ export async function leaveFantasyLeague(formData: FormData) {
   const leagueId = String(formData.get("leagueId") ?? "").trim();
 
   if (!supabase || !leagueId) {
-    redirect("/fantasy?tab=leagues");
+    redirect("/fantasy/leagues");
   }
 
   if (!profile) {
@@ -443,7 +453,7 @@ export async function leaveFantasyLeague(formData: FormData) {
     .maybeSingle();
 
   if (!league) {
-    redirect("/fantasy?tab=leagues&message=not-found");
+    redirect("/fantasy/leagues?message=not-found");
   }
 
   if (league.owner_user_id === profile.id) {
@@ -463,7 +473,7 @@ export async function leaveFantasyLeague(formData: FormData) {
 
   revalidatePath("/fantasy");
   revalidatePath(`/fantasy/leagues/${leagueId}`);
-  redirect("/fantasy?tab=leagues&left=1");
+  redirect("/fantasy/leagues?left=1");
 }
 
 function nullableFormValue(value: FormDataEntryValue | null) {

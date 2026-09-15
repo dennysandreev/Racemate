@@ -12,7 +12,7 @@ Read these files before planning or changing the project:
 - UI language: Russian by default.
 - Primary register: product UI.
 - Frontend direction: premium motorsport app, restrained and task-focused.
-- V1 excludes Telegram, web push, notification dispatch, and notification preferences.
+- Telegram, LIVE, Race Replay and telemetry are implemented product areas. Web push remains outside the current scope.
 
 ## Skill Defaults
 

@@ -233,7 +233,7 @@ export function mapRedditApiResponse(source, payload) {
 export function mapTelegramChannelUpdate(source, update) {
   const post = update?.channel_post ?? update?.edited_channel_post;
 
-  if (!post?.chat?.id || !post.message_id) {
+  if (!post?.chat?.id || !post.message_id || isTelegramRoundVideoMessage(post)) {
     return null;
   }
 
@@ -313,7 +313,7 @@ export function mapTelegramMtprotoMessages(source, channel, messages) {
   for (const message of messages ?? []) {
     const messageId = Number(message?.id);
 
-    if (!Number.isInteger(messageId) || messageId <= 0) {
+    if (!Number.isInteger(messageId) || messageId <= 0 || isTelegramRoundVideoMessage(message)) {
       continue;
     }
 
@@ -377,6 +377,45 @@ export function mapTelegramMtprotoMessages(source, channel, messages) {
       isReply: ordered.some((message) => Boolean(message.replyTo ?? message.isReply)),
     };
   });
+}
+
+export function isTelegramRoundVideoMessage(message) {
+  if (message?.video_note || message?.videoNote) {
+    return true;
+  }
+
+  const document = message?.video ?? message?.document ?? message?.media?.document;
+  const attributes = Array.isArray(document?.attributes) ? document.attributes : [];
+
+  return attributes.some((attribute) =>
+    attribute?.roundMessage === true ||
+    attribute?.round_message === true ||
+    attribute?.round === true,
+  );
+}
+
+export function getTelegramRoundVideoExternalIds(channel, messages) {
+  const channelId = normalizeTelegramId(channel?.id);
+
+  if (!channelId) {
+    return [];
+  }
+
+  return [...new Set((messages ?? [])
+    .filter(isTelegramRoundVideoMessage)
+    .map((message) => {
+      const messageId = Number(message?.id);
+      const groupedId = normalizeTelegramId(message?.groupedId);
+
+      if (!Number.isInteger(messageId) || messageId <= 0) {
+        return null;
+      }
+
+      return groupedId
+        ? `telegram:${channelId}:album:${groupedId}`
+        : `telegram:${channelId}:${messageId}`;
+    })
+    .filter(Boolean))];
 }
 
 export function getTelegramFloodWaitSeconds(error) {

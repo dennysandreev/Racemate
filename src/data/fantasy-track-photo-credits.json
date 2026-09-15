@@ -1,0 +1,212 @@
+{
+  "season": 2026,
+  "tracks": [
+    {
+      "round": 1,
+      "layoutSlug": "australia",
+      "author": "Ozzmosis",
+      "license": "CC BY-SA 2.5",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Melbourne_Grand_Prix_Circuit_pit_building.jpg",
+      "visibleSegment": "пит-лейн и здание боксов Альберт-Парка",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 2,
+      "layoutSlug": "china",
+      "author": "CyberCop",
+      "license": "CC BY 3.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Formula_1_Circuit_(Shanghai)_-_panoramio.jpg",
+      "visibleSegment": "стартовая прямая и пит-комплекс Шанхая",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 3,
+      "layoutSlug": "japan",
+      "author": "wata0929",
+      "license": "CC BY-SA 3.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Suzuka.s_curve.JPG",
+      "visibleSegment": "связка S Curves Сузуки",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 4,
+      "layoutSlug": "miami",
+      "author": "USACJack",
+      "license": "CC BY-SA 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Start_of_the_Porsche_Sprint_Challenge_North_America_at_the_F1_Miami_GP_-_2022.jpg",
+      "visibleSegment": "стартовая прямая Miami International Autodrome",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 5,
+      "layoutSlug": "canada",
+      "author": "magicfab",
+      "license": "CC BY 2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Circuit_Gilles_Villeneuve_Hairpin.jpg",
+      "visibleSegment": "шпилька трассы имени Жиля Вильнёва",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 6,
+      "layoutSlug": "monaco",
+      "author": "crash71100",
+      "license": "CC0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Circuit_de_Monaco_-_%C3%89pingle_du_Loews_Fairmont_(54777022015).jpg",
+      "visibleSegment": "шпилька Fairmont",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 7,
+      "layoutSlug": "barcelona-catalunya",
+      "author": "Wilnel José Verdú Guerrero",
+      "license": "CC BY-SA 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Curvas_1-6_de_Circuit_de_Barcelona-Catalunya_Montmel%C3%B3_(2023).jpg",
+      "visibleSegment": "повороты 1–6 Барселоны-Каталуньи",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 8,
+      "layoutSlug": "austria",
+      "author": "Fitschy99",
+      "license": "CC BY-SA 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Start-Ziel_Red_Bull_Ring.jpg",
+      "visibleSegment": "стартовая прямая Red Bull Ring",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 9,
+      "layoutSlug": "great-britain",
+      "author": "Philip Halling",
+      "license": "CC BY-SA 2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Silverstone_circuit_-_geograph.org.uk_-_2060445.jpg",
+      "visibleSegment": "Сильверстоун с борта самолёта; реальная фотография, не спутниковый снимок",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 10,
+      "layoutSlug": "belgium",
+      "author": "ContextCreator",
+      "license": "CC0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Eau_Rouge_at_Spa_Francorchamps.jpg",
+      "visibleSegment": "Eau Rouge и подъём Raidillon",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 11,
+      "layoutSlug": "hungary",
+      "author": "Ank Kumar",
+      "license": "CC BY-SA 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Hungaroring,_Mogyor%C3%B3d_13.jpg",
+      "visibleSegment": "подъём на Хунгароринге",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 12,
+      "layoutSlug": "netherlands",
+      "author": "Steve Knight",
+      "license": "CC BY 2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Zandvoort_motor_racing_circuit.jpg",
+      "visibleSegment": "актуальная конфигурация Зандворта с борта самолёта; реальная фотография 2024 года",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 13,
+      "layoutSlug": "italy",
+      "author": "Derbrauni",
+      "license": "CC BY 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Autodromo_Nazionale_Monza.jpg",
+      "visibleSegment": "отрезок трассы у исторической инфраструктуры Монцы",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 14,
+      "layoutSlug": "spain",
+      "author": "Alquiler de Coches",
+      "license": "CC BY 2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Fachada_Feria_de_Madrid_-_IFEMA.jpg",
+      "visibleSegment": "городская зона IFEMA у конфигурации MADRING",
+      "reviewStatus": "context-only"
+    },
+    {
+      "round": 15,
+      "layoutSlug": "azerbaijan",
+      "author": "Robot8A",
+      "license": "CC BY-SA 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Baku_12_54_39_091000.jpeg",
+      "visibleSegment": "пит-лейн Бакинской городской трассы",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 16,
+      "layoutSlug": "malaysia",
+      "author": "*angys*",
+      "license": "CC BY-SA 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Sepang_International_Circuit_outview_(230625)_01.jpg",
+      "visibleSegment": "реальный вид на секцию Sepang International Circuit",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 17,
+      "layoutSlug": "singapore",
+      "author": "RFNirmala",
+      "license": "CC BY 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Marina_Bay_Street_Circuit_near_Singapore_Flyer_11Jul2026_02.jpg",
+      "visibleSegment": "секция Marina Bay у Singapore Flyer",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 18,
+      "layoutSlug": "united-states",
+      "author": "Lars Plougmann",
+      "license": "CC BY-SA 2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Main_straight_and_turn_1_hill,_Circuit_of_the_Americas.jpg",
+      "visibleSegment": "стартовая прямая и подъём к первому повороту COTA",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 19,
+      "layoutSlug": "mexico",
+      "author": "Gobierno CDMX",
+      "license": "CC0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Formula_1_2016_-i---i-_(30061627393).jpg",
+      "visibleSegment": "стадионная секция автодрома имени братьев Родригес",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 20,
+      "layoutSlug": "brazil",
+      "author": "Boaventuravinicius",
+      "license": "CC BY-SA 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Aut%C3%B3dromo_de_Interlagos_em_Dezembro_de_2023.jpg",
+      "visibleSegment": "стартовая прямая Интерлагоса",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 21,
+      "layoutSlug": "las-vegas",
+      "author": "Nascar9919",
+      "license": "CC BY 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2024_Las_Vegas_Grand_Prix_at_the_Sphere_-_Saturday,_November_23,_Orbi.jpg",
+      "visibleSegment": "повороты 7–8 у Sphere",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 22,
+      "layoutSlug": "qatar",
+      "author": "Dmitry Racer",
+      "license": "CC BY-SA 4.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:WTCC_2016,_Qatar.jpg",
+      "visibleSegment": "ночная стартовая прямая Лосаила",
+      "reviewStatus": "approved"
+    },
+    {
+      "round": 23,
+      "layoutSlug": "united-arab-emirates",
+      "author": "Cesar I. Martins",
+      "license": "CC BY 2.0",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Sunset_at_Yas_Marina_circuit_-_Abu_Dhabi_2014.jpg",
+      "visibleSegment": "секция Yas Marina на закате",
+      "reviewStatus": "approved"
+    }
+  ]
+}

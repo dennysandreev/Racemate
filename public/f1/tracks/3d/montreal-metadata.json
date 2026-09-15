@@ -1,0 +1,1201 @@
+{
+  "boundsMeters": {
+    "depth": 2700,
+    "width": 1400
+  },
+  "coordinateReferenceSystem": "EPSG:32188 + CGVD2013",
+  "elevationProfile": [
+    {
+      "distanceMeters": 0.0,
+      "elevationMeters": 10.671
+    },
+    {
+      "distanceMeters": 24.37,
+      "elevationMeters": 10.719
+    },
+    {
+      "distanceMeters": 48.74,
+      "elevationMeters": 10.868
+    },
+    {
+      "distanceMeters": 73.11,
+      "elevationMeters": 10.945
+    },
+    {
+      "distanceMeters": 97.48,
+      "elevationMeters": 10.903
+    },
+    {
+      "distanceMeters": 121.85,
+      "elevationMeters": 10.793
+    },
+    {
+      "distanceMeters": 146.22,
+      "elevationMeters": 10.819
+    },
+    {
+      "distanceMeters": 170.59,
+      "elevationMeters": 10.887
+    },
+    {
+      "distanceMeters": 194.96,
+      "elevationMeters": 11.005
+    },
+    {
+      "distanceMeters": 219.33,
+      "elevationMeters": 11.038
+    },
+    {
+      "distanceMeters": 243.7,
+      "elevationMeters": 11.089
+    },
+    {
+      "distanceMeters": 268.07,
+      "elevationMeters": 11.203
+    },
+    {
+      "distanceMeters": 292.44,
+      "elevationMeters": 11.21
+    },
+    {
+      "distanceMeters": 316.81,
+      "elevationMeters": 11.349
+    },
+    {
+      "distanceMeters": 341.18,
+      "elevationMeters": 11.392
+    },
+    {
+      "distanceMeters": 365.55,
+      "elevationMeters": 11.667
+    },
+    {
+      "distanceMeters": 389.92,
+      "elevationMeters": 12.313
+    },
+    {
+      "distanceMeters": 414.29,
+      "elevationMeters": 13.131
+    },
+    {
+      "distanceMeters": 438.66,
+      "elevationMeters": 13.865
+    },
+    {
+      "distanceMeters": 463.03,
+      "elevationMeters": 14.619
+    },
+    {
+      "distanceMeters": 487.4,
+      "elevationMeters": 15.15
+    },
+    {
+      "distanceMeters": 511.77,
+      "elevationMeters": 15.308
+    },
+    {
+      "distanceMeters": 536.14,
+      "elevationMeters": 15.265
+    },
+    {
+      "distanceMeters": 560.51,
+      "elevationMeters": 15.105
+    },
+    {
+      "distanceMeters": 584.88,
+      "elevationMeters": 15.047
+    },
+    {
+      "distanceMeters": 609.25,
+      "elevationMeters": 14.926
+    },
+    {
+      "distanceMeters": 633.62,
+      "elevationMeters": 14.672
+    },
+    {
+      "distanceMeters": 657.99,
+      "elevationMeters": 14.748
+    },
+    {
+      "distanceMeters": 682.36,
+      "elevationMeters": 15.055
+    },
+    {
+      "distanceMeters": 706.73,
+      "elevationMeters": 15.07
+    },
+    {
+      "distanceMeters": 731.1,
+      "elevationMeters": 14.788
+    },
+    {
+      "distanceMeters": 755.47,
+      "elevationMeters": 14.15
+    },
+    {
+      "distanceMeters": 779.84,
+      "elevationMeters": 13.417
+    },
+    {
+      "distanceMeters": 804.21,
+      "elevationMeters": 12.251
+    },
+    {
+      "distanceMeters": 828.58,
+      "elevationMeters": 11.604
+    },
+    {
+      "distanceMeters": 852.95,
+      "elevationMeters": 10.949
+    },
+    {
+      "distanceMeters": 877.33,
+      "elevationMeters": 10.62
+    },
+    {
+      "distanceMeters": 901.7,
+      "elevationMeters": 10.571
+    },
+    {
+      "distanceMeters": 926.07,
+      "elevationMeters": 10.593
+    },
+    {
+      "distanceMeters": 950.44,
+      "elevationMeters": 10.571
+    },
+    {
+      "distanceMeters": 974.81,
+      "elevationMeters": 10.74
+    },
+    {
+      "distanceMeters": 999.18,
+      "elevationMeters": 11.137
+    },
+    {
+      "distanceMeters": 1023.55,
+      "elevationMeters": 11.123
+    },
+    {
+      "distanceMeters": 1047.92,
+      "elevationMeters": 10.895
+    },
+    {
+      "distanceMeters": 1072.29,
+      "elevationMeters": 10.952
+    },
+    {
+      "distanceMeters": 1096.66,
+      "elevationMeters": 11.202
+    },
+    {
+      "distanceMeters": 1121.03,
+      "elevationMeters": 10.901
+    },
+    {
+      "distanceMeters": 1145.4,
+      "elevationMeters": 10.724
+    },
+    {
+      "distanceMeters": 1169.77,
+      "elevationMeters": 10.988
+    },
+    {
+      "distanceMeters": 1194.14,
+      "elevationMeters": 11.475
+    },
+    {
+      "distanceMeters": 1218.51,
+      "elevationMeters": 11.796
+    },
+    {
+      "distanceMeters": 1242.88,
+      "elevationMeters": 12.247
+    },
+    {
+      "distanceMeters": 1267.25,
+      "elevationMeters": 12.627
+    },
+    {
+      "distanceMeters": 1291.62,
+      "elevationMeters": 12.923
+    },
+    {
+      "distanceMeters": 1315.99,
+      "elevationMeters": 13.338
+    },
+    {
+      "distanceMeters": 1340.36,
+      "elevationMeters": 13.702
+    },
+    {
+      "distanceMeters": 1364.73,
+      "elevationMeters": 13.848
+    },
+    {
+      "distanceMeters": 1389.1,
+      "elevationMeters": 13.947
+    },
+    {
+      "distanceMeters": 1413.47,
+      "elevationMeters": 13.702
+    },
+    {
+      "distanceMeters": 1437.84,
+      "elevationMeters": 13.846
+    },
+    {
+      "distanceMeters": 1462.21,
+      "elevationMeters": 13.902
+    },
+    {
+      "distanceMeters": 1486.58,
+      "elevationMeters": 13.846
+    },
+    {
+      "distanceMeters": 1510.95,
+      "elevationMeters": 13.68
+    },
+    {
+      "distanceMeters": 1535.32,
+      "elevationMeters": 13.598
+    },
+    {
+      "distanceMeters": 1559.69,
+      "elevationMeters": 13.843
+    },
+    {
+      "distanceMeters": 1584.06,
+      "elevationMeters": 13.925
+    },
+    {
+      "distanceMeters": 1608.43,
+      "elevationMeters": 14.035
+    },
+    {
+      "distanceMeters": 1632.8,
+      "elevationMeters": 14.185
+    },
+    {
+      "distanceMeters": 1657.17,
+      "elevationMeters": 13.943
+    },
+    {
+      "distanceMeters": 1681.54,
+      "elevationMeters": 13.819
+    },
+    {
+      "distanceMeters": 1705.91,
+      "elevationMeters": 13.794
+    },
+    {
+      "distanceMeters": 1730.28,
+      "elevationMeters": 13.722
+    },
+    {
+      "distanceMeters": 1754.65,
+      "elevationMeters": 13.592
+    },
+    {
+      "distanceMeters": 1779.02,
+      "elevationMeters": 13.718
+    },
+    {
+      "distanceMeters": 1803.39,
+      "elevationMeters": 14.012
+    },
+    {
+      "distanceMeters": 1827.76,
+      "elevationMeters": 13.877
+    },
+    {
+      "distanceMeters": 1852.13,
+      "elevationMeters": 13.675
+    },
+    {
+      "distanceMeters": 1876.5,
+      "elevationMeters": 13.751
+    },
+    {
+      "distanceMeters": 1900.87,
+      "elevationMeters": 14.091
+    },
+    {
+      "distanceMeters": 1925.24,
+      "elevationMeters": 14.743
+    },
+    {
+      "distanceMeters": 1949.61,
+      "elevationMeters": 14.062
+    },
+    {
+      "distanceMeters": 1973.98,
+      "elevationMeters": 13.816
+    },
+    {
+      "distanceMeters": 1998.35,
+      "elevationMeters": 13.384
+    },
+    {
+      "distanceMeters": 2022.72,
+      "elevationMeters": 13.616
+    },
+    {
+      "distanceMeters": 2047.09,
+      "elevationMeters": 13.798
+    },
+    {
+      "distanceMeters": 2071.46,
+      "elevationMeters": 13.67
+    },
+    {
+      "distanceMeters": 2095.83,
+      "elevationMeters": 13.253
+    },
+    {
+      "distanceMeters": 2120.2,
+      "elevationMeters": 13.169
+    },
+    {
+      "distanceMeters": 2144.57,
+      "elevationMeters": 13.024
+    },
+    {
+      "distanceMeters": 2168.94,
+      "elevationMeters": 13.164
+    },
+    {
+      "distanceMeters": 2193.31,
+      "elevationMeters": 13.388
+    },
+    {
+      "distanceMeters": 2217.68,
+      "elevationMeters": 13.099
+    },
+    {
+      "distanceMeters": 2242.05,
+      "elevationMeters": 13.378
+    },
+    {
+      "distanceMeters": 2266.42,
+      "elevationMeters": 13.475
+    },
+    {
+      "distanceMeters": 2290.79,
+      "elevationMeters": 13.237
+    },
+    {
+      "distanceMeters": 2315.16,
+      "elevationMeters": 13.31
+    },
+    {
+      "distanceMeters": 2339.53,
+      "elevationMeters": 13.357
+    },
+    {
+      "distanceMeters": 2363.9,
+      "elevationMeters": 13.407
+    },
+    {
+      "distanceMeters": 2388.27,
+      "elevationMeters": 13.321
+    },
+    {
+      "distanceMeters": 2412.64,
+      "elevationMeters": 13.63
+    },
+    {
+      "distanceMeters": 2437.01,
+      "elevationMeters": 13.722
+    },
+    {
+      "distanceMeters": 2461.38,
+      "elevationMeters": 13.868
+    },
+    {
+      "distanceMeters": 2485.75,
+      "elevationMeters": 13.795
+    },
+    {
+      "distanceMeters": 2510.12,
+      "elevationMeters": 13.721
+    },
+    {
+      "distanceMeters": 2534.49,
+      "elevationMeters": 13.61
+    },
+    {
+      "distanceMeters": 2558.86,
+      "elevationMeters": 13.539
+    },
+    {
+      "distanceMeters": 2583.23,
+      "elevationMeters": 13.553
+    },
+    {
+      "distanceMeters": 2607.6,
+      "elevationMeters": 13.533
+    },
+    {
+      "distanceMeters": 2631.98,
+      "elevationMeters": 13.519
+    },
+    {
+      "distanceMeters": 2656.35,
+      "elevationMeters": 13.504
+    },
+    {
+      "distanceMeters": 2680.72,
+      "elevationMeters": 13.517
+    },
+    {
+      "distanceMeters": 2705.09,
+      "elevationMeters": 13.461
+    },
+    {
+      "distanceMeters": 2729.46,
+      "elevationMeters": 13.476
+    },
+    {
+      "distanceMeters": 2753.83,
+      "elevationMeters": 13.464
+    },
+    {
+      "distanceMeters": 2778.2,
+      "elevationMeters": 13.479
+    },
+    {
+      "distanceMeters": 2802.57,
+      "elevationMeters": 13.416
+    },
+    {
+      "distanceMeters": 2826.94,
+      "elevationMeters": 13.355
+    },
+    {
+      "distanceMeters": 2851.31,
+      "elevationMeters": 13.177
+    },
+    {
+      "distanceMeters": 2875.68,
+      "elevationMeters": 12.888
+    },
+    {
+      "distanceMeters": 2900.05,
+      "elevationMeters": 12.635
+    },
+    {
+      "distanceMeters": 2924.42,
+      "elevationMeters": 12.541
+    },
+    {
+      "distanceMeters": 2948.79,
+      "elevationMeters": 12.493
+    },
+    {
+      "distanceMeters": 2973.16,
+      "elevationMeters": 12.445
+    },
+    {
+      "distanceMeters": 2997.53,
+      "elevationMeters": 12.461
+    },
+    {
+      "distanceMeters": 3021.9,
+      "elevationMeters": 12.447
+    },
+    {
+      "distanceMeters": 3046.27,
+      "elevationMeters": 12.395
+    },
+    {
+      "distanceMeters": 3070.64,
+      "elevationMeters": 11.93
+    },
+    {
+      "distanceMeters": 3095.01,
+      "elevationMeters": 11.41
+    },
+    {
+      "distanceMeters": 3119.38,
+      "elevationMeters": 11.18
+    },
+    {
+      "distanceMeters": 3143.75,
+      "elevationMeters": 10.727
+    },
+    {
+      "distanceMeters": 3168.12,
+      "elevationMeters": 10.711
+    },
+    {
+      "distanceMeters": 3192.49,
+      "elevationMeters": 10.667
+    },
+    {
+      "distanceMeters": 3216.86,
+      "elevationMeters": 10.907
+    },
+    {
+      "distanceMeters": 3241.23,
+      "elevationMeters": 10.935
+    },
+    {
+      "distanceMeters": 3265.6,
+      "elevationMeters": 10.827
+    },
+    {
+      "distanceMeters": 3289.97,
+      "elevationMeters": 10.9
+    },
+    {
+      "distanceMeters": 3314.34,
+      "elevationMeters": 10.886
+    },
+    {
+      "distanceMeters": 3338.71,
+      "elevationMeters": 10.908
+    },
+    {
+      "distanceMeters": 3363.08,
+      "elevationMeters": 10.888
+    },
+    {
+      "distanceMeters": 3387.45,
+      "elevationMeters": 10.741
+    },
+    {
+      "distanceMeters": 3411.82,
+      "elevationMeters": 10.856
+    },
+    {
+      "distanceMeters": 3436.19,
+      "elevationMeters": 10.815
+    },
+    {
+      "distanceMeters": 3460.56,
+      "elevationMeters": 10.537
+    },
+    {
+      "distanceMeters": 3484.93,
+      "elevationMeters": 10.609
+    },
+    {
+      "distanceMeters": 3509.3,
+      "elevationMeters": 10.962
+    },
+    {
+      "distanceMeters": 3533.67,
+      "elevationMeters": 10.819
+    },
+    {
+      "distanceMeters": 3558.04,
+      "elevationMeters": 10.713
+    },
+    {
+      "distanceMeters": 3582.41,
+      "elevationMeters": 10.797
+    },
+    {
+      "distanceMeters": 3606.78,
+      "elevationMeters": 10.715
+    },
+    {
+      "distanceMeters": 3631.15,
+      "elevationMeters": 10.659
+    },
+    {
+      "distanceMeters": 3655.52,
+      "elevationMeters": 10.765
+    },
+    {
+      "distanceMeters": 3679.89,
+      "elevationMeters": 10.639
+    },
+    {
+      "distanceMeters": 3704.26,
+      "elevationMeters": 10.586
+    },
+    {
+      "distanceMeters": 3728.63,
+      "elevationMeters": 10.484
+    },
+    {
+      "distanceMeters": 3753.0,
+      "elevationMeters": 10.539
+    },
+    {
+      "distanceMeters": 3777.37,
+      "elevationMeters": 10.476
+    },
+    {
+      "distanceMeters": 3801.74,
+      "elevationMeters": 10.62
+    },
+    {
+      "distanceMeters": 3826.11,
+      "elevationMeters": 10.738
+    },
+    {
+      "distanceMeters": 3850.48,
+      "elevationMeters": 10.81
+    },
+    {
+      "distanceMeters": 3874.85,
+      "elevationMeters": 10.908
+    },
+    {
+      "distanceMeters": 3899.22,
+      "elevationMeters": 10.834
+    },
+    {
+      "distanceMeters": 3923.59,
+      "elevationMeters": 10.878
+    },
+    {
+      "distanceMeters": 3947.96,
+      "elevationMeters": 10.569
+    },
+    {
+      "distanceMeters": 3972.33,
+      "elevationMeters": 10.712
+    },
+    {
+      "distanceMeters": 3996.7,
+      "elevationMeters": 10.693
+    },
+    {
+      "distanceMeters": 4021.07,
+      "elevationMeters": 10.733
+    },
+    {
+      "distanceMeters": 4045.44,
+      "elevationMeters": 10.809
+    },
+    {
+      "distanceMeters": 4069.81,
+      "elevationMeters": 11.003
+    },
+    {
+      "distanceMeters": 4094.18,
+      "elevationMeters": 10.799
+    },
+    {
+      "distanceMeters": 4118.55,
+      "elevationMeters": 10.685
+    },
+    {
+      "distanceMeters": 4142.92,
+      "elevationMeters": 10.731
+    },
+    {
+      "distanceMeters": 4167.29,
+      "elevationMeters": 10.738
+    },
+    {
+      "distanceMeters": 4191.66,
+      "elevationMeters": 10.729
+    },
+    {
+      "distanceMeters": 4216.03,
+      "elevationMeters": 10.757
+    },
+    {
+      "distanceMeters": 4240.4,
+      "elevationMeters": 10.81
+    },
+    {
+      "distanceMeters": 4264.77,
+      "elevationMeters": 10.813
+    },
+    {
+      "distanceMeters": 4289.14,
+      "elevationMeters": 10.772
+    },
+    {
+      "distanceMeters": 4313.51,
+      "elevationMeters": 10.735
+    },
+    {
+      "distanceMeters": 4337.88,
+      "elevationMeters": 10.722
+    },
+    {
+      "distanceMeters": 4362.26,
+      "elevationMeters": 10.671
+    }
+  ],
+  "elevationsMeters": {
+    "high": 15.4,
+    "low": 10.47
+  },
+  "finishDistanceMeters": 0,
+  "generatedWith": "Blender 5.2.0 LTS",
+  "lapLength": {
+    "geometryMeters": 4362.255,
+    "officialFiaMeters": 4361,
+    "relativeErrorPercent": 0.0288
+  },
+  "layoutQuality": {
+    "buildings": {
+      "excludedGrandstandConflicts": 3,
+      "excludedReplacedCircuitStructures": 1,
+      "excludedTrackConflicts": 3,
+      "renderedCurrentFootprints": 109,
+      "remainingGrandstandConflicts": 0,
+      "remainingTrackConflicts": 0,
+      "downwardFacingRoofTriangles": 0,
+      "roofTriangles": 561,
+      "roofWindingRepairs": 287,
+      "sourceCurrentFootprints": 126,
+      "opaqueRoofMaterial": true,
+      "roofedFootprints": 109,
+      "excludedObjects": [
+        {
+          "id": 42229671,
+          "reason": "superseded by the FIA 2026 pit-complex model"
+        },
+        {
+          "id": 115814115,
+          "reason": "intersects a reserved current-event grandstand footprint"
+        },
+        {
+          "id": 433298007,
+          "reason": "intersects a reserved current-event grandstand footprint"
+        },
+        {
+          "id": 697858334,
+          "reason": "intersects a reserved current-event grandstand footprint"
+        },
+        {
+          "id": 1203890666,
+          "reason": "intersects the circuit or pit-lane exclusion corridor"
+        },
+        {
+          "id": 1243714693,
+          "reason": "intersects the circuit or pit-lane exclusion corridor"
+        },
+        {
+          "id": 1244170828,
+          "reason": "intersects the circuit or pit-lane exclusion corridor"
+        }
+      ],
+      "maximumCentroidDriftMeters": 0.0
+    },
+    "curbs": {
+      "innerOffsetMeters": 5.33,
+      "sections": 450,
+      "visibleHeightMeters": 0.09,
+      "widthMeters": 1.05,
+      "meshSanitizationApplied": false
+    },
+    "grandstands": {
+      "candidateSections": 62,
+      "maximumPlatformStepMeters": 1.5,
+      "maximumSeatRowTwistMeters": 0.0,
+      "maximumSupportHeightMeters": 3.908,
+      "maximumSupportHeightByStandMeters": {
+        "Platine": 0.632,
+        "Grandstand 11": 1.294,
+        "Grandstand 33": 3.076,
+        "Grandstand 31": 3.908,
+        "Grandstand 15": 1.444,
+        "Grandstand 21": 0.0,
+        "Grandstand 24 Lance Stroll": 3.763,
+        "Grandstand 34": 0.0,
+        "Grandstand 46": 0.528,
+        "Grandstand 47": 3.139
+      },
+      "minimumTrackClearanceMeters": 6.25,
+      "rejectedBlockConflicts": 4,
+      "rejectedTrackConflicts": 16,
+      "remainingBlockOverlaps": 0,
+      "remainingTrackConflicts": 0,
+      "renderedSections": 42,
+      "verifiedTurnTenZone": "Eastside Grandstands 1, 2, 3",
+      "configuredGrandstands": 10,
+      "currentEventConfirmation": "official 2026 Canadian GP grandstand catalogue",
+      "removedAfterVisualReview": [
+        "Grandstand 1",
+        "Grandstand 10",
+        "Grandstand 12"
+      ],
+      "relocatedAfterVisualReview": [
+        "Grandstand 31",
+        "Grandstand 15"
+      ]
+    },
+    "mappedGrandstands": {
+      "canopyTriangles": 96,
+      "downwardFacingRoofTriangles": 0,
+      "openSeatingBowls": 8,
+      "opaqueRoofMaterial": true,
+      "redRoofSurfaces": 0,
+      "roofTriangles": 16,
+      "roofWindingRepairs": 0,
+      "roofedStructures": 8,
+      "roofSlabThicknessMeters": 0.38,
+      "seatingTiers": 55
+    },
+    "motorhomes": {
+      "configuredObjects": 0,
+      "pitPlatformObjectsRemoved": true,
+      "renderedObjects": 0,
+      "remainingTrackConflicts": 0,
+      "visualReview": "No motorhomes on the narrow pit platform"
+    },
+    "pitLane": {
+      "entryGapMeters": 0.0,
+      "entryMinimumWidthMeters": 0.55,
+      "entrySurface": "asphalt",
+      "exitGapMeters": 0.0,
+      "exitMinimumWidthMeters": 0.55,
+      "fastLaneSeparator": true,
+      "lengthMeters": 826.081,
+      "pitBoxes": 43,
+      "taperMeters": 30.0,
+      "taperProfile": "smoothstep",
+      "widthMeters": 11.0,
+      "entryWedgeBuildingRemoved": true,
+      "exitGuideLine": {
+        "lengthMeters": 78.0,
+        "present": true,
+        "style": "continuous white",
+        "taperProfile": "quadratic flush merge"
+      },
+      "entryJunction": "smooth flush asphalt taper without a grey wedge",
+      "exitJunction": "smooth flush asphalt merge with FIA 2026 continuous white line",
+      "pitWall": {
+        "fenceHeightMeters": 2.1,
+        "lengthMeters": 611.3,
+        "panels": 204,
+        "wallHeightMeters": 1.05,
+        "placement": "between main circuit and pit lane",
+        "gatedOpenings": true,
+        "gatePanels": 3,
+        "construction": "concrete wall with high mesh debris fence",
+        "reference": "FIA 2026 competition notes: openings in pit-wall debris fencing fitted with gates"
+      },
+      "pitComplex": {
+        "buildingDepthMeters": 32.0,
+        "garageBoxes": 43,
+        "garageFrontFacesPitLane": true,
+        "garageSide": "left",
+        "grandstandRows": 0,
+        "coveredGrandstand": false,
+        "lengthMeters": 454.34,
+        "pitLaneClearanceMeters": 0.85,
+        "rearEdge": "extends across the narrow pit platform toward the rowing basin"
+      }
+    },
+    "runoff": {
+      "excludedTurns": [
+        1,
+        2,
+        13,
+        14
+      ],
+      "pitEntrySurface": "asphalt",
+      "syntheticGravelAtPitEntry": false,
+      "syntheticRunoffAtPitEntry": false,
+      "pitExitSurface": "asphalt merge and painted guide line",
+      "syntheticRunoffAtPitExit": false
+    },
+    "surfaceClearance": {
+      "minimumTrackTerrainClearanceMeters": 0.525,
+      "startStraightMinimumClearanceMeters": 0.679,
+      "terrainBreakthroughSamples": 0
+    },
+    "surfaceSmoothing": {
+      "wholeLap": {
+        "applied": true,
+        "intervalMeters": 3.0,
+        "maximumCorrectionMeters": 1.006,
+        "maximumRawStepMeters": 0.334,
+        "maximumSmoothedStepMeters": 0.122,
+        "method": "closed-loop upper-envelope smoothing",
+        "sampleCount": 1455
+      }
+    },
+    "terrainSurface": {
+      "orthophotoState": "2019",
+      "sourceResolutionMeters": 0.25,
+      "textureHeight": 4096,
+      "textureWidth": 2124
+    }
+  },
+  "objects": {
+    "buildingsTotal": 109,
+    "fenceSegments": 840,
+    "grandstandSections": 42,
+    "mappedGrandstands": 8,
+    "pitGarageBoxes": 43,
+    "raceMotorhomes": 0,
+    "runoffSections": 208,
+    "trees": 214,
+    "turnAnchors": 14
+  },
+  "officialSources": [
+    {
+      "role": "FIA 2026 circuit and pit-lane map: 4.361 km, 14 turns, sectors, speed trap and 43 pit slots",
+      "url": "https://www.fia.com/documents/championships/fia-formula-one-world-championship-14/season/season-2026-2072/event/Canadian%20Grand%20Prix"
+    },
+    {
+      "role": "official 2026 promoter grandstand catalogue and current event configuration",
+      "url": "https://2026.gpcanada.ca/en/vitrine/2026/"
+    },
+    {
+      "role": "official promoter spectator map used as the venue geolocation baseline",
+      "url": "https://www.gpcanada.ca/wp-content/uploads/2024/05/guide-visiteurwebsite.pdf"
+    },
+    {
+      "role": "CMM 2019 colour orthophoto, 25 cm source resolution",
+      "url": "https://www.arcgis.com/home/item.html?id=7b1a89daf9ed463d9abfa81b9bbea0a7"
+    },
+    {
+      "role": "NRCan HRDEM Mosaic DTM/DSM, CGVD2013",
+      "url": "https://open.canada.ca/data/en/dataset/0fe65119-e96e-4a57-8bfe-9d9245fba06b"
+    }
+  ],
+  "realWorldScale": "1 unit = 1 metre; no vertical exaggeration",
+  "schemaVersion": 7,
+  "sectorBoundaryDistancesMeters": [
+    1092,
+    2488
+  ],
+  "sourceManifest": {
+    "bounds": {
+      "minX": 302000,
+      "minY": 5039300,
+      "maxX": 303400,
+      "maxY": 5042000
+    },
+    "coordinateReferenceSystem": "NAD83 / MTM zone 8 (EPSG:32188)",
+    "generatedAt": "2026-08-13T10:10:08.451Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 4716658,
+        "crs": "EPSG:4326",
+        "date": "live snapshot at retrieval",
+        "file": "openstreetmap-map.osm",
+        "license": "ODbL 1.0",
+        "resolution": "surveyed vector geometry",
+        "role": "current circuit, pit lane, buildings, barriers and mapped trees",
+        "sha256": "c6da6a78f761221d63086003375acf69d6332c6b0555d57a04d25c12d876a347",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-73.5358,45.4936,-73.5179,45.5179",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 22426,
+        "crs": "EPSG:4326",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-raceway.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready raceway layer",
+        "sha256": "44b46d779b63f8a8332c62870e091f9070be3c33bb9db4a01f38950053353390",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 115705,
+        "crs": "EPSG:4326",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-buildings.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready buildings layer",
+        "sha256": "286db95a47bf11c77a4d5cfa16a45e8ea50d968635ed9a7610f2a4fc20e4fe69",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 111452,
+        "crs": "EPSG:4326",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-barriers.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready barriers layer",
+        "sha256": "1208045bad9b166ef7be7eb86043ed39dbf4225f385f41c61b95fa096c612d03",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 89804,
+        "crs": "EPSG:4326",
+        "date": "derived from the raw OSM snapshot",
+        "file": "openstreetmap-trees.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready trees layer",
+        "sha256": "e7999a5a3c8c1a4297924c0d2d488f31c803ba14cd141f87f9e64bfbcdd77078",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 2743551,
+        "crs": "document reference",
+        "date": "2026-05-21",
+        "file": "fia-2026-canadian-grand-prix-doc-8.pdf",
+        "license": "official FIA event document; reference use",
+        "resolution": "vector PDF",
+        "role": "4.361 km lap, 14 turns, sectors, speed trap and 43-slot pit-lane drawing",
+        "sha256": "ed3713ec2e3e7c4d0c3a9b8fc9e905765ba854ad3e931f699333604652d57ccc",
+        "url": "https://www.fia.com/system/files/decision-document/2026_canadian_grand_prix_-_competition_notes_-_circuit_map_pit_lane_drawing_and_emergency_exits_map.pdf",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 3810578,
+        "crs": "document reference",
+        "date": "2024 event",
+        "file": "gpcanada-2024-spectator-map.pdf",
+        "license": "official promoter document; reference use",
+        "resolution": "vector PDF",
+        "role": "geolocation baseline for named grandstand zones",
+        "sha256": "2a3592851ce4f30425d5968d0a72a7ae50e9b7f5c8fb1eeb5bbb7df0c831ffea",
+        "url": "https://www.gpcanada.ca/wp-content/uploads/2024/05/guide-visiteurwebsite.pdf",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 70621,
+        "crs": "document reference",
+        "date": "2026 event",
+        "file": "gpcanada-2026-grandstand-catalogue.html",
+        "license": "official promoter page; reference use",
+        "resolution": "HTML snapshot",
+        "role": "current list of 13 active Formula 1 grandstands",
+        "sha256": "7aa85e147acb7e8384b90b398c172e420c173ac6fcb1de346de3e5abca3d41cf",
+        "url": "https://2026.gpcanada.ca/en/vitrine/2026/",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 2821805,
+        "crs": "EPSG:32188",
+        "date": "2019",
+        "file": "cmm-orthophoto-2019.jpg",
+        "license": "\u00a9 Communaut\u00e9 m\u00e9tropolitaine de Montr\u00e9al, 2005\u20132019",
+        "resolution": "25 cm source; 2124 \u00d7 4096 projected export",
+        "role": "measured terrain colour and permanent site context",
+        "sha256": "ecdaf343e9cad4995425e0f51a0fa18a0b4a24f166fe5b2ca4eb9e13fc395aac",
+        "url": "https://gociteweb.longueuil.quebec/arcgis/rest/services/image/Orthophoto2019mercator/MapServer/export?bbox=302000%2C5039300%2C303400%2C5042000&bboxSR=32188&f=image&format=jpg&imageSR=32188&size=2124%2C4096",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 4719126,
+        "crs": "EPSG:32188",
+        "date": "HRDEM Mosaic current at retrieval",
+        "file": "canada-hrdem-dtm-2m.tif",
+        "license": "Open Government Licence - Canada",
+        "resolution": "2 m WCS GeoTIFF extraction",
+        "role": "unexaggerated bare-earth terrain",
+        "sha256": "07f372b455435612700d9ecff7c4a837612fd1dc7267544db7582bc4e3c90688",
+        "url": "https://datacube.services.geo.ca/wrapper/ogc/elevation-hrdem-mosaic?BOUNDINGBOX=302000%2C5039300%2C303400%2C5042000%2Curn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A32188&FORMAT=image%2Fgeotiff&GRIDBASECRS=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A32188&GRIDOFFSETS=2%2C-2&GRIDORIGIN=302000%2C5042000&Gridcs=urn%3Aogc%3Adef%3Acs%3AOGC%3A0.0%3AGrid2dSquareCS&IDENTIFIER=dtm&REQUEST=GetCoverage&SERVICE=WCS&VERSION=1.1.1&gridtype=urn%3Aogc%3Adef%3Amethod%3AWCS%3A1.1%3A2dSimpleGrid",
+        "verticalDatum": "CGVD2013"
+      },
+      {
+        "bbox": {
+          "minX": 302000,
+          "minY": 5039300,
+          "maxX": 303400,
+          "maxY": 5042000
+        },
+        "bytes": 4719126,
+        "crs": "EPSG:32188",
+        "date": "HRDEM Mosaic current at retrieval",
+        "file": "canada-hrdem-dsm-2m.tif",
+        "license": "Open Government Licence - Canada",
+        "resolution": "2 m WCS GeoTIFF extraction",
+        "role": "surface heights for buildings, grandstands and vegetation",
+        "sha256": "501f3de19a990b02e9cd1df4df7ef605ac2e9c8f73cb365791784feea9d1b075",
+        "url": "https://datacube.services.geo.ca/wrapper/ogc/elevation-hrdem-mosaic?BOUNDINGBOX=302000%2C5039300%2C303400%2C5042000%2Curn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A32188&FORMAT=image%2Fgeotiff&GRIDBASECRS=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A32188&GRIDOFFSETS=2%2C-2&GRIDORIGIN=302000%2C5042000&Gridcs=urn%3Aogc%3Adef%3Acs%3AOGC%3A0.0%3AGrid2dSquareCS&IDENTIFIER=dsm&REQUEST=GetCoverage&SERVICE=WCS&VERSION=1.1.1&gridtype=urn%3Aogc%3Adef%3Amethod%3AWCS%3A1.1%3A2dSimpleGrid",
+        "verticalDatum": "CGVD2013"
+      }
+    ],
+    "sourceNotes": {
+      "hrdemDataset": "https://open.canada.ca/data/en/dataset/0fe65119-e96e-4a57-8bfe-9d9245fba06b",
+      "orthophotoItem": "https://www.arcgis.com/home/item.html?id=7b1a89daf9ed463d9abfa81b9bbea0a7",
+      "orthophotoService": "https://gociteweb.longueuil.quebec/arcgis/rest/services/image/Orthophoto2019mercator/MapServer"
+    },
+    "verticalDatum": "Canadian Geodetic Vertical Datum of 2013 (CGVD2013); no vertical exaggeration"
+  },
+  "turnAnchorDistancesMeters": [
+    226,
+    329,
+    708,
+    766,
+    995,
+    1242,
+    1301,
+    1988,
+    2070,
+    2678,
+    2773,
+    3152,
+    3869,
+    3903
+  ],
+  "verticalDatum": "Canadian Geodetic Vertical Datum of 2013 (CGVD2013); no vertical exaggeration"
+}

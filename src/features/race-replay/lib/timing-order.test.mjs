@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   getClassifiedLapDeficit,
+  getReplayTimedPositionsAt,
   orderReplayTimingRows,
 } from "./timing-order.ts";
 
@@ -49,4 +50,14 @@ test("a retired driver stays below active runners", () => {
 
   assert.deepEqual(ordered.map((item) => item.driverNumber), [1, 11, 81]);
   assert.equal(ordered.at(-1).lapDeficit, null);
+});
+
+test("future position changes are not applied before they happen", () => {
+  const positions = getReplayTimedPositionsAt([
+    { driverNumber: 44, offsetMs: 242_996, position: 2 },
+    { driverNumber: 63, offsetMs: 1_588_919, position: 2 },
+  ], 0);
+
+  assert.equal(positions.has(44), false);
+  assert.equal(positions.has(63), false);
 });

@@ -1,11 +1,11 @@
-import Link from "next/link";
+import { IntentLink as Link } from "@/components/racemate/intent-link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Gauge,
   Newspaper,
   Trophy,
   ArrowRight,
-  MapPin,
 } from "lucide-react";
 
 import { AppShell } from "@/components/racemate/app-shell";
@@ -17,14 +17,11 @@ import {
   type HomeMarketSlide,
   type HomeStandingSlide,
 } from "@/components/racemate/home-sidebar-carousels";
-import { HomeSessionStrip } from "@/components/racemate/home-session-strip";
 import { NewsImage } from "@/components/racemate/news-image";
 import { NewsTagBadge } from "@/components/racemate/news-tag-badge";
-import { RaceFlag } from "@/components/racemate/race-flag";
+import { SeasonGlobeExplorer } from "@/components/racemate/season-globe/season-globe-explorer";
 import type { SessionWithResults } from "@/components/racemate/session-results-dialog";
-import { TrackMap } from "@/components/racemate/track-map";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -43,6 +40,7 @@ import {
   getNewsItems,
   getNextSession,
   getPolls,
+  getSeasonGlobeData,
   getSessionResultsBySessionIds,
   getSeasonChampionOdds,
   getWeekendSessions,
@@ -58,7 +56,6 @@ import { normalizeAuthNext } from "@/lib/auth-redirect";
 import { getSessionUser } from "@/lib/auth";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
-import { formatSessionName } from "@/lib/session-display";
 
 export const dynamic = "force-dynamic";
 
@@ -78,48 +75,82 @@ export default async function Home({
     redirect(`/auth/callback?${callbackParams.toString()}`);
   }
 
-  const pollsPromise = getSessionUser().then((user) => getPolls({ userId: user?.id }));
-  const [publicData, polls, queryReport] = await Promise.all([
-    withServerTtlCache(
-      "public:home",
-      15_000,
-      getHomePagePublicData,
-      { staleWhileRevalidateMs: 5 * 60_000 },
-    ),
-    pollsPromise,
-    getGrandPrixReportBySlug(query.raceReport),
+  return (
+    <AppShell>
+      <header className="sr-only">
+        <h1>RaceSide - Формула-1 на русском</h1>
+        <p>
+          Новости, календарь, результаты и статистика чемпионата Формулы-1.
+        </p>
+      </header>
+      <section className="grid grid-cols-[minmax(0,1fr)] gap-5 pb-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+        <div className="contents xl:grid xl:min-w-0 xl:gap-5">
+          <div className="order-1 xl:order-none">
+            <Suspense fallback={<Skeleton className="h-[38rem] w-full" />}>
+              <HomeRacePanel />
+            </Suspense>
+          </div>
+          <div className="order-5 xl:order-none">
+            <Suspense fallback={<Skeleton className="h-96 w-full" />}><HomeNewsPanel /></Suspense>
+          </div>
+        </div>
+
+        <aside className="contents xl:grid xl:gap-5">
+          <div className="order-2 xl:order-none">
+            <Suspense fallback={<Skeleton className="h-72 w-full" />}><HomeReportPanel /></Suspense>
+          </div>
+          <div className="order-3 xl:order-none">
+            <Suspense fallback={<Skeleton className="h-80 w-full" />}><HomeStandingsPanel /></Suspense>
+          </div>
+          <div className="order-4 grid gap-5 xl:order-none">
+            <Suspense fallback={<Skeleton className="h-[36rem] w-full" />}><HomeMarketsPanel /></Suspense>
+          </div>
+        </aside>
+      </section>
+      <Suspense fallback={null}><HomeReportDialog slug={query.raceReport} /></Suspense>
+    </AppShell>
+  );
+}
+
+async function HomeRacePanel() {
+  const { currentRace, nextSession, seasonGlobeData, sessionResults } = await withServerTtlCache(
+    "public:home:race", 15_000, getHomePagePublicData, { staleWhileRevalidateMs: 5 * 60_000 },
+  );
+  return <CurrentRaceCard currentRace={currentRace} nextSession={nextSession} seasonGlobeData={seasonGlobeData} sessions={sessionResults} />;
+}
+
+async function HomeNewsPanel() {
+  const result = await withServerTtlCache("public:home:news", 30_000,
+    () => getNewsItems({ includeTotal: false, pageSize: 7 }), { staleWhileRevalidateMs: 5 * 60_000 });
+  return <NewsCard items={result.items} />;
+}
+
+function getHomeStandings() {
+  return withServerTtlCache("public:home:standings", 60_000,
+    () => Promise.all([getDriverStandings(CURRENT_F1_SEASON), getConstructorStandings(CURRENT_F1_SEASON)]),
+    { staleWhileRevalidateMs: 5 * 60_000 });
+}
+
+function getHomeDriverSlugs() {
+  return withServerTtlCache("public:home:driver-slugs", 5 * 60_000, getDriverSlugMap);
+}
+
+async function HomeReportPanel() {
+  const [latestReport, driverSlugByName] = await Promise.all([
+    withServerTtlCache("public:home:report", 60_000, getLatestGrandPrixReport, { staleWhileRevalidateMs: 5 * 60_000 }),
+    getHomeDriverSlugs(),
   ]);
-  const {
-    championOdds,
-    constructorOdds,
-    constructorStandings,
-    currentRace,
-    driverSlugByName,
-    latestReport,
-    newsResult,
-    nextSession,
-    sessionResults,
-    standings,
-  } = publicData;
-  const newsItems = newsResult.items;
-  const dialogReport = queryReport;
-  const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
-  const marketSlides: HomeMarketSlide[] = [
-    buildMarketSlide({
-      emptyText: "На Polymarket пока нет рынка чемпионства сезона.",
-      id: "drivers",
-      odds: championOdds,
-      standings,
-      title: "Шансы на титул",
-    }),
-    buildMarketSlide({
-      emptyText: "На Polymarket пока нет рынка Кубка конструкторов.",
-      id: "constructors",
-      odds: constructorOdds,
-      standings,
-      title: "Шансы на Кубок конструкторов",
-    }),
-  ];
+  return <LatestReportCard driverSlugByName={driverSlugByName} report={latestReport} />;
+}
+
+async function HomeReportDialog({ slug }: { slug?: string }) {
+  if (!slug) return null;
+  const [report, driverSlugByName] = await Promise.all([getGrandPrixReportBySlug(slug), getHomeDriverSlugs()]);
+  return <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={report?.raceSlug === slug} report={report} />;
+}
+
+async function HomeStandingsPanel() {
+  const [standings, constructorStandings] = await getHomeStandings();
   const standingSlides: HomeStandingSlide[] = [
     {
       actionHref: "/leaderboard",
@@ -155,43 +186,33 @@ export default async function Home({
     },
   ];
 
-  return (
-    <AppShell>
-      <header className="sr-only">
-        <h1>RaceSide - Формула-1 на русском</h1>
-        <p>
-          Новости, календарь, результаты и статистика чемпионата Формулы-1.
-        </p>
-      </header>
-      <section className="grid gap-5 pb-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
-        <div className="contents xl:grid xl:min-w-0 xl:gap-5">
-          <div className="order-1 xl:order-none">
-            <CurrentRaceCard
-              currentRace={currentRace}
-              nextSession={nextSession}
-              sessions={sessionResults}
-            />
-          </div>
-          <div className="order-5 xl:order-none">
-            <NewsCard items={newsItems} />
-          </div>
-        </div>
+  return <HomeStandingsCarousel slides={standingSlides} />;
+}
 
-        <aside className="contents xl:grid xl:gap-5">
-          <div className="order-2 xl:order-none">
-            <LatestReportCard driverSlugByName={driverSlugByName} report={latestReport} />
-          </div>
-          <div className="order-3 xl:order-none">
-            <HomeStandingsCarousel slides={standingSlides} />
-          </div>
-          <div className="order-4 grid gap-5 xl:order-none">
-            <HomeSidebarCarousels marketSlides={marketSlides} polls={polls} />
-          </div>
-        </aside>
-      </section>
-      <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
-    </AppShell>
-  );
+async function HomeMarketsPanel() {
+  const [[championOdds, constructorOdds], [standings], polls] = await Promise.all([
+    withServerTtlCache("public:home:markets", 60_000,
+      () => Promise.all([getSeasonChampionOdds(), getConstructorChampionOdds()]), { staleWhileRevalidateMs: 5 * 60_000 }),
+    getHomeStandings(),
+    getSessionUser().then((user) => getPolls({ userId: user?.id })),
+  ]);
+  const marketSlides: HomeMarketSlide[] = [
+    buildMarketSlide({
+      emptyText: "На Polymarket пока нет рынка чемпионства сезона.",
+      id: "drivers",
+      odds: championOdds,
+      standings,
+      title: "Шансы на титул",
+    }),
+    buildMarketSlide({
+      emptyText: "На Polymarket пока нет рынка Кубка конструкторов.",
+      id: "constructors",
+      odds: constructorOdds,
+      standings,
+      title: "Шансы конструкторов",
+    }),
+  ];
+  return <HomeSidebarCarousels marketSlides={marketSlides} polls={polls} />;
 }
 
 async function getHomePagePublicData() {
@@ -208,151 +229,41 @@ async function getHomePagePublicData() {
       session,
     }));
   });
-  const [
-    newsResult,
-    nextSession,
-    standings,
-    constructorStandings,
-    currentRace,
-    championOdds,
-    constructorOdds,
-    latestReport,
-    driverSlugByName,
-    sessionResults,
-  ] = await Promise.all([
-    getNewsItems({ pageSize: 7 }),
+  const [nextSession, currentRace, seasonGlobeData, sessionResults] = await Promise.all([
     getNextSession(),
-    getDriverStandings(CURRENT_F1_SEASON),
-    getConstructorStandings(CURRENT_F1_SEASON),
     getCurrentRaceDetail(),
-    getSeasonChampionOdds(),
-    getConstructorChampionOdds(),
-    getLatestGrandPrixReport(),
-    getDriverSlugMap(),
+    getSeasonGlobeData(CURRENT_F1_SEASON),
     sessionResultsPromise,
   ]);
 
-  return {
-    championOdds,
-    constructorOdds,
-    constructorStandings,
-    currentRace,
-    driverSlugByName,
-    latestReport,
-    newsResult,
-    nextSession,
-    sessionResults,
-    standings,
-  };
+  return { currentRace, nextSession, seasonGlobeData, sessionResults };
 }
 
 function CurrentRaceCard({
   currentRace,
   nextSession,
+  seasonGlobeData,
   sessions,
 }: {
   currentRace: RaceDetail | null;
   nextSession: NextSession;
+  seasonGlobeData: Awaited<ReturnType<typeof getSeasonGlobeData>>;
   sessions: SessionWithResults[];
 }) {
-  const raceTitleLength = Array.from(nextSession.race).length;
-  const raceTitleSizeClass = raceTitleLength > 32
-    ? "text-[1.6rem] sm:text-[1.9rem] lg:text-[2rem]"
-    : raceTitleLength > 22
-      ? "text-[1.75rem] sm:text-[2.1rem] lg:text-[2.25rem]"
-      : "text-3xl sm:text-4xl lg:text-[2.75rem]";
-
   return (
     <section className="stitch-panel overflow-hidden p-0" aria-labelledby="next-race-title">
-      <header className="flex min-h-12 items-center justify-between gap-3 border-b border-border/70 px-4 py-3 sm:px-5">
-        <p className="font-telemetry flex shrink-0 items-center gap-2 whitespace-nowrap text-[0.66rem] font-bold uppercase tracking-[0.08em] text-primary sm:text-xs sm:tracking-[0.12em]">
-          <Gauge aria-hidden="true" className="size-4 shrink-0" />
-          <span>Следующий этап</span>
-        </p>
-        <div className="flex shrink-0 items-center gap-2">
-          <Badge variant={nextSession.status === "Live" ? "success" : "warning"}>
-            {nextSession.status}
-          </Badge>
-          <span className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
-            <span className="h-3 w-px bg-primary/70" aria-hidden="true" />
-            Сезон <span className="font-telemetry font-bold text-foreground">2026</span>
-          </span>
-        </div>
-      </header>
-
-      <div className="grid min-w-0 lg:grid-cols-[minmax(16rem,0.82fr)_minmax(0,1.18fr)]">
-        <div className="order-1 min-w-0 px-4 pb-2 pt-5 sm:px-6 sm:pt-6 lg:col-start-1 lg:row-start-1 lg:border-r lg:pb-6">
-          <div className="grid gap-3">
-            <div className="flex items-center gap-2 font-telemetry text-[0.7rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">
-              <RaceFlag
-                className="h-4 w-6"
-                countryCode={currentRace?.countryCode}
-                label={currentRace?.country ?? nextSession.race}
-                value={currentRace?.countryFlag}
-              />
-              <span>Раунд {currentRace?.round ?? "—"}</span>
-            </div>
-            <h2
-              className={`max-w-3xl text-balance font-display font-extrabold leading-[1.04] ${raceTitleSizeClass}`}
-              id="next-race-title"
-            >
-              {nextSession.race}
-            </h2>
-            <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-muted-foreground sm:text-base">
-              <MapPin aria-hidden="true" className="size-4 shrink-0 text-primary" />
-              <span className="min-w-0 truncate">{nextSession.circuit}</span>
-            </p>
-          </div>
-          <div className="mt-6 hidden border-t border-border/70 pt-4 lg:block">
-            <p className="font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.1em] text-primary">
-              Следующая сессия
-            </p>
-            <p className="mt-1.5 text-sm font-bold text-foreground">
-              {formatSessionName(nextSession.session)}
-            </p>
-            <Button asChild className="mt-5 w-full" variant="secondary">
-              <Link href="/weekend" prefetch={false}>
-                Перейти к этапу
-                <ArrowRight aria-hidden="true" data-icon="inline-end" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        <div className="order-2 min-w-0 px-4 pb-5 sm:px-6 lg:col-span-2 lg:row-start-2 lg:border-t lg:px-4 lg:pb-4">
-          <HomeSessionStrip activeSessionName={nextSession.session} embedded sessions={sessions} />
-        </div>
-
-        <div className="order-3 h-[13rem] min-w-0 border-t border-border/70 p-3 sm:h-[16rem] sm:p-4 lg:col-start-2 lg:row-start-1 lg:h-auto lg:min-h-[18rem] lg:border-l lg:border-t-0 lg:p-5">
-          <TrackMap
-            assetSrc={currentRace?.trackMapUrl ?? getCircuitAsset(nextSession.circuit)?.src ?? null}
-            compact
-            fill
-            circuit={nextSession.circuit}
-            label={nextSession.race}
-            layout={currentRace?.layout}
-            unframed
-          />
-        </div>
-
-        <div className="order-4 flex flex-col gap-3 border-t border-border/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:hidden">
-          <div className="min-w-0">
-            <p className="font-telemetry text-[0.64rem] font-bold uppercase tracking-[0.1em] text-primary">
-              Ближайшая сессия
-            </p>
-            <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <p className="text-sm font-bold text-foreground">{formatSessionName(nextSession.session)}</p>
-              <p className="text-xs text-muted-foreground">{nextSession.startsAt}</p>
-            </div>
-          </div>
-          <Button asChild className="w-full shrink-0 sm:w-auto lg:w-full" variant="secondary">
-            <Link href="/weekend" prefetch={false}>
-              Перейти к этапу
-              <ArrowRight aria-hidden="true" data-icon="inline-end" />
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <SeasonGlobeExplorer
+        currentRace={currentRace}
+        data={seasonGlobeData}
+        fallbackTrack={{
+          assetSrc: currentRace?.trackMapUrl ?? getCircuitAsset(nextSession.circuit)?.src ?? null,
+          circuit: nextSession.circuit,
+          layout: currentRace?.layout ?? null,
+        }}
+        initialSessions={sessions}
+        initialSessionsRound={currentRace?.round ?? seasonGlobeData.nextRound}
+        nextSession={nextSession}
+      />
     </section>
   );
 }
@@ -360,7 +271,7 @@ function CurrentRaceCard({
 function NewsCard({ items }: { items: NewsItem[] }) {
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b border-border/70 pb-3 sm:pb-3">
+      <CardHeader className="h-14 justify-center border-b border-border/70 px-4 py-2 sm:px-5 sm:py-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
             <Newspaper aria-hidden="true" className="size-4" />
@@ -376,7 +287,6 @@ function NewsCard({ items }: { items: NewsItem[] }) {
                 className="group grid min-w-0 grid-cols-[minmax(0,1fr)_5.25rem] gap-x-3 gap-y-2.5 p-4 transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_8rem] sm:gap-x-5 sm:p-5"
                 href={`/news/${item.slug}`}
                 key={item.slug}
-                prefetch={false}
               >
                 <div className="col-span-2 min-w-0">
                   <NewsMeta item={item} />
@@ -391,6 +301,7 @@ function NewsCard({ items }: { items: NewsItem[] }) {
                   <NewsImage
                     alt={item.title}
                     className="relative aspect-square self-center overflow-hidden rounded-md bg-muted sm:aspect-[4/3]"
+                    sizes="(max-width: 639px) 84px, 128px"
                     src={item.imageUrl}
                   />
                 ) : (
@@ -416,11 +327,11 @@ function NewsMeta({ item }: { item: NewsItem }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Badge variant="outline">{item.source}</Badge>
-      {visibleTag ? <NewsTagBadge tag={visibleTag} /> : null}
       <span className="font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
         {item.time}
       </span>
+      <Badge variant="outline">{item.source}</Badge>
+      {visibleTag ? <NewsTagBadge tag={visibleTag} /> : null}
     </div>
   );
 }
@@ -436,7 +347,7 @@ function LatestReportCard({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b border-border/70 pb-3 sm:pb-3">
+      <CardHeader className="h-14 justify-center border-b border-border/70 px-4 py-2 sm:px-5 sm:py-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
             <Trophy aria-hidden="true" className="size-4" />
@@ -447,6 +358,7 @@ function LatestReportCard({
       <CardContent className="pt-4 sm:pt-4">
         {report && isReady ? (
           <GrandPrixPodiumPreview
+            compactShareAction
             driverSlugByName={driverSlugByName}
             href={`/?raceReport=${report.raceSlug}`}
             report={report}

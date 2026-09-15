@@ -7,6 +7,8 @@ import {
   saveGrandPrixReportAction,
 } from "@/app/admin/operations";
 import { AdminActionForm } from "@/components/admin/admin-action-form";
+import { AdminConfirmedForm } from "@/components/admin/admin-confirmed-form";
+import { AdminUrlTabs } from "@/components/admin/admin-url-tabs";
 import { AdminFilters } from "@/components/admin/admin-filters";
 import {
   AdminDigestMeta,
@@ -21,10 +23,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { loadAdminReports, parseAdminTableQuery } from "@/data/admin-repository";
 import { requireAdmin } from "@/lib/auth";
+import { formatGrandPrixNameRu } from "@/lib/race-display";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 type PageProps = {
@@ -49,7 +52,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
         description="Состояние источников, краткие выводы редактора и безопасная перезагрузка данных завершённых Гран-при."
         title="Отчёты Гран-при"
       />
-      <Tabs defaultValue="reports">
+      <AdminUrlTabs defaultValue="reports" values={["reports", "digests"]}>
         <TabsList variant="line">
           <TabsTrigger value="reports">Отчёты</TabsTrigger>
           <TabsTrigger value="digests">Дневные сводки</TabsTrigger>
@@ -76,7 +79,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                         <AdminStatusBadge status={report.is_hidden ? "hidden" : "published"} />
                         <AdminStatusBadge status={report.summary_status} />
                       </div>
-                      <h2 className="mt-3 font-semibold">{report.race_name}</h2>
+                      <h2 className="mt-3 font-semibold">{formatGrandPrixNameRu(report.race_name)}</h2>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {report.season}, этап {report.round}
                         {report.circuit_name ? `, ${report.circuit_name}` : ""}
@@ -94,7 +97,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                       </div>
                     </div>
                     <div className="grid content-start gap-3">
-                      <AdminActionForm action={saveGrandPrixReportAction} submitLabel="Сохранить отчёт" submitVariant="secondary">
+                      <AdminConfirmedForm action={saveGrandPrixReportAction} confirmLabel="Сохранить" description="Изменение видимости сразу отразится на публичной странице этапа." submitLabel="Сохранить отчёт" submitVariant="secondary" title="Сохранить отчёт?">
                         <input name="reportId" type="hidden" value={report.id} />
                         <FieldGroup>
                           <Field>
@@ -109,7 +112,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                             </select>
                           </Field>
                         </FieldGroup>
-                      </AdminActionForm>
+                      </AdminConfirmedForm>
                       <AdminActionForm action={runAdminJobAction} submitLabel="Загрузить заново" submitVariant="secondary">
                         <input name="jobName" type="hidden" value="reports.generate" />
                         <input name="season" type="hidden" value={report.season} />
@@ -136,7 +139,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
             {data.digests.length ? (
               <div className="grid gap-4 p-4">
                 {data.digests.map((digest) => (
-                  <AdminActionForm action={saveDigestAction} className="rounded-md border border-border p-4" key={digest.id} submitLabel="Сохранить сводку" submitVariant="secondary">
+                  <AdminConfirmedForm action={saveDigestAction} className="rounded-md border border-border p-4" confirmLabel="Сохранить" description="Если выбрана публикация, сводка сразу станет доступна читателям." key={digest.id} submitLabel="Сохранить сводку" submitVariant="secondary" title="Сохранить сводку?">
                     <input name="digestId" type="hidden" value={digest.id} />
                     <AdminDigestMeta dateKey={digest.date_key} status={digest.status} />
                     <FieldGroup>
@@ -157,13 +160,13 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                         </select>
                       </Field>
                     </FieldGroup>
-                  </AdminActionForm>
+                  </AdminConfirmedForm>
                 ))}
               </div>
             ) : <AdminEmpty description="Сводка появится после первой AI-генерации." title="Сводок пока нет" />}
           </AdminSection>
         </TabsContent>
-      </Tabs>
+      </AdminUrlTabs>
     </AdminPage>
   );
 }

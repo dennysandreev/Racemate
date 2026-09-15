@@ -1,0 +1,396 @@
+{
+  "batchKey": "preview-engagement-v1",
+  "generatedAt": "2026-08-20T14:19:04.852Z",
+  "botUsers": [
+    {
+      "displayName": "denis_92",
+      "email": "preview.bot.001@raceside.test",
+      "id": "5e8b902e-23d0-4789-8eed-e4b75a6a599f"
+    },
+    {
+      "displayName": "Катя",
+      "email": "preview.bot.002@raceside.test",
+      "id": "2a0c2f91-90a9-4a3b-a579-bca0861f2f82"
+    },
+    {
+      "displayName": "ivan.p",
+      "email": "preview.bot.003@raceside.test",
+      "id": "306edbf0-a858-4b73-a56e-6dbffaba8305"
+    },
+    {
+      "displayName": "sergey1988",
+      "email": "preview.bot.004@raceside.test",
+      "id": "a7c85158-8af7-4c14-86a3-574baaf41e98"
+    },
+    {
+      "displayName": "Masha_M",
+      "email": "preview.bot.005@raceside.test",
+      "id": "d41b2b43-4dd4-44d9-be67-0a3d38c3933f"
+    },
+    {
+      "displayName": "Димон",
+      "email": "preview.bot.006@raceside.test",
+      "id": "a6dfe96e-ef2d-401e-9f50-7978f8e8cb64"
+    },
+    {
+      "displayName": "kirill_777",
+      "email": "preview.bot.007@raceside.test",
+      "id": "5028fd38-1d63-4c2b-b448-cd661c452f5c"
+    },
+    {
+      "displayName": "alex13",
+      "email": "preview.bot.008@raceside.test",
+      "id": "a0ebc7b9-3893-4ef6-bce3-f93143a398a1"
+    },
+    {
+      "displayName": "Настя",
+      "email": "preview.bot.009@raceside.test",
+      "id": "2397271f-ddcc-4e99-a2e8-56b7cdd9978b"
+    },
+    {
+      "displayName": "vlad_msk",
+      "email": "preview.bot.010@raceside.test",
+      "id": "3736230a-9458-4809-8800-6818b75cc43c"
+    },
+    {
+      "displayName": "Лёша",
+      "email": "preview.bot.011@raceside.test",
+      "id": "9ad9cd97-346f-49f5-968a-f3529aca5bfd"
+    },
+    {
+      "displayName": "northside",
+      "email": "preview.bot.012@raceside.test",
+      "id": "4082ce3a-409b-4f9b-9246-f6af7482bcf8"
+    },
+    {
+      "displayName": "anya_spb",
+      "email": "preview.bot.013@raceside.test",
+      "id": "eecb5d53-8b4b-4fcd-8028-d701d12acc5d"
+    },
+    {
+      "displayName": "roman_61",
+      "email": "preview.bot.014@raceside.test",
+      "id": "c8cbffc2-9511-4e1b-8972-5d0c51deb62b"
+    },
+    {
+      "displayName": "Макс",
+      "email": "preview.bot.015@raceside.test",
+      "id": "3cf8c396-607a-4f92-8848-ecc275625a20"
+    },
+    {
+      "displayName": "lera_k",
+      "email": "preview.bot.016@raceside.test",
+      "id": "f12253c6-9742-4873-8d93-ad3a703936a0"
+    },
+    {
+      "displayName": "coffeeplease",
+      "email": "preview.bot.017@raceside.test",
+      "id": "9cd09f58-d859-43dd-8c1b-db4f6bd79e1c"
+    },
+    {
+      "displayName": "kostya27",
+      "email": "preview.bot.018@raceside.test",
+      "id": "885f0027-bdb1-4620-8c9b-90b27c447ea9"
+    },
+    {
+      "displayName": "airwave",
+      "email": "preview.bot.019@raceside.test",
+      "id": "d3818755-e515-4654-bde6-595f7bbd6b6c"
+    },
+    {
+      "displayName": "Виктор",
+      "email": "preview.bot.020@raceside.test",
+      "id": "7ec7b099-6521-43d9-9502-bc29de9df8cd"
+    },
+    {
+      "displayName": "artur_m",
+      "email": "preview.bot.021@raceside.test",
+      "id": "0086b24a-4d8e-4760-abeb-615603a51898"
+    },
+    {
+      "displayName": "sunnyday",
+      "email": "preview.bot.022@raceside.test",
+      "id": "fe2720c0-8f95-48d0-bc52-0018e366b99f"
+    },
+    {
+      "displayName": "no_name",
+      "email": "preview.bot.023@raceside.test",
+      "id": "2467d3cf-e393-452d-981f-9b9903fd1fa2"
+    },
+    {
+      "displayName": "Женя",
+      "email": "preview.bot.024@raceside.test",
+      "id": "866c6974-5ca2-4f68-8eba-c8cfee6cdf06"
+    },
+    {
+      "displayName": "igor74",
+      "email": "preview.bot.025@raceside.test",
+      "id": "f0ecc59a-41c6-4b4f-b2bf-88b30feff588"
+    },
+    {
+      "displayName": "dasha_s",
+      "email": "preview.bot.026@raceside.test",
+      "id": "26570b27-c0b5-44a0-be80-0d082accc0e8"
+    },
+    {
+      "displayName": "AndreyK",
+      "email": "preview.bot.027@raceside.test",
+      "id": "5c7124d6-7a50-4317-8693-46f415609b73"
+    },
+    {
+      "displayName": "никита",
+      "email": "preview.bot.028@raceside.test",
+      "id": "07821c0d-ce83-417c-a992-b9401381cf86"
+    },
+    {
+      "displayName": "stason",
+      "email": "preview.bot.029@raceside.test",
+      "id": "5851cc21-69a2-496b-a0a7-46489fa6e0ce"
+    },
+    {
+      "displayName": "mike_44",
+      "email": "preview.bot.030@raceside.test",
+      "id": "c61575b5-b594-40cf-87e2-51bcf944a8bb"
+    },
+    {
+      "displayName": "Юля",
+      "email": "preview.bot.031@raceside.test",
+      "id": "ad119098-30b2-4bed-973a-224f3b9489b4"
+    },
+    {
+      "displayName": "antonio",
+      "email": "preview.bot.032@raceside.test",
+      "id": "8f38d974-b715-4740-bc24-0ebf22768c5c"
+    },
+    {
+      "displayName": "pavel_p",
+      "email": "preview.bot.033@raceside.test",
+      "id": "4c9db290-ecbe-4d4c-911c-eb14ff4a110d"
+    },
+    {
+      "displayName": "Саня",
+      "email": "preview.bot.034@raceside.test",
+      "id": "36eae436-416b-42e9-8080-ead8b72c78c6"
+    },
+    {
+      "displayName": "vovan116",
+      "email": "preview.bot.035@raceside.test",
+      "id": "643084bd-e756-4adc-a1a1-7c303f233843"
+    },
+    {
+      "displayName": "Kira",
+      "email": "preview.bot.036@raceside.test",
+      "id": "8a1930f8-f707-4978-a249-7df8431b8c1b"
+    },
+    {
+      "displayName": "oleg_nn",
+      "email": "preview.bot.037@raceside.test",
+      "id": "1435442d-5582-48fe-883b-8916139fd58d"
+    },
+    {
+      "displayName": "neonlight",
+      "email": "preview.bot.038@raceside.test",
+      "id": "cb3f78d8-f22e-476a-ac1c-11fc5d723e7d"
+    },
+    {
+      "displayName": "Марина",
+      "email": "preview.bot.039@raceside.test",
+      "id": "072d28ae-4472-4392-9e94-407b1d7ca249"
+    },
+    {
+      "displayName": "stepan_23",
+      "email": "preview.bot.040@raceside.test",
+      "id": "1e5c2963-9207-4396-b467-8d0e804f6c9f"
+    },
+    {
+      "displayName": "max_fan33",
+      "email": "preview.bot.041@raceside.test",
+      "id": "ed4a2ac8-7bc0-406c-aa1a-b5aaaf26ae2a"
+    },
+    {
+      "displayName": "boxbox",
+      "email": "preview.bot.042@raceside.test",
+      "id": "bef60ed7-adac-48d6-8d82-25cc3e93c69c"
+    },
+    {
+      "displayName": "papaya81",
+      "email": "preview.bot.043@raceside.test",
+      "id": "8a357bb7-021e-4a63-bb06-fbec96fd2a82"
+    },
+    {
+      "displayName": "forza_16",
+      "email": "preview.bot.044@raceside.test",
+      "id": "d0645091-bb6f-4a67-b02e-7362a9dce64f"
+    },
+    {
+      "displayName": "late_braker",
+      "email": "preview.bot.045@raceside.test",
+      "id": "da1a8bf0-e6df-4548-b5b7-4cdd1790a0c3"
+    },
+    {
+      "displayName": "Alina",
+      "email": "preview.bot.046@raceside.test",
+      "id": "528adf73-8f97-43b6-9dae-ecc8582fedfb"
+    },
+    {
+      "displayName": "boris_b",
+      "email": "preview.bot.047@raceside.test",
+      "id": "f7b45801-23c3-4666-b83a-cc6b976a2aa4"
+    },
+    {
+      "displayName": "tanya88",
+      "email": "preview.bot.048@raceside.test",
+      "id": "6efe55d4-46b1-463a-a68c-d35db6c69918"
+    },
+    {
+      "displayName": "ruslan_kzn",
+      "email": "preview.bot.049@raceside.test",
+      "id": "5eb3e8e2-d906-4eee-a242-e8aade549181"
+    },
+    {
+      "displayName": "dreamer",
+      "email": "preview.bot.050@raceside.test",
+      "id": "23629e80-671f-4e92-bade-35beff85189a"
+    },
+    {
+      "displayName": "matvey",
+      "email": "preview.bot.051@raceside.test",
+      "id": "e1056277-8aa7-4a8f-b80b-e334195c53de"
+    },
+    {
+      "displayName": "eugene_5",
+      "email": "preview.bot.052@raceside.test",
+      "id": "fe959f3b-41b4-4b2e-85ba-b7fb2d030457"
+    },
+    {
+      "displayName": "Валера",
+      "email": "preview.bot.053@raceside.test",
+      "id": "fa1e1ef1-ae63-4f53-9087-029f0a39770d"
+    },
+    {
+      "displayName": "just_roman",
+      "email": "preview.bot.054@raceside.test",
+      "id": "07023484-e2c6-431b-83d9-c093f395efd9"
+    },
+    {
+      "displayName": "polina_v",
+      "email": "preview.bot.055@raceside.test",
+      "id": "4feeef0f-b120-4595-8612-56098b9c0d2a"
+    }
+  ],
+  "leagues": [
+    {
+      "id": "b9fcb7ab-7bf7-45b0-ad58-30df29513a9f",
+      "inviteCode": "BOT011EA861",
+      "memberIds": [
+        "5e8b902e-23d0-4789-8eed-e4b75a6a599f",
+        "2a0c2f91-90a9-4a3b-a579-bca0861f2f82",
+        "306edbf0-a858-4b73-a56e-6dbffaba8305",
+        "a7c85158-8af7-4c14-86a3-574baaf41e98",
+        "d41b2b43-4dd4-44d9-be67-0a3d38c3933f",
+        "a6dfe96e-ef2d-401e-9f50-7978f8e8cb64",
+        "5028fd38-1d63-4c2b-b448-cd661c452f5c",
+        "a0ebc7b9-3893-4ef6-bce3-f93143a398a1",
+        "2397271f-ddcc-4e99-a2e8-56b7cdd9978b",
+        "3736230a-9458-4809-8800-6818b75cc43c"
+      ],
+      "name": "Позднее торможение",
+      "ownerUserId": "5e8b902e-23d0-4789-8eed-e4b75a6a599f"
+    },
+    {
+      "id": "c73a9c61-ca74-4278-af0e-7b13477a3c73",
+      "inviteCode": "BOT02293ADD",
+      "memberIds": [
+        "9ad9cd97-346f-49f5-968a-f3529aca5bfd",
+        "4082ce3a-409b-4f9b-9246-f6af7482bcf8",
+        "eecb5d53-8b4b-4fcd-8028-d701d12acc5d",
+        "c8cbffc2-9511-4e1b-8972-5d0c51deb62b",
+        "3cf8c396-607a-4f92-8848-ecc275625a20",
+        "f12253c6-9742-4873-8d93-ad3a703936a0",
+        "9cd09f58-d859-43dd-8c1b-db4f6bd79e1c",
+        "885f0027-bdb1-4620-8c9b-90b27c447ea9",
+        "d3818755-e515-4654-bde6-595f7bbd6b6c",
+        "7ec7b099-6521-43d9-9502-bc29de9df8cd"
+      ],
+      "name": "Красный сектор",
+      "ownerUserId": "9ad9cd97-346f-49f5-968a-f3529aca5bfd"
+    },
+    {
+      "id": "e3ad2985-981c-4813-8007-d06a249724a3",
+      "inviteCode": "BOT033CD604",
+      "memberIds": [
+        "0086b24a-4d8e-4760-abeb-615603a51898",
+        "fe2720c0-8f95-48d0-bc52-0018e366b99f",
+        "2467d3cf-e393-452d-981f-9b9903fd1fa2",
+        "866c6974-5ca2-4f68-8eba-c8cfee6cdf06",
+        "f0ecc59a-41c6-4b4f-b2bf-88b30feff588",
+        "26570b27-c0b5-44a0-be80-0d082accc0e8",
+        "5c7124d6-7a50-4317-8693-46f415609b73",
+        "07821c0d-ce83-417c-a992-b9401381cf86",
+        "5851cc21-69a2-496b-a0a7-46489fa6e0ce",
+        "c61575b5-b594-40cf-87e2-51bcf944a8bb"
+      ],
+      "name": "Гонка до финиша",
+      "ownerUserId": "0086b24a-4d8e-4760-abeb-615603a51898"
+    },
+    {
+      "id": "bcc6e8d8-e848-4362-ae84-60edcba18581",
+      "inviteCode": "BOT04BFF75D",
+      "memberIds": [
+        "ad119098-30b2-4bed-973a-224f3b9489b4",
+        "8f38d974-b715-4740-bc24-0ebf22768c5c",
+        "4c9db290-ecbe-4d4c-911c-eb14ff4a110d",
+        "36eae436-416b-42e9-8080-ead8b72c78c6",
+        "643084bd-e756-4adc-a1a1-7c303f233843",
+        "8a1930f8-f707-4978-a249-7df8431b8c1b",
+        "1435442d-5582-48fe-883b-8916139fd58d",
+        "cb3f78d8-f22e-476a-ac1c-11fc5d723e7d",
+        "072d28ae-4472-4392-9e94-407b1d7ca249"
+      ],
+      "name": "Пит-уолл",
+      "ownerUserId": "ad119098-30b2-4bed-973a-224f3b9489b4"
+    },
+    {
+      "id": "e2745049-b25d-48fe-bd42-c58e41d20791",
+      "inviteCode": "BOT0526B398",
+      "memberIds": [
+        "1e5c2963-9207-4396-b467-8d0e804f6c9f",
+        "ed4a2ac8-7bc0-406c-aa1a-b5aaaf26ae2a",
+        "bef60ed7-adac-48d6-8d82-25cc3e93c69c",
+        "8a357bb7-021e-4a63-bb06-fbec96fd2a82",
+        "d0645091-bb6f-4a67-b02e-7362a9dce64f",
+        "da1a8bf0-e6df-4548-b5b7-4cdd1790a0c3",
+        "528adf73-8f97-43b6-9dae-ecc8582fedfb",
+        "f7b45801-23c3-4666-b83a-cc6b976a2aa4"
+      ],
+      "name": "Фанаты паддока",
+      "ownerUserId": "1e5c2963-9207-4396-b467-8d0e804f6c9f"
+    },
+    {
+      "id": "a252b057-4932-4989-ae5f-f2bfff593091",
+      "inviteCode": "BOT06689EAE",
+      "memberIds": [
+        "6efe55d4-46b1-463a-a68c-d35db6c69918",
+        "5eb3e8e2-d906-4eee-a242-e8aade549181",
+        "23629e80-671f-4e92-bade-35beff85189a",
+        "e1056277-8aa7-4a8f-b80b-e334195c53de",
+        "fe959f3b-41b4-4b2e-85ba-b7fb2d030457",
+        "fa1e1ef1-ae63-4f53-9087-029f0a39770d",
+        "07023484-e2c6-431b-83d9-c093f395efd9",
+        "4feeef0f-b120-4595-8612-56098b9c0d2a"
+      ],
+      "name": "Точный прогноз",
+      "ownerUserId": "6efe55d4-46b1-463a-a68c-d35db6c69918"
+    }
+  ],
+  "seeded": {
+    "articleCount": 120,
+    "favoriteDrivers": 110,
+    "favoriteTeams": 55,
+    "leagueMemberships": 55,
+    "pollCount": 15,
+    "predictions": 274,
+    "reactions": 1313,
+    "votes": 139
+  }
+}

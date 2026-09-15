@@ -123,7 +123,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
 
           <FavoriteChoiceGroups
             drivers={options.drivers.map((driver) => {
-              const teamAsset = getTeamAsset(driver.teamCode ?? driver.team);
+              const teamAsset = getTeamAsset(driver.teamCode) ?? getTeamAsset(driver.team);
 
               return {
                 code: driver.code,
@@ -137,7 +137,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
             selectedDriverIds={selectedDriverIds}
             selectedTeamId={selectedTeamIds[0]}
             teams={options.teams.map((team) => {
-              const asset = getTeamAsset(team.code ?? team.name);
+              const asset = getTeamAsset(team.code) ?? getTeamAsset(team.name);
 
               return {
                 code: asset?.code ?? team.code,

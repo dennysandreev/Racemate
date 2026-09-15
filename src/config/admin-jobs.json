@@ -9,6 +9,24 @@
     "parameters": []
   },
   {
+    "name": "formula1.sync_tyre_allocations",
+    "title": "Обновить составы шин",
+    "description": "Проверит официальные публикации Formula 1 и сохранит составы Pirelli для этапов.",
+    "group": "sport",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": [
+      {
+        "name": "season",
+        "flag": "--season",
+        "type": "integer",
+        "min": 2020,
+        "max": 2100,
+        "required": false
+      }
+    ]
+  },
+  {
     "name": "ai.process_news",
     "title": "Обработать новости",
     "description": "Подготовит русские заголовки, тексты и редакционные метки.",
@@ -16,8 +34,20 @@
     "expectedIntervalMinutes": 30,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
-      { "name": "articleId", "flag": "--id", "type": "uuid", "required": false }
+      {
+        "name": "limit",
+        "flag": "--limit",
+        "type": "integer",
+        "min": 1,
+        "max": 100,
+        "required": false
+      },
+      {
+        "name": "articleId",
+        "flag": "--id",
+        "type": "uuid",
+        "required": false
+      }
     ]
   },
   {
@@ -28,8 +58,20 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
-      { "name": "articleId", "flag": "--id", "type": "uuid", "required": false }
+      {
+        "name": "limit",
+        "flag": "--limit",
+        "type": "integer",
+        "min": 1,
+        "max": 100,
+        "required": false
+      },
+      {
+        "name": "articleId",
+        "flag": "--id",
+        "type": "uuid",
+        "required": false
+      }
     ]
   },
   {
@@ -40,8 +82,20 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
-      { "name": "articleId", "flag": "--id", "type": "uuid", "required": false }
+      {
+        "name": "limit",
+        "flag": "--limit",
+        "type": "integer",
+        "min": 1,
+        "max": 100,
+        "required": false
+      },
+      {
+        "name": "articleId",
+        "flag": "--id",
+        "type": "uuid",
+        "required": false
+      }
     ]
   },
   {
@@ -52,7 +106,14 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false }
+      {
+        "name": "limit",
+        "flag": "--limit",
+        "type": "integer",
+        "min": 1,
+        "max": 100,
+        "required": false
+      }
     ]
   },
   {
@@ -63,8 +124,20 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
-      { "name": "articleId", "flag": "--id", "type": "uuid", "required": false }
+      {
+        "name": "limit",
+        "flag": "--limit",
+        "type": "integer",
+        "min": 1,
+        "max": 100,
+        "required": false
+      },
+      {
+        "name": "articleId",
+        "flag": "--id",
+        "type": "uuid",
+        "required": false
+      }
     ]
   },
   {
@@ -73,6 +146,24 @@
     "description": "Подготовит сводку дня из опубликованных новостей.",
     "group": "news",
     "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "support.send_daily_report",
+    "title": "Отправить техническую сводку",
+    "description": "Отправит в support-бот итоги прошедшего дня и текущее состояние сайта.",
+    "group": "notifications",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "ops.watch",
+    "title": "Проверить состояние сайта",
+    "description": "Проверит сайт, фоновые процессы и источники. О срочной проблеме сообщит в support-бот.",
+    "group": "notifications",
+    "expectedIntervalMinutes": 5,
     "maxAttempts": 2,
     "parameters": []
   },
@@ -93,7 +184,12 @@
     "expectedIntervalMinutes": 15,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "sourceId", "flag": "--source", "type": "uuid", "required": false }
+      {
+        "name": "sourceId",
+        "flag": "--source",
+        "type": "uuid",
+        "required": false
+      }
     ]
   },
   {
@@ -104,7 +200,12 @@
     "expectedIntervalMinutes": 15,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "sourceId", "flag": "--source", "type": "uuid", "required": false }
+      {
+        "name": "sourceId",
+        "flag": "--source",
+        "type": "uuid",
+        "required": false
+      }
     ]
   },
   {
@@ -115,7 +216,12 @@
     "expectedIntervalMinutes": 15,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "sourceId", "flag": "--source", "type": "uuid", "required": false }
+      {
+        "name": "sourceId",
+        "flag": "--source",
+        "type": "uuid",
+        "required": false
+      }
     ]
   },
   {
@@ -126,8 +232,20 @@
     "expectedIntervalMinutes": 5,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false },
-      { "name": "postId", "flag": "--id", "type": "uuid", "required": false }
+      {
+        "name": "limit",
+        "flag": "--limit",
+        "type": "integer",
+        "min": 1,
+        "max": 100,
+        "required": false
+      },
+      {
+        "name": "postId",
+        "flag": "--id",
+        "type": "uuid",
+        "required": false
+      }
     ]
   },
   {
@@ -147,7 +265,14 @@
     "expectedIntervalMinutes": 30,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 100, "required": false }
+      {
+        "name": "limit",
+        "flag": "--limit",
+        "type": "integer",
+        "min": 1,
+        "max": 100,
+        "required": false
+      }
     ]
   },
   {
@@ -171,9 +296,28 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2100, "required": true },
-      { "name": "round", "flag": "--round", "type": "integer", "min": 1, "max": 30, "required": true },
-      { "name": "force", "flag": "--force", "type": "boolean", "required": false }
+      {
+        "name": "season",
+        "flag": "--season",
+        "type": "integer",
+        "min": 2020,
+        "max": 2100,
+        "required": true
+      },
+      {
+        "name": "round",
+        "flag": "--round",
+        "type": "integer",
+        "min": 1,
+        "max": 30,
+        "required": true
+      },
+      {
+        "name": "force",
+        "flag": "--force",
+        "type": "boolean",
+        "required": false
+      }
     ]
   },
   {
@@ -184,8 +328,22 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2100, "required": true },
-      { "name": "round", "flag": "--round", "type": "integer", "min": 1, "max": 30, "required": true }
+      {
+        "name": "season",
+        "flag": "--season",
+        "type": "integer",
+        "min": 2020,
+        "max": 2100,
+        "required": true
+      },
+      {
+        "name": "round",
+        "flag": "--round",
+        "type": "integer",
+        "min": 1,
+        "max": 30,
+        "required": true
+      }
     ]
   },
   {
@@ -213,7 +371,7 @@
   {
     "name": "jolpica.sync_results",
     "title": "Синхронизировать результаты",
-    "description": "Обновит официальные классификации завершённых сессий.",
+    "description": "Обновит свежие классификации, а раз в сутки сверит все завершённые этапы сезона.",
     "group": "sport",
     "expectedIntervalMinutes": 1440,
     "adaptiveSchedule": {
@@ -221,7 +379,14 @@
       "idleLabel": "Без сессий · раз в сутки"
     },
     "maxAttempts": 2,
-    "parameters": []
+    "parameters": [
+      {
+        "name": "reconcileSeason",
+        "flag": "--reconcile-season",
+        "type": "boolean",
+        "required": false
+      }
+    ]
   },
   {
     "name": "jolpica.repair_race_results",
@@ -231,7 +396,14 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2100, "required": true }
+      {
+        "name": "season",
+        "flag": "--season",
+        "type": "integer",
+        "min": 2020,
+        "max": 2100,
+        "required": true
+      }
     ]
   },
   {
@@ -242,7 +414,14 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2100, "required": true }
+      {
+        "name": "season",
+        "flag": "--season",
+        "type": "integer",
+        "min": 2020,
+        "max": 2100,
+        "required": true
+      }
     ]
   },
   {
@@ -272,6 +451,19 @@
     "adaptiveSchedule": {
       "activeLabel": "После сессий · каждые 5–60 мин",
       "idleLabel": "Без сессий · раз в сутки"
+    },
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "openf1.sync_starting_grid",
+    "title": "Обновить стартовую решётку",
+    "description": "Проверит официальную решётку и учтёт перестановки перед гонкой.",
+    "group": "sport",
+    "expectedIntervalMinutes": 1440,
+    "adaptiveSchedule": {
+      "activeLabel": "После квалификации · раз в час",
+      "idleLabel": "Вне окна гонки · раз в сутки"
     },
     "maxAttempts": 2,
     "parameters": []
@@ -311,7 +503,12 @@
     "expectedIntervalMinutes": 30,
     "maxAttempts": 2,
     "parameters": [
-      { "name": "force", "flag": "--force", "type": "boolean", "required": false }
+      {
+        "name": "force",
+        "flag": "--force",
+        "type": "boolean",
+        "required": false
+      }
     ]
   },
   {
@@ -322,7 +519,14 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 1,
     "parameters": [
-      { "name": "limit", "flag": "--limit", "type": "integer", "min": 1, "max": 10, "required": false }
+      {
+        "name": "limit",
+        "flag": "--limit",
+        "type": "integer",
+        "min": 1,
+        "max": 10,
+        "required": false
+      }
     ]
   },
   {
@@ -362,6 +566,51 @@
     "parameters": []
   },
   {
+    "name": "billing.expire_subscriptions",
+    "title": "Завершить истёкшие подписки",
+    "description": "Закроет доступ у подписок, срок которых уже закончился.",
+    "group": "billing",
+    "expectedIntervalMinutes": 15,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "billing.expire_orders",
+    "title": "Закрыть старые оплаты",
+    "description": "Закроет незавершённые попытки оплаты после окончания их срока.",
+    "group": "billing",
+    "expectedIntervalMinutes": 15,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "billing.process_emails",
+    "title": "Отправить письма об оплате",
+    "description": "Отправит подтверждения для уже оплаченных заказов.",
+    "group": "billing",
+    "expectedIntervalMinutes": 5,
+    "maxAttempts": 3,
+    "parameters": []
+  },
+  {
+    "name": "billing.audit",
+    "title": "Проверить подписки и оплаты",
+    "description": "Найдёт оплаты без периода, расхождения сумм и пересечения сроков.",
+    "group": "billing",
+    "expectedIntervalMinutes": 60,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "billing.retry_failed_events",
+    "title": "Повторить обработку оплат",
+    "description": "Повторно применит уже проверенные события, которые не удалось завершить из-за внутренней ошибки.",
+    "group": "billing",
+    "expectedIntervalMinutes": 5,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
     "name": "jolpica.prepare_history",
     "title": "Подготовить архив 2020-2025",
     "description": "Синхронизирует и проверит полный исторический пакет.",
@@ -378,7 +627,14 @@
     "expectedIntervalMinutes": 1440,
     "maxAttempts": 1,
     "parameters": [
-      { "name": "season", "flag": "--season", "type": "integer", "min": 2020, "max": 2025, "required": true }
+      {
+        "name": "season",
+        "flag": "--season",
+        "type": "integer",
+        "min": 2020,
+        "max": 2025,
+        "required": true
+      }
     ]
   },
   {
@@ -391,5 +647,21 @@
     "danger": true,
     "confirmation": "Архив станет доступен на публичных страницах. Публикация начнётся только при зелёном результате всех проверок.",
     "parameters": []
+  },
+  {
+    "name": "telemetry.prepare",
+    "title": "Подготовить телеметрию",
+    "description": "Загрузит историю OpenF1 и подготовит сравнение кругов.",
+    "group": "f1",
+    "expectedIntervalMinutes": 1440,
+    "maxAttempts": 3,
+    "parameters": [
+      {
+        "name": "taskId",
+        "flag": "--task-id",
+        "type": "uuid",
+        "required": true
+      }
+    ]
   }
 ]

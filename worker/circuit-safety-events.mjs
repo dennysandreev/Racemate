@@ -74,6 +74,7 @@ export function countOpenF1SafetyEvents(messages) {
   const rows = Array.isArray(messages) ? messages : [];
 
   return {
+    yellowFlagCount: countYellowFlagPeriods(rows),
     safetyCarCount: countDistinctEvents(rows, (row) => {
       const message = normalizeText(row?.message);
       return /\bsafety car deployed\b/.test(message) && !/\bvirtual safety car\b|\bvsc\b/.test(message);
@@ -87,7 +88,7 @@ export function countOpenF1SafetyEvents(messages) {
       const flag = normalizeText(row?.flag);
       const category = normalizeText(row?.category);
       const isRedFlag = flag === "red" || /\bred flag\b/.test(message);
-      const isEndMessage = /withdrawn|ended|ending|clear|resume|restart|green flag/.test(message);
+      const isEndMessage = /\b(?:withdrawn|ended|ending|clear|resumed?|restarted?|green flag)\b/.test(message);
 
       return isRedFlag && !isEndMessage && (category === "flag" || /\bred flag\b/.test(message));
     }),
@@ -101,25 +102,98 @@ export function filterRaceControlForSession(messages, sessionKey) {
     return [];
   }
 
-  return (Array.isArray(messages) ? messages : []).filter(
-    (row) => Number(row?.session_key) === expectedSessionKey,
-  );
+  const rows = (Array.isArray(messages) ? messages : [])
+    .filter((row) => Number(row?.session_key) === expectedSessionKey)
+    .sort(compareRaceControlRows);
+  const startedAt = rows.findIndex((row) => /\bsession started\b/i.test(row?.message ?? ""));
+  const raceRows = startedAt >= 0 ? rows.slice(startedAt) : rows;
+  const chequeredAt = raceRows.findIndex((row) => {
+    const message = normalizeText(row?.message);
+    const flag = normalizeText(row?.flag);
+
+    return flag === "chequered" || /\bchequered flag\b/.test(message);
+  });
+  const finishedAt = chequeredAt >= 0
+    ? chequeredAt
+    : raceRows.findIndex((row) => /\bsession (?:finished|ended)\b/.test(normalizeText(row?.message)));
+
+  return finishedAt >= 0 ? raceRows.slice(0, finishedAt + 1) : raceRows;
 }
 
 export function formatSafetyEventSummary(counts) {
+  const yellowFlagCount = normalizeCount(counts?.yellowFlagCount);
   const safetyCarCount = normalizeCount(counts?.safetyCarCount);
   const vscCount = normalizeCount(counts?.vscCount);
   const redFlagCount = normalizeCount(counts?.redFlagCount);
 
-  if (!safetyCarCount && !vscCount && !redFlagCount) {
+  if (!yellowFlagCount && !safetyCarCount && !vscCount && !redFlagCount) {
     return null;
   }
 
   return [
+    yellowFlagCount ? `жёлтые флаги: ${yellowFlagCount}` : null,
     safetyCarCount ? `SC: ${safetyCarCount}` : null,
     vscCount ? `VSC: ${vscCount}` : null,
     redFlagCount ? `красные флаги: ${redFlagCount}` : null,
   ].filter(Boolean).join(" · ");
+}
+
+function countYellowFlagPeriods(rows) {
+  const activeSectors = new Set();
+  const recentlyClearedAt = new Map();
+  let count = 0;
+
+  for (const row of [...rows].sort(compareRaceControlRows)) {
+    const flag = normalizeText(row?.flag);
+    const scope = normalizeText(row?.scope) || "unknown";
+    const key = `${scope}:${row?.sector ?? "all"}`;
+    const timestamp = Date.parse(row?.date ?? row?.timestamp ?? row?.occurred_at ?? "");
+
+    if (flag === "yellow" || flag === "double yellow") {
+      if (!activeSectors.size) {
+        const previousClear = recentlyClearedAt.get(key);
+        const isImmediateRepeat = Number.isFinite(timestamp)
+          && Number.isFinite(previousClear)
+          && timestamp - previousClear <= 60_000;
+
+        if (!isImmediateRepeat) {
+          count += 1;
+        }
+      }
+
+      activeSectors.add(key);
+      continue;
+    }
+
+    if (flag !== "clear") {
+      continue;
+    }
+
+    if (scope === "track") {
+      for (const activeKey of activeSectors) {
+        recentlyClearedAt.set(activeKey, timestamp);
+      }
+      activeSectors.clear();
+      continue;
+    }
+
+    if (activeSectors.delete(key)) {
+      recentlyClearedAt.set(key, timestamp);
+    }
+  }
+
+  return count;
+}
+
+function compareRaceControlRows(left, right) {
+  const leftTimestamp = Date.parse(left?.date ?? left?.timestamp ?? left?.occurred_at ?? "");
+  const rightTimestamp = Date.parse(right?.date ?? right?.timestamp ?? right?.occurred_at ?? "");
+
+  if (Number.isFinite(leftTimestamp) && Number.isFinite(rightTimestamp)) {
+    return leftTimestamp - rightTimestamp;
+  }
+
+  return Number(left?.lap_number ?? left?.lap ?? 0) - Number(right?.lap_number ?? right?.lap ?? 0);
 }
 
 export function isImportantRaceControlMessage(text, category) {

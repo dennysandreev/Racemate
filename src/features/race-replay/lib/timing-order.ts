@@ -13,6 +13,42 @@ export type ReplayTimingOrderRow<T extends ReplayTimingOrderInput> = T & {
   raceOrder: number;
 };
 
+export type ReplayPositionTimingInput = {
+  driverNumber: number;
+  offsetMs: number;
+  position: number;
+};
+
+export function getReplayTimedPositionsAt(
+  timings: ReplayPositionTimingInput[] | undefined,
+  elapsedMs: number,
+) {
+  const positions = new Map<number, { lastOffsetMs: number; position: number }>();
+  const lastOffsetByDriver = new Map<number, number>();
+
+  for (const timing of timings ?? []) {
+    lastOffsetByDriver.set(
+      timing.driverNumber,
+      Math.max(lastOffsetByDriver.get(timing.driverNumber) ?? 0, timing.offsetMs),
+    );
+
+    if (timing.offsetMs <= elapsedMs) {
+      positions.set(timing.driverNumber, {
+        lastOffsetMs: timing.offsetMs,
+        position: timing.position,
+      });
+    }
+  }
+
+  return new Map([...positions.entries()].map(([driverNumber, timing]) => [
+    driverNumber,
+    {
+      ...timing,
+      lastOffsetMs: lastOffsetByDriver.get(driverNumber) ?? timing.lastOffsetMs,
+    },
+  ]));
+}
+
 export function orderReplayTimingRows<T extends ReplayTimingOrderInput>(rows: T[]) {
   const ordered = [...rows].sort(compareReplayClassification);
   const leader = ordered.find((row) => row.status !== "NO_DATA") ?? null;

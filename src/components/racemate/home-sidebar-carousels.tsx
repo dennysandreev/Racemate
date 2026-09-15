@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 
 import { votePollFromHome } from "@/app/polls/actions";
-import { TeamColorBar } from "@/components/racemate/team-color";
 import { TeamColorProgress } from "@/components/racemate/team-color";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -85,7 +84,7 @@ export function HomeStandingsCarousel({ slides }: { slides: HomeStandingSlide[] 
       onMouseEnter={carousel.pauseTemporarily}
       onMouseLeave={carousel.resumeTemporarily}
     >
-      <CardHeader className="border-b border-border/70 pb-3 sm:pb-3">
+      <CardHeader className="h-14 justify-center border-b border-border/70 px-4 py-2 sm:px-5 sm:py-2">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="flex min-w-0 items-center gap-2 text-base">
             <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
@@ -109,25 +108,39 @@ export function HomeStandingsCarousel({ slides }: { slides: HomeStandingSlide[] 
               className="grid min-h-[3.35rem] grid-cols-[2.25rem_minmax(0,1fr)_4rem] items-center gap-3 px-1 py-1"
               key={`${slide.id}-${row.position}-${row.name}`}
             >
-              <span className="font-telemetry text-sm text-muted-foreground">{row.position}</span>
-              <span className="min-w-0">
-                <span className="flex min-w-0 items-center gap-2">
-                  <TeamColorBar className="h-6 w-1" color={row.color} />
-                  {row.href ? (
-                    <Link
-                      className="block truncate text-sm font-medium transition-colors hover:text-primary"
-                      href={row.href}
-                      prefetch={false}
-                    >
-                      {row.name}
-                    </Link>
-                  ) : (
-                    <span className="block truncate text-sm font-medium">{row.name}</span>
-                  )}
-                </span>
-                <span className="block truncate text-xs text-muted-foreground">{row.meta}</span>
+              <span className="relative grid size-8 place-items-center overflow-hidden rounded-md border border-border/75 bg-background/45 font-telemetry text-sm font-extrabold text-foreground">
+                {row.position}
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-1 bottom-0 h-0.5 rounded-t-full"
+                  style={{ backgroundColor: row.color ?? "var(--primary)" }}
+                />
               </span>
-              <span className="font-telemetry text-right text-sm">{row.points}</span>
+              <span className="min-w-0">
+                {row.href ? (
+                  <Link
+                    className="block truncate text-sm font-semibold transition-colors hover:text-primary"
+                    href={row.href}
+                    prefetch={false}
+                  >
+                    {row.name}
+                  </Link>
+                ) : (
+                  <span className="block truncate text-sm font-semibold">{row.name}</span>
+                )}
+                <span className="mt-0.5 flex min-w-0 items-center gap-1.5">
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: row.color ?? "var(--primary)" }}
+                  />
+                  <span className="block truncate text-xs text-muted-foreground">{row.meta}</span>
+                </span>
+              </span>
+              <span className="grid justify-items-end">
+                <span className="font-telemetry text-base font-extrabold leading-none">{row.points}</span>
+                <span className="mt-1 text-[0.6rem] font-semibold uppercase text-muted-foreground">очк.</span>
+              </span>
             </div>
           ))}
         </div>
@@ -165,7 +178,7 @@ function MarketCarousel({ slides }: { slides: HomeMarketSlide[] }) {
       onMouseEnter={carousel.pauseTemporarily}
       onMouseLeave={carousel.resumeTemporarily}
     >
-      <CardHeader className="border-b border-border/70 pb-3 sm:pb-3">
+      <CardHeader className="h-14 justify-center border-b border-border/70 px-4 py-2 sm:px-5 sm:py-2">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="flex min-w-0 items-center gap-2 text-base">
             <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
@@ -285,7 +298,7 @@ function PollCarousel({ polls }: { polls: PollSummary[] }) {
       onMouseEnter={carousel.pauseTemporarily}
       onMouseLeave={carousel.resumeTemporarily}
     >
-      <CardHeader className="border-b border-border/70 pb-3 sm:pb-3">
+      <CardHeader className="h-14 justify-center border-b border-border/70 px-4 py-2 sm:px-5 sm:py-2">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="min-w-0 text-base">
             <Link

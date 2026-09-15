@@ -1,11 +1,13 @@
 import type { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { adminJobCatalog, getAdminJobDefinition } from "@/lib/admin-job-catalog";
 import { adminAiPromptCatalog } from "@/lib/admin-ai-prompts";
+import type { Json } from "@/types/supabase";
 import type {
   AdminAiPromptVersion,
   AdminAiPromptVersionSummary,
   AdminAiUsageSummaryRow,
   AdminAuditEntry,
+  AdminCostTimelineRow,
   AdminFinding,
   AdminFindingEvent,
   AdminJobRun,
@@ -13,6 +15,7 @@ import type {
   AdminSystemSignal,
   AdminSystemStatus,
   AdminTableQuery,
+  AdminUserErrorReport,
 } from "@/types/admin";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
@@ -38,6 +41,7 @@ export function parseAdminTableQuery(
 
 export async function loadAdminOverview(admin: AdminClient) {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1_000).toISOString();
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1_000).toISOString();
   const [
     jobsResult,
     newsSourcesResult,
@@ -49,6 +53,10 @@ export async function loadAdminOverview(admin: AdminClient) {
     notificationQueuedResult,
     aiResult,
     findingsResult,
+    urgentFindingsResult,
+    heartbeatsResult,
+    telemetryTasksResult,
+    telemetryCacheResult,
   ] = await Promise.all([
     admin
       .from("job_runs")
@@ -65,8 +73,16 @@ export async function loadAdminOverview(admin: AdminClient) {
     admin.rpc("get_admin_ai_usage_summary", { p_since: thirtyDaysAgo }),
     admin
       .from("admin_findings")
-      .select("id, severity, status", { count: "exact" })
+      .select("id", { count: "exact", head: true })
       .in("status", ["open", "acknowledged", "action_pending", "fixing", "monitoring"]),
+    admin
+      .from("admin_findings")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["open", "acknowledged", "action_pending", "fixing", "monitoring"])
+      .in("severity", ["P0", "P1"]),
+    admin.from("ops_service_heartbeats").select("service_name, status, checked_at").order("checked_at", { ascending: false }).limit(50),
+    admin.from("telemetry_tasks").select("id, status, updated_at").gte("updated_at", dayAgo).order("updated_at", { ascending: false }).limit(100),
+    admin.from("telemetry_cache").select("key, updated_at").order("updated_at", { ascending: false }).limit(1),
   ]);
   throwFirstError([
     jobsResult.error,
@@ -79,6 +95,10 @@ export async function loadAdminOverview(admin: AdminClient) {
     notificationQueuedResult.error,
     aiResult.error,
     findingsResult.error,
+    urgentFindingsResult.error,
+    heartbeatsResult.error,
+    telemetryTasksResult.error,
+    telemetryCacheResult.error,
   ]);
 
   const jobs = (jobsResult.data ?? []).map(mapAdminJobRun);
@@ -92,9 +112,22 @@ export async function loadAdminOverview(admin: AdminClient) {
   ];
   const aiTotal = (aiResult.data ?? []).find((row) => row.dimension === "total");
   const aiCost = Number(aiTotal?.cost_usd ?? 0);
+  const latestLiveHeartbeat = (heartbeatsResult.data ?? []).find((heartbeat) => heartbeat.service_name === "live") ?? null;
+  const productSignals = [
+    makeServiceStatus({
+      checkedAt: latestLiveHeartbeat?.checked_at ?? null,
+      description: "Поток данных и история LIVE-сессий.",
+      detail: latestLiveHeartbeat ? `Последняя проверка ${formatRelativeTime(latestLiveHeartbeat.checked_at)}` : "Сервис ещё не передавал состояние",
+      href: "/admin/systems#service-live",
+      id: "live",
+      label: "LIVE-центр",
+      status: latestLiveHeartbeat?.status ?? "unknown",
+    }),
+    makeTelemetryStatus(telemetryTasksResult.data ?? [], telemetryCacheResult.data?.[0]?.updated_at ?? null),
+  ];
 
   return {
-    signals: [...sourceSignals, ...scheduleSignals]
+    signals: [...productSignals, ...sourceSignals, ...scheduleSignals]
       .filter((signal) => signal.status !== "healthy")
       .sort((left, right) => signalWeight(right.status) - signalWeight(left.status))
       .slice(0, 8),
@@ -109,9 +142,7 @@ export async function loadAdminOverview(admin: AdminClient) {
       aiCost,
       aiRuns: Number(aiTotal?.request_count ?? 0),
       activeFindings: findingsResult.count ?? 0,
-      urgentFindings: (findingsResult.data ?? []).filter(
-        (finding) => finding.severity === "P0" || finding.severity === "P1",
-      ).length,
+      urgentFindings: urgentFindingsResult.count ?? 0,
     },
   };
 }
@@ -137,8 +168,11 @@ export async function loadAdminFindings(admin: AdminClient, query: AdminTableQue
     findingsRequest = findingsRequest.eq("status", query.status as AdminFinding["status"]);
   }
 
-  const [findingsResult, settingsResult, runsResult, heartbeatsResult] = await Promise.all([
+  const activeStatuses: AdminFinding["status"][] = ["open", "acknowledged", "action_pending", "fixing", "monitoring"];
+  const [findingsResult, activeCountResult, urgentCountResult, settingsResult, runsResult, heartbeatsResult] = await Promise.all([
     findingsRequest,
+    admin.from("admin_findings").select("id", { count: "exact", head: true }).in("status", activeStatuses),
+    admin.from("admin_findings").select("id", { count: "exact", head: true }).in("status", activeStatuses).in("severity", ["P0", "P1"]),
     admin
       .from("admin_agent_settings")
       .select("is_enabled, mode, telegram_alerts_enabled, r2_actions_enabled, shadow_started_at, updated_at")
@@ -158,6 +192,8 @@ export async function loadAdminFindings(admin: AdminClient, query: AdminTableQue
   ]);
   throwFirstError([
     findingsResult.error,
+    activeCountResult.error,
+    urgentCountResult.error,
     settingsResult.error,
     runsResult.error,
     heartbeatsResult.error,
@@ -226,6 +262,10 @@ export async function loadAdminFindings(admin: AdminClient, query: AdminTableQue
       events: eventsByFinding.get(row.id) ?? [],
     })),
     total: findingsResult.count ?? 0,
+    metrics: {
+      active: activeCountResult.count ?? 0,
+      urgent: urgentCountResult.count ?? 0,
+    },
     query,
     settings: {
       isEnabled: settings.is_enabled,
@@ -244,14 +284,17 @@ export async function loadAdminNews(admin: AdminClient, query: AdminTableQuery) 
   const from = (query.page - 1) * query.pageSize;
   let request = admin
     .from("news_articles")
-    .select("id, slug, source_id, original_title, ai_title_ru, ai_summary_ru, ai_summary_long_ru, publication_status, dedup_status, duplicate_of, published_at, source_published_at, ai_processed_at, updated_at", { count: "exact" })
-    .order("updated_at", { ascending: false })
+    .select("id, slug, source_id, original_title, ai_title_ru, ai_summary_ru, ai_summary_long_ru, publication_status, dedup_status, duplicate_of, published_at, source_published_at, ingested_at, ai_processed_at, raw_payload, updated_at", { count: "exact" })
+    .order("ingested_at", { ascending: false })
+    .order("id", { ascending: false })
     .range(from, from + query.pageSize - 1);
 
   if (query.search) {
     request = request.or(`original_title.ilike.%${query.search}%,ai_title_ru.ilike.%${query.search}%`);
   }
-  if (query.status && query.status !== "all") {
+  if (query.status === "removed") {
+    request = request.eq("publication_status", "draft").not("published_at", "is", null);
+  } else if (query.status && query.status !== "all") {
     request = request.eq("publication_status", query.status);
   }
 
@@ -286,6 +329,7 @@ export async function loadAdminNews(admin: AdminClient, query: AdminTableQuery) 
   return {
     items: (articlesResult.data ?? []).map((article) => ({
       ...article,
+      aiFailureLabel: getNewsAiFailureLabel(article.raw_payload),
       sourceName: article.source_id ? sourceNames.get(article.source_id) ?? "Источник уточняется" : "Источник уточняется",
       tagNames: tagNamesByArticle.get(article.id) ?? [],
     })),
@@ -294,6 +338,27 @@ export async function loadAdminNews(admin: AdminClient, query: AdminTableQuery) 
     digests: digestsResult.data ?? [],
     query,
   };
+}
+
+function getNewsAiFailureLabel(rawPayload: Json | null) {
+  if (!rawPayload || Array.isArray(rawPayload) || typeof rawPayload !== "object") return null;
+
+  const reason = typeof rawPayload.aiFailureReason === "string"
+    ? rawPayload.aiFailureReason
+    : null;
+
+  if (reason === "ai_processing_failed") return null;
+
+  const labels: Record<string, string> = {
+    missing_api_key: "На сервере не настроен OpenRouter",
+    openrouter_insufficient_credits: "Недостаточно средств в OpenRouter",
+    openrouter_invalid_key: "OpenRouter отклонил API-ключ",
+    openrouter_key_limit_exceeded: "Исчерпан лимит API-ключа OpenRouter",
+    openrouter_permission_denied: "OpenRouter запретил запрос",
+    openrouter_rate_limited: "OpenRouter временно ограничил запросы",
+  };
+
+  return reason ? labels[reason] ?? "AI не смог обработать материал" : null;
 }
 
 export async function loadAdminSocial(admin: AdminClient, query: AdminTableQuery) {
@@ -396,7 +461,7 @@ export async function loadAdminSport(admin: AdminClient) {
     admin.from("constructor_standings").select("id", { count: "exact", head: true }),
     admin.from("team_season_profiles").select("id, season_year, display_name, code, logo_image_url, car_image_url, source_urls, assets_verified_at").gte("season_year", 2020).order("season_year", { ascending: false }),
     admin.from("driver_season_profiles").select("id, season_year, code, permanent_number, avatar_image_url, avatar_review_status, source_urls, assets_verified_at").gte("season_year", 2020).order("season_year", { ascending: false }),
-    admin.from("race_track_assets").select("id, race_id, layout_slug, image_url, source_url, source_manifest, checksum_sha256, is_verified, verified_at").order("updated_at", { ascending: false }).limit(160),
+    admin.from("race_track_assets").select("id, race_id, layout_slug, image_url, source_url, source_manifest, checksum_sha256, is_verified, verified_at").order("updated_at", { ascending: false }),
     admin.from("race_replay_sessions").select("id, title, status, source_season, source_session_key, source_race_name, prepared_at, updated_at").order("updated_at", { ascending: false }).limit(30),
     admin.from("drivers").select("id, slug, code, permanent_number, full_name, country, country_code, current_team_id, ai_avatar_url, avatar_placeholder_style, is_active").eq("is_active", true).order("full_name"),
     admin.from("teams").select("id, name, short_name, code").eq("is_active", true).order("name"),
@@ -418,12 +483,26 @@ export async function loadAdminSport(admin: AdminClient) {
 
   const seasons = seasonsResult.data ?? [];
   const archiveYears = seasons.filter((season) => season.year >= 2020 && season.year <= 2025);
+  const archiveRaceIds = new Set(
+    (racesResult.data ?? [])
+      .filter((race) => race.season_year >= 2020 && race.season_year <= 2025)
+      .map((race) => race.id),
+  );
+  const archiveAssetsByRace = new Map(
+    (trackAssetsResult.data ?? [])
+      .filter((asset) => archiveRaceIds.has(asset.race_id))
+      .map((asset) => [asset.race_id, asset]),
+  );
   const archiveReady =
     archiveYears.length === 6 &&
     (teamsResult.data ?? [])
       .filter((profile) => profile.season_year <= 2025)
       .every((profile) => profile.assets_verified_at && profile.logo_image_url && profile.car_image_url) &&
-    (trackAssetsResult.data ?? []).every((asset) => asset.is_verified && asset.checksum_sha256);
+    archiveRaceIds.size > 0 &&
+    [...archiveRaceIds].every((raceId) => {
+      const asset = archiveAssetsByRace.get(raceId);
+      return Boolean(asset?.is_verified && asset.checksum_sha256);
+    });
 
   return {
     currentSeason,
@@ -477,7 +556,7 @@ export async function loadAdminUsers(admin: AdminClient, query: AdminTableQuery)
   const from = (query.page - 1) * query.pageSize;
   let request = admin
     .from("profiles")
-    .select("id, email, display_name, language, timezone, onboarding_completed, created_at, updated_at", { count: "exact" })
+    .select("id, email, display_name, language, timezone, onboarding_completed, is_bot, created_at, updated_at", { count: "exact" })
     .order("updated_at", { ascending: false })
     .range(from, from + query.pageSize - 1);
 
@@ -489,7 +568,7 @@ export async function loadAdminUsers(admin: AdminClient, query: AdminTableQuery)
   throwFirstError([profilesResult.error]);
   const userIds = (profilesResult.data ?? []).map((profile) => profile.id);
   const empty = { data: [], error: null };
-  const [teamsResult, driversResult, predictionsResult, membershipsResult, telegramResult] = await Promise.all([
+  const [teamsResult, driversResult, predictionsResult, membershipsResult, telegramResult, subscriptionsResult] = await Promise.all([
     userIds.length ? admin.from("user_favorite_teams").select("user_id").in("user_id", userIds) : empty,
     userIds.length ? admin.from("user_favorite_drivers").select("user_id").in("user_id", userIds) : empty,
     userIds.length ? admin.from("predictions").select("user_id").in("user_id", userIds) : empty,
@@ -497,13 +576,17 @@ export async function loadAdminUsers(admin: AdminClient, query: AdminTableQuery)
     userIds.length
       ? admin.from("telegram_accounts").select("user_id, username, is_active, connected_at, disconnected_at, last_delivery_at, last_error, updated_at").in("user_id", userIds)
       : empty,
+    userIds.length
+      ? admin.from("subscriptions").select("user_id, status, current_period_start, current_period_end").in("user_id", userIds)
+      : empty,
   ]);
-  throwFirstError([teamsResult.error, driversResult.error, predictionsResult.error, membershipsResult.error, telegramResult.error]);
+  throwFirstError([teamsResult.error, driversResult.error, predictionsResult.error, membershipsResult.error, telegramResult.error, subscriptionsResult.error]);
   const favoriteTeams = countBy(teamsResult.data ?? [], (row) => row.user_id);
   const favoriteDrivers = countBy(driversResult.data ?? [], (row) => row.user_id);
   const predictions = countBy(predictionsResult.data ?? [], (row) => row.user_id);
   const leagues = countBy(membershipsResult.data ?? [], (row) => row.user_id);
   const telegram = new Map((telegramResult.data ?? []).map((row) => [row.user_id, row]));
+  const subscriptions = new Map((subscriptionsResult.data ?? []).map((row) => [row.user_id, row]));
 
   return {
     items: (profilesResult.data ?? []).map((profile) => ({
@@ -513,6 +596,7 @@ export async function loadAdminUsers(admin: AdminClient, query: AdminTableQuery)
       predictions: predictions.get(profile.id) ?? 0,
       leagues: leagues.get(profile.id) ?? 0,
       telegram: telegram.get(profile.id) ?? null,
+      subscription: subscriptions.get(profile.id) ?? null,
     })),
     total: profilesResult.count ?? 0,
     query,
@@ -607,7 +691,8 @@ export async function loadAdminSchedules(admin: AdminClient) {
 }
 
 export async function loadAdminSystems(admin: AdminClient) {
-  const [newsSourcesResult, socialSourcesResult, schedulesResult, jobsResult] =
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1_000).toISOString();
+  const [newsSourcesResult, socialSourcesResult, schedulesResult, jobsResult, heartbeatsResult, telemetryTasksResult, telemetryCacheResult] =
     await Promise.all([
       admin
         .from("news_sources")
@@ -624,15 +709,32 @@ export async function loadAdminSystems(admin: AdminClient) {
         .select("id, job_name, status, started_at, finished_at, items_processed, error_message, metadata, queue_version, requested_by, available_at, claimed_at, worker_id, attempt_count, max_attempts, retry_of, request_key")
         .order("started_at", { ascending: false })
         .limit(300),
+      admin.from("ops_service_heartbeats").select("service_name, status, checked_at").order("checked_at", { ascending: false }).limit(50),
+      admin.from("telemetry_tasks").select("id, status, updated_at").gte("updated_at", dayAgo).order("updated_at", { ascending: false }).limit(100),
+      admin.from("telemetry_cache").select("key, updated_at").order("updated_at", { ascending: false }).limit(1),
     ]);
   throwFirstError([
     newsSourcesResult.error,
     socialSourcesResult.error,
     schedulesResult.error,
     jobsResult.error,
+    heartbeatsResult.error,
+    telemetryTasksResult.error,
+    telemetryCacheResult.error,
   ]);
   const latestByName = getLatestJobsByName((jobsResult.data ?? []).map(mapAdminJobRun));
+  const latestLiveHeartbeat = (heartbeatsResult.data ?? []).find((heartbeat) => heartbeat.service_name === "live") ?? null;
   const items: AdminSystemStatus[] = [
+    makeServiceStatus({
+      checkedAt: latestLiveHeartbeat?.checked_at ?? null,
+      description: "Поток данных, запись истории и подключения зрителей во время сессии.",
+      detail: latestLiveHeartbeat ? `Последняя проверка ${formatRelativeTime(latestLiveHeartbeat.checked_at)}` : "Сервис ещё не передавал состояние",
+      href: "/live",
+      id: "live",
+      label: "LIVE-центр",
+      status: latestLiveHeartbeat?.status ?? "unknown",
+    }),
+    makeTelemetryStatus(telemetryTasksResult.data ?? [], telemetryCacheResult.data?.[0]?.updated_at ?? null),
     ...(newsSourcesResult.data ?? []).map((source) => makeSourceStatus(source, "news")),
     ...(socialSourcesResult.data ?? []).map((source) => makeSourceStatus(source, "social")),
     ...(schedulesResult.data ?? []).map((schedule) =>
@@ -647,10 +749,64 @@ export async function loadAdminSystems(admin: AdminClient) {
     items,
     metrics: {
       healthy: items.filter((item) => item.status === "healthy").length,
-      attention: items.filter((item) => item.status === "stale" || item.status === "warning").length,
+      attention: items.filter((item) => item.status === "stale" || item.status === "warning" || item.status === "unknown").length,
       failed: items.filter((item) => item.status === "failed").length,
       paused: items.filter((item) => !item.isEnabled).length,
     },
+  };
+}
+
+function makeServiceStatus(input: {
+  checkedAt: string | null;
+  description: string;
+  detail: string;
+  href: string;
+  id: string;
+  label: string;
+  status: "degraded" | "healthy" | "unhealthy" | "unknown";
+}): AdminSystemStatus {
+  const stale = input.checkedAt ? Date.now() - Date.parse(input.checkedAt) > 5 * 60_000 : true;
+  return {
+    id: `service:${input.id}`,
+    label: input.label,
+    kind: "service",
+    group: "Продуктовые сервисы",
+    description: input.description,
+    status: input.status === "unknown" ? "unknown" : input.status === "unhealthy" ? "failed" : input.status === "degraded" ? "warning" : stale ? "stale" : "healthy",
+    detail: input.detail,
+    checkedAt: input.checkedAt,
+    lastSuccessAt: input.status === "healthy" ? input.checkedAt : null,
+    nextCheckAt: input.checkedAt ? new Date(Date.parse(input.checkedAt) + 60_000).toISOString() : null,
+    isEnabled: true,
+    href: input.href,
+  };
+}
+
+function makeTelemetryStatus(
+  tasks: Array<{ id: string; status: string; updated_at: string }>,
+  cacheUpdatedAt: string | null,
+): AdminSystemStatus {
+  const latest = tasks[0] ?? null;
+  const failed = tasks.filter((task) => task.status === "failed").length;
+  return {
+    id: "service:telemetry",
+    label: "Телеметрия",
+    kind: "service",
+    group: "Продуктовые сервисы",
+    description: "Подготовка сравнений кругов и кэширование данных для пользователей.",
+    status: failed ? "failed" : latest || cacheUpdatedAt ? "healthy" : "unknown",
+    detail: failed
+      ? `Ошибок среди последних запросов: ${failed}`
+      : latest
+        ? `Последний запрос ${formatRelativeTime(latest.updated_at)}`
+        : cacheUpdatedAt
+          ? `Кэш обновлён ${formatRelativeTime(cacheUpdatedAt)}`
+          : "Запросов телеметрии пока не было",
+    checkedAt: latest?.updated_at ?? cacheUpdatedAt,
+    lastSuccessAt: latest?.status === "ready" ? latest.updated_at : cacheUpdatedAt,
+    nextCheckAt: null,
+    isEnabled: true,
+    href: "/admin/jobs?search=telemetry.prepare",
   };
 }
 
@@ -665,17 +821,21 @@ export async function loadAdminAi(admin: AdminClient) {
     publishedPromptsResult,
     draftPromptsResult,
     promptHistoryResult,
+    xBudgetResult,
     xBudgetUsageResult,
+    costTimelineResult,
   ] = await Promise.all([
     admin.rpc("get_admin_ai_usage_summary", { p_since: thirtyDaysAgo }),
     admin.from("ai_usage_logs").select("id, purpose, provider, model, input_tokens, output_tokens, estimated_cost_usd, related_article_id, related_digest_id, prompt_key, prompt_version_id, created_at").gte("created_at", thirtyDaysAgo).order("created_at", { ascending: false }).limit(100),
     admin.from("news_articles").select("id, slug, original_title, ai_title_ru, publication_status, image_status, ai_model, ai_processed_at, updated_at").or("ai_model.eq.fallback,publication_status.eq.ai_failed").order("updated_at", { ascending: false }).limit(100),
     admin.from("social_posts").select("id, platform, title, ai_title_ru, status, last_processing_error, processing_attempts, updated_at").not("last_processing_error", "is", null).order("updated_at", { ascending: false }).limit(100),
-    admin.from("admin_ai_budgets").select("scope, daily_limit_usd, monthly_limit_usd, updated_at").in("scope", ["default", "social_x"]),
+    admin.from("admin_ai_budgets").select("scope, daily_limit_usd, monthly_limit_usd, updated_at").eq("scope", "default"),
     admin.from("ai_prompt_versions").select("id, prompt_key, version, status, system_prompt, user_template, model, max_tokens, change_note, checksum, created_at, published_at").eq("status", "published"),
     admin.from("ai_prompt_versions").select("id, prompt_key, version, status, system_prompt, user_template, model, max_tokens, change_note, checksum, created_at, published_at").eq("status", "draft").order("version", { ascending: false }).limit(50),
     admin.from("ai_prompt_versions").select("id, prompt_key, version, status, model, max_tokens, change_note, checksum, created_at, published_at").order("created_at", { ascending: false }).limit(100),
-    admin.rpc("get_ai_budget_guard", { p_purpose: "social.x" }),
+    admin.from("admin_external_api_costs").select("provider, resource_type, unit_cost_usd, daily_limit_usd, monthly_limit_usd, updated_at").eq("provider", "x").maybeSingle(),
+    admin.rpc("get_x_api_budget_guard"),
+    admin.rpc("get_admin_cost_timeline", { p_since: thirtyDaysAgo }),
   ]);
   throwFirstError([
     summaryResult.error,
@@ -686,7 +846,9 @@ export async function loadAdminAi(admin: AdminClient) {
     publishedPromptsResult.error,
     draftPromptsResult.error,
     promptHistoryResult.error,
+    xBudgetResult.error,
     xBudgetUsageResult.error,
+    costTimelineResult.error,
   ]);
   const summaryRows = (summaryResult.data ?? []).map(normalizeAdminAiUsageSummary);
   const total = summaryRows.find((row) => row.dimension === "total");
@@ -703,9 +865,7 @@ export async function loadAdminAi(admin: AdminClient) {
     }
   }
   const promptHistory = (promptHistoryResult.data ?? []).map(mapAdminAiPromptVersionSummary);
-  const xBudgetUsage = (xBudgetUsageResult.data ?? []).find(
-    (row) => row.scope === "social_x",
-  );
+  const xBudgetUsage = (xBudgetUsageResult.data ?? [])[0];
 
   return {
     totalCost: total?.cost_usd ?? 0,
@@ -731,14 +891,80 @@ export async function loadAdminAi(admin: AdminClient) {
       monthly_limit_usd: 100,
       updated_at: null,
     },
-    xBudget: budgetsResult.data?.find((budget) => budget.scope === "social_x") ?? {
-      scope: "social_x" as const,
-      daily_limit_usd: 1,
-      monthly_limit_usd: 20,
+    xApiBudget: xBudgetResult.data ?? {
+      provider: "x" as const,
+      resource_type: "post_read" as const,
+      unit_cost_usd: 0.005,
+      daily_limit_usd: 5,
+      monthly_limit_usd: 50,
       updated_at: null,
     },
-    xSpendToday: Number(xBudgetUsage?.daily_spend_usd ?? 0),
-    xSpend30Days: Number(xBudgetUsage?.monthly_spend_usd ?? 0),
+    xApiSpendToday: Number(xBudgetUsage?.daily_spend_usd ?? 0),
+    xApiSpend30Days: Number(xBudgetUsage?.monthly_spend_usd ?? 0),
+    xApiPostsToday: Number(xBudgetUsage?.daily_post_count ?? 0),
+    xApiPosts30Days: Number(xBudgetUsage?.monthly_post_count ?? 0),
+    costTimeline: (costTimelineResult.data ?? []).map((row) => ({
+      day: row.day,
+      ai_cost_usd: Number(row.ai_cost_usd ?? 0),
+      x_api_cost_usd: Number(row.x_api_cost_usd ?? 0),
+      x_post_count: Number(row.x_post_count ?? 0),
+    } satisfies AdminCostTimelineRow)),
+  };
+}
+
+export async function loadAdminUserErrorReports(
+  admin: AdminClient,
+  query: AdminTableQuery,
+) {
+  const from = (query.page - 1) * query.pageSize;
+  let reportsRequest = admin
+    .from("user_error_reports")
+    .select("id, article_id, article_slug, article_title, source_name, message, status, page_path, referrer_path, user_agent, release_sha, request_fingerprint, technical_context, telegram_status, telegram_error, admin_note, reporter_user_id, created_at, resolved_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, from + query.pageSize - 1);
+
+  if (query.search) {
+    reportsRequest = reportsRequest.or(`message.ilike.%${query.search}%,page_path.ilike.%${query.search}%`);
+  }
+  if (query.status && query.status !== "all") {
+    reportsRequest = reportsRequest.eq("status", query.status as "new" | "in_progress" | "resolved" | "dismissed");
+  }
+
+  const [reportsResult, countsResult] = await Promise.all([
+    reportsRequest,
+    admin.from("user_error_reports").select("status"),
+  ]);
+  throwFirstError([reportsResult.error, countsResult.error]);
+
+  return {
+    items: (reportsResult.data ?? []).map((report) => ({
+        id: report.id,
+        articleId: report.article_id ?? "",
+        articleSlug: report.article_slug,
+        articleTitle: report.article_title,
+        sourceName: report.source_name,
+        message: report.message,
+        status: report.status,
+        pagePath: report.page_path,
+        referrerPath: report.referrer_path,
+        userAgent: report.user_agent,
+        releaseSha: report.release_sha,
+        requestFingerprint: report.request_fingerprint,
+        isAuthenticated: Boolean(report.reporter_user_id),
+        technicalContext: report.technical_context,
+        telegramDeliveryStatus: report.telegram_status,
+        telegramDeliveryError: report.telegram_error,
+        adminNote: report.admin_note,
+        createdAt: report.created_at,
+        resolvedAt: report.resolved_at,
+      } satisfies AdminUserErrorReport)),
+    total: reportsResult.count ?? 0,
+    metrics: {
+      new: (countsResult.data ?? []).filter((report) => report.status === "new").length,
+      inProgress: (countsResult.data ?? []).filter((report) => report.status === "in_progress").length,
+      resolved: (countsResult.data ?? []).filter((report) => report.status === "resolved").length,
+    },
+    query,
   };
 }
 

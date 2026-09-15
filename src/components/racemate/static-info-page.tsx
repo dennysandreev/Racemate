@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, FileText, Flag } from "lucide-react";
+import { ArrowRight, FileText, Flag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { StaticDocumentPage, StaticPlaceholderPage } from "@/content/static-pages";
@@ -11,12 +11,6 @@ export function StaticDocumentPageView({ page }: { page: StaticDocumentPage }) {
       <header className="stitch-panel relative overflow-hidden p-5 sm:p-7">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgb(225_6_0_/_0.2),transparent_20rem),linear-gradient(135deg,rgb(255_255_255_/_0.08),transparent_42%)]" />
         <div className="relative max-w-4xl">
-          <Button asChild className="mb-6" size="sm" variant="secondary">
-            <Link href="/" prefetch={false}>
-              <ArrowLeft aria-hidden="true" data-icon="inline-start" />
-              На главную
-            </Link>
-          </Button>
           <p className="stitch-label mb-3 text-primary">Документы RaceSide</p>
           <h1 className="font-display text-balance text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">
             {page.title}

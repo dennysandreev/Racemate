@@ -134,6 +134,12 @@ async function loadTrackModel(modelId: TrackModelId): Promise<TrackModelDefiniti
       return (await import("@/data/montreal-model")).MONTREAL_TRACK_MODEL;
     case "monaco":
       return (await import("@/data/monaco-model")).MONACO_TRACK_MODEL;
+    case "monza":
+      return (await import("@/data/monza-model")).MONZA_TRACK_MODEL;
+    case "baku":
+      return (await import("@/data/baku-model")).BAKU_TRACK_MODEL;
+    case "madring":
+      return (await import("@/data/madring-model")).MADRING_TRACK_MODEL;
     case "catalunya":
       return (await import("@/data/catalunya-model")).CATALUNYA_TRACK_MODEL;
     case "red-bull-ring":

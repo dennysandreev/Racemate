@@ -212,15 +212,18 @@ def create_edge_lines(centerline, cumulative, total, raster, center, base_elevat
     return builder.create_object("Track_Edge_Lines", [material], collection)
 
 
-def create_curbs(config, centerline, cumulative, raster, center, base_elevation, materials, collection):
+def create_curbs(
+    config, centerline, cumulative, raster, center, base_elevation, materials, collection,
+    spans=None,
+):
     builder = base.MeshBuilder()
     track_width = config["model"]["trackWidthMeters"]
     inner_offset = track_width / 2 + 0.08
     outer_offset = inner_offset + CURB_WIDTH_METERS
     section_count = 0
-    for turn, span in zip(config["model"]["turns"], base.TURN_CURB_HALF_SPAN):
-        distance = turn["distanceMeters"] - span
-        end = turn["distanceMeters"] + span
+    for turn, span in zip(config["model"]["turns"], spans or base.TURN_CURB_HALF_SPAN):
+        distance = turn.get("curbStartMeters", turn["distanceMeters"] - span)
+        end = turn.get("curbEndMeters", turn["distanceMeters"] + span)
         stripe_index = 0
         while distance < end:
             following = min(distance + 4.0, end)

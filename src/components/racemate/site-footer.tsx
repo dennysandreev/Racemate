@@ -1,8 +1,9 @@
-import Link from "next/link";
+import { IntentLink as Link } from "@/components/racemate/intent-link";
 
 import { RaceMateLogo } from "@/components/racemate/racemate-logo";
 
 const primaryFooterLinks = [
+  { href: "/plus", label: "RaceSide Plus" },
   { href: "/legal/disclaimer", label: "Отказ от ответственности" },
   { href: "/contacts", label: "Контакты" },
 ];
@@ -25,7 +26,6 @@ export function SiteFooter() {
             aria-label="RaceSide, на главную"
             className="group flex w-fit shrink-0 items-center"
             href="/"
-            prefetch={false}
           >
             <RaceMateLogo size="footer" />
           </Link>
@@ -44,7 +44,6 @@ export function SiteFooter() {
                     className="whitespace-nowrap rounded-sm text-xs font-normal text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     href={link.href}
                     key={link.href}
-                    prefetch={false}
                   >
                     {link.label}
                   </Link>

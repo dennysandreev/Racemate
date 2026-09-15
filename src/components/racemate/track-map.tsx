@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Box, Map } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { TrackModel3DLazy } from "@/components/racemate/track-model-3d-lazy";
 import { Button } from "@/components/ui/button";
@@ -14,20 +14,28 @@ import type { TrackLayout } from "@/types/racemate";
 type TrackMapProps = {
   assetSrc?: string | null;
   circuit: string;
+  className?: string;
   compact?: boolean;
   fill?: boolean;
   label?: string;
   layout?: TrackLayout | null;
+  modelTogglePlacement?: "top" | "bottom" | "mobile-bottom";
+  shortModelToggleLabel?: boolean;
   showModel3d?: boolean;
+  toolbarLeading?: ReactNode;
   unframed?: boolean;
 };
 
 export function TrackMap({
   assetSrc,
   circuit,
+  className,
   compact,
   fill = false,
+  modelTogglePlacement = "top",
+  shortModelToggleLabel = false,
   showModel3d = false,
+  toolbarLeading,
   unframed = false,
 }: TrackMapProps) {
   const legacyAsset = assetSrc === undefined ? getCircuitAsset(circuit) : null;
@@ -44,27 +52,48 @@ export function TrackMap({
         "relative flex min-w-0 max-w-full flex-col overflow-hidden",
         !unframed && "race-track-surface rounded-md",
         fill ? "h-full w-full" : "gap-2 p-3",
+        className,
       )}
     >
       {!fill && !unframed ? (
         <div className="race-track-overlay absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgb(225_6_0_/_0.16),transparent_15rem)]" />
       ) : null}
-      {canShowModel3d ? (
-        <div className={cn("relative flex justify-end", fill && "mb-2")}>
-          <Button
-            aria-pressed={useModel3d}
-            onClick={() => setActiveModelView(useModel3d ? null : modelViewKey)}
-            size="sm"
-            type="button"
-            variant="secondary"
-          >
-            {useModel3d ? (
-              <Map aria-hidden="true" data-icon="inline-start" />
-            ) : (
-              <Box aria-hidden="true" data-icon="inline-start" />
-            )}
-            {useModel3d ? "Показать схему" : "3D-визуализация"}
-          </Button>
+      {toolbarLeading || canShowModel3d ? (
+        <div
+          className={cn(
+            "relative flex flex-wrap items-center gap-2",
+            toolbarLeading ? (canShowModel3d ? "justify-between" : "justify-start") : "justify-end",
+            fill && modelTogglePlacement === "top" && "mb-2",
+            fill && modelTogglePlacement === "bottom" && "absolute bottom-2 right-0 z-10",
+            fill && modelTogglePlacement === "mobile-bottom" && "order-2 mt-2 sm:order-none sm:mb-2 sm:mt-0",
+          )}
+        >
+          {toolbarLeading ? <div className="min-w-0">{toolbarLeading}</div> : null}
+          {canShowModel3d ? (
+            <Button
+              aria-label={useModel3d ? "Схема" : undefined}
+              aria-pressed={useModel3d}
+              title={useModel3d ? "Схема" : undefined}
+              onClick={() => setActiveModelView(useModel3d ? null : modelViewKey)}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
+              {useModel3d ? (
+                <Map aria-hidden="true" data-icon="inline-start" />
+              ) : (
+                <Box aria-hidden="true" data-icon="inline-start" />
+              )}
+              {!useModel3d ? (
+                <>
+                  <span className="sm:hidden">3D</span>
+                  <span className="hidden sm:inline">
+                    {shortModelToggleLabel ? "3D" : "3D-визуализация"}
+                  </span>
+                </>
+              ) : null}
+            </Button>
+          ) : null}
         </div>
       ) : null}
       {useModel3d && trackModelId ? (
@@ -101,6 +130,7 @@ export function TrackMap({
             priority
             sizes={compact ? "(max-width: 640px) 360px, (max-width: 1024px) 720px, 56rem" : "(max-width: 640px) 360px, 48rem"}
             src={imageSrc}
+            unoptimized
           />
         </div>
       ) : (

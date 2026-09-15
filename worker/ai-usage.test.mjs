@@ -66,6 +66,8 @@ test("worker routes every OpenRouter completion through one accounting boundary"
   assert.equal(endpointOccurrences.length, 1);
   assert.match(source, /async function requestOpenRouterCompletion/);
   assert.match(source, /await recordOpenRouterUsage/);
+  assert.match(source, /signal: AbortSignal\.timeout\(getOpenRouterTimeoutMs\(\)\)/);
+  assert.match(source, /function getOpenRouterTimeoutMs\(\)/);
   assert.doesNotMatch(source, /\bmax_tokens\s*:/);
   const calls = [...source.matchAll(/requestOpenRouterCompletion\(\{([\s\S]*?)\n\s*\}\);/g)]
     .slice(1)

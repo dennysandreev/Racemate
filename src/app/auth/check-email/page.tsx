@@ -19,7 +19,7 @@ export default async function CheckEmailPage({
   const isSignup = type === "signup";
 
   return (
-    <AppShell>
+    <AppShell hideAds>
       <PageHeading title={isSignup ? "Подтверди почту" : "Письмо отправлено"} />
       <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <StitchPanel>

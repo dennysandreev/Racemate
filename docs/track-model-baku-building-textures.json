@@ -1,0 +1,59 @@
+{
+  "sources": [
+    {
+      "id": "ismailiyya",
+      "file": "ismailiyya.jpg",
+      "author": "Sefer azeri",
+      "date": "2015-09-17",
+      "page": "https://commons.wikimedia.org/wiki/File:Ismailiyye_palace_main_fa%C3%A7ade,_Baku,_2015.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Ismailiyye_palace_main_fa%C3%A7ade%2C_Baku%2C_2015.jpg",
+      "license": "CC BY-SA 4.0",
+      "osmWayId": 153876715,
+      "cropPixels": [
+        142,
+        760,
+        2254,
+        1770
+      ],
+      "atlasPixels": [
+        0,
+        0,
+        1536,
+        768
+      ],
+      "use": "photographed north facade below the decorative skyline; planar projection",
+      "sha256": "017ac9d72882c7fec1d140d18cf055071249d4bb1f187dd580c941ee703effe4"
+    },
+    {
+      "id": "maiden-tower",
+      "file": "maiden-tower.jpg",
+      "author": "Ludvig14",
+      "date": "2019-04-19",
+      "page": "https://commons.wikimedia.org/wiki/File:Baku_Maiden_Tower_004_7736.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Baku_Maiden_Tower_004_7736.jpg/1280px-Baku_Maiden_Tower_004_7736.jpg",
+      "license": "CC BY-SA 4.0",
+      "osmWayId": 299418016,
+      "cropPixels": [
+        225,
+        340,
+        305,
+        740
+      ],
+      "atlasPixels": [
+        1536,
+        0,
+        1792,
+        768
+      ],
+      "use": "masonry detail sampled from the tower itself; repeated around its mapped footprint",
+      "sha256": "7352558373b49b2f33878bfa2fabd1afcdfad89f503326bdf1765e0ae7f8dd44"
+    }
+  ],
+  "license": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "atlasSize": [
+    1792,
+    768
+  ],
+  "outputSha256": "e37eb162be10196e6b47a3ad447d67a8a999b36b6be86ddad4a2e34917da5e3f",
+  "limits": "Two actual photographed landmarks; other facades use approximate stone colours. Roofs use the georegistered Planet image."
+}

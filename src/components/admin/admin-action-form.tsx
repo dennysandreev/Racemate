@@ -19,7 +19,7 @@ export function AdminActionForm({
   submitVariant = "default",
 }: {
   action: (state: AdminActionResult, formData: FormData) => Promise<AdminActionResult>;
-  children?: React.ReactNode;
+  children?: React.ReactNode | ((state: AdminActionResult) => React.ReactNode);
   className?: string;
   submitLabel?: string;
   submitVariant?: ButtonProps["variant"];
@@ -32,7 +32,7 @@ export function AdminActionForm({
 
   return (
     <form action={formAction} className={cn("flex flex-col gap-3", className)}>
-      {children}
+      {typeof children === "function" ? children(state) : children}
       <div className="flex flex-wrap items-center gap-3">
         <SubmitButton label={submitLabel} variant={submitVariant} />
         {state.message ? (

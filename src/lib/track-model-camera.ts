@@ -6,6 +6,16 @@ export type TrackModelPan = {
 export const TRACK_MODEL_MIN_ZOOM = 0.82;
 export const TRACK_MODEL_MAX_ZOOM = 8;
 export const TRACK_MODEL_ZOOM_STEP = 0.25;
+export const TRACK_MODEL_WEBGL_INITIAL_ZOOM = 1.75;
+export const TRACK_MODEL_WEBGL_MOBILE_INITIAL_ZOOM = 1.25;
+
+export function getTrackModelInitialZoom(hasWebGL: boolean, isWideViewport: boolean) {
+  if (!hasWebGL) return 1;
+
+  return isWideViewport
+    ? TRACK_MODEL_WEBGL_INITIAL_ZOOM
+    : TRACK_MODEL_WEBGL_MOBILE_INITIAL_ZOOM;
+}
 
 export function trackModelCameraPolarDeg(tiltDeg: number) {
   return Math.min(72, Math.max(40, 48 + (tiltDeg - 10) * 0.34));

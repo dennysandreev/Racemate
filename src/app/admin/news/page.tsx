@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 
 import {
+  hideNewsArticleAction,
+  publishDuplicateNewsAction,
   reprocessNewsArticleAction,
   saveDigestAction,
   saveNewsArticleAction,
@@ -9,6 +11,9 @@ import {
 } from "@/app/admin/operations";
 import { AdminActionForm } from "@/components/admin/admin-action-form";
 import { AdminArticleEditorDialog } from "@/components/admin/admin-article-editor-dialog";
+import { AdminConfirmedAction } from "@/components/admin/admin-confirmed-action";
+import { AdminConfirmedForm } from "@/components/admin/admin-confirmed-form";
+import { AdminUrlTabs } from "@/components/admin/admin-url-tabs";
 import { AdminFilters } from "@/components/admin/admin-filters";
 import {
   AdminDigestMeta,
@@ -22,7 +27,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
@@ -33,6 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { loadAdminNews, parseAdminTableQuery } from "@/data/admin-repository";
+import { isNewsRemovedFromFeed } from "@/lib/admin-policies";
 import { requireAdmin } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -53,7 +59,7 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
         description="Редактируй русскую версию, управляй публикацией и повторной обработкой. Публичный адрес после первой публикации не меняется."
         title="Новости и сводки"
       />
-      <Tabs defaultValue="materials">
+      <AdminUrlTabs defaultValue="materials" values={["materials", "sources", "digests"]}>
         <TabsList variant="line">
           <TabsTrigger value="materials">Материалы</TabsTrigger>
           <TabsTrigger value="sources">RSS-источники</TabsTrigger>
@@ -71,6 +77,7 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
               statuses={[
                 { value: "published", label: "Опубликованы" },
                 { value: "draft", label: "Черновики" },
+                { value: "removed", label: "Сняты с ленты" },
                 { value: "duplicate", label: "Дубли" },
                 { value: "rejected", label: "Отклонены" },
                 { value: "processing", label: "Обрабатываются" },
@@ -79,14 +86,14 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
             {data.items.length ? (
               <>
                 <div className="hidden overflow-x-auto xl:block">
-                  <Table className="table-fixed">
+                  <Table className="min-w-[76rem] table-fixed">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Материал</TableHead>
                         <TableHead className="w-36">Источник</TableHead>
-                        <TableHead className="w-32">Состояние</TableHead>
+                        <TableHead className="w-40">Состояние</TableHead>
                         <TableHead className="w-40">Обновлён</TableHead>
-                        <TableHead className="w-52 text-right">Действия</TableHead>
+                        <TableHead className="w-80 text-right">Действия</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -97,16 +104,50 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
                             <p className="mt-1 truncate font-mono text-xs text-muted-foreground">/{article.slug}</p>
                           </TableCell>
                           <TableCell><p className="line-clamp-2">{article.sourceName}</p></TableCell>
-                          <TableCell><AdminStatusBadge status={article.publication_status} /></TableCell>
-                          <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(article.updated_at)}</TableCell>
                           <TableCell>
-                            <div className="flex justify-end gap-2">
+                            {isNewsRemovedFromFeed(article.publication_status, article.published_at) ? (
+                              <AdminStatusBadge status="removed_from_feed" />
+                            ) : (
+                              <AdminStatusBadge status={article.publication_status} />
+                            )}
+                            {article.aiFailureLabel ? (
+                              <p className="mt-1 text-xs leading-4 text-destructive">{article.aiFailureLabel}</p>
+                            ) : null}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(article.updated_at)}</TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1">
                               <Button asChild size="sm" variant="ghost">
                                 <Link href={`/news/${article.slug}`} target="_blank"><ExternalLink aria-hidden="true" data-icon="inline-start" />Открыть</Link>
                               </Button>
                               <AdminArticleEditorDialog title={article.ai_title_ru ?? article.original_title}>
                                 <ArticleEditor article={article} />
                               </AdminArticleEditorDialog>
+                              {article.publication_status === "published" ? (
+                                <AdminConfirmedAction
+                                  action={hideNewsArticleAction}
+                                  confirmLabel="Убрать"
+                                  description="Материал исчезнет из публичной ленты, но сохранится в админке. Его можно будет опубликовать снова."
+                                  title="Убрать материал из ленты?"
+                                  triggerIcon={<X aria-hidden="true" />}
+                                  triggerIconOnly
+                                  triggerLabel="Убрать из ленты"
+                                  triggerVariant="ghost"
+                                >
+                                  <input name="articleId" type="hidden" value={article.id} />
+                                </AdminConfirmedAction>
+                              ) : null}
+                              {article.publication_status === "duplicate" ? (
+                                <AdminConfirmedAction
+                                  action={publishDuplicateNewsAction}
+                                  confirmLabel="Опубликовать"
+                                  description="Материал перестанет считаться дублем и появится в публичной ленте как отдельная новость."
+                                  title="Опубликовать дубль?"
+                                  triggerLabel="Опубликовать"
+                                >
+                                  <input name="articleId" type="hidden" value={article.id} />
+                                </AdminConfirmedAction>
+                              ) : null}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -119,9 +160,18 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
                     <article className="grid gap-3 border-b border-border p-4 last:border-b-0" key={article.id}>
                       <div className="flex items-start justify-between gap-3">
                         <h2 className="min-w-0 break-words text-sm font-medium leading-6">{article.ai_title_ru ?? article.original_title}</h2>
-                        <AdminStatusBadge status={article.publication_status} />
+                        <div className="shrink-0">
+                          {isNewsRemovedFromFeed(article.publication_status, article.published_at) ? (
+                            <AdminStatusBadge status="removed_from_feed" />
+                          ) : (
+                            <AdminStatusBadge status={article.publication_status} />
+                          )}
+                        </div>
                       </div>
                       <p className="text-xs text-muted-foreground">{article.sourceName}, {formatDate(article.updated_at)}</p>
+                      {article.aiFailureLabel ? (
+                        <p className="text-xs leading-5 text-destructive">{article.aiFailureLabel}</p>
+                      ) : null}
                       <div className="flex flex-wrap gap-2">
                         <Button asChild size="sm" variant="ghost">
                           <Link href={`/news/${article.slug}`} target="_blank"><ExternalLink aria-hidden="true" data-icon="inline-start" />Открыть</Link>
@@ -129,6 +179,31 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
                         <AdminArticleEditorDialog title={article.ai_title_ru ?? article.original_title}>
                           <ArticleEditor article={article} />
                         </AdminArticleEditorDialog>
+                        {article.publication_status === "published" ? (
+                          <AdminConfirmedAction
+                            action={hideNewsArticleAction}
+                            confirmLabel="Убрать"
+                            description="Материал исчезнет из публичной ленты, но сохранится в админке. Его можно будет опубликовать снова."
+                            title="Убрать материал из ленты?"
+                            triggerIcon={<X aria-hidden="true" />}
+                            triggerIconOnly
+                            triggerLabel="Убрать из ленты"
+                            triggerVariant="ghost"
+                          >
+                            <input name="articleId" type="hidden" value={article.id} />
+                          </AdminConfirmedAction>
+                        ) : null}
+                        {article.publication_status === "duplicate" ? (
+                          <AdminConfirmedAction
+                            action={publishDuplicateNewsAction}
+                            confirmLabel="Опубликовать"
+                            description="Материал перестанет считаться дублем и появится в публичной ленте как отдельная новость."
+                            title="Опубликовать дубль?"
+                            triggerLabel="Опубликовать"
+                          >
+                            <input name="articleId" type="hidden" value={article.id} />
+                          </AdminConfirmedAction>
+                        ) : null}
                       </div>
                     </article>
                   ))}
@@ -187,12 +262,15 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
             {data.digests.length ? (
               <div className="grid gap-4 p-4">
                 {data.digests.map((digest) => (
-                  <AdminActionForm
+                  <AdminConfirmedForm
                     action={saveDigestAction}
                     className="rounded-md border border-border p-4"
+                    confirmLabel="Сохранить"
+                    description="Если выбрана публикация, сводка сразу станет доступна читателям."
                     key={digest.id}
                     submitLabel="Сохранить сводку"
                     submitVariant="secondary"
+                    title="Сохранить сводку?"
                   >
                     <input name="digestId" type="hidden" value={digest.id} />
                     <AdminDigestMeta dateKey={digest.date_key} status={digest.status} />
@@ -214,7 +292,7 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
                         </select>
                       </Field>
                     </FieldGroup>
-                  </AdminActionForm>
+                  </AdminConfirmedForm>
                 ))}
               </div>
             ) : (
@@ -222,7 +300,7 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
             )}
           </AdminSection>
         </TabsContent>
-      </Tabs>
+      </AdminUrlTabs>
     </AdminPage>
   );
 }
@@ -234,10 +312,13 @@ function ArticleEditor({
 }) {
   return (
     <div className="grid gap-4 text-left">
-      <AdminActionForm
+      <AdminConfirmedForm
         action={saveNewsArticleAction}
+        confirmLabel="Сохранить"
+        description="Если выбрана публикация, материал сразу появится в публичной ленте."
         submitLabel="Сохранить материал"
         submitVariant="secondary"
+        title="Сохранить материал?"
       >
         <input name="articleId" type="hidden" value={article.id} />
         <FieldGroup>
@@ -268,7 +349,7 @@ function ArticleEditor({
             </select>
           </Field>
         </FieldGroup>
-      </AdminActionForm>
+      </AdminConfirmedForm>
       <div className="flex flex-wrap gap-2 border-t border-border pt-4">
         <AdminActionForm action={reprocessNewsArticleAction} submitLabel="Пересобрать текст" submitVariant="secondary">
           <input name="articleId" type="hidden" value={article.id} />

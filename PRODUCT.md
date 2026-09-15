@@ -18,6 +18,8 @@ Core user groups:
 
 RaceSide is a premium motorsport companion for the F1 season. It combines cached official and third-party F1 data, RSS/API news ingestion, Russian AI summaries, race weekend context, favorites, predictions, leagues, polls, reactions, and an operational admin surface.
 
+The current-weekend context includes the three dry Pirelli compounds confirmed for that Grand Prix. The worker discovers official Formula 1 tyre announcements, validates the race and season from the article URL, and caches the allocation on the race record before it is shown publicly.
+
 Success means a user can:
 - understand what matters in F1 today in under a minute;
 - see what happens next in the season or current race weekend;
@@ -85,14 +87,32 @@ Included in V1:
 - predictions, mini-leagues, leaderboards, polls, reactions;
 - operational admin for sources, jobs, articles, AI usage, and sync tasks;
 - worker-based external API ingestion and caching.
-- Telegram linking and configurable notifications for sessions, fantasy, important news, weather, and championship updates;
+- one RaceSide Plus subscription at 249 ₽ per month or 1 990 ₽ for the first year;
+- subscriber access to RaceSide LIVE, the full Telemetry Hub, and Telegram linking and notifications;
+- one authenticated Telemetry Demo based on a prepared comparison from the Grand Prix two completed rounds back;
+- advertising on free surfaces and an ad-free experience across the whole site for subscribers;
 - mandatory spoiler protection for qualifying, sprint, and race results in Telegram.
 
 Deferred from V1:
 - web push and notification channels other than Telegram;
-- live timing and live telemetry;
 - YouTube/video;
 - native mobile apps.
+
+## RaceSide LIVE
+
+- `/live` is part of RaceSide Plus. Guests and signed-in users without an active subscription may open the route but must not receive LIVE data; they see the subscription offer instead. `15_raceside_live.md` and `16_raceside_live_weekend_sessions.md` continue to define the session and interface scope.
+- The existing Replay and watch-online link remain available. LIVE uses a shared server-side paid OpenF1 stream and records racing history for Replay.
+- Team Radio is transcribed with OpenRouter `openai/gpt-transcribe`; Russian translation uses the existing text integration. Audio exists only in temporary memory, never in permanent storage.
+
+## Subscription
+
+- `18_subscription_concept.md` is the source of truth for subscription pricing and product access.
+- `19_subscription_payment_integration.md` defines the billing architecture and provider contracts; `20_subscription_development_plan.md` defines staged implementation and acceptance.
+- RaceSide Plus costs 249 ₽ per month or 1 990 ₽ for the first year.
+- The first release accepts a separate payment for each period through YooMoney or Tribute; it has no automatic renewal. YooKassa and other providers are deferred.
+- The full LIVE section, full Telemetry Hub, and Telegram notifications require an active subscription.
+- Telemetry Demo requires an account and exposes only one prepared comparison from the Grand Prix two completed rounds back.
+- Subscribers do not see advertising anywhere on the site.
 
 ## Historical seasons
 

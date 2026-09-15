@@ -33,6 +33,7 @@ export function AdminShell({
   email: string;
 }) {
   const pathname = usePathname();
+  const navigationGroups = [...new Set(adminNavigation.map((item) => item.group))];
 
   return (
     <SidebarProvider
@@ -44,6 +45,9 @@ export function AdminShell({
         } as React.CSSProperties
       }
     >
+      <a className="sr-only z-50 rounded-md bg-background px-4 py-3 text-sm font-medium focus:not-sr-only focus:fixed focus:left-4 focus:top-4" href="#admin-main">
+        Перейти к содержанию
+      </a>
       <Sidebar collapsible="icon">
         <SidebarHeader className="border-b border-sidebar-border p-3">
           <SidebarMenu>
@@ -58,11 +62,12 @@ export function AdminShell({
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Управление</SidebarGroupLabel>
+          {navigationGroups.map((group) => (
+          <SidebarGroup key={group}>
+            <SidebarGroupLabel>{group}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {adminNavigation.map((item) => {
+                {adminNavigation.filter((item) => item.group === group).map((item) => {
                   const active = item.href === "/admin"
                     ? pathname === item.href
                     : pathname.startsWith(item.href);
@@ -81,6 +86,7 @@ export function AdminShell({
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+          ))}
         </SidebarContent>
         <SidebarFooter className="border-t border-sidebar-border p-3">
           <SidebarMenu>
@@ -110,7 +116,7 @@ export function AdminShell({
           <SidebarTrigger />
           <AdminCommandMenu />
         </header>
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1" id="admin-main">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -1,13 +1,14 @@
 import {
   ArrowRight,
   CalendarDays,
+  Clock3,
   ExternalLink,
   MapPin,
   Newspaper,
   Target,
   TrendingUp,
 } from "lucide-react";
-import Link from "next/link";
+import { IntentLink as Link } from "@/components/racemate/intent-link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ComponentType, ReactNode, SVGProps } from "react";
@@ -23,6 +24,7 @@ import { TeamColorProgress } from "@/components/racemate/team-color";
 import { TrackLocalTimeBadge } from "@/components/racemate/track-local-time-badge";
 import { TrackMap } from "@/components/racemate/track-map";
 import { WeekendSessionBoard } from "@/components/racemate/weekend-session-board";
+import { WeekendTyreAllocation } from "@/components/racemate/weekend-tyre-allocation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -87,12 +89,22 @@ export default async function WeekendPage({
     notFound();
   }
 
+  return (
+    <AppShell>
+      <WeekendContent requestedSessionId={requestedSessionId} />
+    </AppShell>
+  );
+}
+
+async function WeekendContent({ requestedSessionId }: {
+  requestedSessionId: string | undefined;
+}) {
   const userPromise = getSessionUser();
   const publicDataPromise = withServerTtlCache(
     "public:weekend",
-    10_000,
+    3_000,
     getWeekendPagePublicData,
-    { staleWhileRevalidateMs: 5 * 60_000 },
+    { staleWhileRevalidateMs: 0 },
   );
   const predictionStatePromise: Promise<PredictionState> = userPromise.then((user) =>
     user ? getPredictionState(user.id) : getEmptyWeekendPredictionState(),
@@ -131,7 +143,7 @@ export default async function WeekendPage({
         : "/news";
 
   return (
-    <AppShell>
+    <>
       {currentRace ? (
         <JsonLd
           data={[
@@ -212,7 +224,7 @@ export default async function WeekendPage({
           <FantasyPredictionCard predictionState={predictionState} userSignedIn={Boolean(user)} />
         </div>
       </section>
-    </AppShell>
+    </>
   );
 }
 
@@ -254,7 +266,7 @@ function getEmptyWeekendPredictionState(): PredictionState {
     current: null,
     drivers: [],
     previousResult: null,
-    qualifyingResults: null,
+    startingGrid: null,
     race: null,
     seasonSummary: {
       predictionCount: 0,
@@ -281,109 +293,183 @@ function WeekendHero({
   weekendStatus: string;
 }) {
   const isWeekendDone = weekendStatus === "Завершен";
+  const isWeekendUpcoming = weekendStatus.startsWith("До старта");
+  const nextSessionStart = splitSessionStart(nextSession.startsAt);
 
   return (
-    <section className="stitch-panel relative overflow-hidden p-0">
-      <div className="weekend-hero-glow pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgb(225_6_0_/_0.28),transparent_24rem),linear-gradient(125deg,rgb(255_255_255_/_0.08),transparent_38%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.28))]" />
-      <div className="relative grid gap-3 px-5 pb-4 pt-3 sm:px-6 sm:pb-5 sm:pt-3.5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="grid min-w-0 gap-2">
-            <div className="flex min-w-0 items-center gap-2">
-              {currentRace ? (
-                <span className="inline-flex shrink-0 items-center">
+    <section className="stitch-panel overflow-hidden p-0">
+      <div className="grid lg:grid-cols-[minmax(0,1.42fr)_minmax(24.5rem,0.8fr)]">
+        <div className="flex min-w-0 flex-col border-b stitch-divider lg:border-b-0 lg:border-r">
+          <header className="px-4 pb-3 pt-4 sm:px-5 sm:pb-3 sm:pt-5">
+            <div className="flex min-w-0 items-center justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-2.5">
+                {currentRace ? (
                   <RaceFlag
-                    className="text-xl"
+                    className="shrink-0 text-xl"
                     countryCode={currentRace.countryCode}
                     label={currentRace.country}
                     value={currentRace.countryFlag}
                   />
-                </span>
-              ) : null}
-              <Badge variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
+                ) : null}
+                <Badge className="shrink-0" variant="outline">Раунд {currentRace?.round ?? "—"}</Badge>
+                <span aria-hidden="true" className="hidden h-5 w-px bg-border sm:block" />
+                <p className="hidden min-w-0 items-center gap-1.5 text-sm font-semibold text-muted-foreground sm:flex">
+                  <MapPin aria-hidden="true" className="size-4 shrink-0 text-primary" />
+                  <span className="truncate">
+                    {currentRace ? `${currentRace.locality}, ${currentRace.country}` : "Локация уточняется"}
+                  </span>
+                </p>
+              </div>
+              <div className={cn("shrink-0", isWeekendUpcoming && "lg:hidden")}>
+                <Badge className="whitespace-nowrap" variant={weekendStatus === "Live" ? "success" : "warning"}>
+                  {weekendStatus}
+                </Badge>
+              </div>
             </div>
-            <p className="font-telemetry flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
-              <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
-              <span className="truncate">{currentRace?.circuit ?? "Трасса этапа"}</span>
-            </p>
-          </div>
-          <div className="ml-auto flex flex-col items-end gap-1.5">
-            <Badge className="shrink-0" variant={weekendStatus === "Live" ? "success" : "warning"}>
-              {weekendStatus}
-            </Badge>
-          </div>
-        </div>
-
-        <div className="min-w-0">
-          <PageTitle className="max-w-4xl">
-            {nextRace}
-          </PageTitle>
-          {isWeekendDone ? (
-            <p className="mt-2 text-sm font-semibold text-muted-foreground">
-              Этап завершен — смотри результаты сессий и повтор гонки.
-            </p>
-          ) : (
-            <p className="mt-2 flex flex-col text-sm font-semibold text-muted-foreground sm:flex-row sm:items-baseline sm:gap-1.5">
-              <span>Ближайшая сессия</span>
-              <span className="text-foreground sm:text-muted-foreground">
-                {formatSessionName(nextSession.session)} · {nextSession.startsAt}
+            <PageTitle className="mt-2.5 max-w-none">{nextRace}</PageTitle>
+            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-muted-foreground">
+              <p className="flex min-w-0 items-center gap-1.5 sm:hidden">
+                <MapPin aria-hidden="true" className="size-4 shrink-0 text-primary" />
+                <span className="truncate">
+                  {currentRace ? `${currentRace.locality}, ${currentRace.country}` : "Локация уточняется"}
+                </span>
+              </p>
+              <span className="truncate text-foreground/80">
+                {currentRace?.circuit ?? "Трасса этапа"}
               </span>
-            </p>
-          )}
+              {isWeekendDone ? <span>Этап завершен</span> : null}
+            </div>
+          </header>
+
+          <div className="flex flex-1 flex-col px-4 pb-4 sm:px-5 sm:pb-5">
+            <div className="h-[16rem] min-w-0 sm:h-[18rem] lg:h-auto lg:min-h-[18rem] lg:flex-1">
+              <TrackMap
+                assetSrc={currentRace?.trackMapUrl ?? undefined}
+                circuit={currentRace?.circuit ?? nextRace}
+                fill
+                label={nextRace}
+                layout={currentRace?.layout}
+                modelTogglePlacement="bottom"
+                shortModelToggleLabel
+                showModel3d
+                unframed
+              />
+            </div>
+            {!isWeekendDone ? (
+              <div className="border-t stitch-divider pt-4 lg:hidden">
+                <WeekendNextSession nextSession={nextSession} start={nextSessionStart} />
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end">
-          <div className="h-[18rem] min-w-0 sm:h-[20rem] xl:h-[22rem]">
-            <TrackMap
-              assetSrc={currentRace?.trackMapUrl ?? undefined}
-              circuit={currentRace?.circuit ?? nextRace}
-              fill
-              label={nextRace}
-              layout={currentRace?.layout}
-              showModel3d
-              unframed
-            />
-          </div>
-          <div className="grid content-end gap-2.5 border-t border-border/70 pt-4 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+        <aside className="grid min-w-0 content-start divide-y divide-border/70">
+          {!isWeekendDone ? (
+            <div className="hidden p-4 lg:block lg:p-5">
+              <WeekendNextSession nextSession={nextSession} start={nextSessionStart} />
+            </div>
+          ) : null}
+          {currentRace?.tyreAllocation ? (
+            <div className="p-4 lg:p-5">
+              <WeekendTyreAllocation allocation={currentRace.tyreAllocation} />
+            </div>
+          ) : null}
+          <div className="p-4 lg:p-5">
             <CircuitStatsSection
               circuitName={currentRace?.circuit ?? nextRace}
               embedded
               footerAction={(
-                <Button asChild className="w-full justify-center" size="sm">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+                <Button asChild className="w-full justify-center" size="sm" variant="secondary">
                   <Link href="https://vkvideo.ru/@versportaa" rel="noreferrer" target="_blank">
                     Смотреть онлайн
                     <ExternalLink aria-hidden="true" data-icon="inline-end" />
                   </Link>
                 </Button>
+                <Button asChild size="sm"><Link href="/live">LIVE HUB</Link></Button>
+                </div>
               )}
-              headerAction={<TrackLocalTimeBadge timezone={currentRace?.timezone} />}
+              previewFooter={<TrackLocalTimeBadge timezone={currentRace?.timezone} />}
+              previewLayout="list"
               showCircuitName={false}
+              showSectionLabel={false}
               stats={circuitStats}
             />
-            {raceReplay ? (
+          </div>
+          {raceReplay ? (
+            <div className="p-4 lg:p-5">
               <Button asChild className="w-full justify-center" size="sm" variant="secondary">
                 <NavigationLoadingLink
                   href={raceReplay.href}
                   loadingLabel="Готовим повтор Гран-при"
-                  prefetch={false}
                 >
                   Повтор Гран-при · {raceReplay.sourceSeason}
                 </NavigationLoadingLink>
               </Button>
-            ) : null}
-          </div>
-        </div>
+            </div>
+          ) : null}
+        </aside>
       </div>
     </section>
   );
 }
 
+function WeekendNextSession({
+  nextSession,
+  start,
+}: {
+  nextSession: Awaited<ReturnType<typeof getNextSession>>;
+  start: ReturnType<typeof splitSessionStart>;
+}) {
+  return (
+    <div className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 sm:gap-4">
+      <span className="weekend-next-session-icon grid size-11 shrink-0 place-items-center rounded-md text-primary ring-1 ring-border/70">
+        <Clock3 aria-hidden="true" className="size-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-muted-foreground">
+          Ближайшая сессия
+        </p>
+        <p className="mt-0.5 truncate font-display text-lg font-bold leading-tight text-foreground">
+          {formatSessionName(nextSession.session)}
+        </p>
+      </div>
+      <div className="shrink-0 text-right">
+        <p className="font-telemetry text-2xl font-extrabold leading-none text-foreground">
+          {start.time ?? nextSession.startsAt}
+        </p>
+        {start.time ? (
+          <p className="mt-1 font-telemetry text-[0.68rem] font-semibold text-muted-foreground">
+            {start.date}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function splitSessionStart(value: string) {
+  const separatorIndex = value.lastIndexOf(",");
+
+  if (separatorIndex < 0) {
+    return { date: value, time: null };
+  }
+
+  return {
+    date: value.slice(0, separatorIndex).trim(),
+    time: value.slice(separatorIndex + 1).trim() || null,
+  };
+}
+
 function PanelHeader({
   action,
+  hideMetaOnMobile = false,
   icon: Icon,
   meta,
   title,
 }: {
   action?: ReactNode;
+  hideMetaOnMobile?: boolean;
   icon: IconComponent;
   meta: string;
   title: string;
@@ -396,7 +482,14 @@ function PanelHeader({
         </span>
         <div className="min-w-0">
           <h2 className="font-display text-lg font-bold leading-tight">{title}</h2>
-          <p className="mt-0.5 truncate text-xs font-semibold text-muted-foreground">{meta}</p>
+          <p
+            className={cn(
+              "mt-0.5 truncate text-xs font-semibold text-muted-foreground",
+              hideMetaOnMobile && "hidden sm:block",
+            )}
+          >
+            {meta}
+          </p>
         </div>
       </div>
       {action}
@@ -446,6 +539,7 @@ function StageNewsPanel({
             />
           </Link>
         }
+        hideMetaOnMobile
         icon={Newspaper}
         meta="Главное вокруг этого Гран-при"
         title="Новости этапа"
@@ -462,7 +556,6 @@ function StageNewsPanel({
               )}
               href={`/news/${item.slug}`}
               key={item.slug}
-              prefetch={false}
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -486,16 +579,18 @@ function StageNewsPanel({
                     className="mt-1 hidden size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary sm:block"
                   />
                 </div>
-                <p
-                  className={cn(
-                    "mt-1.5 text-muted-foreground",
-                    index === 0
-                      ? "line-clamp-2 text-sm leading-6"
-                      : "line-clamp-1 text-xs leading-5 sm:line-clamp-2",
-                  )}
-                >
-                  {item.summary}
-                </p>
+                <div className="hidden sm:block">
+                  <p
+                    className={cn(
+                      "mt-1.5 text-muted-foreground",
+                      index === 0
+                        ? "line-clamp-2 text-sm leading-6"
+                        : "line-clamp-1 text-xs leading-5 sm:line-clamp-2",
+                    )}
+                  >
+                    {item.summary}
+                  </p>
+                </div>
               </div>
               {item.imageUrl ? (
                 <NewsImage
@@ -614,7 +709,7 @@ function FantasyPredictionCard({
                 ? "border-[rgba(57,255,20,0.4)] bg-[rgba(57,255,20,0.1)] text-[rgb(97,255,75)]"
                 : "border-amber-300/50 bg-amber-400/10 text-amber-300",
             )}
-          >
+      >
             {current ? "Сделан" : "Нет"}
           </span>
         }

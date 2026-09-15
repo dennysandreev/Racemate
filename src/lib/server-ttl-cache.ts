@@ -29,6 +29,8 @@ export function withServerTtlCache<T>(
   const existing = entries.get(key);
 
   if (existing && existing.expiresAt > now) {
+    entries.delete(key);
+    entries.set(key, existing);
     return existing.value as Promise<T>;
   }
 
@@ -84,25 +86,31 @@ export function withServerTtlCache<T>(
       }
     },
   );
-  pruneExpiredEntries(now);
+  pruneExpiredEntries(now, key.startsWith("auth:"));
 
   return value;
 }
 
-function pruneExpiredEntries(now: number) {
+export function invalidateServerTtlCache(key: string) {
+  entries.delete(key);
+}
+
+export function invalidateServerTtlCachePrefix(prefix: string) {
+  for (const key of entries.keys()) {
+    if (key.startsWith(prefix)) entries.delete(key);
+  }
+}
+
+function pruneExpiredEntries(now: number, authScope: boolean) {
   for (const [key, entry] of entries) {
     if (!entry.refreshing && entry.staleUntil <= now) {
       entries.delete(key);
     }
   }
 
-  while (entries.size > MAX_CACHE_ENTRIES) {
-    const oldestKey = entries.keys().next().value;
-
-    if (typeof oldestKey !== "string") {
-      break;
-    }
-
-    entries.delete(oldestKey);
+  // Profiles and permissions must not evict the public pages during traffic spikes.
+  const scopedKeys = [...entries.keys()].filter((key) => key.startsWith("auth:") === authScope);
+  for (const key of scopedKeys.slice(0, Math.max(0, scopedKeys.length - MAX_CACHE_ENTRIES))) {
+    entries.delete(key);
   }
 }

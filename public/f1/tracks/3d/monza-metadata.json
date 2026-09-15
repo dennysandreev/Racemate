@@ -1,0 +1,1100 @@
+{
+  "boundsMeters": {
+    "depth": 3940,
+    "width": 3530
+  },
+  "coordinateReferenceSystem": "EPSG:32632 + Terrarium DEM metres",
+  "elevationProfile": [
+    {
+      "distanceMeters": 0.0,
+      "elevationMeters": 181.357
+    },
+    {
+      "distanceMeters": 32.37,
+      "elevationMeters": 181.516
+    },
+    {
+      "distanceMeters": 64.73,
+      "elevationMeters": 181.929
+    },
+    {
+      "distanceMeters": 97.1,
+      "elevationMeters": 182.082
+    },
+    {
+      "distanceMeters": 129.46,
+      "elevationMeters": 182.265
+    },
+    {
+      "distanceMeters": 161.83,
+      "elevationMeters": 182.5
+    },
+    {
+      "distanceMeters": 194.19,
+      "elevationMeters": 182.765
+    },
+    {
+      "distanceMeters": 226.56,
+      "elevationMeters": 183.008
+    },
+    {
+      "distanceMeters": 258.92,
+      "elevationMeters": 183.236
+    },
+    {
+      "distanceMeters": 291.29,
+      "elevationMeters": 183.565
+    },
+    {
+      "distanceMeters": 323.65,
+      "elevationMeters": 183.888
+    },
+    {
+      "distanceMeters": 356.02,
+      "elevationMeters": 184.024
+    },
+    {
+      "distanceMeters": 388.38,
+      "elevationMeters": 184.08
+    },
+    {
+      "distanceMeters": 420.75,
+      "elevationMeters": 183.354
+    },
+    {
+      "distanceMeters": 453.11,
+      "elevationMeters": 182.67
+    },
+    {
+      "distanceMeters": 485.48,
+      "elevationMeters": 183.915
+    },
+    {
+      "distanceMeters": 517.84,
+      "elevationMeters": 184.657
+    },
+    {
+      "distanceMeters": 550.21,
+      "elevationMeters": 184.827
+    },
+    {
+      "distanceMeters": 582.57,
+      "elevationMeters": 184.96
+    },
+    {
+      "distanceMeters": 614.94,
+      "elevationMeters": 185.116
+    },
+    {
+      "distanceMeters": 647.31,
+      "elevationMeters": 185.278
+    },
+    {
+      "distanceMeters": 679.67,
+      "elevationMeters": 185.403
+    },
+    {
+      "distanceMeters": 712.04,
+      "elevationMeters": 185.564
+    },
+    {
+      "distanceMeters": 744.4,
+      "elevationMeters": 185.692
+    },
+    {
+      "distanceMeters": 776.77,
+      "elevationMeters": 185.843
+    },
+    {
+      "distanceMeters": 809.13,
+      "elevationMeters": 185.96
+    },
+    {
+      "distanceMeters": 841.5,
+      "elevationMeters": 186.202
+    },
+    {
+      "distanceMeters": 873.86,
+      "elevationMeters": 186.459
+    },
+    {
+      "distanceMeters": 906.23,
+      "elevationMeters": 186.737
+    },
+    {
+      "distanceMeters": 938.59,
+      "elevationMeters": 187.009
+    },
+    {
+      "distanceMeters": 970.96,
+      "elevationMeters": 187.172
+    },
+    {
+      "distanceMeters": 1003.32,
+      "elevationMeters": 187.372
+    },
+    {
+      "distanceMeters": 1035.69,
+      "elevationMeters": 187.597
+    },
+    {
+      "distanceMeters": 1068.05,
+      "elevationMeters": 187.753
+    },
+    {
+      "distanceMeters": 1100.42,
+      "elevationMeters": 187.923
+    },
+    {
+      "distanceMeters": 1132.78,
+      "elevationMeters": 188.01
+    },
+    {
+      "distanceMeters": 1165.15,
+      "elevationMeters": 188.206
+    },
+    {
+      "distanceMeters": 1197.52,
+      "elevationMeters": 188.458
+    },
+    {
+      "distanceMeters": 1229.88,
+      "elevationMeters": 188.646
+    },
+    {
+      "distanceMeters": 1262.25,
+      "elevationMeters": 188.689
+    },
+    {
+      "distanceMeters": 1294.61,
+      "elevationMeters": 188.692
+    },
+    {
+      "distanceMeters": 1326.98,
+      "elevationMeters": 188.709
+    },
+    {
+      "distanceMeters": 1359.34,
+      "elevationMeters": 188.815
+    },
+    {
+      "distanceMeters": 1391.71,
+      "elevationMeters": 189.209
+    },
+    {
+      "distanceMeters": 1424.07,
+      "elevationMeters": 189.525
+    },
+    {
+      "distanceMeters": 1456.44,
+      "elevationMeters": 189.714
+    },
+    {
+      "distanceMeters": 1488.8,
+      "elevationMeters": 189.865
+    },
+    {
+      "distanceMeters": 1521.17,
+      "elevationMeters": 189.975
+    },
+    {
+      "distanceMeters": 1553.53,
+      "elevationMeters": 190.28
+    },
+    {
+      "distanceMeters": 1585.9,
+      "elevationMeters": 190.506
+    },
+    {
+      "distanceMeters": 1618.26,
+      "elevationMeters": 190.659
+    },
+    {
+      "distanceMeters": 1650.63,
+      "elevationMeters": 190.765
+    },
+    {
+      "distanceMeters": 1682.99,
+      "elevationMeters": 190.712
+    },
+    {
+      "distanceMeters": 1715.36,
+      "elevationMeters": 190.709
+    },
+    {
+      "distanceMeters": 1747.72,
+      "elevationMeters": 190.844
+    },
+    {
+      "distanceMeters": 1780.09,
+      "elevationMeters": 191.096
+    },
+    {
+      "distanceMeters": 1812.46,
+      "elevationMeters": 191.311
+    },
+    {
+      "distanceMeters": 1844.82,
+      "elevationMeters": 191.31
+    },
+    {
+      "distanceMeters": 1877.19,
+      "elevationMeters": 191.332
+    },
+    {
+      "distanceMeters": 1909.55,
+      "elevationMeters": 191.487
+    },
+    {
+      "distanceMeters": 1941.92,
+      "elevationMeters": 191.665
+    },
+    {
+      "distanceMeters": 1974.28,
+      "elevationMeters": 191.777
+    },
+    {
+      "distanceMeters": 2006.65,
+      "elevationMeters": 191.881
+    },
+    {
+      "distanceMeters": 2039.01,
+      "elevationMeters": 191.826
+    },
+    {
+      "distanceMeters": 2071.38,
+      "elevationMeters": 191.806
+    },
+    {
+      "distanceMeters": 2103.74,
+      "elevationMeters": 191.792
+    },
+    {
+      "distanceMeters": 2136.11,
+      "elevationMeters": 191.772
+    },
+    {
+      "distanceMeters": 2168.47,
+      "elevationMeters": 191.829
+    },
+    {
+      "distanceMeters": 2200.84,
+      "elevationMeters": 191.851
+    },
+    {
+      "distanceMeters": 2233.2,
+      "elevationMeters": 191.398
+    },
+    {
+      "distanceMeters": 2265.57,
+      "elevationMeters": 191.143
+    },
+    {
+      "distanceMeters": 2297.93,
+      "elevationMeters": 190.78
+    },
+    {
+      "distanceMeters": 2330.3,
+      "elevationMeters": 190.531
+    },
+    {
+      "distanceMeters": 2362.67,
+      "elevationMeters": 190.533
+    },
+    {
+      "distanceMeters": 2395.03,
+      "elevationMeters": 190.499
+    },
+    {
+      "distanceMeters": 2427.4,
+      "elevationMeters": 190.287
+    },
+    {
+      "distanceMeters": 2459.76,
+      "elevationMeters": 190.168
+    },
+    {
+      "distanceMeters": 2492.13,
+      "elevationMeters": 190.057
+    },
+    {
+      "distanceMeters": 2524.49,
+      "elevationMeters": 189.746
+    },
+    {
+      "distanceMeters": 2556.86,
+      "elevationMeters": 189.613
+    },
+    {
+      "distanceMeters": 2589.22,
+      "elevationMeters": 189.412
+    },
+    {
+      "distanceMeters": 2621.59,
+      "elevationMeters": 189.389
+    },
+    {
+      "distanceMeters": 2653.95,
+      "elevationMeters": 189.135
+    },
+    {
+      "distanceMeters": 2686.32,
+      "elevationMeters": 188.848
+    },
+    {
+      "distanceMeters": 2718.68,
+      "elevationMeters": 188.621
+    },
+    {
+      "distanceMeters": 2751.05,
+      "elevationMeters": 188.468
+    },
+    {
+      "distanceMeters": 2783.41,
+      "elevationMeters": 188.356
+    },
+    {
+      "distanceMeters": 2815.78,
+      "elevationMeters": 188.098
+    },
+    {
+      "distanceMeters": 2848.14,
+      "elevationMeters": 187.938
+    },
+    {
+      "distanceMeters": 2880.51,
+      "elevationMeters": 187.968
+    },
+    {
+      "distanceMeters": 2912.87,
+      "elevationMeters": 187.938
+    },
+    {
+      "distanceMeters": 2945.24,
+      "elevationMeters": 187.868
+    },
+    {
+      "distanceMeters": 2977.61,
+      "elevationMeters": 187.726
+    },
+    {
+      "distanceMeters": 3009.97,
+      "elevationMeters": 187.586
+    },
+    {
+      "distanceMeters": 3042.34,
+      "elevationMeters": 187.542
+    },
+    {
+      "distanceMeters": 3074.7,
+      "elevationMeters": 187.569
+    },
+    {
+      "distanceMeters": 3107.07,
+      "elevationMeters": 187.591
+    },
+    {
+      "distanceMeters": 3139.43,
+      "elevationMeters": 187.492
+    },
+    {
+      "distanceMeters": 3171.8,
+      "elevationMeters": 187.493
+    },
+    {
+      "distanceMeters": 3204.16,
+      "elevationMeters": 187.569
+    },
+    {
+      "distanceMeters": 3236.53,
+      "elevationMeters": 187.602
+    },
+    {
+      "distanceMeters": 3268.89,
+      "elevationMeters": 187.725
+    },
+    {
+      "distanceMeters": 3301.26,
+      "elevationMeters": 187.835
+    },
+    {
+      "distanceMeters": 3333.62,
+      "elevationMeters": 187.565
+    },
+    {
+      "distanceMeters": 3365.99,
+      "elevationMeters": 187.189
+    },
+    {
+      "distanceMeters": 3398.35,
+      "elevationMeters": 186.787
+    },
+    {
+      "distanceMeters": 3430.72,
+      "elevationMeters": 186.494
+    },
+    {
+      "distanceMeters": 3463.08,
+      "elevationMeters": 186.415
+    },
+    {
+      "distanceMeters": 3495.45,
+      "elevationMeters": 186.831
+    },
+    {
+      "distanceMeters": 3527.81,
+      "elevationMeters": 187.198
+    },
+    {
+      "distanceMeters": 3560.18,
+      "elevationMeters": 186.924
+    },
+    {
+      "distanceMeters": 3592.55,
+      "elevationMeters": 186.945
+    },
+    {
+      "distanceMeters": 3624.91,
+      "elevationMeters": 186.553
+    },
+    {
+      "distanceMeters": 3657.28,
+      "elevationMeters": 186.367
+    },
+    {
+      "distanceMeters": 3689.64,
+      "elevationMeters": 186.452
+    },
+    {
+      "distanceMeters": 3722.01,
+      "elevationMeters": 186.366
+    },
+    {
+      "distanceMeters": 3754.37,
+      "elevationMeters": 186.311
+    },
+    {
+      "distanceMeters": 3786.74,
+      "elevationMeters": 186.365
+    },
+    {
+      "distanceMeters": 3819.1,
+      "elevationMeters": 186.362
+    },
+    {
+      "distanceMeters": 3851.47,
+      "elevationMeters": 186.296
+    },
+    {
+      "distanceMeters": 3883.83,
+      "elevationMeters": 186.235
+    },
+    {
+      "distanceMeters": 3916.2,
+      "elevationMeters": 186.202
+    },
+    {
+      "distanceMeters": 3948.56,
+      "elevationMeters": 186.101
+    },
+    {
+      "distanceMeters": 3980.93,
+      "elevationMeters": 185.987
+    },
+    {
+      "distanceMeters": 4013.29,
+      "elevationMeters": 185.865
+    },
+    {
+      "distanceMeters": 4045.66,
+      "elevationMeters": 185.68
+    },
+    {
+      "distanceMeters": 4078.02,
+      "elevationMeters": 185.465
+    },
+    {
+      "distanceMeters": 4110.39,
+      "elevationMeters": 185.265
+    },
+    {
+      "distanceMeters": 4142.76,
+      "elevationMeters": 185.091
+    },
+    {
+      "distanceMeters": 4175.12,
+      "elevationMeters": 184.912
+    },
+    {
+      "distanceMeters": 4207.49,
+      "elevationMeters": 184.669
+    },
+    {
+      "distanceMeters": 4239.85,
+      "elevationMeters": 184.373
+    },
+    {
+      "distanceMeters": 4272.22,
+      "elevationMeters": 184.029
+    },
+    {
+      "distanceMeters": 4304.58,
+      "elevationMeters": 183.665
+    },
+    {
+      "distanceMeters": 4336.95,
+      "elevationMeters": 183.388
+    },
+    {
+      "distanceMeters": 4369.31,
+      "elevationMeters": 183.147
+    },
+    {
+      "distanceMeters": 4401.68,
+      "elevationMeters": 182.91
+    },
+    {
+      "distanceMeters": 4434.04,
+      "elevationMeters": 182.73
+    },
+    {
+      "distanceMeters": 4466.41,
+      "elevationMeters": 182.583
+    },
+    {
+      "distanceMeters": 4498.77,
+      "elevationMeters": 182.386
+    },
+    {
+      "distanceMeters": 4531.14,
+      "elevationMeters": 182.177
+    },
+    {
+      "distanceMeters": 4563.5,
+      "elevationMeters": 181.976
+    },
+    {
+      "distanceMeters": 4595.87,
+      "elevationMeters": 181.822
+    },
+    {
+      "distanceMeters": 4628.23,
+      "elevationMeters": 181.694
+    },
+    {
+      "distanceMeters": 4660.6,
+      "elevationMeters": 181.572
+    },
+    {
+      "distanceMeters": 4692.96,
+      "elevationMeters": 181.454
+    },
+    {
+      "distanceMeters": 4725.33,
+      "elevationMeters": 181.312
+    },
+    {
+      "distanceMeters": 4757.7,
+      "elevationMeters": 181.161
+    },
+    {
+      "distanceMeters": 4790.06,
+      "elevationMeters": 181.001
+    },
+    {
+      "distanceMeters": 4822.43,
+      "elevationMeters": 180.806
+    },
+    {
+      "distanceMeters": 4854.79,
+      "elevationMeters": 180.622
+    },
+    {
+      "distanceMeters": 4887.16,
+      "elevationMeters": 180.435
+    },
+    {
+      "distanceMeters": 4919.52,
+      "elevationMeters": 180.252
+    },
+    {
+      "distanceMeters": 4951.89,
+      "elevationMeters": 180.111
+    },
+    {
+      "distanceMeters": 4984.25,
+      "elevationMeters": 179.985
+    },
+    {
+      "distanceMeters": 5016.62,
+      "elevationMeters": 179.833
+    },
+    {
+      "distanceMeters": 5048.98,
+      "elevationMeters": 179.7
+    },
+    {
+      "distanceMeters": 5081.35,
+      "elevationMeters": 179.578
+    },
+    {
+      "distanceMeters": 5113.71,
+      "elevationMeters": 179.451
+    },
+    {
+      "distanceMeters": 5146.08,
+      "elevationMeters": 179.354
+    },
+    {
+      "distanceMeters": 5178.44,
+      "elevationMeters": 179.16
+    },
+    {
+      "distanceMeters": 5210.81,
+      "elevationMeters": 178.961
+    },
+    {
+      "distanceMeters": 5243.17,
+      "elevationMeters": 178.76
+    },
+    {
+      "distanceMeters": 5275.54,
+      "elevationMeters": 178.63
+    },
+    {
+      "distanceMeters": 5307.91,
+      "elevationMeters": 178.573
+    },
+    {
+      "distanceMeters": 5340.27,
+      "elevationMeters": 178.788
+    },
+    {
+      "distanceMeters": 5372.64,
+      "elevationMeters": 179.189
+    },
+    {
+      "distanceMeters": 5405.0,
+      "elevationMeters": 179.803
+    },
+    {
+      "distanceMeters": 5437.37,
+      "elevationMeters": 180.335
+    },
+    {
+      "distanceMeters": 5469.73,
+      "elevationMeters": 180.44
+    },
+    {
+      "distanceMeters": 5502.1,
+      "elevationMeters": 180.447
+    },
+    {
+      "distanceMeters": 5534.46,
+      "elevationMeters": 180.495
+    },
+    {
+      "distanceMeters": 5566.83,
+      "elevationMeters": 180.638
+    },
+    {
+      "distanceMeters": 5599.19,
+      "elevationMeters": 180.741
+    },
+    {
+      "distanceMeters": 5631.56,
+      "elevationMeters": 180.852
+    },
+    {
+      "distanceMeters": 5663.92,
+      "elevationMeters": 180.986
+    },
+    {
+      "distanceMeters": 5696.29,
+      "elevationMeters": 181.255
+    },
+    {
+      "distanceMeters": 5728.65,
+      "elevationMeters": 181.549
+    },
+    {
+      "distanceMeters": 5761.02,
+      "elevationMeters": 181.645
+    },
+    {
+      "distanceMeters": 5793.38,
+      "elevationMeters": 181.357
+    }
+  ],
+  "elevationsMeters": {
+    "high": 191.903,
+    "low": 178.574
+  },
+  "finishDistanceMeters": 0,
+  "generatedWith": "Blender 5.2.0 LTS",
+  "lapLength": {
+    "geometryMeters": 5793.384,
+    "officialFiaMeters": 5793,
+    "relativeErrorPercent": 0.0066
+  },
+  "layoutQuality": {
+    "buildings": {
+      "excludedGrandstandConflicts": 1,
+      "excludedReplacedCircuitStructures": 0,
+      "excludedTrackConflicts": 3,
+      "renderedCurrentFootprints": 377,
+      "remainingGrandstandConflicts": 0,
+      "remainingTrackConflicts": 0,
+      "downwardFacingRoofTriangles": 0,
+      "roofTriangles": 1608,
+      "roofWindingRepairs": 1243,
+      "sourceCurrentFootprints": 424,
+      "replacedOsmBuildingIds": []
+    },
+    "circuitConfiguration": {
+      "direction": "clockwise",
+      "officialLayout": "5.793 km / 11 turns"
+    },
+    "curbs": {
+      "innerOffsetMeters": 6.08,
+      "sections": 732,
+      "visibleHeightMeters": 0.1,
+      "widthMeters": 1.3
+    },
+    "grandstands": {
+      "candidateSections": 126,
+      "maximumPlatformStepMeters": 1.186,
+      "maximumSeatRowTwistMeters": 0.0,
+      "maximumSupportHeightMeters": 2.42,
+      "maximumSupportHeightByStandMeters": {
+        "Centrale 1": 0.902,
+        "Laterale Sinistra 4": 0.647,
+        "Laterale Destra 26": 1.021,
+        "Prima Variante Esterna 8": 1.451,
+        "Uscita Prima Variante 8 bis": 0.887,
+        "Alta Velocit\u00e0 A\u2013C": 1.596,
+        "Biassono 7": 0.964,
+        "Seconda Variante 9": 1.543,
+        "Roggia 10": 0.784,
+        "Lesmo 1 Esterna 34": 0.787,
+        "Serraglio 11": 1.012,
+        "Ascari 12\u201314": 1.038,
+        "Ascari Esterna 17": 0.799,
+        "Uscita Ascari 18": 0.584,
+        "Rettilineo Parabolica Esterna 20": 0.664,
+        "Laterale Parabolica 21": 0.545,
+        "Parabolica 22": 0.98,
+        "Parabolica Interna 23": 2.42,
+        "Vedano 24": 0.842
+      },
+      "minimumTrackClearanceMeters": 4.102,
+      "rejectedBlockConflicts": 8,
+      "rejectedTrackConflicts": 0,
+      "remainingBlockOverlaps": 0,
+      "remainingTrackConflicts": 0,
+      "renderedSections": 118,
+      "verifiedTurnTenZone": "Eastside Grandstands 1, 2, 3",
+      "sourceMap": "Autodromo Nazionale Monza official 2026 Formula 1 event map",
+      "excludedCurrentEventStandIds": []
+    },
+    "motorhomes": {
+      "configuredObjects": 11,
+      "renderedObjects": 11,
+      "remainingTrackConflicts": 0,
+      "trackConflictNames": [],
+      "trackConflictDetails": [],
+      "sourceResolutionMetersPerPixel": 0.62,
+      "behindPitComplex": true,
+      "clusterSpanMeters": 61.5,
+      "compactCluster": true,
+      "rearTowardPitGrandstand": true
+    },
+    "pitLane": {
+      "entryGapMeters": 0.198,
+      "entryMinimumWidthMeters": 4.2,
+      "entrySurface": "asphalt",
+      "exitGapMeters": 0.015,
+      "exitMinimumWidthMeters": 0.55,
+      "fastLaneSeparator": true,
+      "lengthMeters": 741.21,
+      "pitBoxes": 60,
+      "taperMeters": 34.0,
+      "taperProfile": "smoothstep",
+      "widthMeters": 12.0,
+      "sourceWayIds": [
+        38168747
+      ],
+      "pitWall": {
+        "fenceHeightMeters": 2.25,
+        "lengthMeters": 622.617,
+        "panels": 208,
+        "wallHeightMeters": 1.05,
+        "placement": "between main circuit and pit lane"
+      },
+      "pitComplex": {
+        "buildingDepthMeters": 14.5,
+        "garageBoxes": 60,
+        "grandstandRows": 10,
+        "coveredGrandstand": true,
+        "canopyMaterialOpaque": true,
+        "canopyThicknessMeters": 0.38,
+        "lengthMeters": 407.67,
+        "pitLaneClearanceMeters": 0.85
+      }
+    },
+    "runoff": {
+      "excludedTurns": [
+        11
+      ],
+      "pitEntrySurface": "asphalt",
+      "syntheticGravelAtPitEntry": false,
+      "syntheticRunoffAtPitEntry": false
+    },
+    "surfaceClearance": {
+      "minimumTrackTerrainClearanceMeters": 0.885,
+      "startStraightMinimumClearanceMeters": 1.041,
+      "terrainBreakthroughSamples": 0
+    },
+    "surfaceSmoothing": {
+      "wholeLap": {
+        "applied": true,
+        "intervalMeters": 3.0,
+        "maximumCorrectionMeters": 0.917,
+        "maximumRawStepMeters": 0.311,
+        "maximumSmoothedStepMeters": 0.149,
+        "method": "closed-loop upper-envelope smoothing",
+        "sampleCount": 1932
+      }
+    },
+    "terrainSurface": {
+      "detailSource": "PCN orthophoto pixels without synthetic ground overlays",
+      "textureHeight": 2048,
+      "textureWidth": 2048
+    }
+  },
+  "objects": {
+    "buildingsTotal": 377,
+    "fenceSegments": 818,
+    "grandstandSections": 118,
+    "mappedTrees": 93,
+    "repairedMeshes": 1,
+    "pitGarageBoxes": 60,
+    "raceMotorhomes": 11,
+    "runoffSections": 202,
+    "turnAnchors": 11
+  },
+  "officialSources": [
+    {
+      "role": "official venue specifications: 5.793 km, 11 turns, 10\u201312 m width and clockwise direction",
+      "url": "https://www.monzanet.it/en/circuit/"
+    },
+    {
+      "role": "latest published FIA operational circuit map: sectors, speed trap, DRS and pit-lane drawing",
+      "url": "https://www.fia.com/system/files/decision-document/2025_italian_grand_prix_-_event_notes_-_circuit_map_pit_lane_emergency_exit_map_quarantine_zone_and_red_zones.pdf"
+    },
+    {
+      "role": "official 2026 Monza named grandstand inventory",
+      "url": "https://www.monzanet.it/wp-content/uploads/2026/06/GP_F1_2026_LISTINO_PREZZI_6_17.pdf"
+    },
+    {
+      "role": "Italian National Geoportal 2012 colour orthophoto WMS",
+      "url": "https://wms.pcn.minambiente.it/ogc?map=/ms_ogc/WMS_v1.3/raster/ortofoto_colore_12.map&service=WMS&request=GetCapabilities&version=1.3.0"
+    },
+    {
+      "role": "Terrarium elevation format and attribution",
+      "url": "https://docs.versatiles.org/basics/tilesets.html#elevation"
+    }
+  ],
+  "realWorldScale": "1 unit = 1 metre; no vertical exaggeration",
+  "schemaVersion": 1,
+  "sectorBoundaryDistancesMeters": [
+    1919,
+    3745
+  ],
+  "sourceManifest": {
+    "bounds": {
+      "minX": 520650,
+      "minY": 5049620,
+      "maxX": 524180,
+      "maxY": 5053560
+    },
+    "coordinateReferenceSystem": "WGS 84 / UTM zone 32N (EPSG:32632)",
+    "generatedAt": "2026-08-24T13:54:42.806Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "bbox": {
+          "minX": 520650,
+          "minY": 5049620,
+          "maxX": 524180,
+          "maxY": 5053560
+        },
+        "bytes": 3843308,
+        "crs": "EPSG:4326",
+        "date": "live snapshot at retrieval",
+        "file": "openstreetmap-overpass.json",
+        "license": "ODbL 1.0",
+        "resolution": "surveyed vectors",
+        "role": "raw current circuit context",
+        "sha256": "3fc9b302d4174e2776f31b20d7c040fa620ac11af4a6265c7c8232ce7463fa0e",
+        "url": "https://overpass-api.de/api/interpreter",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 520650,
+          "minY": 5049620,
+          "maxX": 524180,
+          "maxY": 5053560
+        },
+        "bytes": 81996,
+        "crs": "EPSG:4326",
+        "date": "derived from live OSM",
+        "file": "openstreetmap-raceway.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready raceway layer",
+        "sha256": "aef64e83a61953bc2d0d4c0f62946d8edb68e0f774d70dbae0c941e5dba5a390",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 520650,
+          "minY": 5049620,
+          "maxX": 524180,
+          "maxY": 5053560
+        },
+        "bytes": 4659968,
+        "crs": "EPSG:4326",
+        "date": "derived from live OSM",
+        "file": "openstreetmap-buildings.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready buildings layer",
+        "sha256": "e9f6f76b0511a21db598cabce5244c99e4f1f4e2e8267e3ae9b2ed6c6fccc052",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 520650,
+          "minY": 5049620,
+          "maxX": 524180,
+          "maxY": 5053560
+        },
+        "bytes": 167921,
+        "crs": "EPSG:4326",
+        "date": "derived from live OSM",
+        "file": "openstreetmap-barriers.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready barriers layer",
+        "sha256": "8eaf26abc79e934626cc48a48bbed2b1066f6b94dbd36c6d5539337deddce351",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 520650,
+          "minY": 5049620,
+          "maxX": 524180,
+          "maxY": 5053560
+        },
+        "bytes": 661274,
+        "crs": "EPSG:4326",
+        "date": "derived from live OSM",
+        "file": "openstreetmap-trees.json",
+        "license": "ODbL 1.0",
+        "resolution": "lossless geometry extraction",
+        "role": "Blender-ready trees layer",
+        "sha256": "8b300b019a1257869affec06350dfd70f7d110b9548fcf37bf54f617de174d15",
+        "url": "https://www.openstreetmap.org/copyright",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 520650,
+          "minY": 5049620,
+          "maxX": 524180,
+          "maxY": 5053560
+        },
+        "bytes": 6736684,
+        "crs": "document reference",
+        "date": "2025 event (latest published FIA operational map at build time)",
+        "file": "fia-2025-italian-grand-prix-circuit-map.pdf",
+        "license": "official FIA event document; reference use",
+        "resolution": "vector PDF",
+        "role": "lap length, turns, sectors, speed trap, DRS and pit drawing",
+        "sha256": "2c1cd6cbf26e1b0b597fea1ee290fd2aa55d85c807169012973a431c8fc282fc",
+        "url": "https://www.fia.com/system/files/decision-document/2025_italian_grand_prix_-_event_notes_-_circuit_map_pit_lane_emergency_exit_map_quarantine_zone_and_red_zones.pdf",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 520650,
+          "minY": 5049620,
+          "maxX": 524180,
+          "maxY": 5053560
+        },
+        "bytes": 8734274,
+        "crs": "document reference",
+        "date": "2026 event",
+        "file": "monza-2026-grandstand-map.pdf",
+        "license": "official promoter document; reference use",
+        "resolution": "vector PDF",
+        "role": "current named grandstand inventory",
+        "sha256": "e329a9c80037914143c3ba3fdb79e61352aa0ebdb82d4dbc7f645a92a17294d2",
+        "url": "https://www.monzanet.it/wp-content/uploads/2026/06/GP_F1_2026_LISTINO_PREZZI_6_17.pdf",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 520650,
+          "minY": 5049620,
+          "maxX": 524180,
+          "maxY": 5053560
+        },
+        "bytes": 935130,
+        "crs": "EPSG:32632",
+        "date": "2012",
+        "file": "pcn-orthophoto-2012.jpg",
+        "license": "Italian National Geoportal public WMS; attribution required",
+        "resolution": "0.5 m source; 2048 px projected export",
+        "role": "real terrain colour and permanent venue context",
+        "sha256": "aefbc7d42b77d29c4e346d1bad5652644427422a2a06eee7f74d7b6546c4fd76",
+        "url": "https://wms.pcn.minambiente.it/ogc?map=/ms_ogc/WMS_v1.3/raster/ortofoto_colore_12.map&service=WMS&version=1.3.0&request=GetMap&layers=OI.ORTOIMMAGINI.2012.32&styles=&crs=EPSG:32632&bbox=520650,5049620,524180,5053560&width=2048&height=2048&format=image/jpeg&transparent=false",
+        "verticalDatum": null
+      },
+      {
+        "bbox": {
+          "minX": 520650,
+          "minY": 5049620,
+          "maxX": 524180,
+          "maxY": 5053560
+        },
+        "bytes": 422,
+        "crs": "EPSG:3857 sampled to EPSG:32632",
+        "date": "retrieved at build time",
+        "file": "terrain-tile-manifest.json",
+        "license": "open tile sources; see VersaTiles attribution",
+        "resolution": "Terrarium z12, about 19 m/pixel",
+        "role": "unexaggerated terrain elevation",
+        "sha256": "87ddfc6f44c85450e3d29a0dd5fda6910f6423a68da1c45a9e764e1be1523377",
+        "url": "https://docs.versatiles.org/basics/tilesets.html#elevation",
+        "verticalDatum": "Terrarium DEM metres"
+      }
+    ],
+    "tileMembers": [
+      {
+        "bytes": 86932,
+        "file": "elevation-tiles/12-2153-1463.png",
+        "sha256": "e5a368017ba7b4a3f1255f2e76c509ce6f82dfdf7d269c77d1c45ca40c892e8a",
+        "x": 2153,
+        "y": 1463
+      }
+    ],
+    "verticalDatum": "Terrarium DEM metres; no vertical exaggeration"
+  },
+  "verticalDatum": "Terrarium DEM metres; no vertical exaggeration"
+}

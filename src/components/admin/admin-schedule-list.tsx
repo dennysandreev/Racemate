@@ -23,6 +23,7 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
@@ -131,6 +132,8 @@ function ScheduleEditor({ schedule }: { schedule: AdminSchedule }) {
           action={saveAdminScheduleAction}
           submitLabel="Сохранить расписание"
         >
+          {(state) => (
+            <>
           <input name="scheduleId" type="hidden" value={schedule.id} />
           {schedule.scheduleKind === "adaptive" ? (
             <input name="scheduleKind" type="hidden" value="adaptive" />
@@ -146,7 +149,7 @@ function ScheduleEditor({ schedule }: { schedule: AdminSchedule }) {
                 </FieldDescription>
               </Field>
             ) : (
-              <Field>
+              <Field data-invalid={Boolean(state.fieldErrors?.intervalMinutes)}>
                 <FieldLabel>Режим запуска</FieldLabel>
                 <Select
                   defaultValue={schedule.scheduleKind}
@@ -175,15 +178,17 @@ function ScheduleEditor({ schedule }: { schedule: AdminSchedule }) {
                   max={10_080}
                   min={2}
                   name="intervalMinutes"
+                  aria-invalid={Boolean(state.fieldErrors?.intervalMinutes)}
                   required
                   type="number"
                 />
                 <FieldDescription>От 2 минут до 7 дней.</FieldDescription>
+                <FieldError>{state.fieldErrors?.intervalMinutes?.join(" ")}</FieldError>
               </Field>
             ) : null}
 
             {schedule.scheduleKind !== "adaptive" && kind === "daily" ? (
-              <Field>
+              <Field data-invalid={Boolean(state.fieldErrors?.dailyTimeUtc)}>
                 <FieldLabel htmlFor={`${schedule.id}-daily`}>
                   Время запуска, UTC
                 </FieldLabel>
@@ -191,16 +196,18 @@ function ScheduleEditor({ schedule }: { schedule: AdminSchedule }) {
                   defaultValue={(schedule.dailyTimeUtc ?? "12:00").slice(0, 5)}
                   id={`${schedule.id}-daily`}
                   name="dailyTimeUtc"
+                  aria-invalid={Boolean(state.fieldErrors?.dailyTimeUtc)}
                   required
                   type="time"
                 />
                 <FieldDescription>
                   Московское время сейчас отличается от UTC на 3 часа.
                 </FieldDescription>
+                <FieldError>{state.fieldErrors?.dailyTimeUtc?.join(" ")}</FieldError>
               </Field>
             ) : null}
 
-            <Field>
+            <Field data-invalid={Boolean(state.fieldErrors?.maxAttempts)}>
               <FieldLabel htmlFor={`${schedule.id}-attempts`}>
                 Попыток при временной ошибке
               </FieldLabel>
@@ -210,9 +217,11 @@ function ScheduleEditor({ schedule }: { schedule: AdminSchedule }) {
                 max={10}
                 min={1}
                 name="maxAttempts"
+                aria-invalid={Boolean(state.fieldErrors?.maxAttempts)}
                 required
                 type="number"
               />
+              <FieldError>{state.fieldErrors?.maxAttempts?.join(" ")}</FieldError>
             </Field>
 
             <Field orientation="horizontal">
@@ -231,6 +240,8 @@ function ScheduleEditor({ schedule }: { schedule: AdminSchedule }) {
               </div>
             </Field>
           </FieldGroup>
+            </>
+          )}
         </AdminActionForm>
         <DialogFooter>
           <DialogClose asChild>

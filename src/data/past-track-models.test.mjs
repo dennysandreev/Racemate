@@ -3,11 +3,14 @@ import { readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
 import { ALBERT_PARK_TRACK_MODEL } from "./albert-park-model.ts";
+import { BAKU_TRACK_MODEL } from "./baku-model.ts";
 import { CATALUNYA_TRACK_MODEL } from "./catalunya-model.ts";
 import { HUNGARORING_TRACK_MODEL } from "./hungaroring-model.ts";
 import { MIAMI_TRACK_MODEL } from "./miami-model.ts";
 import { MONACO_TERRAIN, MONACO_TRACK_MODEL } from "./monaco-model.ts";
 import { MONTREAL_TRACK_MODEL } from "./montreal-model.ts";
+import { MONZA_TRACK_MODEL } from "./monza-model.ts";
+import { MADRING_TRACK_MODEL } from "./madring-model.ts";
 import { RED_BULL_RING_TRACK_MODEL } from "./red-bull-ring-model.ts";
 import { SHANGHAI_TRACK_MODEL } from "./shanghai-model.ts";
 import { SILVERSTONE_TRACK_MODEL } from "./silverstone-model.ts";
@@ -25,13 +28,17 @@ const generatedModels = [
   [SHANGHAI_TRACK_MODEL, 16, "shanghai-model.ts"],
   [SUZUKA_TRACK_MODEL, 18, "suzuka-model.ts"],
   [MIAMI_TRACK_MODEL, 19, "miami-model.ts"],
-  [MONTREAL_TRACK_MODEL, 14, "montreal-model.ts"],
-  [MONACO_TRACK_MODEL, 19, "monaco-model.ts"],
-  [CATALUNYA_TRACK_MODEL, 14, "catalunya-model.ts"],
 ];
 
 const digitalTwinModels = [
+  BAKU_TRACK_MODEL,
+  CATALUNYA_TRACK_MODEL,
   HUNGARORING_TRACK_MODEL,
+  MONACO_TRACK_MODEL,
+  MONTREAL_TRACK_MODEL,
+  MONZA_TRACK_MODEL,
+  MADRING_TRACK_MODEL,
+  RED_BULL_RING_TRACK_MODEL,
   SILVERSTONE_TRACK_MODEL,
   SPA_TRACK_MODEL,
   ZANDVOORT_TRACK_MODEL,
@@ -82,11 +89,10 @@ for (const [model, turnCount] of generatedModels) {
 }
 
 test("every generated track resolves from its circuit name and aliases", () => {
-  assert.equal(Object.keys(TRACK_MODEL_ALIASES).length, 12);
+  assert.equal(Object.keys(TRACK_MODEL_ALIASES).length, 15);
 
   const allModels = [
     ...generatedModels.map(([model]) => model),
-    RED_BULL_RING_TRACK_MODEL,
     ...digitalTwinModels,
   ];
 
@@ -130,10 +136,7 @@ test("generated geometry stays in small, separately imported modules", async () 
 });
 
 test("legacy 3D tracks keep their shared presentation scale", () => {
-  const legacyModels = [
-    ...generatedModels.map(([model]) => model),
-    RED_BULL_RING_TRACK_MODEL,
-  ];
+  const legacyModels = generatedModels.map(([model]) => model);
 
   for (const model of legacyModels) {
     assert.equal(
@@ -149,8 +152,8 @@ test("Blender digital twins keep real-world vertical scale and explicit WebGL as
     assert.equal(model.camera.verticalExaggeration, 1);
     assert.ok(model.webgl);
     assert.equal(model.webgl.turnCount, model.data.turns.length);
-    assert.match(model.webgl.assetPath, new RegExp(`/${model.id}\\.glb$`));
-    assert.match(model.webgl.previewPath, new RegExp(`/${model.id}-preview\\.webp$`));
+    assert.match(new URL(model.webgl.assetPath, "https://raceside.test").pathname, new RegExp(`/${model.id}\\.glb$`));
+    assert.match(new URL(model.webgl.previewPath, "https://raceside.test").pathname, new RegExp(`/${model.id}-preview\\.webp$`));
   }
 });
 

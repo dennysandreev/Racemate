@@ -71,7 +71,7 @@ export type AdminSystemSignal = {
 };
 
 export type AdminSystemStatus = AdminSystemSignal & {
-  kind: "api" | "source" | "schedule";
+  kind: "api" | "service" | "source" | "schedule";
   group: string;
   description: string;
   lastSuccessAt: string | null;
@@ -177,10 +177,48 @@ export type AdminOpenRouterModel = {
 };
 
 export type AdminAiBudget = {
-  scope: "default" | "social_x";
+  scope: "default";
   daily_limit_usd: number;
   monthly_limit_usd: number;
   updated_at: string | null;
+};
+
+export type AdminExternalApiBudget = {
+  provider: "x";
+  resource_type: "post_read";
+  unit_cost_usd: number;
+  daily_limit_usd: number;
+  monthly_limit_usd: number;
+  updated_at: string | null;
+};
+
+export type AdminCostTimelineRow = {
+  day: string;
+  ai_cost_usd: number;
+  x_api_cost_usd: number;
+  x_post_count: number;
+};
+
+export type AdminUserErrorReport = {
+  id: string;
+  articleId: string;
+  articleSlug: string;
+  articleTitle: string;
+  sourceName: string | null;
+  message: string;
+  status: "new" | "in_progress" | "resolved" | "dismissed";
+  pagePath: string;
+  referrerPath: string | null;
+  userAgent: string | null;
+  releaseSha: string | null;
+  requestFingerprint: string | null;
+  isAuthenticated: boolean;
+  technicalContext: Json;
+  telegramDeliveryStatus: string;
+  telegramDeliveryError: string | null;
+  adminNote: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
 };
 
 export type AdminAgentRunKind =

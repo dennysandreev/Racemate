@@ -3,11 +3,18 @@ import test from "node:test";
 
 import {
   clampTrackModelPan,
+  getTrackModelInitialZoom,
   orbitTrackModelCamera,
   pinchTrackModelCamera,
   preserveTrackModelOrbitFocus,
   zoomTrackModelAtPoint,
 } from "./track-model-camera.ts";
+
+test("full WebGL track models open tightly framed", () => {
+  assert.equal(getTrackModelInitialZoom(true, true), 1.75);
+  assert.equal(getTrackModelInitialZoom(true, false), 1.25);
+  assert.equal(getTrackModelInitialZoom(false, true), 1);
+});
 
 test("zoom keeps the point under the cursor stable", () => {
   const result = zoomTrackModelAtPoint(

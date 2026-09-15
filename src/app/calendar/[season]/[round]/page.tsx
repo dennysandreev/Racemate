@@ -1,26 +1,27 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Clock, Flag, MapPin } from "lucide-react";
-import { cache } from "react";
+import {
+  ArrowRight,
+  CalendarDays,
+  ChevronRight,
+  Clock3,
+  Flag,
+  MapPin,
+  Newspaper,
+  Ruler,
+  type LucideIcon,
+} from "lucide-react";
+import { cache, type ReactNode } from "react";
 
 import { AppShell } from "@/components/racemate/app-shell";
 import { CircuitStatsSection } from "@/components/racemate/circuit-stats-section";
-import { DataRow } from "@/components/racemate/data-row";
-import { PageHeading } from "@/components/racemate/page-heading";
 import { RaceSessionResultsPanel } from "@/components/racemate/race-session-results-panel";
 import { TrackMap } from "@/components/racemate/track-map";
 import { GrandPrixReportDialog } from "@/components/racemate/grand-prix-report-dialog";
 import { GrandPrixPodiumPreview } from "@/components/racemate/grand-prix-podium-preview";
 import { JsonLd } from "@/components/racemate/json-ld";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   getCircuitStatsForRace,
   getRaceDetail,
@@ -35,6 +36,7 @@ import {
 } from "@/data/racemate-repository";
 import { CURRENT_F1_SEASON } from "@/lib/season-navigation";
 import { absoluteUrl, createPageMetadata, SITE_URL } from "@/lib/seo";
+import { cn } from "@/lib/utils";
 import type { GrandPrixReport } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
@@ -131,6 +133,14 @@ export default async function RaceCalendarPage({
   }));
   const dialogReport = queryReport ?? raceReport;
   const isReportOpen = Boolean(query.raceReport && dialogReport?.raceSlug === query.raceReport);
+  const overviewReport = race.status === "Завершен" ? raceReport : null;
+  const calendarHref = isCurrentSeason ? "/calendar" : `/calendar?season=${seasonYear}`;
+  const raceTitleLength = Array.from(race.race).length;
+  const raceTitleSizeClass = raceTitleLength > 32
+    ? "text-[1.55rem] sm:text-[1.85rem] lg:text-[1.95rem]"
+    : raceTitleLength > 22
+      ? "text-[1.7rem] sm:text-[2rem] lg:text-[2.15rem]"
+      : "text-3xl sm:text-4xl lg:text-[2.55rem]";
 
   return (
     <AppShell>
@@ -189,100 +199,152 @@ export default async function RaceCalendarPage({
           },
         ]}
       />
-      <PageHeading
-        badge={`${race.season}, раунд ${race.round}`}
-        description={`${race.circuit} · ${race.locality}, ${race.country}`}
-        title={race.race}
-      />
+      <article className="grid gap-5 pb-8">
+        <section className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="flex min-h-12 items-center justify-between gap-3 border-b border-border px-4 py-2.5 sm:px-5">
+            <nav aria-label="Навигация по календарю" className="min-w-0">
+              <ol className="flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-muted-foreground">
+                <li>
+                  <Link
+                    className="rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    href={calendarHref}
+                  >
+                    Календарь
+                  </Link>
+                </li>
+                <li aria-hidden="true">
+                  <ChevronRight className="size-3.5" />
+                </li>
+                <li className="font-telemetry">Сезон {seasonYear}</li>
+                <li aria-hidden="true">
+                  <ChevronRight className="size-3.5" />
+                </li>
+                <li className="font-telemetry text-foreground">Раунд {raceRound}</li>
+              </ol>
+            </nav>
+            <div className="hidden items-center justify-end gap-2 sm:flex">
+              <Badge variant={getRaceStatusVariant(race.status)}>{race.status}</Badge>
+            </div>
+          </div>
 
-      <section className="grid gap-5 py-8 lg:grid-cols-[0.78fr_1.22fr]">
-        <div className="grid min-w-0 content-start gap-5">
-          <TrackMap
-            assetSrc={isCurrentSeason ? race.trackMapUrl ?? undefined : race.trackMapUrl ?? null}
-            circuit={race.circuit}
-            label={race.country}
-            layout={race.layout}
-            showModel3d={isCurrentSeason}
-          />
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin aria-hidden="true" data-icon="inline-start" />
-                Этап
-              </CardTitle>
-              <CardDescription>
-                Основной контекст гонки и текущий статус в календаре.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-3">
-              <DataRow label="Старт гонки" value={race.startsAt} />
-              <DataRow label="Статус" value={race.status} />
-              <DataRow label="Трасса" value={race.circuit} />
-              <CircuitStatsSection
-                circuitName={race.circuit}
-                mode="button"
-                stats={circuitStats}
+          <div className="grid xl:grid-cols-[23rem_minmax(0,1fr)]">
+            <div
+              className={cn(
+                "flex min-w-0 flex-col justify-between",
+                overviewReport ? "xl:min-h-[29rem]" : "xl:min-h-[27rem]",
+                overviewReport ? "p-4 sm:p-5" : "p-5 sm:p-7",
+              )}
+            >
+              <div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <MapPin aria-hidden="true" className="size-4 shrink-0 text-primary" />
+                    <span className="truncate">{race.locality}, {race.country}</span>
+                  </div>
+                  <Badge className="shrink-0 sm:hidden" variant={getRaceStatusVariant(race.status)}>
+                    {race.status}
+                  </Badge>
+                </div>
+                <h1
+                  className={cn(
+                    "max-w-4xl text-balance font-display font-extrabold leading-[1.04]",
+                    overviewReport ? "mt-3" : "mt-4",
+                    raceTitleSizeClass,
+                  )}
+                >
+                  {race.race}
+                </h1>
+                <p className={cn("text-pretty text-base leading-6 text-muted-foreground", overviewReport ? "mt-2" : "mt-4")}>
+                  {race.circuit}
+                </p>
+              </div>
+
+              {overviewReport ? (
+                <RaceReportPreview
+                  compact
+                  driverSlugByName={driverSlugByName}
+                  href={`/calendar/${seasonYear}/${raceRound}?raceReport=${overviewReport.raceSlug}`}
+                  replay={raceReplay}
+                  report={overviewReport}
+                />
+              ) : (
+                <div className="mt-8 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3 xl:grid-cols-1">
+                  <RaceOverviewMetric icon={CalendarDays} label="Старт гонки" value={race.startsAt} />
+                  <RaceOverviewMetric
+                    icon={Ruler}
+                    label="Длина трассы"
+                    value={formatTrackLength(circuitStats)}
+                  />
+                  <RaceOverviewMetric icon={Flag} label="Круги" value={formatRaceLaps(circuitStats)} />
+                </div>
+              )}
+            </div>
+
+            <div className="min-h-[19rem] border-t border-border bg-card p-3 sm:min-h-[23rem] sm:p-4 xl:min-h-[27rem] xl:border-l xl:border-t-0">
+              <TrackMap
+                assetSrc={race.trackMapUrl ?? (isCurrentSeason ? undefined : null)}
+                circuit={race.circuit}
+                className="min-h-[17.5rem] sm:min-h-[21rem] xl:min-h-[25rem]"
+                fill
+                label={race.country}
+                layout={race.layout}
+                modelTogglePlacement="mobile-bottom"
+                showModel3d={isCurrentSeason}
+                toolbarLeading={(
+                  <CircuitStatsSection
+                    buttonSize="sm"
+                    circuitName={race.circuit}
+                    className="w-auto"
+                    mode="button"
+                    stats={circuitStats}
+                  />
+                )}
+                unframed
               />
-              {raceReport ? (
+            </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+          <div className="contents xl:grid xl:min-w-0 xl:gap-5">
+            <section className="order-1 min-w-0 overflow-hidden rounded-xl border border-border bg-card xl:order-none">
+              <SectionTitle icon={Clock3}>Сессии и результаты</SectionTitle>
+              <div className="p-4 sm:p-5">
+                <RaceSessionResultsPanel
+                  includeWeather={isCurrentSeason}
+                  initialSessionId={selectedSession?.id}
+                  season={seasonYear}
+                  sessions={sessionsWithResults}
+                />
+              </div>
+            </section>
+          </div>
+
+          <aside className="contents xl:grid xl:content-start xl:gap-5">
+            {raceReport && !overviewReport ? (
+              <section className="order-2 overflow-hidden rounded-xl border border-border bg-card xl:order-none">
+                <SectionTitle icon={Flag}>Итоги этапа</SectionTitle>
                 <RaceReportPreview
                   driverSlugByName={driverSlugByName}
                   href={`/calendar/${seasonYear}/${raceRound}?raceReport=${raceReport.raceSlug}`}
                   replay={raceReplay}
                   report={raceReport}
                 />
-              ) : null}
-            </CardContent>
-          </Card>
-        </div>
+              </section>
+            ) : null}
 
-        <Card className="min-w-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock aria-hidden="true" data-icon="inline-start" />
-              Сессии и результаты
-            </CardTitle>
-            <CardDescription>
-              Выбери практику, квалификацию, спринт или гонку.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RaceSessionResultsPanel
-              includeWeather={isCurrentSeason}
-              initialSessionId={selectedSession?.id}
-              season={seasonYear}
-              sessions={sessionsWithResults}
-            />
-          </CardContent>
-        </Card>
-      </section>
-
-      {isCurrentSeason ? (
-        <section className="grid gap-4 pb-8">
-          <div className="flex items-center gap-2">
-            <Flag aria-hidden="true" data-icon="inline-start" />
-            <h2 className="text-xl font-semibold">Новости этапа</h2>
-          </div>
-          {raceNews.length ? (
-            <div className="grid gap-3 md:grid-cols-2">
-              {raceNews.map((item) => (
-                <Link
-                  className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent"
-                  href={`/news/${item.slug}`}
-                  key={item.slug}
-                >
-                  <Badge variant="secondary">{item.source}</Badge>
-                  <h3 className="mt-3 font-semibold leading-6">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-md border border-border/70 p-5 text-sm text-muted-foreground">
-              RaceSide еще не привязал свежие новости к этому этапу.
-            </div>
-          )}
+            {isCurrentSeason ? (
+              <div className="order-3 xl:order-none">
+                <RaceNewsSection
+                  allHref={`/news?race=${seasonYear}-${raceRound}`}
+                  compact
+                  items={raceNews}
+                />
+              </div>
+            ) : null}
+          </aside>
         </section>
-      ) : null}
+      </article>
       {isCurrentSeason ? (
         <GrandPrixReportDialog driverSlugByName={driverSlugByName} open={isReportOpen} report={dialogReport} />
       ) : null}
@@ -290,12 +352,157 @@ export default async function RaceCalendarPage({
   );
 }
 
+function getRaceStatusVariant(status: string): "success" | "danger" | "warning" {
+  if (status === "Завершен") {
+    return "success";
+  }
+
+  if (status === "Текущий этап") {
+    return "danger";
+  }
+
+  return "warning";
+}
+
+function formatTrackLength(
+  stats: Awaited<ReturnType<typeof getCircuitStatsForRace>>,
+) {
+  const length = stats?.circuit.lapLengthKm;
+
+  return length === null || length === undefined ? "Уточняется" : `${length.toFixed(3)} км`;
+}
+
+function formatRaceLaps(
+  stats: Awaited<ReturnType<typeof getCircuitStatsForRace>>,
+) {
+  const laps = stats?.circuit.raceLaps;
+
+  return laps === null || laps === undefined ? "Уточняется" : `${laps} кругов`;
+}
+
+function RaceNewsSection({
+  allHref,
+  compact = false,
+  items,
+}: {
+  allHref: string;
+  compact?: boolean;
+  items: Readonly<Awaited<ReturnType<typeof getRaceNews>>>;
+}) {
+  return (
+    <section className="overflow-hidden rounded-xl border border-border bg-card">
+      <SectionTitle
+        action={(
+          <Link
+            className="group/action inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={allHref}
+          >
+            Все новости
+            <ArrowRight
+              aria-hidden="true"
+              className="size-3.5 transition-transform group-hover/action:translate-x-0.5"
+            />
+          </Link>
+        )}
+        icon={Newspaper}
+      >
+        Новости этапа
+      </SectionTitle>
+      {items.length ? (
+        <div className={cn("grid gap-px bg-border", !compact && "md:grid-cols-2")}>
+          {items.map((item, index) => (
+            <Link
+              className={cn(
+                "group bg-card p-5 transition-colors hover:bg-accent/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                !compact && "sm:p-6",
+                !compact && index === 0 && "md:col-span-2",
+              )}
+              href={`/news/${item.slug}`}
+              key={item.slug}
+            >
+              <Badge variant="secondary">{item.source}</Badge>
+              <h3
+                className={cn(
+                  "mt-3 text-balance font-display font-bold leading-tight transition-colors group-hover:text-primary",
+                  !compact && index === 0 ? "max-w-4xl text-2xl sm:text-3xl" : "text-base",
+                )}
+              >
+                {item.title}
+              </h3>
+              <p
+                className={cn(
+                  "mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground",
+                  !compact && index === 0 && "max-w-4xl sm:text-base sm:leading-7",
+                )}
+              >
+                {item.summary}
+              </p>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="p-5 text-sm leading-6 text-muted-foreground">
+          Свежих новостей об этом этапе пока нет.
+        </div>
+      )}
+    </section>
+  );
+}
+
+function RaceOverviewMetric({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 bg-card px-4 py-4">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+        <p className="text-xs font-semibold">{label}</p>
+      </div>
+      <p className="mt-2 break-words font-telemetry text-sm font-bold leading-5 text-foreground">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function SectionTitle({
+  action,
+  children,
+  icon: Icon,
+}: {
+  action?: ReactNode;
+  children: ReactNode;
+  icon: LucideIcon;
+}) {
+  return (
+    <div className="flex h-14 items-center justify-between gap-3 border-b border-border/70 px-4 py-2 sm:px-5 sm:py-2">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+          <Icon aria-hidden="true" className="size-4" />
+        </span>
+        <h2 className="truncate font-display text-base font-bold leading-none tracking-[-0.02em]">
+          {children}
+        </h2>
+      </div>
+      {action}
+    </div>
+  );
+}
+
 function RaceReportPreview({
+  compact = false,
   driverSlugByName,
   href,
   replay,
   report,
 }: {
+  compact?: boolean;
   driverSlugByName: Record<string, string>;
   href: string;
   replay: Awaited<ReturnType<typeof getRaceReplaySummaryByRaceId>>;
@@ -303,7 +510,9 @@ function RaceReportPreview({
 }) {
   return (
     <GrandPrixPodiumPreview
-      className="mt-2"
+      className={compact ? "mt-5" : "p-5 sm:p-6"}
+      compact={compact}
+      compactShareAction={compact}
       driverSlugByName={driverSlugByName}
       href={href}
       replay={replay}

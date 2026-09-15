@@ -3,6 +3,7 @@ import {
   runAdminJobAction,
 } from "@/app/admin/operations";
 import { AdminActionForm } from "@/components/admin/admin-action-form";
+import { AdminUrlTabs } from "@/components/admin/admin-url-tabs";
 import { AdminFilters } from "@/components/admin/admin-filters";
 import {
   AdminEmpty,
@@ -12,7 +13,7 @@ import {
   AdminSection,
   AdminStatusBadge,
 } from "@/components/admin/admin-ui";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -49,7 +50,7 @@ export default async function AdminNotificationsPage({ searchParams }: PageProps
         description="Очередь и журнал Telegram без идентификаторов чатов, токенов и содержимого служебных запросов."
         title="Уведомления"
       />
-      <Tabs defaultValue="queue">
+      <AdminUrlTabs defaultValue="queue" values={["queue", "logs", "connections"]}>
         <TabsList variant="line">
           <TabsTrigger value="queue">Очередь</TabsTrigger>
           <TabsTrigger value="logs">Журнал</TabsTrigger>
@@ -162,7 +163,7 @@ export default async function AdminNotificationsPage({ searchParams }: PageProps
             </div>
           </AdminSection>
         </TabsContent>
-      </Tabs>
+      </AdminUrlTabs>
     </AdminPage>
   );
 }

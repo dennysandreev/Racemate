@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 
 import { finishAdminAudit, startAdminAudit } from "@/lib/admin-audit";
@@ -9,14 +10,12 @@ import {
   validateAdminAiPromptContent,
   validateAdminAiRuntime,
 } from "@/lib/admin-ai-prompts";
-import { getAdminJobDefinition } from "@/lib/admin-job-catalog";
+import { getAdminJobDefinition, makeAdminJobRequestKey } from "@/lib/admin-job-catalog";
 import { enqueueAdminJob } from "@/lib/admin-jobs-server";
-import {
-  buildNewsEditorialUpdate,
-  canReplacePollOptions,
-  canTransitionAdminStatus,
-} from "@/lib/admin-policies";
+import { canTransitionAdminStatus } from "@/lib/admin-policies";
 import { requireAdmin } from "@/lib/auth";
+import { invalidateSubscriptionAccess } from "@/lib/billing/access";
+import { parseMinorUnits } from "@/lib/billing/money";
 import { loadOpenRouterModels } from "@/lib/openrouter-models";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -271,23 +270,17 @@ export async function saveNewsArticleAction(
   });
 
   try {
-    const now = new Date().toISOString();
-    const editorialUpdate = buildNewsEditorialUpdate({
-      actorUserId: user.id,
-      body,
-      currentPublishedAt: before.published_at,
-      currentSlug: before.slug,
-      nextStatus: publicationStatus,
-      now,
-      summary,
-      title,
+    const { error: updateError } = await admin.rpc("admin_save_news_article", {
+      p_actor_user_id: user.id,
+      p_article_id: articleId,
+      p_body: body,
+      p_now: new Date().toISOString(),
+      p_publication_status: publicationStatus,
+      p_summary: summary,
+      p_tag_names: tagNames,
+      p_title: title,
     });
-    const { error: updateError } = await admin
-      .from("news_articles")
-      .update(editorialUpdate.update)
-      .eq("id", articleId);
     if (updateError) throw updateError;
-    await replaceAdminNewsTags(admin, articleId, tagNames);
     await finishAdminAudit(admin, auditId, {
       outcome: "succeeded",
       afterData: { publicationStatus, title, summary, body, tagNames, slug: before.slug },
@@ -304,6 +297,152 @@ export async function saveNewsArticleAction(
   } catch (saveError) {
     await finishAdminAudit(admin, auditId, { outcome: "failed", error: saveError });
     return actionError(saveError, "Не удалось сохранить материал.");
+  }
+}
+
+export async function hideNewsArticleAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const user = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const articleId = uuid(formData, "articleId");
+  if (!admin || !articleId) return { ok: false, message: "Материал не найден." };
+  const { data: before, error } = await admin
+    .from("news_articles")
+    .select("id, slug, publication_status, published_at")
+    .eq("id", articleId)
+    .maybeSingle();
+  if (error || !before) return { ok: false, message: "Материал не найден." };
+  if (before.publication_status !== "published") {
+    return { ok: false, message: "Материал уже не показывается в ленте." };
+  }
+  const auditId = await startAdminAudit(admin, {
+    actorUserId: user.id,
+    action: "news.hide",
+    entityType: "news_article",
+    entityId: articleId,
+    beforeData: before,
+  });
+  const { data: updated, error: updateError } = await admin
+    .from("news_articles")
+    .update({ publication_status: "draft", updated_at: new Date().toISOString() })
+    .eq("id", articleId)
+    .eq("publication_status", "published")
+    .select("id")
+    .maybeSingle();
+  if (updateError || !updated) {
+    await finishAdminAudit(admin, auditId, {
+      outcome: "failed",
+      error: updateError ?? "Материал изменился до снятия с публикации.",
+    });
+    return updateError
+      ? actionError(updateError, "Не удалось убрать материал из ленты.")
+      : { ok: false, message: "Материал уже изменился. Обнови страницу и попробуй снова." };
+  }
+  await finishAdminAudit(admin, auditId, {
+    outcome: "succeeded",
+    afterData: { publicationStatus: "draft", slug: before.slug },
+  });
+  revalidateAdminPaths(["/admin", "/admin/news", "/news", `/news/${before.slug}`, "/"]);
+  return { ok: true, message: "Материал убран из ленты. Его можно опубликовать снова." };
+}
+
+export async function publishDuplicateNewsAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const user = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const articleId = uuid(formData, "articleId");
+  if (!admin || !articleId) return { ok: false, message: "Материал не найден." };
+
+  const { data: before, error } = await admin
+    .from("news_articles")
+    .select("id, slug, publication_status, duplicate_of, duplicate_confidence, duplicate_relation, duplicate_reason, dedup_decision_history")
+    .eq("id", articleId)
+    .maybeSingle();
+  if (error || !before) return { ok: false, message: "Материал не найден." };
+  if (before.publication_status !== "duplicate") {
+    return { ok: false, message: "Материал уже не отмечен как дубль." };
+  }
+
+  const auditId = await startAdminAudit(admin, {
+    actorUserId: user.id,
+    action: "news.duplicate.publish",
+    entityType: "news_article",
+    entityId: articleId,
+    beforeData: before,
+  });
+  const publishedAt = new Date().toISOString();
+  const previousHistory = Array.isArray(before.dedup_decision_history)
+    ? before.dedup_decision_history
+    : [];
+  const previousDecision = {
+    duplicateOf: before.duplicate_of,
+    confidence: before.duplicate_confidence,
+    relation: before.duplicate_relation,
+    reason: before.duplicate_reason,
+    overriddenAt: publishedAt,
+    overriddenBy: user.id,
+  };
+
+  try {
+    const { data: updated, error: updateError } = await admin
+      .from("news_articles")
+      .update({
+        publication_status: "published",
+        status: "processed",
+        dedup_status: "unique",
+        published_at: publishedAt,
+        duplicate_of: null,
+        duplicate_confidence: null,
+        duplicate_relation: null,
+        duplicate_reason: null,
+        published_manually: true,
+        manual_published_at: publishedAt,
+        manual_published_by: user.id,
+        dedup_decision_history: [...previousHistory.slice(-19), previousDecision],
+        updated_at: publishedAt,
+      })
+      .eq("id", articleId)
+      .eq("publication_status", "duplicate")
+      .select("id")
+      .maybeSingle();
+    if (updateError) throw updateError;
+    if (!updated) {
+      await finishAdminAudit(admin, auditId, {
+        outcome: "failed",
+        error: "Материал изменился до публикации.",
+      });
+      return { ok: false, message: "Материал уже изменился. Обнови страницу и попробуй снова." };
+    }
+
+    const { error: decisionError } = await admin.from("news_dedup_decisions").insert({
+      article_id: articleId,
+      duplicate_of: before.duplicate_of,
+      candidate_count: before.duplicate_of ? 1 : 0,
+      is_duplicate: false,
+      confidence: before.duplicate_confidence,
+      relation: before.duplicate_relation,
+      reason: "Редактор опубликовал материал вручную.",
+      dedup_status: "unique",
+      publication_status: "published",
+      decision_source: "manual_override",
+    });
+    await finishAdminAudit(admin, auditId, {
+      outcome: "succeeded",
+      afterData: { publicationStatus: "published", slug: before.slug },
+      metadata: {
+        dedupDecisionRecorded: !decisionError,
+        ...(decisionError ? { dedupDecisionError: decisionError.message } : {}),
+      },
+    });
+    revalidateAdminPaths(["/admin", "/admin/news", "/news", `/news/${before.slug}`, "/"]);
+    return { ok: true, message: "Дубль опубликован как отдельный материал." };
+  } catch (publishError) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error: publishError });
+    return actionError(publishError, "Не удалось опубликовать дубль.");
   }
 }
 
@@ -424,59 +563,29 @@ export async function moderateSocialPostAction(
   });
 
   try {
-    if (topic) {
-      const topicNames: Record<string, string> = {
-        "social-race-weekend": "Этап и результаты",
-        "social-technical": "Техника и регламент",
-        "social-transfers": "Трансферы и контракты",
-        "social-statements": "Комментарии команд и гонщиков",
-        "social-incidents": "Инциденты и штрафы",
-        "social-rumors": "Слухи",
-        "social-discussion": "Обсуждения",
-      };
-      const { data: tag, error: tagError } = await admin
-        .from("tags")
-        .upsert({ type: "social_topic", slug: topic, name: topicNames[topic] }, { onConflict: "slug" })
-        .select("id")
-        .single();
-      if (tagError) throw tagError;
-      const { data: relations, error: relationsError } = await admin
-        .from("social_post_tags")
-        .select("tag_id")
-        .eq("post_id", postId);
-      if (relationsError) throw relationsError;
-      const relationTagIds = (relations ?? []).map((relation) => relation.tag_id);
-      const { data: relationTags, error: relationTagsError } = relationTagIds.length
-        ? await admin.from("tags").select("id, type").in("id", relationTagIds)
-        : { data: [], error: null };
-      if (relationTagsError) throw relationTagsError;
-      const previousTopicIds = (relationTags ?? []).filter((tagItem) => tagItem.type === "social_topic").map((tagItem) => tagItem.id);
-      if (previousTopicIds.length) {
-        const { error: deleteError } = await admin.from("social_post_tags").delete().eq("post_id", postId).in("tag_id", previousTopicIds);
-        if (deleteError) throw deleteError;
-      }
-      const { error: relationError } = await admin.from("social_post_tags").upsert({
-        post_id: postId,
-        tag_id: tag.id,
-        confidence: 1,
-        method: "admin",
-        is_primary: true,
-      }, { onConflict: "post_id,tag_id" });
-      if (relationError) throw relationError;
-    }
-    if (action === "retry") {
-      const { error } = await admin.from("social_posts").update({ status: "pending", next_retry_at: new Date().toISOString(), last_processing_error: null }).eq("id", postId);
-      if (error) throw error;
-      const queued = await enqueueAdminJob(admin, {
+    const topicNames: Record<string, string> = {
+      "social-race-weekend": "Этап и результаты",
+      "social-technical": "Техника и регламент",
+      "social-transfers": "Трансферы и контракты",
+      "social-statements": "Комментарии команд и гонщиков",
+      "social-incidents": "Инциденты и штрафы",
+      "social-rumors": "Слухи",
+      "social-discussion": "Обсуждения",
+    };
+    const { error } = await admin.rpc("admin_moderate_social_post", {
+      p_action: action,
+      p_actor_user_id: user.id,
+      p_now: new Date().toISOString(),
+      p_post_id: postId,
+      p_request_key: makeAdminJobRequestKey({
         args: { postId },
         jobName: "social.process_ai",
         requestedBy: user.id,
-      });
-      if (!queued.ok) throw new Error(queued.message);
-    } else {
-      const { error } = await admin.from("social_posts").update({ status: action === "publish" ? "published" : "rejected", next_retry_at: null }).eq("id", postId);
-      if (error) throw error;
-    }
+      }),
+      p_topic_name: topic ? topicNames[topic] : null,
+      p_topic_slug: topic,
+    });
+    if (error) throw error;
     await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: { action, topic } });
     revalidateAdminPaths(["/admin", "/admin/social", "/social"]);
     return { ok: true, message: action === "publish" ? "Публикация вышла в ленту." : action === "reject" ? "Публикация отклонена." : "Повторная обработка запущена." };
@@ -484,6 +593,51 @@ export async function moderateSocialPostAction(
     await finishAdminAudit(admin, auditId, { outcome: "failed", error: moderationError });
     return actionError(moderationError, "Не удалось обработать публикацию.");
   }
+}
+
+export async function hideSocialPostAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const user = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const postId = uuid(formData, "postId");
+  if (!admin || !postId) return { ok: false, message: "Публикация не найдена." };
+  const { data: before, error } = await admin
+    .from("social_posts")
+    .select("id, status, platform, ai_title_ru")
+    .eq("id", postId)
+    .maybeSingle();
+  if (error || !before) return { ok: false, message: "Публикация не найдена." };
+  if (before.status !== "published") {
+    return { ok: false, message: "Публикация уже не показывается в ленте." };
+  }
+  const auditId = await startAdminAudit(admin, {
+    actorUserId: user.id,
+    action: "social.hide",
+    entityType: "social_post",
+    entityId: postId,
+    beforeData: before,
+  });
+  const { data: updated, error: updateError } = await admin
+    .from("social_posts")
+    .update({ status: "rejected", next_retry_at: null, updated_at: new Date().toISOString() })
+    .eq("id", postId)
+    .eq("status", "published")
+    .select("id")
+    .maybeSingle();
+  if (updateError || !updated) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error: updateError });
+    return updateError
+      ? actionError(updateError, "Не удалось убрать публикацию из ленты.")
+      : { ok: false, message: "Публикация уже изменилась. Обнови страницу и попробуй снова." };
+  }
+  await finishAdminAudit(admin, auditId, {
+    outcome: "succeeded",
+    afterData: { status: "rejected" },
+  });
+  revalidateAdminPaths(["/admin", "/admin/social", "/social", "/"]);
+  return { ok: true, message: "Публикация убрана из ленты. Её можно опубликовать снова." };
 }
 
 export async function saveSocialSourceAction(
@@ -632,7 +786,7 @@ export async function saveGrandPrixReportAction(
   const summary = optionalText(formData, "summary", 8_000);
   const isHidden = formData.get("isHidden") === "true";
   if (!admin || !reportId) return { ok: false, message: "Отчёт не найден." };
-  const { data: before } = await admin.from("grand_prix_reports").select("id, race_slug, ai_summary, is_hidden, status").eq("id", reportId).maybeSingle();
+  const { data: before } = await admin.from("grand_prix_reports").select("id, season, round, race_slug, ai_summary, is_hidden, status").eq("id", reportId).maybeSingle();
   if (!before) return { ok: false, message: "Отчёт не найден." };
   const auditId = await startAdminAudit(admin, {
     actorUserId: user.id,
@@ -652,7 +806,7 @@ export async function saveGrandPrixReportAction(
     return actionError(error, "Не удалось сохранить отчёт.");
   }
   await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: { summary, isHidden } });
-  revalidateAdminPaths(["/admin", "/admin/reports", "/", "/calendar", `/calendar/${before.race_slug}`]);
+  revalidateAdminPaths(["/admin", "/admin/reports", "/", "/calendar", `/calendar/${before.season}/${before.round}`]);
   return { ok: true, message: "Отчёт сохранён." };
 }
 
@@ -712,40 +866,22 @@ export async function savePollAction(
   });
 
   try {
-    let targetPollId = pollId;
     if (pollId) {
-      const { count } = await admin.from("poll_votes").select("poll_id", { count: "exact", head: true }).eq("poll_id", pollId);
       const currentPollStatus = before && ["draft", "published", "closed"].includes(before.status)
         ? before.status
         : "draft";
       if (!canTransitionAdminStatus("poll", currentPollStatus, status)) {
         throw new Error("Такое изменение состояния опроса не разрешено.");
       }
-      const { error } = await admin.from("polls").update({ question, status, closes_at: closesAt || null }).eq("id", pollId);
-      if (error) throw error;
-      if (canReplacePollOptions(count ?? 0)) {
-        const { error: deleteError } = await admin.from("poll_options").delete().eq("poll_id", pollId);
-        if (deleteError) throw deleteError;
-        const { error: optionsError } = await admin.from("poll_options").insert(
-          options.map((label, sortOrder) => ({ poll_id: pollId, label, sort_order: sortOrder })),
-        );
-        if (optionsError) throw optionsError;
-      }
-    } else {
-      const { data, error } = await admin.from("polls").insert({
-        question,
-        status,
-        closes_at: closesAt || null,
-        poll_kind: "fan",
-        generated_by_ai: false,
-      }).select("id").single();
-      if (error) throw error;
-      targetPollId = data.id;
-      const { error: optionsError } = await admin.from("poll_options").insert(
-        options.map((label, sortOrder) => ({ poll_id: data.id, label, sort_order: sortOrder })),
-      );
-      if (optionsError) throw optionsError;
     }
+    const { data: targetPollId, error } = await admin.rpc("admin_save_poll", {
+      p_closes_at: closesAt || null,
+      p_options: options,
+      p_poll_id: pollId,
+      p_question: question,
+      p_status: status,
+    });
+    if (error) throw error;
     await finishAdminAudit(admin, auditId, {
       outcome: "succeeded",
       afterData: { pollId: targetPollId, question, status, closesAt, options },
@@ -777,10 +913,12 @@ export async function retryNotificationAction(
     entityId: queueId,
     beforeData: before,
   });
-  const { error } = await admin.from("notification_queue").update({ status: "queued", available_at: new Date().toISOString(), last_error: null }).eq("id", queueId).eq("status", "failed").is("sent_at", null);
-  if (error) {
+  const { data: updated, error } = await admin.from("notification_queue").update({ status: "queued", available_at: new Date().toISOString(), last_error: null }).eq("id", queueId).eq("status", "failed").is("sent_at", null).select("id").maybeSingle();
+  if (error || !updated) {
     await finishAdminAudit(admin, auditId, { outcome: "failed", error });
-    return actionError(error, "Не удалось вернуть уведомление в очередь.");
+    return error
+      ? actionError(error, "Не удалось вернуть уведомление в очередь.")
+      : { ok: false, message: "Уведомление уже изменилось. Обнови страницу и попробуй снова." };
   }
   await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: { status: "queued" } });
   revalidateAdminPaths(["/admin/notifications"]);
@@ -900,7 +1038,7 @@ export async function saveAiBudgetAction(
 ): Promise<AdminActionResult> {
   const user = await requireAdmin();
   const admin = createSupabaseAdminClient();
-  const scope = enumValue(formData, "scope", ["default", "social_x"]);
+  const scope = enumValue(formData, "scope", ["default"]);
   const dailyLimit = Number(text(formData, "dailyLimitUsd", 20));
   const monthlyLimit = Number(text(formData, "monthlyLimitUsd", 20));
   if (
@@ -938,10 +1076,109 @@ export async function saveAiBudgetAction(
   revalidateAdminPaths(["/admin", "/admin/ai"]);
   return {
     ok: true,
-    message: scope === "social_x"
-      ? "Лимит обработки публикаций из X сохранён."
-      : "Общий AI-бюджет сохранён.",
+    message: "Общий AI-бюджет сохранён.",
   };
+}
+
+export async function saveXApiBudgetAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const user = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const unitCost = Number(text(formData, "unitCostUsd", 20));
+  const dailyLimit = Number(text(formData, "dailyLimitUsd", 20));
+  const monthlyLimit = Number(text(formData, "monthlyLimitUsd", 20));
+  if (
+    !admin ||
+    !Number.isFinite(unitCost) ||
+    !Number.isFinite(dailyLimit) ||
+    !Number.isFinite(monthlyLimit) ||
+    unitCost <= 0 ||
+    unitCost > 100 ||
+    dailyLimit <= 0 ||
+    monthlyLimit <= 0 ||
+    dailyLimit > monthlyLimit ||
+    monthlyLimit > 100_000
+  ) {
+    return { ok: false, message: "Проверь цену и лимиты X API. Дневной лимит должен быть меньше месячного." };
+  }
+  const { data: before } = await admin
+    .from("admin_external_api_costs")
+    .select("unit_cost_usd, daily_limit_usd, monthly_limit_usd")
+    .eq("provider", "x")
+    .maybeSingle();
+  const auditId = await startAdminAudit(admin, {
+    actorUserId: user.id,
+    action: "external_api_budget.update",
+    entityType: "external_api_budget",
+    entityId: "x",
+    beforeData: before ?? {},
+  });
+  const update = {
+    provider: "x" as const,
+    resource_type: "post_read" as const,
+    unit_cost_usd: unitCost,
+    daily_limit_usd: dailyLimit,
+    monthly_limit_usd: monthlyLimit,
+    updated_by: user.id,
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await admin.from("admin_external_api_costs").upsert(update);
+  if (error) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error });
+    return actionError(error, "Не удалось сохранить бюджет X API.");
+  }
+  await finishAdminAudit(admin, auditId, {
+    outcome: "succeeded",
+    afterData: { unitCost, dailyLimit, monthlyLimit },
+  });
+  revalidateAdminPaths(["/admin", "/admin/ai"]);
+  return { ok: true, message: "Цена и лимиты X API сохранены." };
+}
+
+export async function updateUserErrorReportAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const user = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const reportId = uuid(formData, "reportId");
+  const status = enumValue(formData, "status", ["new", "in_progress", "resolved", "dismissed"]);
+  const adminNote = optionalText(formData, "adminNote", 2_000);
+  if (!admin || !reportId || !status) return { ok: false, message: "Сообщение об ошибке не найдено." };
+  const { data: before, error } = await admin
+    .from("user_error_reports")
+    .select("id, status, admin_note, resolved_at")
+    .eq("id", reportId)
+    .maybeSingle();
+  if (error || !before) return { ok: false, message: "Сообщение об ошибке не найдено." };
+  const auditId = await startAdminAudit(admin, {
+    actorUserId: user.id,
+    action: "user_error_report.update",
+    entityType: "user_error_report",
+    entityId: reportId,
+    beforeData: before,
+  });
+  const isClosed = status === "resolved" || status === "dismissed";
+  const update = {
+    status,
+    admin_note: adminNote,
+    resolved_by: isClosed ? user.id : null,
+    resolved_at: isClosed ? new Date().toISOString() : null,
+    updated_at: new Date().toISOString(),
+  };
+  const { error: updateError } = await admin.from("user_error_reports").update(update).eq("id", reportId);
+  if (updateError) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error: updateError });
+    return actionError(updateError, "Не удалось обновить сообщение.");
+  }
+  await finishAdminAudit(admin, auditId, {
+    outcome: "succeeded",
+    afterData: { status, hasAdminNote: Boolean(adminNote) },
+  });
+  revalidateAdminPaths(["/admin", "/admin/issues"]);
+  return { ok: true, message: "Сообщение обновлено." };
 }
 
 export async function saveAiPromptVersionAction(
@@ -1284,33 +1521,204 @@ export async function clearDriverAvatarAction(
   return { ok: true, message: "Аватар убран из профиля." };
 }
 
-async function replaceAdminNewsTags(
-  admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
-  articleId: string,
-  names: string[],
-) {
-  const { data: relations, error: relationsError } = await admin
-    .from("news_article_tags")
-    .select("tag_id")
-    .eq("article_id", articleId);
-  if (relationsError) throw relationsError;
-  const tagIds = (relations ?? []).map((relation) => relation.tag_id);
-  const { data: existingTags, error: tagsError } = tagIds.length
-    ? await admin.from("tags").select("id, type").in("id", tagIds)
-    : { data: [], error: null };
-  if (tagsError) throw tagsError;
-  const managedTagIds = (existingTags ?? []).filter((tag) => tag.type === "admin_topic").map((tag) => tag.id);
-  if (managedTagIds.length) {
-    const { error } = await admin.from("news_article_tags").delete().eq("article_id", articleId).in("tag_id", managedTagIds);
-    if (error) throw error;
+export async function grantSubscriptionAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const actor = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const targetUserId = uuid(formData, "userId");
+  const duration = enumValue(formData, "duration", ["month", "year", "custom"] as const);
+  const reason = text(formData, "reason", 500);
+  const idempotencyKey = text(formData, "idempotencyKey", 80);
+  const customEndRaw = text(formData, "customEnd", 40);
+  const customEnd = duration === "custom" && customEndRaw ? new Date(customEndRaw) : null;
+  if (!admin || !targetUserId || !duration || reason.length < 3 || idempotencyKey.length < 16 || (customEnd && Number.isNaN(customEnd.getTime()))) {
+    return { ok: false, message: "Проверьте срок и причину выдачи." };
   }
-  for (const name of names) {
-    const slug = `topic-${slugify(name)}`;
-    const { data: tag, error } = await admin.from("tags").upsert({ type: "admin_topic", slug, name }, { onConflict: "slug" }).select("id").single();
-    if (error) throw error;
-    const { error: relationError } = await admin.from("news_article_tags").upsert({ article_id: articleId, tag_id: tag.id, confidence: 1, method: "admin" }, { onConflict: "article_id,tag_id" });
-    if (relationError) throw relationError;
+  const { data: before } = await admin.from("subscriptions").select("status, current_period_start, current_period_end").eq("user_id", targetUserId).maybeSingle();
+  const auditId = await startAdminAudit(admin, {
+    action: "subscription.grant",
+    actorUserId: actor.id,
+    beforeData: before ?? {},
+    entityId: targetUserId,
+    entityType: "subscription",
+    metadata: { duration, reason },
+  });
+  const { data, error } = await admin.rpc("billing_admin_grant", {
+    p_actor_user_id: actor.id,
+    p_custom_end: customEnd?.toISOString() ?? null,
+    p_duration_kind: duration,
+    p_idempotency_key: idempotencyKey,
+    p_reason: reason,
+    p_target_user_id: targetUserId,
+  });
+  if (error || !data?.[0]) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error: error ?? "grant_failed" });
+    return actionError(error, "Не удалось выдать подписку.");
   }
+  await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: data[0] });
+  invalidateSubscriptionAccess(targetUserId);
+  revalidateAdminPaths(["/admin/users", "/account", "/account/subscription"]);
+  return { ok: true, message: `Plus выдан до ${new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" }).format(new Date(data[0].ends_at))}.` };
+}
+
+export async function revokeSubscriptionAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const actor = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const targetUserId = uuid(formData, "userId");
+  const reason = text(formData, "reason", 500);
+  if (!admin || !targetUserId || reason.length < 3) {
+    return { ok: false, message: "Добавьте причину отзыва подписки." };
+  }
+  const { data: before } = await admin
+    .from("subscriptions")
+    .select("status, current_period_start, current_period_end")
+    .eq("user_id", targetUserId)
+    .maybeSingle();
+  const auditId = await startAdminAudit(admin, {
+    action: "subscription.revoke",
+    actorUserId: actor.id,
+    beforeData: before ?? {},
+    entityId: targetUserId,
+    entityType: "subscription",
+    metadata: { reason },
+  });
+  const { data, error } = await admin.rpc("billing_admin_revoke", {
+    p_actor_user_id: actor.id,
+    p_reason: reason,
+    p_target_user_id: targetUserId,
+  });
+  if (error || !data?.[0]?.revoked) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error: error ?? "subscription_not_active" });
+    return actionError(error, "Активная подписка не найдена.");
+  }
+  await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: { status: "revoked" } });
+  invalidateSubscriptionAccess(targetUserId);
+  revalidateAdminPaths(["/admin/users", "/account", "/account/subscription"]);
+  return { ok: true, message: "RaceSide Plus отозван." };
+}
+
+export async function resendBillingConfirmationAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const actor = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const orderId = uuid(formData, "orderId");
+  if (!admin || !orderId) return { ok: false, message: "Заказ не найден." };
+  const { data: order } = await admin.from("billing_orders").select("id, order_number, status").eq("id", orderId).maybeSingle();
+  if (!order || order.status !== "paid") return { ok: false, message: "Подтверждение доступно только для оплаченного заказа." };
+  const auditId = await startAdminAudit(admin, { action: "billing.confirmation_resend", actorUserId: actor.id, entityId: orderId, entityType: "billing_order" });
+  const { error } = await admin.from("billing_email_deliveries").insert({
+    available_at: new Date().toISOString(),
+    attempts: 0,
+    last_error: null,
+    order_id: orderId,
+    provider_message_id: null,
+    recipient_email: null,
+    sent_at: null,
+    status: "queued",
+    template: `payment_confirmation_resend:${randomUUID()}`,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error });
+    return actionError(error, "Не удалось поставить письмо в очередь.");
+  }
+  await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: { orderNumber: order.order_number, status: "queued" } });
+  revalidateAdminPaths(["/admin/billing"]);
+  return { ok: true, message: "Подтверждение поставлено в очередь." };
+}
+
+export async function reconcileBillingPaymentAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const actor = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const orderId = uuid(formData, "orderId");
+  const operationReference = text(formData, "operationReference", 160);
+  const reason = text(formData, "reason", 500);
+  const paidAtRaw = text(formData, "paidAt", 40);
+  const netAmountRaw = text(formData, "netAmount", 30);
+  const paidAt = paidAtRaw ? new Date(paidAtRaw) : new Date();
+  let netAmountMinor = 0;
+  try { netAmountMinor = parseMinorUnits(netAmountRaw); } catch { return { ok: false, message: "Проверьте зачисленную сумму." }; }
+  if (!admin || !orderId || operationReference.length < 3 || reason.length < 3 || Number.isNaN(paidAt.getTime())) {
+    return { ok: false, message: "Добавьте ссылку на операцию, дату и причину сверки." };
+  }
+  const { data: order } = await admin.from("billing_orders").select("id, user_id, provider, payment_method, amount_minor, currency, status, failure_reason").eq("id", orderId).maybeSingle();
+  if (!order || !["pending", "failed"].includes(order.status) || (order.status === "failed" && order.failure_reason !== "CHECKOUT_EXPIRED")) {
+    return { ok: false, message: "Этот заказ нельзя подтвердить ручной сверкой." };
+  }
+  if (netAmountMinor < 0 || netAmountMinor > Number(order.amount_minor)) return { ok: false, message: "Зачисленная сумма не может быть больше суммы заказа." };
+  const referenceHash = createHash("sha256").update(`${order.provider}:${operationReference}`).digest("hex");
+  const auditId = await startAdminAudit(admin, { action: "billing.payment_reconcile", actorUserId: actor.id, entityId: orderId, entityType: "billing_order", metadata: { reason, reference: shortAuditReference(operationReference) } });
+  const { error } = await admin.rpc("billing_apply_payment", {
+    p_currency: order.currency,
+    p_gross_amount_minor: Number(order.amount_minor),
+    p_net_amount_minor: netAmountMinor,
+    p_occurred_at: paidAt.toISOString(),
+    p_order_id: order.id,
+    p_payload_hash: referenceHash,
+    p_payment_method: order.payment_method,
+    p_provider: order.provider,
+    p_provider_event_id: `manual:${referenceHash}`,
+    p_provider_event_type: "manual_reconciliation",
+    p_provider_reference: operationReference,
+    p_provider_transaction_id: operationReference,
+    p_safe_payload: { reconciledBy: actor.id },
+  });
+  if (error) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error });
+    return actionError(error, "Не удалось подтвердить оплату.");
+  }
+  await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: { status: "paid" } });
+  invalidateSubscriptionAccess(order.user_id);
+  revalidateAdminPaths(["/admin/billing", "/admin/users", "/account/subscription"]);
+  return { ok: true, message: "Оплата подтверждена, доступ выдан." };
+}
+
+export async function recordBillingRefundAction(
+  _previousState: AdminActionResult,
+  formData: FormData,
+): Promise<AdminActionResult> {
+  const actor = await requireAdmin();
+  const admin = createSupabaseAdminClient();
+  const orderId = uuid(formData, "orderId");
+  const refundReference = text(formData, "refundReference", 160);
+  const reason = text(formData, "reason", 500);
+  if (!admin || !orderId || refundReference.length < 3 || reason.length < 3) {
+    return { ok: false, message: "Добавьте ссылку на возврат и причину." };
+  }
+  const { data: order } = await admin.from("billing_orders").select("id, user_id, provider, amount_minor, status").eq("id", orderId).maybeSingle();
+  if (!order || order.status !== "paid") return { ok: false, message: "Возврат можно зафиксировать только для оплаченного заказа." };
+  const referenceHash = createHash("sha256").update(`${order.provider}:${refundReference}`).digest("hex");
+  const auditId = await startAdminAudit(admin, { action: "billing.refund_record", actorUserId: actor.id, entityId: orderId, entityType: "billing_order", metadata: { reason, reference: shortAuditReference(refundReference) } });
+  const { error } = await admin.rpc("billing_apply_refund", {
+    p_amount_minor: Number(order.amount_minor),
+    p_order_id: order.id,
+    p_payload_hash: referenceHash,
+    p_provider: order.provider,
+    p_provider_event_id: `manual_refund:${referenceHash}`,
+    p_provider_event_type: "manual_refund",
+  });
+  if (error) {
+    await finishAdminAudit(admin, auditId, { outcome: "failed", error });
+    return actionError(error, "Не удалось зафиксировать возврат.");
+  }
+  await finishAdminAudit(admin, auditId, { outcome: "succeeded", afterData: { status: "refunded" } });
+  invalidateSubscriptionAccess(order.user_id);
+  revalidateAdminPaths(["/admin/billing", "/admin/users", "/account/subscription"]);
+  return { ok: true, message: "Возврат зафиксирован, доступ пересчитан." };
+}
+
+function shortAuditReference(value: string) {
+  return value.length > 20 ? `${value.slice(0, 10)}…${value.slice(-6)}` : value;
 }
 
 function revalidateAdminPaths(paths: string[]) {
@@ -1347,10 +1755,6 @@ function parseTags(value: string) {
 
 function parseLines(value: string, maxItems: number, maxLength: number) {
   return [...new Set(value.split(/\r?\n/).map((item) => item.trim().slice(0, maxLength)).filter(Boolean))].slice(0, maxItems);
-}
-
-function slugify(value: string) {
-  return value.toLocaleLowerCase("ru-RU").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9а-яё]+/gi, "-").replace(/^-+|-+$/g, "") || "tag";
 }
 
 function normalizeHttpsUrl(value: string) {
@@ -1407,9 +1811,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function actionError(error: unknown, fallback: string): AdminActionResult {
+function actionError(_error: unknown, fallback: string): AdminActionResult {
   return {
     ok: false,
-    message: error instanceof Error && error.message ? `${fallback} ${error.message}` : fallback,
+    message: fallback,
   };
 }

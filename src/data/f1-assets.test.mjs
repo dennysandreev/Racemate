@@ -22,4 +22,5 @@ test("uses the driver's actual team color for a Polymarket outcome", () => {
 
 test("still matches a short team code when it is a separate token", () => {
   assert.equal(getTeamAsset("RB F1 Team")?.name, "Racing Bulls");
+  assert.equal(getTeamAsset("RBX")?.logo, "/f1/teams/logos/2026/rb.webp");
 });

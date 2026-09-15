@@ -185,18 +185,33 @@ export function AdminPagination({
   const nextHref = makePageHref(pathname, Math.min(pages, page + 1), search, status);
 
   return (
-    <Pagination className="border-t border-border p-3">
-      <PaginationContent>
+    <Pagination className="border-t border-border px-4 py-3">
+      <PaginationContent className="w-full max-w-md justify-between">
         <PaginationItem>
-          <PaginationPrevious aria-disabled={page <= 1} href={previousHref} />
+          <PaginationPrevious
+            aria-disabled={page <= 1}
+            className={page <= 1 ? "pointer-events-none opacity-50" : undefined}
+            href={page <= 1 ? undefined : previousHref}
+            tabIndex={page <= 1 ? -1 : undefined}
+          />
         </PaginationItem>
         <PaginationItem>
-          <PaginationLink href={makePageHref(pathname, page, search, status)} isActive>
+          <PaginationLink
+            className="min-w-28 whitespace-nowrap px-4"
+            href={makePageHref(pathname, page, search, status)}
+            isActive
+            size="default"
+          >
             {page} из {pages}
           </PaginationLink>
         </PaginationItem>
         <PaginationItem>
-          <PaginationNext aria-disabled={page >= pages} href={nextHref} />
+          <PaginationNext
+            aria-disabled={page >= pages}
+            className={page >= pages ? "pointer-events-none opacity-50" : undefined}
+            href={page >= pages ? undefined : nextHref}
+            tabIndex={page >= pages ? -1 : undefined}
+          />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
@@ -238,6 +253,9 @@ const statusLabels: Record<string, string> = {
   legacy: "Прежний запрос",
   limited: "Ограниченный режим",
   monitoring: "Под наблюдением",
+  new: "Новое",
+  in_progress: "В работе",
+  not_configured: "Не настроено",
   open: "Открыт",
   partial: "Частично готово",
   paused: "На паузе",
@@ -249,6 +267,7 @@ const statusLabels: Record<string, string> = {
   queued: "В очереди",
   ready: "Готово",
   rejected: "Отклонено",
+  removed_from_feed: "Снято с ленты",
   review: "На проверке",
   recommend: "Рекомендации",
   resolved: "Исправлено",

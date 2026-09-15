@@ -32,7 +32,7 @@ export default async function AdminSystemsPage() {
             </Link>
           </Button>
         )}
-        description="Состояние внешних API, RSS-лент, социальных источников и фоновых проверок. Время показано по последней реальной загрузке или запуску."
+        description="Состояние продуктовых сервисов, внешних API, источников и фоновых проверок. Время показано по последней реальной загрузке или запуску."
         title="Состояние систем"
       />
       <section className="grid grid-cols-2 gap-y-5 border-b border-border pb-5 lg:grid-cols-4">
@@ -86,9 +86,9 @@ function SystemRow({ item }: { item: AdminSystemStatus }) {
         </div>
       </dl>
       <Button asChild size="sm" variant="ghost">
-        <Link href={item.kind === "schedule" ? "/admin/schedules" : getSourceHref(item.group)}>
+        <Link href={item.kind === "schedule" ? "/admin/schedules" : item.href ?? getSourceHref(item.group)}>
           <Settings2 data-icon="inline-start" />
-          {item.kind === "schedule" ? "Настроить" : "Открыть источник"}
+          {item.kind === "schedule" ? "Настроить" : item.kind === "source" ? "Открыть источник" : "Открыть"}
         </Link>
       </Button>
     </article>
@@ -115,12 +115,13 @@ function getGroupDescription(group: string) {
     Telegram: "Сборка и доставка уведомлений пользователям.",
     Погода: "Прогноз для ближайшего гоночного уик-энда.",
     "Внутренние процессы": "Расчёты RaceSide, отчёты и служебные обновления.",
+    "Продуктовые сервисы": "LIVE-центр и телеметрия, доступные пользователям RaceSide.",
   };
   return descriptions[group] ?? "Подключённые данные и плановые проверки.";
 }
 
 function getSourceHref(group: string) {
-  return group === "RSS и новости" ? "/admin/news#sources" : "/admin/social#sources";
+  return group === "RSS и новости" ? "/admin/news?tab=sources#sources" : "/admin/social?tab=sources#sources";
 }
 
 function formatDate(value: string | null) {

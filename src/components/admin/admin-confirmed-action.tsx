@@ -6,7 +6,6 @@ import { toast } from "sonner";
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -26,6 +25,8 @@ export function AdminConfirmedAction({
   confirmLabel,
   description,
   title,
+  triggerIcon,
+  triggerIconOnly = false,
   triggerLabel,
   triggerVariant = "secondary",
 }: {
@@ -34,6 +35,8 @@ export function AdminConfirmedAction({
   confirmLabel: string;
   description: string;
   title: string;
+  triggerIcon?: React.ReactNode;
+  triggerIconOnly?: boolean;
   triggerLabel: string;
   triggerVariant?: ButtonProps["variant"];
 }) {
@@ -51,7 +54,17 @@ export function AdminConfirmedAction({
   return (
     <AlertDialog onOpenChange={setOpen} open={open}>
       <AlertDialogTrigger asChild>
-        <Button size="sm" type="button" variant={triggerVariant}>{triggerLabel}</Button>
+        <Button
+          aria-label={triggerIconOnly ? triggerLabel : undefined}
+          className={triggerIconOnly ? "size-11 sm:size-9" : undefined}
+          size={triggerIconOnly ? "icon" : "sm"}
+          title={triggerIconOnly ? triggerLabel : undefined}
+          type="button"
+          variant={triggerVariant}
+        >
+          {triggerIcon}
+          {triggerIconOnly ? <span className="sr-only">{triggerLabel}</span> : triggerLabel}
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <form action={formAction}>
@@ -60,7 +73,7 @@ export function AdminConfirmedAction({
             <AlertDialogTitle>{title}</AlertDialogTitle>
             <AlertDialogDescription>{description}</AlertDialogDescription>
           </AlertDialogHeader>
-          {state.message && !state.ok ? <p className="mt-3 text-sm text-danger">{state.message}</p> : null}
+          {state.message && !state.ok ? <p aria-live="polite" className="mt-3 text-sm text-danger">{state.message}</p> : null}
           <AlertDialogFooter>
             <AlertDialogCancel type="button">Отмена</AlertDialogCancel>
             <ConfirmedSubmit label={confirmLabel} />
@@ -75,8 +88,8 @@ function ConfirmedSubmit({ label }: { label: string }) {
   const { pending } = useFormStatus();
 
   return (
-    <AlertDialogAction disabled={pending} type="submit">
+    <Button disabled={pending} type="submit">
       {pending ? "Выполняется…" : label}
-    </AlertDialogAction>
+    </Button>
   );
 }

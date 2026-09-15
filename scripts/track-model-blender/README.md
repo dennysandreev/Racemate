@@ -1,5 +1,11 @@
 # Blender track builder
 
+Baku: `pnpm track:3d:build baku --offline` rebuilds the pinned-source scene.
+Set `PYTHON_BIN` to a Python runtime with rasterio, OpenCV, NumPy and Pillow.
+The source card is `docs/track-model-baku-source-card.md`. Baku's urban road
+profile is regularised from coarse GEDTM and explicitly approximate. The GLB
+validator decodes Meshopt to check terrain/paint clearance and the pit exit.
+
 This directory contains the reproducible real-scale builders for RaceSide Blender track assets.
 
 Requirements:
@@ -19,6 +25,18 @@ pnpm track:3d:build hungaroring
 pnpm track:3d:validate hungaroring
 pnpm track:3d:build silverstone
 pnpm track:3d:validate silverstone
+pnpm track:3d:build red-bull-ring
+pnpm track:3d:validate red-bull-ring
+pnpm track:3d:build catalunya
+pnpm track:3d:validate catalunya
+pnpm track:3d:build monaco
+pnpm track:3d:validate monaco
+pnpm track:3d:build montreal
+pnpm track:3d:validate montreal
+pnpm track:3d:build monza
+pnpm track:3d:validate monza
+pnpm track:3d:build madring
+pnpm track:3d:validate madring
 ```
 
 The build does not use the former hand-authored `src/data/zandvoort-model.ts` geometry. It performs this deterministic pipeline:
@@ -34,4 +52,31 @@ The Hungaroring branch follows the same contract with dedicated scripts: it pins
 
 The Silverstone branch pins the current OSM circuit and site objects, the FIA British GP 2026 circuit/pit drawing, the official Silverstone grandstand guide, Environment Agency LIDAR Composite DTM 1 m, first-return DSM 1 m and National LIDAR Programme intensity 1 m. It builds the site in EPSG:32630 + ODN at 1:1 scale with no vertical exaggeration, writes `src/data/silverstone-model.ts`, and validates source hashes, FIA anchors, scene completeness and delivery budgets.
 
+The Red Bull Ring branch pins the current OSM circuit and venue objects, FIA Austrian GP 2026 Document 7, the official Formula1.com circuit map, the Land Steiermark 2024 orthophoto and official 1 m ALS DTM/DSM. It builds the site in EPSG:32633 with orthometric source heights at 1:1 scale, creates the FIA 32-box pit lane and current nine mapped grandstands, writes `src/data/red-bull-ring-model.ts`, and validates source hashes, FIA anchors, terrain clearance and web budgets.
+
+The Catalunya branch patches the legacy OSM circuit ring with the current three-way T13-T14 bypass, pins the three connected pit-lane ways and venue objects, the FIA Barcelona 2026 circuit and pit-lane drawings, the official 2026 Circuit de Barcelona-Catalunya event map, the ICGC 2025 25 cm RGB orthophoto, the ICGC territorial DTM, and 2024 ICGC surface-height samples. It builds the site in EPSG:25831 at 1:1 scale with no vertical exaggeration, keeps the detailed 40-garage pit complex while excluding its duplicate grey OSM `Boxes` footprint, adds the 475 m pit-wall debris fence, regenerates `src/data/catalunya-model.ts`, and validates source hashes, the 4.657 km FIA lap, all 14 anchors, pit continuity, scene completeness and web budgets.
+
+The Monaco branch pins OSM circuit relation 148194 and current city objects, FIA Monaco 2026 Document 7, the official ACM 2026 grandstand inventory, the Monaco government z18 orthophoto service and open Terrarium elevation. It builds the street circuit in EPSG:32632 at 1:1 scale, keeps the OSM tunnel as a separately measured underground profile, creates the current 11-team pit lane, regenerates `src/data/monaco-model.ts`, and validates source hashes, all 19 FIA anchors, city completeness and web budgets.
+
+The Montreal branch pins the current OSM circuit and venue objects, FIA Canadian GP 2026 Document 8, the official 2026 promoter grandstand catalogue, the official 2024 spectator map used as the geolocation baseline, the CMM 2019 25 cm orthophoto and NRCan HRDEM DTM/DSM. It builds Circuit Gilles-Villeneuve in EPSG:32188 + CGVD2013 at 1:1 scale with no vertical exaggeration, creates the FIA 43-box pit lane, the 10 visually accepted current-event grandstand zones, the smooth pit entry/exit with a continuous exit guide line, and the concrete pit wall with its high debris fence and gate sections. It regenerates `src/data/montreal-model.ts` and validates source hashes, FIA anchors, reviewed placement corrections, terrain clearance, scene completeness and web budgets.
+
+The Monza branch pins the current OSM circuit and venue objects, the latest published FIA Italian GP operational map, the official Monza 2026 grandstand map, the Italian National Geoportal PCN 2012 colour orthophoto and open Terrarium elevation. It builds Autodromo Nazionale Monza in EPSG:32632 at 1:1 scale with no vertical exaggeration, creates the 60-position pit lane, physical pit wall and debris fence, named current-event grandstand zones and all eleven turn anchors. It regenerates `src/data/monza-model.ts` and validates checksums, 5.793 km lap accuracy, terrain clearance, scene completeness and delivery budgets.
+
 Raw sources and prepared rasters stay in `.track-model-build/`. Production assets are written to `public/f1/tracks/3d/`. Do not hand-edit generated GLBs, previews, metadata files or their generated client model modules.
+
+Madring uses native EPSG:25830 municipal CAD, June 13 2026 LiDAR/orthophoto,
+original municipal LoD2 roofs, IGN gap-fill heights, current OSM and the official
+2026 F1/promoter maps. Its preparation needs Pillow, numpy, `laspy==2.6.1` and
+`lazrs==0.8.0` in a build-only Python environment. Set `PYTHON_BIN` accordingly
+(this workspace: `.track-model-build/madring-python/bin/python`). These are not
+web dependencies. Raw archives and extracted LAZ need about 2.7 GB. On macOS
+Blender requires Metal access even in background mode. Source uncertainties and
+licenses: `docs/track-model-madring-source-card.md`.
+
+Madring overrides Blender 5.2's 12-bit Meshopt position filter with 18-bit
+positions: the default rounds kilometre-scale geometry to half-metre steps and
+collapses narrow road paint. `audit-madring-surfaces.mjs` checks decoded delivery
+geometry for collapsed paint and intersections with asphalt/terrain; it runs as
+part of the Madring validator. The generated GLB URL includes its content hash
+to invalidate stale viewer caches. Build metrics and visual checks are recorded
+in `docs/track-model-madring-build-report.md`.

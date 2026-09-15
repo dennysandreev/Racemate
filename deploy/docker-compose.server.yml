@@ -1,0 +1,138 @@
+services:
+  web:
+    image: raceside:production
+    container_name: racemate-web
+    env_file:
+      - .env
+      - .env.telegram
+    environment:
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      LIVE_INTERNAL_ORIGIN: http://live:3002
+    expose:
+      - "3000"
+    restart: unless-stopped
+    networks:
+      - default
+      - splitopus_proxy
+
+  live:
+    image: raceside:production
+    container_name: racemate-live
+    env_file:
+      - .env
+      - .env.telegram
+    environment:
+      LIVE_HOST: 0.0.0.0
+      LIVE_PORT: 3002
+      LIVE_SPOOL_DIR: /app/live-spool
+      LIVE_WEB_ORIGIN: http://web:3000
+    command:
+      - node
+      - worker/live/server.mjs
+    volumes:
+      - live-spool:/app/live-spool
+    expose:
+      - "3002"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3002/health').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - default
+
+  cache-warmer:
+    image: raceside:production
+    container_name: racemate-cache-warmer
+    command:
+      - node
+      - scripts/warm-public-pages.mjs
+      - http://web:3000
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+    networks:
+      - default
+
+  admin-job-runner:
+    image: raceside:production
+    container_name: racemate-admin-job-runner
+    env_file:
+      - .env
+      - .env.telegram
+    command:
+      - node
+      - worker/cli-loop.mjs
+      - --loop-idle-ms=15000
+      - --loop-busy-ms=1000
+      - --loop-max-backoff-ms=300000
+      - --loop-heartbeat-service=admin-job-runner
+      - jobs.consume_queued
+      - --limit
+      - "3"
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    networks:
+      - default
+
+  cron:
+    image: raceside:production
+    container_name: racemate-cron
+    env_file:
+      - .env
+      - .env.telegram
+    command:
+      - node
+      - worker/cli-loop.mjs
+      - --loop-idle-ms=60000
+      - --loop-busy-ms=60000
+      - --loop-max-backoff-ms=600000
+      - --loop-heartbeat-service=cron
+      - jobs.enqueue_schedules
+      - --limit
+      - "20"
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    networks:
+      - default
+
+  ops-watcher:
+    image: raceside:production
+    container_name: racemate-ops-watcher
+    env_file:
+      - .env
+      - .env.telegram
+    command:
+      - node
+      - worker/cli-loop.mjs
+      - --loop-idle-ms=300000
+      - --loop-busy-ms=300000
+      - --loop-max-backoff-ms=900000
+      - ops.watch
+    depends_on:
+      - web
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+    networks:
+      - default
+
+networks:
+  splitopus_proxy:
+    external: true
+    name: splitopus-v2_default
+
+volumes:
+  live-spool:

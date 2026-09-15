@@ -40,6 +40,13 @@ export function canReplacePollOptions(votesCount: number) {
   return Number.isInteger(votesCount) && votesCount === 0;
 }
 
+export function isNewsRemovedFromFeed(
+  publicationStatus: string,
+  publishedAt: string | null,
+) {
+  return publicationStatus === "draft" && publishedAt !== null;
+}
+
 export function buildNewsEditorialUpdate(input: {
   currentPublishedAt: string | null;
   currentSlug: string;

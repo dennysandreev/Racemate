@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildDriverMotion,
   inferLapTimingsFromPositions,
+  isDriverRetiredOnTrack,
   mergeLapTimingsWithInferred,
   trackProgressAt,
 } from "./motion.ts";
@@ -92,6 +93,46 @@ test("an unfinished final lap follows telemetry to the retirement point", () => 
   assert.ok(Math.abs(trackProgressAt(motion, 160_000).unwrapped - 1.451) < 0.001);
 });
 
+test("an unfinished final lap aligns telemetry whose track origin differs from start-finish", () => {
+  const lapTimings = [
+    { driverNumber: 11, durationMs: 90_000, lapNumber: 4, startOffsetMs: 360_000 },
+    { driverNumber: 11, durationMs: null, lapNumber: 5, startOffsetMs: 450_000 },
+  ];
+  const motion = buildDriverMotion(
+    [
+      { ...position(450_500, 0.96, 96, 11), lapNumber: 5 },
+      { ...position(460_000, 0.99, 99, 11), lapNumber: 5 },
+      { ...position(470_000, 0.02, 2, 11), lapNumber: 5 },
+      { ...position(480_000, 0.08, 8, 11), lapNumber: 5 },
+    ],
+    { lapTimings },
+  );
+
+  assert.ok(Math.abs(trackProgressAt(motion, 450_000).unwrapped - 4) < 0.001);
+  assert.ok(Math.abs(trackProgressAt(motion, 470_000).unwrapped - 4.061579) < 0.001);
+  assert.ok(Math.abs(trackProgressAt(motion, 480_000).unwrapped - 4.121579) < 0.001);
+});
+
+test("an unfinished final lap keeps moving when its first location samples are frozen", () => {
+  const motion = buildDriverMotion(
+    [
+      { ...position(106_000, 0.0168, 16.8, 23), lapNumber: 2 },
+      { ...position(114_000, 0.0173, 17.3, 23), lapNumber: 2 },
+    ],
+    {
+      lapTimings: [
+        { driverNumber: 23, durationMs: 100_000, lapNumber: 1, startOffsetMs: 0 },
+        { driverNumber: 23, durationMs: null, lapNumber: 2, startOffsetMs: 100_000 },
+      ],
+    },
+  );
+
+  const before = trackProgressAt(motion, 101_000).unwrapped;
+  const after = trackProgressAt(motion, 102_000).unwrapped;
+
+  assert.ok(after - before > 0.005, `driver froze after starting the final lap: ${after - before}`);
+});
+
 test("a delayed lap counter cannot make the car jump multiple laps in one sample", () => {
   const events = Array.from({ length: 30 }, (_, index) => ({
     ...position(index * 10_000, (index % 9) / 9, index * 10, 16),
@@ -154,4 +195,92 @@ test("inferred laps continue an incomplete official timing feed", () => {
   assert.deepEqual(merged.map((timing) => timing.lapNumber), [1, 2, 3, 4, 5]);
   assert.equal(merged[0].durationMs, 90_000);
   assert.equal(merged[2].durationMs, 91_000);
+});
+
+test("a recovered lap is aligned between its official neighbours", () => {
+  const official = [
+    { driverNumber: 27, durationMs: 77_891, lapNumber: 42, startOffsetMs: 5_310_339 },
+    { driverNumber: 27, durationMs: 77_968, lapNumber: 44, startOffsetMs: 5_466_377 },
+  ];
+  const inferred = [
+    { driverNumber: 27, durationMs: 77_891, lapNumber: 42, startOffsetMs: 5_215_308 },
+    { driverNumber: 27, durationMs: 77_968, lapNumber: 43, startOffsetMs: 5_293_199 },
+    { driverNumber: 27, durationMs: 77_789, lapNumber: 44, startOffsetMs: 5_371_167 },
+  ];
+
+  const merged = mergeLapTimingsWithInferred(official, inferred);
+
+  assert.equal(merged[1].lapNumber, 43);
+  assert.equal(merged[1].startOffsetMs, 5_388_230);
+
+  const motion = buildDriverMotion(
+    [position(5_310_339, 0, 0, 27), position(5_544_345, 0.99, 99, 27)],
+    { lapTimings: merged },
+  );
+  let previous = trackProgressAt(motion, 5_311_000).unwrapped;
+
+  for (let elapsedMs = 5_312_000; elapsedMs <= 5_465_000; elapsedMs += 1_000) {
+    const current = trackProgressAt(motion, elapsedMs).unwrapped;
+    assert.ok(current - previous > 0.005, `driver nearly stopped at ${elapsedMs} ms`);
+    assert.ok(current - previous < 0.02, `driver jumped at ${elapsedMs} ms`);
+    previous = current;
+  }
+});
+
+test("a synthetic restart boundary cannot make the car run two laps at once", () => {
+  const lapTimings = [
+    { driverNumber: 41, durationMs: null, lapNumber: 4, startOffsetMs: 2_382_445 },
+    { driverNumber: 41, durationMs: 87_335, lapNumber: 5, startOffsetMs: 2_437_719 },
+    { driverNumber: 41, durationMs: 89_772, lapNumber: 6, startOffsetMs: 2_469_429 },
+    { driverNumber: 41, durationMs: 78_444, lapNumber: 7, startOffsetMs: 2_559_272 },
+    { driverNumber: 41, durationMs: 78_614, lapNumber: 8, startOffsetMs: 2_637_747 },
+  ];
+  const motion = buildDriverMotion(
+    [position(2_382_445, 0, 0, 41), position(2_716_361, 0.99, 99, 41)],
+    { lapTimings },
+  );
+  let previous = trackProgressAt(motion, 2_383_000).unwrapped;
+
+  for (let elapsedMs = 2_384_000; elapsedMs <= 2_468_000; elapsedMs += 1_000) {
+    const current = trackProgressAt(motion, elapsedMs).unwrapped;
+    assert.ok(current - previous > 0.005, `driver nearly stopped at ${elapsedMs} ms`);
+    assert.ok(current - previous < 0.02, `driver jumped at ${elapsedMs} ms`);
+    previous = current;
+  }
+});
+
+test("a stopped driver retires after fifteen seconds even when telemetry stops", () => {
+  const events = [
+    position(360_000, 0.4, 0, 77),
+    position(368_000, 0.5, 25, 77),
+    position(376_000, 0.6, 50, 77),
+    position(384_000, 0.7, 75, 77),
+  ];
+
+  assert.equal(isDriverRetiredOnTrack(events, 398_999, false), false);
+  assert.equal(isDriverRetiredOnTrack(events, 399_000, false), true);
+});
+
+test("a distant noisy sample cannot keep a stopped driver active", () => {
+  const events = [
+    position(360_000, 0.4, 0, 77),
+    position(368_000, 0.5, 25, 77),
+    position(376_000, 0.6, 50, 77),
+    position(384_000, 0.7, 75, 77),
+    position(624_000, 0.72, 96, 77),
+  ];
+
+  assert.equal(isDriverRetiredOnTrack(events, 399_000, false), true);
+});
+
+test("nearby future movement keeps an active driver on track", () => {
+  const events = [
+    position(360_000, 0.4, 0, 77),
+    position(368_000, 0.5, 25, 77),
+    position(376_000, 0.6, 50, 77),
+    position(384_000, 0.7, 75, 77),
+    position(408_000, 0.9, 100, 77),
+  ];
+
+  assert.equal(isDriverRetiredOnTrack(events, 399_000, false), false);
 });

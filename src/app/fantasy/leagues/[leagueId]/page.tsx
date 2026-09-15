@@ -1,6 +1,5 @@
 import {
   ArrowLeft,
-  BarChart3,
   ChevronDown,
   ClipboardList,
   Settings,
@@ -11,21 +10,31 @@ import { notFound, redirect } from "next/navigation";
 
 import {
   deleteFantasyLeague,
+  joinFantasyLeague,
   updateFantasyLeague,
 } from "@/app/fantasy/actions";
 import { FantasyLeagueAvatarUploader } from "@/components/fantasy/fantasy-league-avatar-uploader";
+import { FantasySectionNav } from "@/components/fantasy/fantasy-section-nav";
+import { FantasyTrackVisualImage } from "@/components/fantasy/fantasy-track-visual";
 import { LeagueLeaveButton } from "@/components/fantasy/league-leave-button";
 import { LeagueInviteCodeCopy } from "@/components/fantasy/league-invite-code-copy";
 import { AppShell } from "@/components/racemate/app-shell";
 import { FantasyLeaderboardPanel } from "@/components/racemate/global-fantasy-leaderboard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { getFantasyTrackVisual } from "@/data/fantasy-track-assets";
 import { getLeagueDetail } from "@/data/racemate-repository";
 import { getSessionUser } from "@/lib/auth";
 import { createPageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import type {
-  FantasyScoreBreakdown,
   LeagueDetail,
   LeagueHistoryEntry,
   LeagueMemberPrediction,
@@ -77,40 +86,38 @@ export default async function FantasyLeaguePage({
   const selectedRound = Number(query.round ?? league.history[0]?.round ?? 0);
   const selectedEntry =
     league.history.find((entry) => entry.round === selectedRound) ?? league.history[0] ?? null;
-  const selectedPrediction =
-    selectedEntry?.predictions.find((prediction) => prediction.userId === query.user) ??
-    selectedEntry?.predictions[0] ??
-    null;
   const activeView = query.view === "rating" ? "rating" : "predictions";
   const notice = getLeagueNotice(query);
+  const canViewLeagueContent = Boolean(league.isMember || league.isPublic);
 
   return (
     <AppShell>
       <section className="grid gap-6 pb-6">
+        <FantasySectionNav active="leagues" />
         <LeagueHero league={league} />
 
         {notice ? <LeagueNotice notice={notice} /> : null}
 
-        <LeagueTabs activeView={activeView} leagueId={league.id} />
+        {canViewLeagueContent ? (
+          <>
+            <LeagueTabs activeView={activeView} leagueId={league.id} />
 
-        {activeView === "rating" ? (
-          <div className="grid gap-6">
-            <LeagueSeasonStandings currentUserId={user.id} members={league.members} />
-            <TopUsersChart members={league.members} />
-          </div>
+            {activeView === "rating" ? (
+              <LeagueSeasonStandings currentUserId={user.id} members={league.members} />
+            ) : (
+              <PredictionsByRoundAccordion
+                history={league.history}
+                selectedRound={selectedEntry?.round ?? null}
+              />
+            )}
+          </>
         ) : (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
-            <PredictionsByRoundAccordion
-              history={league.history}
-              leagueId={league.id}
-              selectedRound={selectedEntry?.round ?? null}
-              selectedUserId={selectedPrediction?.userId ?? null}
-            />
-
-            <aside className="grid gap-6 xl:sticky xl:top-6">
-              <PredictionReviewCard prediction={selectedPrediction} race={selectedEntry} />
-            </aside>
-          </div>
+          <section className="rounded-xl border border-border/70 bg-card/75 p-5 sm:p-6">
+            <h2 className="font-display text-lg font-bold">Прогнозы доступны участникам</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Введи код приглашения выше, чтобы открыть рейтинг и прогнозы этой лиги.
+            </p>
+          </section>
         )}
       </section>
     </AppShell>
@@ -120,77 +127,112 @@ export default async function FantasyLeaguePage({
 function LeagueHero({ league }: { league: LeagueDetail }) {
   const leader = league.members[0];
   const totalPredictions = league.members.reduce((sum, member) => sum + member.scoredCount, 0);
+  const totalScore = league.members.reduce((sum, member) => sum + member.totalScore, 0);
+  const averageStageScore = totalPredictions ? totalScore / totalPredictions : null;
 
   return (
-    <header className="stitch-panel p-4 sm:p-5">
-      <div className="grid gap-5 xl:min-h-[14rem] xl:grid-cols-[minmax(0,1fr)_minmax(28rem,34rem)]">
-        <div className="flex min-w-0 flex-col justify-between gap-5">
-          <div className="min-w-0">
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/fantasy?tab=leagues">
-                <ArrowLeft aria-hidden="true" className="size-4" />
-                К лигам
-              </Link>
-            </Button>
+    <header className="grid gap-7">
+      <div className="flex flex-wrap items-start justify-between gap-5">
+        <div className="min-w-0 flex-1">
+          <Button asChild size="sm" variant="ghost">
+            <Link href="/fantasy/leagues">
+              <ArrowLeft aria-hidden="true" className="size-4" />
+              К лигам
+            </Link>
+          </Button>
 
-            <div className="mt-4 flex items-start gap-3 sm:gap-4">
-              <FantasyLeagueAvatarUploader
-                avatarUrl={league.avatarUrl}
-                canEdit={Boolean(league.isOwner)}
-                leagueId={league.id}
-                leagueName={league.name}
-              />
-              <div className="min-w-0 flex-1">
-                <h1 className="font-display text-balance text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
-                  {league.name}
-                </h1>
+          <div className="mt-5 flex items-center gap-4 sm:gap-6">
+            <FantasyLeagueAvatarUploader
+              avatarUrl={league.avatarUrl}
+              canEdit={Boolean(league.isOwner)}
+              className="size-24 sm:size-32"
+              leagueId={league.id}
+              leagueName={league.name}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="stitch-label text-primary">Фентази-лига</p>
+              <h1 className="mt-2 font-display text-balance text-3xl font-extrabold tracking-[-0.04em] sm:text-5xl">
+                {league.name}
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Рейтинг сезона, история этапов и прогнозы участников.
+              </p>
               </div>
             </div>
-
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Рейтинг сезона, история этапов и разбор прогнозов всех участников.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:max-w-xl">
-            <p className="font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              Код приглашения
-            </p>
-            {league.inviteCode ? (
-              <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-background/45 p-2">
-                <code className="min-w-0 flex-1 truncate rounded-md bg-muted/35 px-3 py-2 font-telemetry text-sm font-bold text-foreground">
-                  {league.inviteCode}
-                </code>
-                <LeagueInviteCodeCopy code={league.inviteCode} />
-              </div>
-            ) : (
-              <p className="rounded-lg border border-border bg-background/45 px-3 py-2 text-sm text-muted-foreground">
-                Код появится после создания приглашения.
-              </p>
-            )}
-          </div>
         </div>
 
-        <div className="grid w-full content-between gap-6 self-stretch">
+        <div className="grid min-w-[17rem] justify-items-end gap-4">
           {league.isOwner ? (
             <LeagueSettingsDisclosure league={league} />
           ) : (
             <LeagueParticipantControls league={league} />
           )}
-
-          <div className="grid gap-3 sm:grid-cols-4">
-            <LeagueHeaderMetric label="Лидер" value={leader?.name ?? "—"} />
-            <LeagueHeaderMetric label="Очки" value={String(leader?.totalScore ?? "—")} />
-            <LeagueHeaderMetric label="Этапов" value={String(league.history.length)} />
-            <LeagueHeaderMetric label="Прогнозов" value={String(totalPredictions)} />
-          </div>
+          {league.isMember ? (
+            <div className="grid w-full gap-2">
+              <p className="text-right font-telemetry text-[0.62rem] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                Код приглашения
+              </p>
+              {league.inviteCode ? (
+                <div className="flex min-w-0 items-center gap-2 border-b stitch-divider pb-2">
+                  <code className="min-w-0 flex-1 truncate px-1 py-2 font-telemetry text-sm font-bold text-foreground">
+                    {league.inviteCode}
+                  </code>
+                  <LeagueInviteCodeCopy code={league.inviteCode} />
+                </div>
+              ) : (
+                <p className="border-b stitch-divider px-1 py-2 text-sm text-muted-foreground">
+                  Код появится после создания приглашения.
+                </p>
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
+
+      {league.isMember || league.isPublic ? (
+        <div className="grid grid-cols-2 gap-px overflow-hidden border-y border-border/70 bg-border/70 sm:grid-cols-4 xl:grid-cols-7">
+          <LeagueHeaderMetric label="Лидер" value={leader?.name ?? "-"} />
+          <LeagueHeaderMetric label="Очки" value={String(leader?.totalScore ?? "-")} />
+          <LeagueHeaderMetric label="Участников" value={String(league.members.length)} />
+          <LeagueHeaderMetric label="Среднее за этап" value={formatLeagueScore(averageStageScore)} />
+          <LeagueHeaderMetric label="Этапов" value={String(league.history.length)} />
+          <LeagueHeaderMetric label="Прогнозов" value={String(totalPredictions)} />
+          <LeagueHeaderMetric label="Всего очков" value={String(totalScore)} />
+        </div>
+      ) : null}
     </header>
   );
 }
 
 function LeagueParticipantControls({ league }: { league: LeagueDetail }) {
+  if (!league.isMember) {
+    return (
+      <div className="grid w-full max-w-sm justify-items-end gap-3">
+        <LeagueStatusBadges league={league} />
+        <form action={joinFantasyLeague} className="grid w-full gap-3 rounded-xl border border-border bg-card p-4">
+          <input name="leagueId" type="hidden" value={league.id} />
+          {!league.isPublic ? (
+            <label className="grid gap-2 text-sm font-semibold" htmlFor="league-invite-code">
+              Код приглашения
+              <input
+                autoComplete="off"
+                className="min-h-11 rounded-md border border-input bg-background px-3 font-mono text-sm uppercase outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                id="league-invite-code"
+                maxLength={16}
+                name="inviteCode"
+                placeholder="RACE24"
+                required
+              />
+            </label>
+          ) : null}
+          <Button className="min-h-11" type="submit">
+            Присоединиться
+          </Button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="grid justify-items-end gap-3">
       <LeagueStatusBadges league={league} />
@@ -202,7 +244,6 @@ function LeagueParticipantControls({ league }: { league: LeagueDetail }) {
 function LeagueStatusBadges({ league }: { league: LeagueDetail }) {
   return (
     <div className="flex flex-wrap items-center justify-end gap-2">
-      <Badge variant="secondary">{league.members.length} участников</Badge>
       {league.isPublic ? <Badge variant="outline">Открытая лига</Badge> : <Badge variant="outline">Вход по коду</Badge>}
       {league.isOwner ? <Badge variant="success">Ты создатель</Badge> : null}
     </div>
@@ -237,10 +278,10 @@ function LeagueHeaderMetric({
   value: string;
 }) {
   return (
-    <div className="grid min-h-[4.75rem] place-items-center rounded-lg border border-border bg-background/45 p-2.5 text-center">
+    <div className="grid min-h-20 place-items-center bg-background/85 p-3 text-center">
       <div className="flex min-w-0 items-center justify-center gap-2">
         <div className="min-w-0">
-          <p className="truncate font-telemetry text-base font-bold text-primary">{value}</p>
+          <p className="truncate font-telemetry text-xl font-bold text-foreground">{value}</p>
           <p className="mt-1 font-telemetry text-[0.6rem] font-bold uppercase tracking-[0.12em] text-muted-foreground">
             {label}
           </p>
@@ -306,57 +347,6 @@ function LeagueOwnerPanel({ league }: { league: LeagueDetail }) {
   );
 }
 
-function TopUsersChart({ members }: { members: LeagueMemberPrediction[] }) {
-  const topUsers = members.slice(0, 10);
-  const maxScore = Math.max(...topUsers.map((member) => member.totalScore), 1);
-
-  return (
-    <section className="stitch-panel overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
-        <div className="flex items-center gap-3">
-          <BarChart3 aria-hidden="true" className="size-5 text-primary" />
-          <div>
-            <p className="stitch-label text-muted-foreground">Топ-10</p>
-            <h2 className="mt-1 font-display text-2xl font-bold">Очки участников</h2>
-          </div>
-        </div>
-        <Badge variant="secondary">{topUsers.length} из {members.length}</Badge>
-      </div>
-
-      {topUsers.length ? (
-        <div className="grid gap-3 p-4 sm:p-5">
-          {topUsers.map((member, index) => {
-            const width = Math.max(6, Math.round((member.totalScore / maxScore) * 100));
-
-            return (
-              <div className="grid gap-2" key={member.userId}>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className="font-telemetry text-xs text-muted-foreground">#{index + 1}</span>
-                    <span className="truncate font-semibold">{member.name}</span>
-                  </div>
-                  <span className="font-telemetry font-bold text-primary">{member.totalScore}</span>
-                </div>
-                <div className="h-2.5 overflow-hidden rounded-full bg-muted/45">
-                  <div
-                    aria-hidden="true"
-                    className="h-full rounded-full bg-primary shadow-[0_0_18px_rgb(225_6_0_/_0.32)]"
-                    style={{ width: `${width}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="p-5 text-sm text-muted-foreground">
-          График появится после первых начисленных очков.
-        </p>
-      )}
-    </section>
-  );
-}
-
 function LeagueTabs({
   activeView,
   leagueId,
@@ -380,16 +370,16 @@ function LeagueTabs({
   return (
     <nav
       aria-label="Разделы лиги"
-      className="stitch-panel flex flex-wrap gap-2 p-2"
+      className="flex flex-wrap border-b stitch-divider"
     >
       {tabs.map((tab) => (
         <Link
           aria-current={activeView === tab.id ? "page" : undefined}
           className={cn(
-            "flex min-h-11 flex-1 items-center justify-center rounded-md px-4 text-center text-sm font-semibold transition-colors hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-none",
+            "relative flex min-h-12 flex-1 items-center justify-center px-4 text-center text-sm font-semibold transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-none",
             activeView === tab.id
-              ? "bg-primary text-primary-foreground shadow-[0_0_18px_rgb(225_6_0_/_0.24)]"
-              : "text-muted-foreground",
+              ? "text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary"
+              : "text-muted-foreground hover:bg-accent/25",
           )}
           href={tab.href}
           key={tab.id}
@@ -403,19 +393,20 @@ function LeagueTabs({
 
 function PredictionsByRoundAccordion({
   history,
-  leagueId,
   selectedRound,
-  selectedUserId,
 }: {
   history: LeagueHistoryEntry[];
-  leagueId: string;
   selectedRound: number | null;
-  selectedUserId: string | null;
 }) {
   if (!history.length) {
     return (
       <section className="stitch-panel p-5">
-        <h2 className="font-display text-2xl font-bold">Прогнозы по раундам</h2>
+        <div className="flex items-center gap-2">
+          <span className="grid size-8 place-items-center rounded-md bg-primary/10 text-primary">
+            <ClipboardList aria-hidden="true" className="size-4" />
+          </span>
+          <h2 className="font-display text-base font-bold">Прогнозы по раундам</h2>
+        </div>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           История появится после первого этапа с начисленными очками.
         </p>
@@ -424,13 +415,12 @@ function PredictionsByRoundAccordion({
   }
 
   return (
-    <section className="stitch-panel overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b stitch-divider p-4 sm:p-5">
-        <div>
-          <p className="stitch-label text-muted-foreground">Этапы</p>
-          <h2 className="mt-1 font-display text-2xl font-bold">Прогнозы по раундам</h2>
-        </div>
-        <Badge variant="secondary">{history.length} этапов</Badge>
+    <section className="overflow-hidden rounded-xl border stitch-divider bg-card/40">
+      <div className="flex min-h-14 items-center gap-2 border-b stitch-divider px-4 py-2 sm:px-5">
+        <span className="grid size-8 place-items-center rounded-md bg-primary/10 text-primary">
+          <ClipboardList aria-hidden="true" className="size-4" />
+        </span>
+        <h2 className="font-display text-base font-bold">Прогнозы по раундам</h2>
       </div>
 
       <div className="divide-y stitch-divider">
@@ -462,38 +452,36 @@ function PredictionsByRoundAccordion({
                 />
               </summary>
 
-              <div className="grid gap-2 border-t stitch-divider p-3 sm:p-4">
+              <div className="border-t stitch-divider">
                 {entry.predictions.length ? (
-                  entry.predictions.map((prediction, predictionIndex) => {
-                    const selected =
-                      selectedRound === entry.round && selectedUserId === prediction.userId;
-
-                    return (
-                      <Link
-                        className={cn(
-                          "grid gap-3 rounded-lg border border-border bg-muted/20 p-3 transition-colors hover:border-primary/60 hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[3rem_minmax(0,1fr)_7rem_7rem] sm:items-center",
-                          selected && "border-primary/70 bg-primary/10",
-                        )}
-                        href={`/fantasy/leagues/${leagueId}?round=${entry.round}&user=${prediction.userId}`}
-                        key={`${entry.round}-${prediction.userId}`}
+                  entry.predictions.map((prediction, predictionIndex) => (
+                    <Dialog key={`${entry.round}-${prediction.userId}`}>
+                      <DialogTrigger asChild>
+                      <button
+                        className="grid min-h-12 w-full grid-cols-[2.25rem_minmax(0,1fr)_3.5rem_3.5rem] items-center gap-2 border-b stitch-divider px-4 py-2 text-left transition-colors last:border-b-0 hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[3rem_minmax(0,1fr)_5rem_5rem]"
+                        type="button"
                       >
                         <span className="font-telemetry text-sm font-bold text-muted-foreground">
                           #{predictionIndex + 1}
                         </span>
                         <div className="min-w-0">
-                          <p className="truncate font-semibold">{prediction.name}</p>
-                          <ScoreBreakdownLine breakdown={prediction.scoreBreakdown} />
+                          <p className="truncate text-sm font-semibold">{prediction.name}</p>
                         </div>
-                        <PillMetric label="Этап" value={String(prediction.score ?? "—")} />
-                        <PillMetric
-                          label="Top-10"
-                          value={String(prediction.scoreBreakdown?.top10Points ?? "—")}
-                        />
-                      </Link>
-                    );
-                  })
+                        <CompactPredictionMetric label="этап" value={String(prediction.score ?? "—")} />
+                        <CompactPredictionMetric label="топ-10" value={String(prediction.scoreBreakdown?.top10Points ?? "—")} />
+                      </button>
+                      </DialogTrigger>
+                      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-6xl gap-0 overflow-y-auto p-0 sm:max-w-6xl [&_[data-slot=dialog-close]]:z-20 [&_[data-slot=dialog-close]]:bg-black/60 [&_[data-slot=dialog-close]]:text-white">
+                        <DialogTitle className="sr-only">Прогноз участника {prediction.name}</DialogTitle>
+                        <DialogDescription className="sr-only">
+                          Прогноз на {entry.raceName} и начисленные за него очки.
+                        </DialogDescription>
+                        <PredictionReviewCard prediction={prediction} race={entry} />
+                      </DialogContent>
+                    </Dialog>
+                  ))
                 ) : (
-                  <p className="rounded-lg border border-border bg-muted/20 p-3 text-sm text-muted-foreground">
+                  <p className="p-4 text-sm text-muted-foreground">
                     На этом этапе ещё нет сохранённых прогнозов.
                   </p>
                 )}
@@ -526,7 +514,6 @@ function LeagueSeasonStandings({
         rank: index + 1,
         totalScore: member.totalScore,
       }))}
-      subtitle="Участники этой лиги за сезон"
       title="Лидерборд лиги"
     />
   );
@@ -553,41 +540,82 @@ function PredictionReviewCard({
     );
   }
 
+  const trackVisual = getFantasyTrackVisual(race.season ?? 2026, race.round, race.raceName);
+
   return (
-    <section className="stitch-panel overflow-hidden">
-      <div className="border-b stitch-divider p-4 sm:p-5">
-        <p className="stitch-label text-primary">Раунд {race.round}</p>
-        <h2 className="mt-2 truncate font-display text-2xl font-bold">{prediction.name}</h2>
-        <p className="mt-1 truncate text-sm text-muted-foreground">{race.raceName}</p>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <PillMetric label="Очки" value={String(prediction.score ?? "—")} />
-          <PillMetric label="Top-10" value={String(prediction.scoreBreakdown?.top10Points ?? "—")} />
-          <PillMetric label="Спец" value={String(prediction.scoreBreakdown?.specialPoints ?? "—")} />
+    <section className="overflow-hidden rounded-xl border stitch-divider bg-card/40">
+      <div className="relative min-h-[18rem] overflow-hidden sm:min-h-[22rem]">
+        {trackVisual ? (
+          <FantasyTrackVisualImage
+            className="absolute inset-0 h-full aspect-auto"
+            sizes="(max-width: 768px) 100vw, 1200px"
+            visual={trackVisual}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgb(225_6_0_/_0.16),transparent_35%),linear-gradient(135deg,#17181a,#08090a)]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/78 to-black/20" />
+        <div className="relative z-10 flex min-h-[18rem] max-w-2xl flex-col justify-end p-5 sm:min-h-[22rem] sm:p-8">
+          <p className="font-telemetry text-xs font-bold uppercase tracking-[0.14em] text-primary">Раунд {race.round}</p>
+          <h2 className="mt-3 text-balance font-display text-3xl font-extrabold tracking-[-0.035em] text-white sm:text-5xl">
+            {race.raceName}
+          </h2>
+          <p className="mt-3 text-sm font-semibold text-white/70">Прогноз участника {prediction.name}</p>
         </div>
       </div>
 
-      <div className="grid gap-5 p-4 sm:p-5">
-        <section className="grid gap-2">
-          <h3 className="font-display text-lg font-bold">Топ-10</h3>
+      <div className="grid grid-cols-3 border-b stitch-divider">
+        <ReviewMetric label="Всего очков" value={String(prediction.score ?? "-")} />
+        <ReviewMetric label="Топ-10" value={String(prediction.scoreBreakdown?.top10Points ?? "-")} />
+        <ReviewMetric label="Спецпрогнозы" value={String(prediction.scoreBreakdown?.specialPoints ?? "-")} />
+      </div>
+
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_21rem]">
+        <section className="border-b stitch-divider lg:border-b-0 lg:border-r">
+          <div className="flex items-end justify-between gap-3 border-b stitch-divider p-4 sm:p-6">
+            <div>
+              <p className="stitch-label text-primary">Финишный порядок</p>
+              <h3 className="mt-1 font-display text-2xl font-bold">Прогноз топ-10</h3>
+            </div>
+            <span className="text-xs font-semibold text-muted-foreground">Прогноз / результат</span>
+          </div>
           {prediction.top10.length ? (
-            prediction.top10.map((pick) => (
-              <Top10ResultRow key={`${pick.predictedPosition}-${pick.driverId}`} pick={pick} />
-            ))
+            <div className="grid sm:grid-cols-2">
+              {prediction.top10.map((pick) => (
+                <Top10ResultRow key={`${pick.predictedPosition}-${pick.driverId}`} pick={pick} />
+              ))}
+            </div>
           ) : (
-            <p className="rounded-lg border border-border bg-muted/25 p-3 text-sm text-muted-foreground">
+            <p className="p-5 text-sm text-muted-foreground">
               В этом прогнозе top-10 не был сохранен.
             </p>
           )}
         </section>
 
-        <section className="grid gap-2">
-          <h3 className="font-display text-lg font-bold">Дополнительно</h3>
-          {prediction.specials.map((pick) => (
-            <SpecialResultRow key={pick.label} pick={pick} />
-          ))}
+        <section>
+          <div className="border-b stitch-divider p-4 sm:p-6">
+            <p className="stitch-label text-primary">Дополнительно</p>
+            <h3 className="mt-1 font-display text-2xl font-bold">Спецпрогнозы</h3>
+          </div>
+          <div className="divide-y stitch-divider">
+            {prediction.specials.map((pick) => (
+              <SpecialResultRow key={pick.label} pick={pick} />
+            ))}
+          </div>
         </section>
       </div>
     </section>
+  );
+}
+
+function ReviewMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid min-h-24 place-items-center border-r stitch-divider p-3 text-center last:border-r-0">
+      <div>
+        <p className="font-telemetry text-2xl font-black">{value}</p>
+        <p className="mt-1 text-xs font-semibold text-muted-foreground">{label}</p>
+      </div>
+    </div>
   );
 }
 
@@ -595,14 +623,15 @@ function Top10ResultRow({ pick }: { pick: PreviousPredictionTop10Pick }) {
   return (
     <div
       className={cn(
-        "grid gap-2 rounded-lg border px-3 py-2 text-sm sm:grid-cols-[3.25rem_minmax(0,1fr)_auto] sm:items-center",
+        "grid min-h-16 grid-cols-[2.8rem_minmax(0,1fr)_auto] items-center gap-2 border-b stitch-divider px-4 py-3 text-sm odd:sm:border-r",
         getResultTone(pick.points),
       )}
     >
-      <span className="font-telemetry font-bold">P{pick.predictedPosition}</span>
-      <span className="min-w-0 font-semibold">{pick.driverName}</span>
-      <span className="font-telemetry text-xs font-bold">
-        {formatActualPosition(pick.actualPosition)} · {pick.points} очк.
+      <span className="font-telemetry text-base font-black">P{pick.predictedPosition}</span>
+      <span className="min-w-0 truncate font-semibold">{pick.driverName}</span>
+      <span className="text-right">
+        <span className="block font-telemetry text-xs font-bold">{formatActualPosition(pick.actualPosition)}</span>
+        <span className="mt-0.5 block text-xs font-semibold opacity-75">+{pick.points} очк.</span>
       </span>
     </div>
   );
@@ -612,63 +641,54 @@ function SpecialResultRow({ pick }: { pick: PredictionResultPick }) {
   return (
     <div
       className={cn(
-        "rounded-lg border px-3 py-2 text-sm",
+        "px-4 py-4 text-sm sm:px-6",
         pick.points > 0
-          ? "border-success/55 bg-success/10"
-          : "border-destructive/45 bg-destructive/10",
+          ? "bg-success/8"
+          : "bg-destructive/8",
       )}
     >
       <div className="flex items-center justify-between gap-3">
         <span className="font-semibold">{pick.label}</span>
-        <span className="font-telemetry text-xs font-bold">{pick.points} очк.</span>
+        <span className={cn("font-telemetry text-xs font-bold", pick.points > 0 ? "text-success" : "text-destructive")}>
+          +{pick.points} очк.
+        </span>
       </div>
       <p className="mt-1 text-muted-foreground">{pick.value}</p>
     </div>
   );
 }
 
-function PillMetric({ label, value }: { label: string; value: string }) {
+function CompactPredictionMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-border bg-background/45 px-3 py-2 text-center">
-      <p className="font-telemetry text-base font-bold text-primary">{value}</p>
-      <p className="mt-1 font-telemetry text-[0.56rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+    <span className="text-right">
+      <span className="block font-telemetry text-sm font-bold text-primary">{value}</span>
+      <span className="block font-telemetry text-[0.5rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
         {label}
-      </p>
-    </div>
+      </span>
+    </span>
   );
 }
 
-function ScoreBreakdownLine({
-  breakdown,
-}: {
-  breakdown: FantasyScoreBreakdown | null | undefined;
-}) {
-  if (!breakdown) {
-    return <p className="text-xs text-muted-foreground">Разбор очков пока недоступен.</p>;
-  }
-
-  return (
-    <p className="text-xs leading-5 text-muted-foreground">
-      Топ-10 {breakdown.top10Points} · Бонусы {breakdown.top10Bonus} · Спец{" "}
-      {breakdown.specialPoints}
-    </p>
-  );
+function formatLeagueScore(value: number | null) {
+  return value === null
+    ? "-"
+    : new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 1 }).format(value);
 }
 
 function getResultTone(points: number) {
   if (points >= 5) {
-    return "border-success/55 bg-success/10";
+    return "bg-success/8";
   }
 
   if (points === 3) {
-    return "border-warning/65 bg-warning/15";
+    return "bg-warning/10";
   }
 
   if (points === 1) {
-    return "border-orange-500/60 bg-orange-500/15";
+    return "bg-orange-500/10";
   }
 
-  return "border-destructive/45 bg-destructive/10";
+  return "bg-destructive/8";
 }
 
 function formatActualPosition(position: number | null) {
@@ -735,6 +755,13 @@ function getLeagueNotice(query: LeaguePageSearchParams) {
   if (query.message === "leave") {
     return {
       text: "Не получилось выйти из лиги. Попробуй ещё раз.",
+      tone: "warning" as const,
+    };
+  }
+
+  if (query.message === "code" || query.message === "not-found") {
+    return {
+      text: "Код не подошёл. Проверь его и попробуй ещё раз.",
       tone: "warning" as const,
     };
   }

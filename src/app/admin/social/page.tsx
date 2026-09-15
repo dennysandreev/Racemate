@@ -3,12 +3,16 @@ import { ExternalLink } from "lucide-react";
 
 import {
   addManualXPostAction,
+  hideSocialPostAction,
   moderateSocialPostAction,
   runAdminJobAction,
   saveSocialSourceAction,
   toggleSocialSourceAction,
 } from "@/app/admin/operations";
 import { AdminActionForm } from "@/components/admin/admin-action-form";
+import { AdminConfirmedAction } from "@/components/admin/admin-confirmed-action";
+import { AdminConfirmedForm } from "@/components/admin/admin-confirmed-form";
+import { AdminUrlTabs } from "@/components/admin/admin-url-tabs";
 import { AdminFilters } from "@/components/admin/admin-filters";
 import {
   AdminEmpty,
@@ -22,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { loadAdminSocial, parseAdminTableQuery } from "@/data/admin-repository";
 import { requireAdmin } from "@/lib/auth";
@@ -42,10 +46,10 @@ export default async function AdminSocialPage({ searchParams }: PageProps) {
   return (
     <AdminPage>
       <AdminPageHeader
-        description="Источники X, Reddit и Telegram, ручные публикации и очередь модерации. Исходный текст доступен без служебного payload."
+        description="Источники X, Reddit и Telegram, ручные публикации и очередь модерации. Исходный текст показан без служебных данных."
         title="Социальные источники"
       />
-      <Tabs defaultValue="moderation">
+      <AdminUrlTabs defaultValue="moderation" values={["moderation", "sources", "manual"]}>
         <TabsList variant="line">
           <TabsTrigger value="moderation">Модерация</TabsTrigger>
           <TabsTrigger value="sources">Источники</TabsTrigger>
@@ -97,7 +101,13 @@ export default async function AdminSocialPage({ searchParams }: PageProps) {
                       {post.last_processing_error ? <p className="mt-3 text-sm text-danger">{post.last_processing_error}</p> : null}
                     </div>
                     <div className="grid content-start gap-3">
-                      <AdminActionForm action={moderateSocialPostAction} submitLabel="Опубликовать">
+                      <AdminConfirmedForm
+                        action={moderateSocialPostAction}
+                        confirmLabel="Опубликовать"
+                        description="Публикация сразу появится в публичной ленте. Проверь тему и текст перед подтверждением."
+                        submitLabel="Опубликовать"
+                        title="Опубликовать материал?"
+                      >
                         <input name="postId" type="hidden" value={post.id} />
                         <input name="moderationAction" type="hidden" value="publish" />
                         <Field>
@@ -113,15 +123,27 @@ export default async function AdminSocialPage({ searchParams }: PageProps) {
                             <option value="social-discussion">Обсуждения</option>
                           </select>
                         </Field>
-                      </AdminActionForm>
-                      <AdminActionForm action={moderateSocialPostAction} submitLabel="Отклонить" submitVariant="secondary">
+                      </AdminConfirmedForm>
+                      <AdminConfirmedAction action={moderateSocialPostAction} confirmLabel="Отклонить" description="Публикация не появится в публичной ленте." title="Отклонить публикацию?" triggerLabel="Отклонить" triggerVariant="secondary">
                         <input name="postId" type="hidden" value={post.id} />
                         <input name="moderationAction" type="hidden" value="reject" />
-                      </AdminActionForm>
-                      <AdminActionForm action={moderateSocialPostAction} submitLabel="Переработать публикацию" submitVariant="secondary">
+                      </AdminConfirmedAction>
+                      <AdminConfirmedAction action={moderateSocialPostAction} confirmLabel="Переработать" description="Текущая обработка будет сброшена, а публикация снова попадёт в очередь." title="Запустить обработку заново?" triggerLabel="Переработать публикацию" triggerVariant="secondary">
                         <input name="postId" type="hidden" value={post.id} />
                         <input name="moderationAction" type="hidden" value="retry" />
-                      </AdminActionForm>
+                      </AdminConfirmedAction>
+                      {post.status === "published" ? (
+                        <AdminConfirmedAction
+                          action={hideSocialPostAction}
+                          confirmLabel="Убрать"
+                          description="Публикация исчезнет из публичной ленты, но останется в админке. Её можно будет опубликовать снова."
+                          title="Убрать публикацию из ленты?"
+                          triggerLabel="Убрать из ленты"
+                          triggerVariant="secondary"
+                        >
+                          <input name="postId" type="hidden" value={post.id} />
+                        </AdminConfirmedAction>
+                      ) : null}
                     </div>
                   </article>
                 ))}
@@ -233,7 +255,7 @@ export default async function AdminSocialPage({ searchParams }: PageProps) {
             </AdminActionForm>
           </AdminSection>
         </TabsContent>
-      </Tabs>
+      </AdminUrlTabs>
     </AdminPage>
   );
 }

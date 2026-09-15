@@ -149,10 +149,10 @@ export function parseNewsDedupDecision(payload, candidateIds) {
 
   const relation = normalizeString(payload.relation)?.toLowerCase();
   const confidence = Number(payload.confidence);
-  const reason = normalizeString(payload.reason);
+  const suppliedReason = normalizeString(payload.reason);
   const duplicateOf = normalizeString(payload.duplicate_of);
 
-  if (!relation || !RELATION_SET.has(relation) || !Number.isFinite(confidence) || confidence < 0 || confidence > 1 || !reason) {
+  if (!relation || !RELATION_SET.has(relation) || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) {
     return null;
   }
 
@@ -165,8 +165,20 @@ export function parseNewsDedupDecision(payload, candidateIds) {
     duplicateOf: payload.is_duplicate ? duplicateOf : null,
     relation,
     confidence,
-    reason: reason.slice(0, 1_000),
+    reason: (suppliedReason ?? getFallbackDedupReason(payload.is_duplicate, relation)).slice(0, 1_000),
   };
+}
+
+function getFallbackDedupReason(isDuplicate, relation) {
+  if (isDuplicate) {
+    return "Совпадают центральное событие и основные участники.";
+  }
+
+  if (relation === "related") {
+    return "Материалы связаны темой, но сообщают разные факты.";
+  }
+
+  return "Совпадений центрального факта не найдено.";
 }
 
 export function makeNewsDedupLockKey(article) {

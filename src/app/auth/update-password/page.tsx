@@ -38,7 +38,7 @@ export default async function UpdatePasswordPage({
   const messageCopy = message ? updateMessages[message] : null;
 
   return (
-    <AppShell>
+    <AppShell hideAds>
       <PageHeading title={passwordUpdated ? "Пароль сохранён" : "Новый пароль"} />
 
       <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">

@@ -173,6 +173,28 @@ test("parseNewsDedupDecision rejects a duplicate target outside the candidate se
   );
 });
 
+test("parseNewsDedupDecision accepts an unrelated response with an empty explanation", () => {
+  assert.deepEqual(
+    parseNewsDedupDecision(
+      {
+        is_duplicate: false,
+        duplicate_of: null,
+        relation: "unrelated",
+        confidence: 0,
+        reason: "",
+      },
+      new Set(["known-id"]),
+    ),
+    {
+      isDuplicate: false,
+      duplicateOf: null,
+      relation: "unrelated",
+      confidence: 0,
+      reason: "Совпадений центрального факта не найдено.",
+    },
+  );
+});
+
 test("pipeline suppresses only high-confidence duplicate decisions", async () => {
   const saved = [];
   const result = await runNewsDeduplicationPipeline({
