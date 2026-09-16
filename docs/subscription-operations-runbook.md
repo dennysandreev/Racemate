@@ -2,6 +2,30 @@
 
 Дата: 15 сентября 2026 года.
 
+## YooMoney webhook ingress
+
+Production HTTP-уведомления направляются на Supabase Edge Function:
+
+```text
+https://ngspcljebeqdcvjycutq.supabase.co/functions/v1/yoomoney-webhook
+```
+
+Функция разворачивается с отключённой JWT-проверкой шлюза, потому что YooMoney
+не отправляет Supabase JWT. Доверие обеспечивает обязательная HMAC-SHA256
+подпись `sign`; секрет хранится только в Supabase Secrets под именем
+`YOOMONEY_NOTIFICATION_SECRET`. Функция не принимает JSON и не выдаёт доступ
+до полной проверки подписи, `label`, способа оплаты, валюты и суммы.
+
+После изменения функции:
+
+```bash
+npx supabase functions deploy yoomoney-webhook --no-verify-jwt
+```
+
+Проверки после деплоя: GET возвращает `405`, POST с неверной подписью — `403`,
+подписанное тестовое уведомление — `200 OK`. Периодическая
+`billing.reconcile_yoomoney` остаётся резервным каналом и не отключается.
+
 ## Основное правило
 
 Доступ выдаётся только после валидного webhook ЮMoney/Tribute или ручной сверки реально найденной операции администратором. Redirect пользователя после оплаты ничего не активирует. Никогда не меняйте `billing_orders.status` напрямую.
