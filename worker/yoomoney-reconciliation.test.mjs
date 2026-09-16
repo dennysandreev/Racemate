@@ -5,6 +5,7 @@ import {
   expectedYooMoneyNetAmountMinor,
   findMatchingYooMoneyOperation,
   makeYooMoneyReconciliationHash,
+  readRequiredEnvironmentValue,
 } from "./yoomoney-reconciliation.mjs";
 
 const order = Object.freeze({
@@ -18,6 +19,14 @@ const order = Object.freeze({
 test("calculates the documented YooMoney net amount", () => {
   assert.equal(expectedYooMoneyNetAmountMinor(24_900, "yoomoney_card"), 24_153);
   assert.equal(expectedYooMoneyNetAmountMinor(24_900, "yoomoney_wallet"), 24_653);
+});
+
+test("reads required environment values without accepting blanks", () => {
+  assert.equal(readRequiredEnvironmentValue({ TOKEN: "  value  " }, "TOKEN"), "value");
+  assert.throws(
+    () => readRequiredEnvironmentValue({ TOKEN: "  " }, "TOKEN"),
+    /MISSING_REQUIRED_ENV_TOKEN/,
+  );
 });
 
 test("matches a successful incoming operation by label, amount and time", () => {

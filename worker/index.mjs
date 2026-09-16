@@ -122,6 +122,7 @@ import { runDailySupportReport } from "./support-report.mjs";
 import {
   findMatchingYooMoneyOperation,
   makeYooMoneyReconciliationHash,
+  readRequiredEnvironmentValue,
 } from "./yoomoney-reconciliation.mjs";
 import "./load-env.mjs";
 import {
@@ -14827,9 +14828,9 @@ async function reconcileYooMoneyPayments() {
 }
 
 async function loadYooMoneyReconciliationMatches(orders) {
-  const functionUrl = `${requireEnv("NEXT_PUBLIC_SUPABASE_URL").replace(/\/$/, "")}/functions/v1/yoomoney-reconcile`;
-  const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
-  const reconcileSecret = requireEnv("YOOMONEY_RECONCILE_SECRET");
+  const functionUrl = `${readRequiredEnvironmentValue(process.env, "NEXT_PUBLIC_SUPABASE_URL").replace(/\/$/, "")}/functions/v1/yoomoney-reconcile`;
+  const serviceRoleKey = readRequiredEnvironmentValue(process.env, "SUPABASE_SERVICE_ROLE_KEY");
+  const reconcileSecret = readRequiredEnvironmentValue(process.env, "YOOMONEY_RECONCILE_SECRET");
   const response = await fetch(functionUrl, {
     body: JSON.stringify({ orders }),
     headers: {

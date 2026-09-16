@@ -3,6 +3,14 @@ import { createHash } from "node:crypto";
 const ALLOWED_INCOMING_TYPES = new Set(["deposit", "deposition", "incoming-transfer"]);
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
 
+export function readRequiredEnvironmentValue(env, name) {
+  const value = env?.[name];
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`MISSING_REQUIRED_ENV_${name}`);
+  }
+  return value.trim();
+}
+
 export function expectedYooMoneyNetAmountMinor(grossAmountMinor, paymentMethod) {
   const gross = Number(grossAmountMinor);
   if (!Number.isSafeInteger(gross) || gross <= 0) {
