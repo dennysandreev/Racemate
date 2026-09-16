@@ -563,6 +563,7 @@ API сбора денег ЮMoney не предоставляет RaceSide merch
 ```text
 YOOMONEY_RECEIVER
 YOOMONEY_NOTIFICATION_SECRET
+YOOMONEY_RECONCILE_SECRET
 BILLING_CHECKOUT_ENABLED
 BILLING_ENTITLEMENTS_ENFORCED
 BILLING_YOOMONEY_ENABLED
@@ -578,6 +579,8 @@ BILLING_EMAIL_FROM
 `successURL` строится из существующего доверенного site origin, а не принимается от клиента. Номер кошелька не является секретом уровня API key, но остаётся server-owned конфигурацией, чтобы его нельзя было подменить в checkout.
 
 Секреты не добавляются в git. `.env.example` получает только пустые имена и комментарии после появления реализации.
+
+Supabase Edge Function `yoomoney-reconcile` хранит `YOOMONEY_ACCESS_TOKEN` в secrets проекта. Токен имеет только read-only права `operation-history` и `operation-details`. Воркер `billing.reconcile_yoomoney` вызывает функцию как резервный канал, а затем самостоятельно повторно проверяет точный `label`, направление, сумму после документированной комиссии и время перед вызовом идемпотентного `billing_apply_payment`. Прав на исходящие переводы у токена нет. HTTP-уведомление остаётся основным каналом подтверждения.
 
 ## 17. Наблюдаемость
 

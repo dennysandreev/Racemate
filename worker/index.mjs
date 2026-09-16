@@ -119,6 +119,10 @@ import { resolveWorkerAiPrompt } from "./ai-prompt-registry.mjs";
 import { upsertServiceHeartbeat } from "./ops-heartbeat.mjs";
 import { runOpsWatcher } from "./ops-watcher.mjs";
 import { runDailySupportReport } from "./support-report.mjs";
+import {
+  findMatchingYooMoneyOperation,
+  makeYooMoneyReconciliationHash,
+} from "./yoomoney-reconciliation.mjs";
 import "./load-env.mjs";
 import {
   captureWorkerException,
@@ -174,6 +178,7 @@ const commands = new Map([
   ["billing.process_emails", processBillingEmails],
   ["billing.expire_subscriptions", expireBillingSubscriptions],
   ["billing.expire_orders", expireBillingOrders],
+  ["billing.reconcile_yoomoney", reconcileYooMoneyPayments],
   ["billing.retry_failed_events", retryFailedBillingEvents],
   ["billing.audit", auditBilling],
   ["race_replay.prepare_current", prepareCurrentRaceReplay],
@@ -14737,6 +14742,120 @@ async function expireBillingOrders() {
   if (orderError) throw orderError;
   if (rateLimitError) throw rateLimitError;
   return { itemsProcessed: orders?.length ?? 0, metadata: { expiredOrders: orders?.length ?? 0 } };
+}
+
+async function reconcileYooMoneyPayments() {
+  const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1_000).toISOString();
+  const selection = "id,provider_label,payment_method,amount_minor,currency,created_at";
+  const [pendingResult, expiredResult] = await Promise.all([
+    supabase
+      .from("billing_orders")
+      .select(selection)
+      .eq("provider", "yoomoney")
+      .eq("status", "pending")
+      .gte("created_at", cutoff)
+      .not("provider_label", "is", null)
+      .order("created_at", { ascending: true })
+      .limit(50),
+    supabase
+      .from("billing_orders")
+      .select(selection)
+      .eq("provider", "yoomoney")
+      .eq("status", "failed")
+      .eq("failure_reason", "CHECKOUT_EXPIRED")
+      .gte("created_at", cutoff)
+      .not("provider_label", "is", null)
+      .order("created_at", { ascending: true })
+      .limit(50),
+  ]);
+  const selectionError = pendingResult.error ?? expiredResult.error;
+  if (selectionError) throw selectionError;
+
+  const orders = [...(pendingResult.data ?? []), ...(expiredResult.data ?? [])];
+  if (orders.length === 0) {
+    return { itemsProcessed: 0, metadata: { candidates: 0, checked: 0, matched: 0 } };
+  }
+
+  const operationsByOrderId = await loadYooMoneyReconciliationMatches(orders);
+  let matched = 0;
+  let checked = 0;
+  for (const order of orders) {
+    checked += 1;
+    const operation = findMatchingYooMoneyOperation(
+      order,
+      operationsByOrderId.get(order.id) ?? [],
+    );
+    if (!operation) continue;
+    const payloadHash = makeYooMoneyReconciliationHash({
+      amountMinor: operation.netAmountMinor,
+      label: order.provider_label,
+      occurredAt: operation.occurredAt,
+      operationId: operation.operationId,
+    });
+    const { error } = await supabase.rpc("billing_apply_payment", {
+      p_currency: order.currency,
+      p_gross_amount_minor: Number(order.amount_minor),
+      p_net_amount_minor: operation.netAmountMinor,
+      p_occurred_at: operation.occurredAt,
+      p_order_id: order.id,
+      p_payload_hash: payloadHash,
+      p_payment_method: order.payment_method,
+      p_provider: "yoomoney",
+      p_provider_event_id: operation.operationId,
+      p_provider_event_type: "wallet_api_reconciliation",
+      p_provider_reference: order.provider_label,
+      p_provider_transaction_id: operation.operationId,
+      p_safe_payload: {
+        amountMinor: operation.netAmountMinor,
+        occurredAt: operation.occurredAt,
+        source: "wallet_api",
+      },
+    });
+    if (error) throw error;
+    matched += 1;
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 200));
+  }
+
+  return {
+    itemsProcessed: matched,
+    metadata: {
+      candidates: orders.length,
+      checked,
+      matched,
+    },
+  };
+}
+
+async function loadYooMoneyReconciliationMatches(orders) {
+  const functionUrl = `${requireEnv("NEXT_PUBLIC_SUPABASE_URL").replace(/\/$/, "")}/functions/v1/yoomoney-reconcile`;
+  const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+  const reconcileSecret = requireEnv("YOOMONEY_RECONCILE_SECRET");
+  const response = await fetch(functionUrl, {
+    body: JSON.stringify({ orders }),
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      "Content-Type": "application/json",
+      "User-Agent": "RaceSide-Billing/1.0",
+      "x-raceside-reconcile-secret": reconcileSecret,
+    },
+    method: "POST",
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!response.ok) throw new Error(`YOOMONEY_RECONCILE_HTTP_${response.status}`);
+  const payload = await response.json();
+  if (payload?.error) {
+    throw new Error(`YOOMONEY_RECONCILE_${String(payload.error).slice(0, 80)}`);
+  }
+  const matches = Array.isArray(payload?.matches) ? payload.matches : [];
+  const result = new Map();
+  for (const match of matches) {
+    if (!match || typeof match.orderId !== "string" || !match.operation) continue;
+    const current = result.get(match.orderId) ?? [];
+    current.push(match.operation);
+    result.set(match.orderId, current);
+  }
+  return result;
 }
 
 async function auditBilling() {

@@ -584,6 +584,15 @@
     "parameters": []
   },
   {
+    "name": "billing.reconcile_yoomoney",
+    "title": "Сверить оплаты ЮMoney",
+    "description": "Проверит историю кошелька и подтвердит оплаты, для которых не пришло уведомление.",
+    "group": "billing",
+    "expectedIntervalMinutes": 2,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
     "name": "billing.process_emails",
     "title": "Отправить письма об оплате",
     "description": "Отправит подтверждения для уже оплаченных заказов.",
