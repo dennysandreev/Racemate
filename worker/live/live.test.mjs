@@ -789,7 +789,7 @@ test("radio uses the requested transcription model, translates and records both 
   assert.equal(usage.length, 2);
   assert.ok(audio.every((x) => x === 0));
 });
-test("SC and VSC expose ending states and clear only on the green signal", () => {
+test("SC waits for green while VSC ending returns the track to green", () => {
   const s = state();
   s.apply("race_control", row({ message: "SAFETY CAR DEPLOYED" }));
   s.apply(
@@ -835,16 +835,6 @@ test("SC and VSC expose ending states and clear only on the green signal", () =>
       date: "2026-09-11T12:07:00Z",
     }),
   );
-  assert.equal(s.state.flag, "VSC_ENDING");
-  s.apply(
-    "race_control",
-    row({
-      message: "GREEN FLAG",
-      flag: "GREEN",
-      scope: "Track",
-      date: "2026-09-11T12:08:00Z",
-    }),
-  );
   assert.equal(s.state.flag, "GREEN");
 });
 test("stewards yellow references do not activate a flag and SC keeps priority", () => {
@@ -886,6 +876,35 @@ test("stewards yellow references do not activate a flag and SC keeps priority", 
   );
   assert.equal(s.state.flag, "SC");
   assert.deepEqual(s.state.yellowSectors, []);
+});
+test("red flag overrides the safety car and restart returns to green", () => {
+  const s = state();
+  s.apply("race_control", row({ message: "SAFETY CAR DEPLOYED" }));
+  s.apply(
+    "race_control",
+    row({
+      message: "RED FLAG - RACE SUSPENDED",
+      flag: null,
+      date: "2026-09-11T12:02:00Z",
+    }),
+  );
+  assert.equal(s.state.flag, "RED");
+  s.apply(
+    "race_control",
+    row({
+      message: "TRACK CLEAR",
+      date: "2026-09-11T12:03:00Z",
+    }),
+  );
+  assert.equal(s.state.flag, "RED");
+  s.apply(
+    "race_control",
+    row({
+      message: "SESSION STARTED",
+      date: "2026-09-11T12:30:00Z",
+    }),
+  );
+  assert.equal(s.state.flag, "GREEN");
 });
 test("sector yellow clears only after every affected sector is clear", () => {
   const s = state();

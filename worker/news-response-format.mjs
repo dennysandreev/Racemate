@@ -24,9 +24,20 @@ const schemas = {
     race_round: { type: ["number", "null"] }, race_confidence: score, team_slugs: array(string),
   }),
   "news.verify": object({
+    policy_version: { type: "integer", minimum: 2, maximum: 2 },
     decision: { type: "string", enum: ["PASS", "REWRITE", "REJECT", "MANUAL_REVIEW"] },
     checked_claims: { type: "boolean" }, issues: array(string),
+    blocking_issues: array(object({
+      category: { type: "string", enum: ["factual_error", "unsupported_claim", "missing_core_fact", "source_voice", "unreadable_text"] },
+      draft_excerpt: string, source_quote: string, explanation_ru: string,
+    })),
+    suggestions: array(string),
     scores: object({ fact_grounding: score, source_fidelity: score, attribution: score, headline_fidelity: score, information_density: score, language_quality: score }),
+  }),
+  "news.dedup": object({
+    is_duplicate: { type: "boolean" }, duplicate_of: nullableString,
+    relation: { type: "string", enum: ["duplicate", "update", "official_confirmation", "decision", "result", "analysis", "reaction", "related", "unrelated"] },
+    confidence: score, reason: string, update_of: nullableString, merge_recommended: { type: "boolean" },
   }),
 };
 

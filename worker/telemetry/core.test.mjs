@@ -316,6 +316,31 @@ test("race control handles deleted and reinstated laps without treating unknown 
   assert.equal(lap.deleted, false);
   assert.deepEqual(lap.status, ["UNKNOWN"]);
 });
+test("VSC ending closes the neutralized period for following telemetry laps", () => {
+  const raw = [
+    {
+      session_key: 1,
+      driver_number: 1,
+      lap_number: 2,
+      date_start: new Date(start + 60000).toISOString(),
+      lap_duration: 60,
+      is_pit_out_lap: false,
+    },
+  ];
+  const control = [
+    {
+      date: new Date(start + 10000).toISOString(),
+      message: "VIRTUAL SAFETY CAR DEPLOYED",
+    },
+    {
+      date: new Date(start + 40000).toISOString(),
+      message: "VIRTUAL SAFETY CAR ENDING",
+    },
+  ];
+
+  const [lap] = mapLaps(raw, { control, controlKnown: true });
+  assert.deepEqual(lap.status, ["GREEN"]);
+});
 test("normalization and rendering payload have bounded CPU cost on two laps", () => {
   const began = performance.now();
   for (let i = 0; i < 10; i++) {

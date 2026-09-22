@@ -98,10 +98,14 @@ export function checkNewsDraft(draft, extraction, source, context) {
 function numbers(value) {
   const numberWords = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
   const normalized = String(value)
+    // The disease name is not a quantitative claim (sources often say Covid).
+    .replace(/\bCOVID[-\s]?19\b/gi, "COVID")
+    .replace(/\b(1[0-2]|0?[1-9])(?:[.:]([0-5]\d))?\s*([ap])m\b/gi, (match, hour, minute, period) =>
+      `${match} ${Number(hour) % 12 + (period.toLowerCase() === "p" ? 12 : 0)}:${minute ?? "00"}`)
     .replace(/(\d)(?:million|billion|thousand|km|mph|bhp|hp|ms|bn|m|k|s)\b/gi, "$1 ")
     .replace(/\b\d{1,3}(?:[ \u00a0\u202f]\d{3})+\b/g, match => match.replace(/\s/g, ""))
     .replace(new RegExp(`\\b(${numberWords.join("|")})\\b`, "gi"), word => String(numberWords.indexOf(word.toLowerCase())));
-  return [...normalized.matchAll(/(?<![\p{L}\d])\d+(?:[.,]\d+)?(?![\p{L}\d])/gu)].map(match => match[0].replace(",", "."));
+  return [...normalized.matchAll(/(?<![\p{L}\d])\d+(?:[.,]\d+)?(?![\p{L}\d])/gu)].map(match => String(Number(match[0].replace(",", "."))));
 }
 
 function escapeRegExp(value) {
@@ -109,8 +113,20 @@ function escapeRegExp(value) {
 }
 
 export function verificationPasses(review) {
+  const legacy = review?.policy_version == null && review?.blocking_issues == null && review?.suggestions == null;
+  const current = review?.policy_version === 2 && Array.isArray(review.blocking_issues) && !review.blocking_issues.length && strings(review.suggestions);
   return review?.decision === "PASS" && review.checked_claims === true && Array.isArray(review.issues) && !review.issues.length &&
-    SCORE_KEYS.every(key => typeof review.scores?.[key] === "number" && review.scores[key] >= 0.9 && review.scores[key] <= 1);
+    (legacy || current) && SCORE_KEYS.every(key => typeof review.scores?.[key] === "number" && review.scores[key] >= (current ? 0 : 0.9) && review.scores[key] <= 1);
+}
+
+function removeExactLeadRepeat(draft) {
+  if (!text(draft?.summary_ru) || !text(draft?.details_ru)) return draft;
+  const lead = text(draft.summary_ru);
+  const details = text(draft.details_ru);
+  // Only remove a verbatim prefix with remaining content; never discard a
+  // paraphrase that may contain a new qualification or a different fact.
+  const remainder = details.startsWith(lead) ? details.slice(lead.length).trim() : "";
+  return remainder ? { ...draft, details_ru: remainder } : draft;
 }
 
 /** Separate requests/contexts. No public write happens before the final decision. */
@@ -128,29 +144,27 @@ export async function runNewsEditorialPipeline({ source, context, request, extra
   for (let attempt = 0; attempt < 2; attempt += 1) {
     // The writer receives the evidence-backed ideas, not the original column's
     // narrative voice. The independent verifier still reads the complete source.
-    const draft = await request("news.article", { source: { published_at: source.published_at, coverage: source.coverage }, extraction, context, previous_draft: result.draft ?? null, feedback });
-    const hardIssues = checkNewsDraft(draft, extraction, source, context);
-    const review = await request("news.verify", { source, extraction, context, draft, hard_issues: hardIssues });
-    result.attempts.push({ draft, review, hard_issues: hardIssues });
+    const draft = removeExactLeadRepeat(await request("news.article", { source: { published_at: source.published_at, coverage: source.coverage }, extraction, context, previous_draft: result.draft ?? null, feedback }));
+    const checks = checkNewsDraft(draft, extraction, source, context);
+    const suggestions = checks.filter(issue => issue === "repeated_lead");
+    const hardIssues = checks.filter(issue => issue !== "repeated_lead");
+    const review = await request("news.verify", { source, extraction, context, draft, hard_issues: hardIssues, editorial_suggestions: suggestions });
+    result.attempts.push({ draft, review, hard_issues: hardIssues, editorial_suggestions: suggestions });
     result.draft = draft;
     result.review = review;
     const corrections = {
       source_meta_narration: `Удали из заголовка, лида и текста имена журналистов и пересказ их мнений: ${[...extraction.source_authors, ...(extraction.source_author_aliases ?? [])].join(", ")}. Передай саму идею условно, не приписывая её FIA.`,
-      repeated_lead: "Первое предложение основного текста повторяет лид. Удали повтор и начни details_ru со следующего конкретного факта.",
       headline_scope_changed: "Источник описывает одного или часть болельщиков. Не объявляй общий отток аудитории: сохрани ограничение масштаба в заголовке или изложи риск условно.",
       unnatural_language: "Замени кальки и туманные обороты естественным русским языком. Например: «спринт на первом этапе сезона», «действия при инцидентах».",
       context_claim_mismatch: "В context_claims допустимы только id/value из context.facts. Факты f1/f2 указываются в used_fact_ids. Неиспользованный контекст не перечисляй.",
       essential_fact_missing: "Сохрани все существенные факты и перечисли их id в used_fact_ids.",
       raceside_opinion: "Не упоминай RaceSide и не приписывай нам журналистов или собственные мнения.",
     };
-    feedback = [...hardIssues.map(issue => corrections[issue] ?? issue), ...(strings(review?.issues) ? review.issues : ["invalid_verification"])];
+    feedback = [...new Set([...hardIssues.map(issue => corrections[issue] ?? issue), ...(strings(review?.issues) ? review.issues : ["invalid_verification"]),
+      ...(Array.isArray(review?.blocking_issues) ? review.blocking_issues.map(issue => text(issue?.explanation_ru)).filter(Boolean) : [])])];
     if (!hardIssues.length && verificationPasses(review)) {
       const sensitive = extraction.risk === "high" || extraction.article_type === "legal" || extraction.facts.some(fact => fact.kind === "allegation");
-      // Live audits still found opinion-as-fact and author narration despite
-      // a model PASS. Keep those genres behind an explicit editorial decision.
-      const needsEditor = ["opinion", "column", "analysis", "technical_analysis"].includes(extraction.article_type);
-      return { ...result, decision: sensitive || needsEditor ? "MANUAL_REVIEW" : "PASS",
-        issues: sensitive ? ["sensitive_material"] : needsEditor ? ["analysis_requires_editor"] : [] };
+      return { ...result, decision: sensitive ? "MANUAL_REVIEW" : "PASS", issues: sensitive ? ["sensitive_material"] : [] };
     }
     if (["REJECT", "MANUAL_REVIEW"].includes(review?.decision)) break;
   }

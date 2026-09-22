@@ -218,7 +218,7 @@ export function translateControl(row) {
   if (row.flag === "GREEN") return "Зелёный флаг";
   if (row.flag === "RED") return "Красный флаг — сессия остановлена";
   if (row.flag === "CHEQUERED") return "Клетчатый флаг";
-  if (/VIRTUAL SAFETY CAR (?:ENDING|ENDED)|VSC ENDING/i.test(m))
+  if (/(?:VIRTUAL SAFETY CAR|VSC) (?:ENDING|ENDED)/i.test(m))
     return "Виртуальный сейфти-кар завершается";
   if (/VIRTUAL SAFETY CAR DEPLOYED|VSC DEPLOYED/i.test(m))
     return "Виртуальный сейфти-кар";
@@ -686,12 +686,28 @@ export class LiveState {
             if (sessionAlreadyFinished) {
               s.flag = "CHEQUERED";
               activeYellowSectors.clear();
-            } else if (row.flag === "RED") s.flag = "RED";
+            } else if (
+              row.flag === "RED" ||
+              (/^RED FLAG\b/i.test(m.trim()) && !/INFRINGEMENT/i.test(m))
+            )
+              s.flag = "RED";
+            else if (
+              /^(?:SESSION STARTED|RACE START|STANDING START|ROLLING START|SESSION RESUMED|RACE RESUMED|RACE RESTARTED|GREEN FLAG|RED FLAG CLEARED)\b/i.test(
+                m.trim(),
+              ) && row.scope !== "Sector"
+            ) {
+              s.flag = "GREEN";
+              activeYellowSectors.clear();
+            }
             else if (/VIRTUAL SAFETY CAR DEPLOYED|VSC DEPLOYED/i.test(m))
               s.flag = "VSC";
             else if (/SAFETY CAR DEPLOYED/i.test(m)) s.flag = "SC";
-            else if (/VIRTUAL SAFETY CAR (?:ENDING|ENDED)|VSC ENDING/i.test(m))
-              s.flag = "VSC_ENDING";
+            else if (
+              /(?:VIRTUAL SAFETY CAR|VSC) (?:ENDING|ENDED)/i.test(m)
+            ) {
+              s.flag = "GREEN";
+              activeYellowSectors.clear();
+            }
             else if (/SAFETY CAR (?:IN THIS LAP|ENDING)/i.test(m))
               s.flag = "SC_ENDING";
             else if (row.flag === "GREEN" && row.scope !== "Sector") {

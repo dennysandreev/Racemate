@@ -149,7 +149,7 @@ export function mapLaps(
       if (
         row.flag === "GREEN" ||
         msg.includes("CLEAR") ||
-        msg.includes("VSC ENDING") ||
+        /(?:VIRTUAL SAFETY CAR|VSC) (?:ENDING|ENDED)/.test(msg) ||
         msg.includes("SAFETY CAR IN THIS LAP")
       )
         flag = "GREEN";

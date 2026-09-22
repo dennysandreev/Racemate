@@ -167,6 +167,87 @@ test("stewards yellow references stay green and yellow cannot override the safet
   assert.deepEqual(clearedFrame.yellowSectors, []);
 });
 
+test("the full virtual safety car message starts and ends VSC", () => {
+  const data = replay([position(0, 0), position(100_000, 0)]);
+  data.raceEvents = [
+    {
+      offsetMs: 10_000,
+      timestamp: new Date(base + 10_000).toISOString(),
+      type: "race_control",
+      message: "VIRTUAL SAFETY CAR DEPLOYED",
+      severity: "INFO",
+    },
+    {
+      offsetMs: 40_000,
+      timestamp: new Date(base + 40_000).toISOString(),
+      type: "race_control",
+      message: "VIRTUAL SAFETY CAR ENDING",
+      severity: "INFO",
+    },
+  ];
+  const adapter = new LiveReplayAdapter(data);
+
+  assert.equal(adapter.frame(20_000, true).data.flag, "VSC");
+  assert.equal(adapter.frame(50_000, true).data.flag, "GREEN");
+});
+
+test("red flag freezes cars through telemetry gaps and restart clears the status", () => {
+  const data = replay([
+    position(0, 0),
+    position(100_000, 0.25),
+    position(300_000, 0.75),
+    position(400_000, 0),
+  ]);
+  data.durationMs = 400_000;
+  data.lapTimings = [
+    { driverNumber: 1, lapNumber: 1, startOffsetMs: 0, durationMs: 100_000 },
+    {
+      driverNumber: 1,
+      lapNumber: 2,
+      startOffsetMs: 100_000,
+      durationMs: 200_000,
+    },
+    {
+      driverNumber: 1,
+      lapNumber: 3,
+      startOffsetMs: 300_000,
+      durationMs: 100_000,
+    },
+  ];
+  data.raceEvents = [
+    {
+      offsetMs: 110_000,
+      timestamp: new Date(base + 110_000).toISOString(),
+      type: "race_control",
+      message: "SAFETY CAR DEPLOYED",
+      severity: "CRITICAL",
+    },
+    {
+      offsetMs: 120_000,
+      timestamp: new Date(base + 120_000).toISOString(),
+      type: "race_control",
+      message: "RED FLAG - RACE SUSPENDED",
+      severity: "CRITICAL",
+    },
+    {
+      offsetMs: 250_000,
+      timestamp: new Date(base + 250_000).toISOString(),
+      type: "race_control",
+      message: "SESSION STARTED",
+      severity: "INFO",
+    },
+  ];
+  const adapter = new LiveReplayAdapter(data);
+  const stopped = adapter.sampleLocation(1, 150_000);
+  const stillStopped = adapter.sampleLocation(1, 220_000);
+  const restarted = adapter.sampleLocation(1, 270_000);
+
+  assert.equal(adapter.frame(150_000, true).data.flag, "RED");
+  assert.equal(adapter.frame(270_000, true).data.flag, "GREEN");
+  assert.ok(Math.hypot(stillStopped.x - stopped.x, stillStopped.y - stopped.y) < 0.001);
+  assert.ok(Math.hypot(restarted.x - stopped.x, restarted.y - stopped.y) > 1);
+});
+
 test("clock advances smoothly between UI ticks, changes speed without jumping and stays paused", () => {
   let now = 0;
   const clock = new ReplayClock(100_000, 0, () => now);

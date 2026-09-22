@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseSourceFacts, checkNewsDraft, runNewsEditorialPipeline, buildDigestInput, renderVerifiedDigest, combineNewsSources } from "./news-editorial.mjs";
+import { parseSourceFacts, checkNewsDraft, runNewsEditorialPipeline, buildDigestInput, renderVerifiedDigest, combineNewsSources, verificationPasses } from "./news-editorial.mjs";
 
 const source = { title: "Hamilton at Ferrari", text: "Lewis Hamilton drives for Ferrari. Some fans may stop watching. The gap is 145 points.", url: "https://example.com/f1", name: "The Race", authors: ["Gary Anderson"] };
 const extraction = () => ({ article_type: "news", relevant: true, risk: "normal", source_authors: ["Gary Anderson"], main_fact: "Хэмилтон выступает за Ferrari.", event_type: "driver_transfer", event_stage: "announcement", event_date: null, event_fingerprint: "hamilton_ferrari", entities: [{ type: "person", name: "Lewis Hamilton", normalized_name: "lewis_hamilton", role: "primary" }], facts: [{ id: "f1", kind: "fact", text: "Хэмилтон выступает за Ferrari.", evidence: "Lewis Hamilton drives for Ferrari.", attribution: null, essential: true }], caveats: [] });
@@ -124,13 +124,52 @@ test("missing verification dimensions and missing essential facts prevent public
   assert.ok(checkNewsDraft({ ...draft(), used_fact_ids: [] }, extraction(), source, context).includes("essential_fact_missing"));
 });
 
-test("analysis needs an editor even when the model approves its own factual checks", async () => {
+test("a verified analysis can publish; genre alone is not a review reason", async () => {
   for (const article_type of ["opinion", "column", "analysis", "technical_analysis"]) {
     const value = { ...extraction(), article_type };
     const result = await runNewsEditorialPipeline({ source, context, request: async key => key === "news.extract" ? value : key === "news.article" ? draft() : pass() });
-    assert.equal(result.decision, "MANUAL_REVIEW");
-    assert.deepEqual(result.issues, ["analysis_requires_editor"]);
+    assert.equal(result.decision, "PASS");
+    assert.deepEqual(result.issues, []);
   }
+});
+
+test("COVID-19 is a name, while a separate unsupported 19 remains blocked", () => {
+  const input = { ...source, text: "The race returned during the Covid pandemic in 2020 and 2021." };
+  const valid = { ...draft(), details_ru: "Гонка возвращалась во время пандемии COVID-19 в 2020 и 2021 годах." };
+  assert.ok(!checkNewsDraft(valid, extraction(), input, context).includes("invented_number:19"));
+  assert.ok(checkNewsDraft({ ...valid, details_ru: `${valid.details_ru} Бюджет составил 19 миллионов.` }, extraction(), input, context).includes("invented_number:19"));
+});
+
+test("nonblocking editorial suggestions do not override a verified factual pass", () => {
+  const review = { ...pass(), policy_version: 2, blocking_issues: [], suggestions: ["Можно сократить историческую справку."], scores: { ...pass().scores, information_density: 0.8, language_quality: 0.8 } };
+  assert.equal(verificationPasses(review), true);
+  assert.equal(verificationPasses({ ...review, blocking_issues: [{ category: "factual_error", explanation_ru: "Неверная команда." }] }), false);
+  assert.equal(verificationPasses({ ...review, checked_claims: false }), false);
+  assert.equal(verificationPasses({ ...review, policy_version: undefined, blocking_issues: [{ category: "factual_error" }] }), false);
+});
+
+test("12-hour source times allow the equivalent 24-hour time, not a different hour", () => {
+  const input = { ...source, text: "Practice at 1.30pm, qualifying at 4pm, race at 3pm." };
+  const valid = { ...draft(), details_ru: "Практика в 13:30, квалификация в 16:00, гонка в 15:00." };
+  assert.ok(!checkNewsDraft(valid, extraction(), input, context).some(issue => issue.startsWith("invented_number:")));
+  assert.ok(checkNewsDraft({ ...valid, details_ru: "Гонка в 17:00." }, extraction(), input, context).includes("invented_number:17"));
+});
+
+test("a factual error still blocks a high-scoring analysis with suggestions", async () => {
+  const review = { ...pass(), policy_version: 2, suggestions: ["Сократить текст."], blocking_issues: [{ category: "factual_error", draft_excerpt: "Ferrari", source_quote: "Ferrari", explanation_ru: "Нужно исправить фактическое утверждение." }] };
+  const result = await runNewsEditorialPipeline({ source, context, request: async key => key === "news.extract" ? { ...extraction(), article_type: "analysis" } : key === "news.article" ? draft() : review });
+  assert.equal(result.decision, "MANUAL_REVIEW");
+  assert.ok(result.issues.includes("Нужно исправить фактическое утверждение."));
+  for (const patch of [{ policy_version: 3 }, { blocking_issues: null }, { suggestions: null }, { scores: {} }]) {
+    assert.equal(verificationPasses({ ...pass(), policy_version: 2, suggestions: [], blocking_issues: [], ...patch }), false);
+  }
+});
+
+test("an exact repeated lead is removed without deleting the new detail", async () => {
+  const lead = "Хэмилтон продолжает выступать за Ferrari.";
+  const result = await runNewsEditorialPipeline({ source, context, request: async key => key === "news.extract" ? extraction() : key === "news.article" ? { ...draft(), details_ru: `${lead}\n\nОтрыв составляет 145 очков.` } : pass() });
+  assert.equal(result.decision, "PASS");
+  assert.equal(result.draft.details_ru, "Отрыв составляет 145 очков.");
 });
 
 test("irrelevant materials stop before writer and verifier", async () => {

@@ -9,13 +9,14 @@ import { newsResponseFormat, newsRequestOptions } from "../worker/news-response-
 import { extractNewsSourceHtml, extractNewsSourceMarkdown, decodeNewsEntities } from "../worker/news-source-text.mjs";
 
 if (!process.argv.includes("--run")) {
-  console.log("Pass --run for a paid check of four real source articles. No database writes.");
+  console.log("Pass --run for a paid check of real source articles. No database writes.");
   process.exit(0);
 }
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const ids = ["b62a9a39-d6b8-4648-bb9e-c53e804ea0ba", "8b29c6a3-864c-458c-ba5b-1fa8d392cabd", "8483dcf2-572d-440f-aaa3-b929eadeb76d", "a9ea25e6-947c-4dbb-abd7-c8e73f5b0ebe"];
+const heldIds = ["1092afbd-3853-4b6b-b26b-a8217cf8c269", "b88807b5-3ca4-4a37-8500-35b2df51425f", "71b3cde0-4ed2-4a0a-9108-5d8098f06773"];
 const requestedIds = process.argv.find(value => value.startsWith("--ids="))?.slice(6).split(",") ?? ids;
-if (!requestedIds.length || requestedIds.some(id => !ids.includes(id))) throw new Error("Choose IDs from the four audit fixtures");
+if (!requestedIds.length || requestedIds.some(id => ![...ids, ...heldIds].includes(id))) throw new Error("Choose IDs from the audit fixtures");
 const { data: articles, error } = await db.from("news_articles").select("id,canonical_url,original_title,original_description,source_published_at,source_image_url,raw_payload,news_sources(name)").in("id", requestedIds);
 if (error) throw error;
 const context = await loadNewsContext(db, { season: new Date().getUTCFullYear() });

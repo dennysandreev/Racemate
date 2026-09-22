@@ -2,6 +2,7 @@ import "../worker/load-env.mjs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import { LiveReplayAdapter } from "../src/features/live/lib/replay.ts";
+import { withVerifiedReplayPitLane } from "../src/lib/replay-pit-lane.mjs";
 import { alignPitTrackProgress, connectModelPitLane } from "../src/features/race-replay/lib/pit-path.ts";
 
 async function loadModel(name) {
@@ -75,6 +76,7 @@ for (const session of sessions.sort((a, b) => a.races.round - b.races.round)) {
   replay.lapTimings = (replay.lapTimings ?? []).map((lap) => Array.isArray(lap) ? {
     driverNumber: lap[0], lapNumber: lap[1], startOffsetMs: lap[2], durationMs: lap[3] > 0 ? lap[3] : null,
   } : lap);
+  replay.track = withVerifiedReplayPitLane(replay.track);
   const adapter = new LiveReplayAdapter(replay);
   const model = await loadModel(replay.circuitName);
   const points = replay.track.centerline;

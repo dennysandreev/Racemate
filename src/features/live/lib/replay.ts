@@ -4,6 +4,7 @@ import {
   anchorMotionToPits,
   inferLapTimingsFromPositions,
   isDriverRetiredOnTrack,
+  MAX_MOTION_GAP_MS,
   mergeLapTimingsWithInferred,
   pitLaneParamAt,
   trackProgressAt,
@@ -53,6 +54,7 @@ export class LiveReplayAdapter {
     | undefined;
   private readonly pits: ReplayPit[];
   private readonly replay: RaceReplaySnapshot;
+  private readonly redFlagWindows: Array<{ endMs: number; startMs: number }>;
   private readonly trackSectorCount: number | null;
 
   constructor(replay: RaceReplaySnapshot) {
@@ -106,6 +108,10 @@ export class LiveReplayAdapter {
     }
 
     this.pits = buildPits(this.positionsByDriver, this.baseTimestampMs);
+    this.redFlagWindows = buildRedFlagWindows(
+      replay.raceEvents,
+      this.durationMs,
+    );
     if (entry && exit) {
       for (const [driverNumber, motion] of this.motions) {
         this.motions.set(
@@ -158,7 +164,10 @@ export class LiveReplayAdapter {
     if (!motion) return null;
     const position = positionAt(motion.events, elapsedMs);
     if (!position) return null;
-    const sample = trackProgressAt(motion, elapsedMs);
+    const redFlagActive = this.redFlagWindows.some(
+      (window) => elapsedMs >= window.startMs && elapsedMs < window.endMs,
+    );
+    const sample = redFlagActive ? null : trackProgressAt(motion, elapsedMs);
     const progress = sample
       ? ((sample.unwrapped % 1) + 1) % 1
       : position.progress;
@@ -416,7 +425,9 @@ function positionAt(
   const next = positions[Math.min(positions.length - 1, high + 1)];
   const span = next.offsetMs - current.offsetMs;
   const ratio =
-    span > 0 ? clamp((elapsedMs - current.offsetMs) / span, 0, 1) : 0;
+    span > 0 && span <= MAX_MOTION_GAP_MS
+      ? clamp((elapsedMs - current.offsetMs) / span, 0, 1)
+      : 0;
   let progressDelta = next.progress - current.progress;
   if (progressDelta < -0.5) progressDelta += 1;
   if (progressDelta > 0.5) progressDelta -= 1;
@@ -652,7 +663,7 @@ function getRaceSignal(
     const text = event.message.toUpperCase();
     if (isStewardsYellowReference(text)) continue;
     const sector = Number(text.match(/TRACK SECTOR\s+(\d+)/)?.[1]);
-    if (text.includes("GREEN")) {
+    if (isRaceRestartSignal(text)) {
       flag = "GREEN";
       yellowSectors.clear();
     } else if (text.includes("TRACK CLEAR")) {
@@ -664,10 +675,13 @@ function getRaceSignal(
     } else if (text.includes("RED FLAG")) {
       flag = "RED";
       yellowSectors.clear();
-    } else if (text.includes("VSC END")) flag = "VSC_ENDING";
-    else if (text.includes("VSC")) flag = "VSC";
-    else if (text.includes("SAFETY CAR IN")) flag = "SC_ENDING";
-    else if (text.includes("SAFETY CAR")) flag = "SC";
+    } else if (isVirtualSafetyCarEndSignal(text)) {
+      flag = "GREEN";
+      yellowSectors.clear();
+    } else if (isVirtualSafetyCarDeploySignal(text)) flag = "VSC";
+    else if (/\bSAFETY CAR (?:IN THIS LAP|ENDING)\b/.test(text))
+      flag = "SC_ENDING";
+    else if (/\bSAFETY CAR DEPLOYED\b/.test(text)) flag = "SC";
     else if (isActiveYellowSignal(text)) {
       if (!["RED", "SC", "SC_ENDING", "VSC", "VSC_ENDING"].includes(flag ?? ""))
         flag = "YELLOW";
@@ -683,6 +697,45 @@ function isStewardsYellowReference(text: string) {
   return /INFRINGEMENT|INVESTIGAT(?:ION|ED)|FIA STEWARDS|PENALTY|NOTED/.test(
     text,
   );
+}
+
+function isVirtualSafetyCarDeploySignal(text: string) {
+  return /\b(?:VIRTUAL SAFETY CAR|VSC) DEPLOYED\b/.test(text);
+}
+
+function isRaceRestartSignal(text: string) {
+  return /^(?:SESSION STARTED|RACE START|STANDING START|ROLLING START|SESSION RESUMED|RACE RESUMED|RACE RESTARTED|GREEN FLAG|RED FLAG CLEARED)\b/.test(
+    text.trim(),
+  );
+}
+
+function buildRedFlagWindows(
+  events: RaceReplaySnapshot["raceEvents"],
+  durationMs: number,
+) {
+  const windows: Array<{ endMs: number; startMs: number }> = [];
+  let startMs: number | null = null;
+
+  for (const event of [...events].sort((a, b) => a.offsetMs - b.offsetMs)) {
+    const text = event.message.toUpperCase().trim();
+
+    if (/^RED FLAG\b/.test(text) && !text.includes("INFRINGEMENT")) {
+      startMs ??= event.offsetMs;
+      continue;
+    }
+
+    if (startMs !== null && isRaceRestartSignal(text)) {
+      windows.push({ endMs: event.offsetMs, startMs });
+      startMs = null;
+    }
+  }
+
+  if (startMs !== null) windows.push({ endMs: durationMs, startMs });
+  return windows;
+}
+
+function isVirtualSafetyCarEndSignal(text: string) {
+  return /\b(?:VIRTUAL SAFETY CAR|VSC) (?:ENDING|ENDED)\b/.test(text);
 }
 
 function isActiveYellowSignal(text: string) {

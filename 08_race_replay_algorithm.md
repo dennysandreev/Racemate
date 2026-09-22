@@ -77,9 +77,14 @@ Pit lane windows are built per driver:
 Pit-lane geometry must be checked against the official FIA circuit map before a
 replay is published. OpenF1 location streams can contain interleaved or displaced
 coordinates around the garages, so a verified circuit override takes precedence
-over telemetry. The override records its FIA reference, entry and exit. For Spa
-the lane runs from after T19 to after La Source; for Hungaroring it runs from
-after T14 along the start/finish straight to the T1 exit.
+over telemetry. The reference records its FIA source, entry and exit. The 14
+completed 2026 circuits use surveyed/digital-twin pit paths from
+`src/data/replay-pit-layouts.json`, registered against the complete replay contour
+(scale, rotation, reflection and cyclic origin), not a generic parallel offset.
+Both archived snapshots on read and newly prepared worker snapshots use this
+geometry. The malformed Monaco 2026 contour is restored from the reviewed model
+before registration; already valid contours remain unchanged. See
+`docs/replay-pit-lanes.md` for sources and validation.
 
 UI rule:
 

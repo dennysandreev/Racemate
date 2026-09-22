@@ -2879,7 +2879,17 @@ function getActiveRaceControlState(events: ReplayRaceEvent[]): RaceStatus | null
       continue;
     }
 
-    if (isSafetyCarEndEvent(text)) {
+    if (isRaceRestartEvent(text) && active?.tone === "red") {
+      active = null;
+      continue;
+    }
+
+    if (isSafetyCarEndEvent(text) && active?.tone !== "red") {
+      active = null;
+      continue;
+    }
+
+    if (isVirtualSafetyCarEndEvent(text)) {
       active = null;
       continue;
     }
@@ -2953,8 +2963,18 @@ function isSafetyCarEndEvent(text: string) {
   return text.includes("track clear") || text.includes("green flag");
 }
 
+function isRaceRestartEvent(text: string) {
+  return /^(?:session started|race start|standing start|rolling start|session resumed|race resumed|race restarted|green flag|red flag cleared)\b/.test(
+    text.trim(),
+  );
+}
+
+function isVirtualSafetyCarEndEvent(text: string) {
+  return /(?:virtual safety car|vsc)\s+(?:ending|ended)/.test(text);
+}
+
 function isSafetyCarEndingNotice(text: string) {
-  return /(?:virtual safety car|vsc|safety car)\s+(?:ending|in this lap)/.test(text);
+  return /safety car\s+(?:ending|in this lap)/.test(text);
 }
 
 function isRedFlagStartEvent(text: string) {

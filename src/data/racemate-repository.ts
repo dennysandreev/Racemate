@@ -8,6 +8,7 @@ import { cache } from "react";
 import { getSessionUser } from "@/lib/auth";
 import { getPredictionLocksForRace } from "@/lib/prediction-locks";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
+import { withVerifiedReplayPitLane } from "@/lib/replay-pit-lane.mjs";
 import { getSiteUrl, getSupabaseEnv } from "@/lib/env";
 import { getRoundResultPoints } from "@/lib/f1-points";
 import { getSocialMediaDeliveryUrl } from "@/lib/social-media-storage";
@@ -6848,7 +6849,7 @@ export async function getRaceReplayBySessionKey(
     return null;
   }
 
-  const cacheKey = `${descriptor.id}:${descriptor.updatedAt}`;
+  const cacheKey = `pit-layout-v1:${descriptor.id}:${descriptor.updatedAt}`;
   const now = Date.now();
   const cached = replaySnapshotCache.get(cacheKey);
 
@@ -6920,6 +6921,7 @@ async function loadRaceReplaySnapshot(
   const snapshot = normalizeRaceReplaySnapshot(data.snapshot, data.id, data.source_session_key);
 
   if (snapshot) {
+    snapshot.track = withVerifiedReplayPitLane(snapshot.track);
     const positionRows = replayEventRows.filter((row) => row.event_type === "position");
     const positionTimingRows = replayEventRows.filter((row) => row.event_type === "position_timing");
     const intervalTimingRows = replayEventRows.filter((row) => row.event_type === "interval_timing");

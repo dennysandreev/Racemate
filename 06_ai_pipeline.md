@@ -28,7 +28,7 @@ OpenRouter.
 4. Current RaceSide context from sporting tables, scoped by season and round/session.
 5. `news.article`: Russian draft using fact/context IDs, with no invented details or filler.
 6. Deterministic checks plus independent `news.verify`. One rewrite at most.
-7. Private provenance and quality scores in `news_editorial_reviews`. Sensitive or uncertain material, columns and analysis wait for manual review. Live Gemini checks did not establish sufficiently reliable automatic handling of opinion prose.
+7. Private provenance, blocking errors and editorial suggestions in `news_editorial_reviews`. Verification policy 2 blocks factual errors, unsupported claims, missing core conditions, source-author narration and unintelligible text. Scores are diagnostic; minor style suggestions and genre alone do not prevent publication. Sensitive material and unresolved factual errors still require manual review.
 8. Semantic deduplication under a publication lock, up to 10 candidates over 72 hours by default. New stages and independent angles remain separate.
 9. Same-stage updates can combine up to three sources, re-run verification and atomically update the original article while preserving URL and publication date.
 10. Only verified drafts proceed to automated publication; a database trigger prevents retry jobs from bypassing verification. Manual editing/publication remains audited.

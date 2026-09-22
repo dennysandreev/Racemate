@@ -3,6 +3,7 @@ import { loadNewsContext, selectNewsContext } from "./news-context.mjs";
 import { newsResponseFormat, newsRequestOptions } from "./news-response-format.mjs";
 import { extractNewsSourceHtml, extractNewsSourceMarkdown, decodeNewsEntities } from "./news-source-text.mjs";
 import { runTelemetryTask } from "./telemetry/service.mjs";
+import { getVerifiedReplayPitLane, withVerifiedReplayPitLane } from "../src/lib/replay-pit-lane.mjs";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -10830,7 +10831,7 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
   const driverNumbers = getReplayDriverNumbers(driversPayload, positionsPayload, lapsPayload);
   const locationByDriver = await fetchReplayLocationsByDriver(baseUrl, sourceSessionKey, driverNumbers, sourceErrors);
 
-  const trackDefinition = buildReplayTrackDefinition({
+  let trackDefinition = buildReplayTrackDefinition({
     circuit,
     lapsPayload,
     locationByDriver,
@@ -10854,6 +10855,7 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
     };
   }
 
+  trackDefinition = withVerifiedReplayPitLane(trackDefinition);
   trackDefinition.pitLane = buildReplayPitLaneDefinition({
     locationByDriver,
     pitsPayload,
@@ -12111,6 +12113,8 @@ function interpolateNullableNumber(previous, current, ratio) {
 }
 
 export function buildReplayPitLaneDefinition({ locationByDriver, pitsPayload, trackDefinition }) {
+  const verified = getVerifiedReplayPitLane(trackDefinition);
+  if (verified) return verified;
   const officialLayout = getReplayPitLaneGeometryOverride(trackDefinition?.circuitName);
 
   if (officialLayout) {
@@ -16199,11 +16203,9 @@ async function getArticleContext(article) {
     fetchedArticle = await fetchReadableArticleMetadataViaReader(sourceUrl, fetchedArticle);
   }
 
-  if (fetchedArticle.text) {
-    snippets.unshift(fetchedArticle.text);
-  }
-
-  const sourceText = dedupeTextBlocks(snippets).join("\n\n");
+  // Full-page extraction supersedes RSS: appending the feed body duplicates
+  // the same article and can truncate its ending before editorial verification.
+  const sourceText = fetchedArticle.text || dedupeTextBlocks(snippets.map(decodeNewsEntities)).join("\n\n");
   const maxLength = Number(process.env.AI_ARTICLE_TEXT_MAX_CHARS ?? 12000);
   return {
     text: clampText(sourceText, maxLength),

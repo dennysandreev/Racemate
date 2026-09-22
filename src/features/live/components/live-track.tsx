@@ -188,13 +188,10 @@ export const LiveTrack = memo(function LiveTrack({
             </g>
           ))}
           {track.pitLane && (
-            <path
-              d={track.pitLane.visualPathD}
-              fill="none"
-              stroke="var(--muted-foreground)"
-              strokeWidth="3"
-              strokeDasharray="5 5"
-            />
+            <g aria-label="Пит-лейн" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <path d={track.pitLane.visualPathD} stroke="var(--background)" strokeWidth="7" />
+              <path d={track.pitLane.visualPathD} stroke="var(--foreground)" strokeWidth="2.5" opacity=".8" />
+            </g>
           )}
           <circle
             cx={track.startFinish.svgX}
@@ -250,7 +247,16 @@ export const LiveTrack = memo(function LiveTrack({
             ))}
         </svg>
       )}
-      <div className="live-map-caption">{track.circuitName}</div>
+      <div className="live-map-caption">
+        {track.circuitName}
+        {mode === "2d" && track.pitLane?.source === "verified_circuit_geometry" && (
+          <span>
+            <a className="pointer-events-auto underline underline-offset-2" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+              © OpenStreetMap
+            </a>
+          </span>
+        )}
+      </div>
     </div>
   );
 });
