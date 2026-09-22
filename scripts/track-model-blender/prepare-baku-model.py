@@ -43,15 +43,18 @@ def main():
         if not all(i in nodes for i in ids):
             continue
         tags = {t.attrib["k"]: t.attrib["v"] for t in way.findall("tag")}
-        if not any(k in tags for k in ("building", "building:part", "barrier", "historic", "highway", "natural")) and int(way.attrib["id"]) not in audit["sourceWayIds"]+audit["sourcePitWayIds"]:
+        if not any(k in tags for k in ("building", "building:part", "barrier", "historic", "highway", "natural", "leisure", "landuse")) and int(way.attrib["id"]) not in audit["sourceWayIds"]+audit["sourcePitWayIds"]:
             continue
         elements.append({"type": "way", "id": int(way.attrib["id"]), "tags": tags,
                          "geometry": [{"lat": float(nodes[i].attrib["lat"]), "lon": float(nodes[i].attrib["lon"])} for i in ids]})
     for node in nodes.values():
         tags = {t.attrib["k"]: t.attrib["v"] for t in node.findall("tag")}
-        if tags.get("natural") == "tree":
+        if tags.get("natural") in ("tree", "shrub"):
             elements.append({"type": "node", "id": int(node.attrib["id"]), "tags": tags,
                              "lat": float(node.attrib["lat"]), "lon": float(node.attrib["lon"])})
+    # The finish-straight courtyard building is tagged on its relation,
+    # not on the three constituent ways.
+    elements.append(source.extract_building_relation(root, 2249851))
     (directory / "baku-mapped-objects.json").write_text(json.dumps({"elements": elements}))
     # Event catalogue locations, refined against permanent streets in the ortho.
     # Dimensions below are photo-derived modelling estimates, not survey claims.

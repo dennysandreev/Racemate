@@ -6,6 +6,8 @@ import {
   telemetryStore,
   queryTelemetry,
   present,
+  getTelemetryBootstrap,
+  toTelemetrySetupCatalog,
   userError,
 } from "@/features/telemetry/lib/server";
 import type { Comparison, Catalog } from "@/features/telemetry/lib/types";
@@ -118,6 +120,30 @@ async function handle(
         return new Response(null, { status: 204 });
       }
     } else {
+      if (route === "bootstrap") {
+        const optional = (name: string) => {
+          const value = get(name);
+          return Number.isInteger(value) && value > 0 ? value : undefined;
+        };
+        const data = await getTelemetryBootstrap({
+          demoScope,
+          season: optional("season"),
+          meeting: optional("meeting"),
+          session: optional("session"),
+          waitMs: 8_000,
+        });
+        const status = data.stage === "ready" ? 200 : 202;
+        return Response.json(
+          { status, data },
+          {
+            status,
+            headers: {
+              "Cache-Control": "no-store",
+              ...(status === 202 ? { "Retry-After": "1" } : {}),
+            },
+          },
+        );
+      }
       if (route.startsWith("tasks/")) {
         const store = telemetryStore(),
           task = await store.task(path[1]);
@@ -188,7 +214,7 @@ async function handle(
           headers: { "Retry-After": "3" },
         });
       }
-      if (["drivers", "laps", "catalog"].includes(route)) {
+      if (["drivers", "laps", "catalog", "setup-catalog"].includes(route)) {
         if (demoScope && !demoScope.sessions.some((session) => session.id === get("session"))) return subscriptionResponse(403, "Этот Гран-при доступен с RaceSide Plus.");
         const result = await queryTelemetry({
           kind: "catalog",
@@ -201,6 +227,8 @@ async function handle(
             data:
               route === "catalog"
                 ? catalog
+                : route === "setup-catalog"
+                  ? toTelemetrySetupCatalog(catalog)
                 : route === "drivers"
                   ? catalog.drivers
                   : catalog.laps.filter(

@@ -1,4 +1,4 @@
-import { Newspaper, Search, Sparkles } from "lucide-react";
+import { Clock3, Newspaper, Search, Sparkles } from "lucide-react";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Metadata } from "next";
@@ -31,7 +31,8 @@ import {
 import { getSessionUser } from "@/lib/auth";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import { withServerTtlCache } from "@/lib/server-ttl-cache";
-import type { DailyDigest, NewsTagFilter } from "@/types/racemate";
+import { cn } from "@/lib/utils";
+import type { DailyDigest, NewsItem, NewsTagFilter } from "@/types/racemate";
 
 export const dynamic = "force-dynamic";
 
@@ -205,7 +206,7 @@ async function NewsContent({ query }: {
         </div>
       </section>
 
-      <section className="grid gap-4 py-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-5 lg:py-8">
+      <section className="grid gap-4 pb-8 pt-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-5">
         <div className="order-1 lg:hidden">
           <Suspense fallback={<Skeleton className="h-12 w-full" />}>
             <NewsFilters data={sidebarDataPromise} activeFavoriteFilter={activeFavoriteFilter} activeSearch={q} activeTag={tag} collapsible />
@@ -225,28 +226,7 @@ async function NewsContent({ query }: {
           ) : null}
 
           {featured ? (
-            <Link
-              className="group stitch-panel relative grid min-h-[11rem] content-end overflow-hidden p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-[13rem] sm:p-5"
-              href={`/news/${featured.slug}`}
-            >
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgb(255_255_255_/_0.07),transparent_44%),linear-gradient(180deg,transparent,rgb(0_0_0_/_0.18))]" />
-              <div className="relative">
-                <NewsMeta item={featured} />
-                <h2 className="mt-4 max-w-3xl text-balance font-display text-2xl font-extrabold leading-tight tracking-[-0.04em] transition-colors group-hover:text-primary sm:text-3xl">
-                  {featured.title}
-                </h2>
-                <p className="mt-3 max-w-[72ch] text-sm leading-6 text-muted-foreground">
-                  {featured.summary}
-                </p>
-                <NewsImage
-                  alt={featured.title}
-                  className="relative mt-4 aspect-video overflow-hidden rounded-lg border border-border/70 bg-muted"
-                  priority
-                  sizes="(min-width: 1280px) 44rem, (min-width: 1024px) calc(100vw - 26rem), 100vw"
-                  src={featured.imageUrl}
-                />
-              </div>
-            </Link>
+            <NewsCard featured item={featured} />
           ) : (
             <div className="stitch-panel p-5 text-sm text-muted-foreground">
               {activeFavoriteFilter && !hasFavoriteSelections
@@ -263,22 +243,9 @@ async function NewsContent({ query }: {
           )}
 
           {restItems.length ? (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid items-stretch gap-4 md:grid-cols-2">
               {restItems.map((item) => (
-                <Link
-                  className="group stitch-panel grid content-between gap-4 p-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  href={`/news/${item.slug}`}
-                  key={item.slug}
-                >
-                  <NewsMeta item={item} />
-                  <h2 className="line-clamp-3 text-lg font-semibold leading-6 transition-colors group-hover:text-primary">
-                    {item.title}
-                  </h2>
-                  <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
-                    {item.summary}
-                  </p>
-                  <NewsImage alt={item.title} sizes="(min-width: 1280px) 22rem, (min-width: 1024px) calc((100vw - 28rem) / 2), (min-width: 640px) 50vw, 100vw" src={item.imageUrl} />
-                </Link>
+                <NewsCard item={item} key={item.slug} />
               ))}
             </div>
           ) : null}
@@ -480,10 +447,78 @@ function getNewsModeHref(
   });
 }
 
+function NewsCard({
+  featured = false,
+  item,
+}: {
+  featured?: boolean;
+  item: NewsItem;
+}) {
+  const imageSizes = featured
+    ? "(min-width: 1280px) 44rem, (min-width: 1024px) calc(100vw - 26rem), 100vw"
+    : "(min-width: 1280px) 22rem, (min-width: 1024px) calc((100vw - 28rem) / 2), (min-width: 640px) 50vw, 100vw";
+
+  return (
+    <Link
+      className={cn(
+        "group stitch-panel flex h-full min-w-0 flex-col overflow-hidden transition-[border-color,background-color] duration-200 hover:border-primary/45 hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none",
+        featured && "w-full",
+      )}
+      href={`/news/${item.slug}`}
+    >
+      {item.imageUrl ? (
+        <NewsImage
+          alt={item.title}
+          className={cn(
+            "relative w-full shrink-0 overflow-hidden border-b border-border/80 bg-muted",
+            featured ? "aspect-[16/8.6]" : "aspect-video",
+          )}
+          priority={featured}
+          sizes={imageSizes}
+          src={item.imageUrl}
+        />
+      ) : (
+        <div
+          aria-hidden="true"
+          className={cn(
+            "grid w-full shrink-0 place-items-center border-b border-border/80 bg-muted/55 text-muted-foreground",
+            featured ? "aspect-[16/8.6]" : "aspect-video",
+          )}
+        >
+          <Newspaper className={featured ? "size-10" : "size-8"} strokeWidth={1.5} />
+        </div>
+      )}
+
+      <div className={cn("flex flex-1 flex-col p-4 sm:p-5", featured && "sm:p-6")}>
+        <NewsMeta item={item} />
+        <h2
+          className={cn(
+            "mt-4 text-balance font-display font-extrabold leading-tight tracking-[-0.04em] transition-colors group-hover:text-primary motion-reduce:transition-none",
+            featured
+              ? "max-w-3xl text-xl sm:text-3xl"
+              : "line-clamp-3 text-xl",
+          )}
+        >
+          {item.title}
+        </h2>
+        <p
+          className={cn(
+            "mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground",
+            featured && "max-w-[72ch] sm:text-base sm:leading-7",
+          )}
+        >
+          {item.summary}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 function NewsMeta({
   item,
 }: {
   item: {
+    editorial?: NewsItem["editorial"];
     raceTag?: string;
     source: string;
     tags: { name: string; slug: string; type?: string }[];
@@ -494,18 +529,24 @@ function NewsMeta({
   const raceTag = visibleTag?.name ?? item.raceTag;
 
   return (
-    <div className="grid justify-items-start gap-2">
-      {raceTag ? (
-        <Badge variant="warning">{raceTag}</Badge>
-      ) : null}
-      <div className="flex max-w-full items-center gap-2">
-        <span className="shrink-0 whitespace-nowrap font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+    <div className="grid min-w-0 justify-items-start gap-3">
+      <div className="flex w-full min-w-0 items-center justify-between gap-3">
+        <span className="min-w-0 truncate font-telemetry text-xs font-bold uppercase tracking-[0.08em] text-foreground/78">
+          {item.source}
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-telemetry text-[0.68rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+          <Clock3 aria-hidden="true" className="size-3.5" />
           {item.time}
         </span>
-        <Badge className="min-w-0 max-w-full truncate" variant="outline">
-          {item.source}
-        </Badge>
       </div>
+      {raceTag ? (
+        <Badge
+          className="max-w-full whitespace-normal border-primary/65 bg-primary/[0.06] px-3 py-1.5 text-primary"
+          variant="outline"
+        >
+          {raceTag}
+        </Badge>
+      ) : null}
     </div>
   );
 }

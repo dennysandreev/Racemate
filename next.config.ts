@@ -100,6 +100,9 @@ const nextConfig: NextConfig = {
     localPatterns: [
       { pathname: "/**", search: "" },
       { pathname: "/f1/circuits/**" },
+      { pathname: "/f1/tracks/3d/sepang-preview.webp" },
+      { pathname: "/f1/tracks/3d/miami-preview.webp" },
+      { pathname: "/f1/tracks/3d/monaco-preview.webp" },
     ],
     remotePatterns: [
       {

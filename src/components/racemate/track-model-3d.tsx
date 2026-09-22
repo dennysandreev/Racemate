@@ -674,7 +674,7 @@ function TrackModelViewport({
         </Button>
       </div>
 
-      <figcaption className="absolute bottom-1 left-2 right-2 z-30 flex flex-nowrap items-end gap-1.5 sm:gap-2">
+      <figcaption className="absolute bottom-1 left-2 right-2 z-30 flex flex-wrap items-end gap-1.5 @sm/track:flex-nowrap sm:gap-2">
         <div className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded border border-border bg-background/90 px-2 text-[0.68rem] font-bold text-foreground shadow-sm sm:px-2.5">
           {SECTOR_TOKEN_NAMES.map((token, index) => (
             <span className="flex items-center gap-1.5" key={token}>
@@ -688,7 +688,7 @@ function TrackModelViewport({
           ))}
         </div>
 
-        <div className="flex h-9 min-w-0 basis-0 grow items-center justify-center gap-1.5 rounded border border-border bg-background/90 px-2 text-xs font-semibold text-foreground shadow-sm @md/track:min-w-64 @md/track:basis-[17rem] @md/track:px-2.5">
+        <div className="flex h-9 min-w-0 basis-full grow items-center justify-center gap-1.5 rounded border border-border bg-background/90 px-2 text-xs font-semibold text-foreground shadow-sm @sm/track:basis-0 @md/track:min-w-64 @md/track:basis-[17rem] @md/track:px-2.5">
           <span className="shrink-0 whitespace-nowrap font-mono font-bold">
             {model.data.lapLengthKm.toLocaleString("ru-RU", {
               maximumFractionDigits: 3,

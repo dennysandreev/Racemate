@@ -23,6 +23,7 @@ import { PageTitle } from "@/components/racemate/page-title";
 import { signOut } from "@/app/auth/actions";
 import { DriverAvatarBadge } from "@/components/racemate/driver-avatar-badge";
 import { TelegramSettings } from "@/components/racemate/telegram-settings";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getTeamAsset, getTeamProfileAsset } from "@/data/f1-assets";
@@ -139,8 +140,16 @@ export default async function AccountPage() {
                   <UserRound aria-hidden="true" className="size-3.5" />
                   Паддок-пасс RaceSide
                 </p>
-                <PageTitle className="mt-1.5 max-w-3xl">
-                  {displayName}
+                <PageTitle className="mt-1.5 flex max-w-3xl flex-wrap items-center gap-x-2.5 gap-y-1">
+                  <span className="min-w-0 break-words">{displayName}</span>
+                  {subscription.active ? (
+                    <Badge
+                      className="h-6 shrink-0 px-2 text-[0.64rem] tracking-[0.08em]"
+                      title="Подписка RaceSide Plus активна"
+                    >
+                      RS+
+                    </Badge>
+                  ) : null}
                 </PageTitle>
                 <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5">
                   <ProfileChip icon={Mail} value={email} />

@@ -59,6 +59,7 @@
     "worker:billing:email": "node worker/cli.mjs billing.process_emails",
     "worker:billing:expire": "node worker/cli.mjs billing.expire_subscriptions",
     "worker:billing:expire-orders": "node worker/cli.mjs billing.expire_orders",
+    "worker:billing:reconcile-tribute": "node worker/cli.mjs billing.reconcile_tribute",
     "worker:billing:reconcile-yoomoney": "node worker/cli.mjs billing.reconcile_yoomoney",
     "worker:billing:retry-events": "node worker/cli.mjs billing.retry_failed_events",
     "worker:billing:audit": "node worker/cli.mjs billing.audit",
@@ -107,7 +108,7 @@
     "live:replay": "LIVE_DATA_SOURCE=replay node worker/live/server.mjs",
     "test:live": "node --test worker/live/*.test.mjs",
     "test:telemetry": "node --experimental-strip-types --test worker/telemetry/*.test.mjs src/features/telemetry/lib/client.test.mjs src/features/telemetry/lib/demo-selection.test.mjs",
-    "test:billing": "node --experimental-strip-types --test src/lib/billing/access-policy.test.mjs src/lib/billing/billing.test.mjs src/lib/billing/order-state.test.mjs src/lib/billing/subscription-display.test.mjs worker/yoomoney-reconciliation.test.mjs supabase/functions/yoomoney-webhook/logic.test.mjs"
+    "test:billing": "node --experimental-strip-types --test src/lib/billing/access-policy.test.mjs src/lib/billing/billing.test.mjs src/lib/billing/order-state.test.mjs src/lib/billing/subscription-display.test.mjs worker/tribute-reconciliation.test.mjs worker/yoomoney-reconciliation.test.mjs supabase/functions/yoomoney-webhook/logic.test.mjs"
   },
   "dependencies": {
     "@dnd-kit/dom": "0.5.0",

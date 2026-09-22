@@ -14,6 +14,9 @@ export type NewsItem = {
   raceTagSlug?: string;
   raceFilter?: string;
   publishedAt?: string;
+  modifiedAt?: string;
+  editorial?: import("../lib/news-editorial").NewsEditorialMeta;
+  sources?: { source_url: string; source_name: string; source_authors: string[]; source_published_at?: string | null }[];
   time: string;
 };
 

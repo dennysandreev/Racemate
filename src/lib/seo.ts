@@ -22,6 +22,7 @@ type PageMetadataOptions = {
   noIndex?: boolean;
   path: string;
   publishedTime?: string | null;
+  modifiedTime?: string | null;
   section?: string;
   tags?: string[];
   title: string;
@@ -49,6 +50,7 @@ export function createPageMetadata({
   noIndex = false,
   path,
   publishedTime,
+  modifiedTime,
   section,
   tags,
   title,
@@ -69,6 +71,7 @@ export function createPageMetadata({
         images: [socialImage],
         locale: SITE_LOCALE,
         publishedTime: publishedTime ?? undefined,
+        modifiedTime: modifiedTime ?? undefined,
         section,
         siteName: SITE_NAME,
         tags,

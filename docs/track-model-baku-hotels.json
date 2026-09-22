@@ -1,0 +1,58 @@
+{
+  "sources": [
+    {
+      "name": "Hilton Baku",
+      "osmWayId": 152192792,
+      "file": ".track-model-build/baku-source/hotels/hilton-exterior.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Hilton_Hotel_and_Government_House,_Baku.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/82/Hilton_Hotel_and_Government_House%2C_Baku.jpg",
+      "author": "Nemoralis",
+      "date": "2024-03-13",
+      "retrieved": "2026-09-22",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "bytes": 12630995,
+      "sha256": "9e69d5af94977dacf76169ecc33062f2614f1ee03d6e06e06faf76eeadebae03",
+      "role": "External architectural reference; facade colours, mullions, stone bands and roof silhouette reconstructed as geometry. Photograph is not embedded as a texture."
+    },
+    {
+      "name": "JW Marriott Absheron Baku",
+      "osmWayId": 153128834,
+      "file": ".track-model-build/baku-source/hotels/marriott.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:JW_Marriott_Absheron.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/35/JW_Marriott_Absheron.jpg",
+      "author": "Nemoralis",
+      "date": "2024-03-13",
+      "retrieved": "2026-09-22",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "bytes": 14632593,
+      "sha256": "c9c2e061439d0ddb9fea2cac9c901585aec40c4174f06f09e6a47ccfde36e893",
+      "role": "External architectural reference; facade colours, mullions, stone bands and roof silhouette reconstructed as geometry. Photograph is not embedded as a texture."
+    }
+  ],
+  "storeyReferences": [
+    {
+      "name": "Hilton Baku",
+      "floors": 25,
+      "url": "https://president.az/en/articles/view/3215/print"
+    },
+    {
+      "name": "JW Marriott Absheron Baku",
+      "floors": 23,
+      "url": "https://www.marriott.com/en-us/hotels/gydjw-jw-marriott-absheron-baku/overview/"
+    }
+  ],
+  "restoredBuilding": {
+    "osmRelationId": 2249851,
+    "url": "https://www.openstreetmap.org/relation/2249851",
+    "outerWayId": 152192632,
+    "innerWayIds": [
+      152192634,
+      152192633
+    ],
+    "levels": 5,
+    "source": "Pinned openstreetmap-map.osm; ODbL 1.0"
+  },
+  "accuracy": "Mapped horizontal geometry. Hotel heights, glazing dimensions, colours and architectural details are photo-derived approximations, not a measured architectural model. Courtyard building has its source footprint and five mapped storeys."
+}

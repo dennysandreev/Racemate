@@ -72,7 +72,8 @@ test("worker routes every OpenRouter completion through one accounting boundary"
   const calls = [...source.matchAll(/requestOpenRouterCompletion\(\{([\s\S]*?)\n\s*\}\);/g)]
     .slice(1)
     .map((match) => match[1]);
-  assert.ok(calls.length >= 7);
+  // Article extraction/writing/verification now share requestOpenRouterNewsJson.
+  assert.ok(calls.length >= 6);
   for (const call of calls) {
     assert.match(call, /model: prompt\.model/);
     assert.match(call, /max_completion_tokens: prompt\.maxTokens/);

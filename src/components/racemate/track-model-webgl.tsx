@@ -32,6 +32,7 @@ type TrackModelWebGLProps = {
   camera: {
     fitHeight: number;
     fitWidth: number;
+    narrowFitWidth?: number;
     lookAtY: number;
     radius: number;
   };
@@ -294,7 +295,8 @@ function CameraRig({
       Math.cos(azimuth) * horizontalRadius,
     );
     camera.lookAt(0, cameraSettings.lookAtY, 0);
-    camera.zoom = Math.min(width / cameraSettings.fitWidth, height / cameraSettings.fitHeight) * zoom;
+    const fitWidth = width < 400 ? (cameraSettings.narrowFitWidth ?? cameraSettings.fitWidth) : cameraSettings.fitWidth;
+    camera.zoom = Math.min(width / fitWidth, height / cameraSettings.fitHeight) * zoom;
     camera.clearViewOffset();
 
     if (panX !== 0 || panY !== 0) {

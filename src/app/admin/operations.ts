@@ -17,6 +17,7 @@ import { requireAdmin } from "@/lib/auth";
 import { invalidateSubscriptionAccess } from "@/lib/billing/access";
 import { parseMinorUnits } from "@/lib/billing/money";
 import { loadOpenRouterModels } from "@/lib/openrouter-models";
+import { NEWS_ARTICLE_TYPE_OPTIONS } from "@/lib/news-editorial";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { AdminActionResult } from "@/types/admin";
@@ -245,13 +246,18 @@ export async function saveNewsArticleAction(
   const summary = optionalText(formData, "summary", 1_500);
   const body = optionalText(formData, "body", 20_000);
   const tagNames = parseTags(text(formData, "tags", 800));
+  const articleType = enumValue(formData, "articleType", NEWS_ARTICLE_TYPE_OPTIONS);
+  const sourceAuthors = [...new Set(text(formData, "sourceAuthors", 800).split(",").map(value => value.trim()).filter(Boolean))].slice(0, 8);
 
-  if (!admin || !articleId || !publicationStatus) {
+  if (!admin || !articleId || !publicationStatus || !articleType) {
     return { ok: false, message: "Проверь материал и выбранное действие." };
+  }
+  if (publicationStatus === "published" && (!title || !summary || !body)) {
+    return { ok: false, message: "Для публикации нужны заголовок, лид и текст статьи." };
   }
   const { data: before, error } = await admin
     .from("news_articles")
-    .select("id, slug, ai_title_ru, ai_summary_ru, ai_summary_long_ru, publication_status, published_at")
+    .select("id, slug, ai_title_ru, ai_summary_ru, ai_summary_long_ru, publication_status, published_at, editorial_meta")
     .eq("id", articleId)
     .maybeSingle();
   if (error || !before) return { ok: false, message: "Материал не найден." };
@@ -270,7 +276,7 @@ export async function saveNewsArticleAction(
   });
 
   try {
-    const { error: updateError } = await admin.rpc("admin_save_news_article", {
+    const { error: updateError } = await admin.rpc("admin_save_news_article_editorial", {
       p_actor_user_id: user.id,
       p_article_id: articleId,
       p_body: body,
@@ -279,11 +285,13 @@ export async function saveNewsArticleAction(
       p_summary: summary,
       p_tag_names: tagNames,
       p_title: title,
+      p_article_type: articleType,
+      p_source_authors: sourceAuthors,
     });
     if (updateError) throw updateError;
     await finishAdminAudit(admin, auditId, {
       outcome: "succeeded",
-      afterData: { publicationStatus, title, summary, body, tagNames, slug: before.slug },
+      afterData: { publicationStatus, title, summary, body, tagNames, articleType, sourceAuthors, slug: before.slug },
     });
     revalidateAdminPaths(["/admin", "/admin/news", "/news", `/news/${before.slug}`]);
     return {
@@ -291,7 +299,7 @@ export async function saveNewsArticleAction(
       message: publicationStatus === "published"
         ? "Материал опубликован."
         : publicationStatus === "draft"
-          ? "Материал снят с публикации."
+          ? "Черновик сохранён."
           : "Материал отклонён.",
     };
   } catch (saveError) {
@@ -359,12 +367,15 @@ export async function publishDuplicateNewsAction(
 
   const { data: before, error } = await admin
     .from("news_articles")
-    .select("id, slug, publication_status, duplicate_of, duplicate_confidence, duplicate_relation, duplicate_reason, dedup_decision_history")
+    .select("id, slug, publication_status, duplicate_of, duplicate_confidence, duplicate_relation, duplicate_reason, dedup_decision_history, ai_title_ru, ai_summary_ru, ai_summary_long_ru")
     .eq("id", articleId)
     .maybeSingle();
   if (error || !before) return { ok: false, message: "Материал не найден." };
   if (before.publication_status !== "duplicate") {
     return { ok: false, message: "Материал уже не отмечен как дубль." };
+  }
+  if (!before.ai_title_ru || !before.ai_summary_ru || !before.ai_summary_long_ru) {
+    return { ok: false, message: "Сначала пересобери текст этого источника или подготовь отдельную статью в редакторе." };
   }
 
   const auditId = await startAdminAudit(admin, {
@@ -459,10 +470,13 @@ export async function reprocessNewsArticleAction(
   const jobName = mode === "ai" ? "ai.process_news" : "news.retry_dedup";
   const { data: before, error: readError } = await admin
     .from("news_articles")
-    .select("status, publication_status, duplicate_of, dedup_status")
+    .select("status, publication_status, duplicate_of, dedup_status, raw_payload")
     .eq("id", articleId)
     .maybeSingle();
   if (readError || !before) return { ok: false, message: "Материал не найден." };
+  if (mode === "dedup" && before.raw_payload && typeof before.raw_payload === "object" && !Array.isArray(before.raw_payload) && before.raw_payload.aiFailureReason === "editorial_review_required") {
+    return { ok: false, message: "Сначала проверь факты или пересобери текст. Проверка дублей не заменяет редакционную проверку." };
+  }
   const auditId = await startAdminAudit(admin, {
     actorUserId: user.id,
     action: mode === "ai" ? "news.reprocess_ai" : "news.reprocess_dedup",

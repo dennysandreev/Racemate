@@ -42,6 +42,7 @@ export type DriverLiveState = {
   }[];
 };
 export type LocationSample = {
+  pitTrackProgress?: { entry: number; exit: number };
   pitLaneProgress?: number | null;
   timestamp: string;
   stationarySince?: string;

@@ -30,6 +30,10 @@ test("Baku GLB contains its licensed texture, coloured city and separate start/c
   const folder = new URL("../../public/f1/tracks/3d/", import.meta.url).pathname;
   const metrics = await validateTrackAsset({ modelId: "baku", glbPath: folder + "baku.glb", metadataPath: folder + "baku-metadata.json", previewPath: folder + "baku-preview.webp" });
   assert.ok(metrics.triangles > 100000);
+  assert.ok(metrics.decodedSurfaceAudit.windowFacadeMinimumColor < .7, "Facade colour must survive glTF export instead of turning white");
+  assert.equal(metrics.decodedSurfaceAudit.vegetationTrianglesAboveRoad, 0);
+  assert.equal(metrics.decodedSurfaceAudit.windowFacadeUVAlignmentErrors, 0, "Window rows must stay horizontal and confined to walls");
+  assert.equal(metrics.decodedSurfaceAudit.roofUVRangeErrors, 0, "Roofs must sample their geographic image, not repeating window coordinates");
   const buffer = await readFile(folder + "baku.glb");
   const gltf = JSON.parse(buffer.toString("utf8", 20, 20 + buffer.readUInt32LE(12)).trim());
   assert.ok(gltf.images.some((image) => Number.isInteger(image.bufferView)));
@@ -40,8 +44,21 @@ test("Baku GLB contains its licensed texture, coloured city and separate start/c
   assert.ok(gltf.images.length >= 2);
   const metadata = JSON.parse(await readFile(folder + "baku-metadata.json", "utf8"));
   assert.ok(metadata.buildingTextures.facadeDetails.windows >= 4000);
-  assert.ok(metadata.buildingTextures.facadeDetails.buildings >= 30);
+  assert.ok(metadata.buildingTextures.facadeDetails.buildings >= 900, "Windows must cover the city, not only the first nearby buildings");
+  assert.equal(metadata.buildingTextures.facadeDetails.buildings + metadata.buildingTextures.facadeDetails.excludedBuildings.length, metadata.objects.buildingsTotal);
   assert.ok(metadata.buildingTextures.facadeDetails.cornices > 0);
+  assert.ok(metadata.landscape.treeRowTrees > 100);
+  assert.ok(metadata.landscape.areaTrees > 100);
+  assert.ok(metadata.landscape.shrubs > 100);
+  assert.equal(metadata.landscape.placementConflicts, 0);
+  assert.deepEqual(metadata.buildingTextures.individualHotels.map(({ osmWayId, floors }) => [osmWayId, floors]).sort(), [[152192792, 25], [153128834, 23]]);
+  assert.ok(metadata.buildingTextures.individualHotels.every((hotel) => hotel.glazingPanels > 2000 && hotel.floorBandSegments > 300));
+  assert.deepEqual(metrics.decodedSurfaceAudit.restoredBuildings, [{ osmRelationId: 2249851, courtyardSamples: 10, coveredCourtyardSamples: 0, elevatedRoofSamples: 4 }]);
+  const windowMaterial = gltf.materials.findIndex((material) => material.name === "Baku_Window_Bays");
+  assert.ok(windowMaterial >= 0);
+  assert.ok(gltf.materials[windowMaterial].pbrMetallicRoughness.baseColorTexture);
+  const windows = gltf.meshes.find((mesh) => mesh.name === "Baku_Window_Facades_Mesh");
+  assert.ok(windows.primitives.some((primitive) => primitive.material === windowMaterial && primitive.attributes.TEXCOORD_0 !== undefined && primitive.attributes.COLOR_0 !== undefined));
   assert.ok(!gltf.meshes.some((mesh) => /DutchGP|Hungaroring|Monaco|Madring/.test(mesh.name)));
 });
 

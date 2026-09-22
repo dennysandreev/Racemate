@@ -8,6 +8,7 @@ type CacheEntry = {
 };
 
 type ServerTtlCacheOptions = {
+  shouldCache?: (value: unknown) => boolean;
   staleWhileRevalidateMs?: number;
 };
 
@@ -46,8 +47,12 @@ export function withServerTtlCache<T>(
 
     existing.refreshing = refreshing;
     void refreshing.then(
-      () => {
+      (resolved) => {
         if (entries.get(key) === existing) {
+          if (options.shouldCache && !options.shouldCache(resolved)) {
+            existing.refreshing = null;
+            return;
+          }
           existing.expiresAt = Date.now() + ttl;
           existing.refreshing = null;
           existing.staleUntil = existing.expiresAt + staleWhileRevalidateMs;
@@ -74,8 +79,12 @@ export function withServerTtlCache<T>(
 
   entries.set(key, entry);
   void value.then(
-    () => {
+    (resolved) => {
       if (entries.get(key) === entry) {
+        if (options.shouldCache && !options.shouldCache(resolved)) {
+          entries.delete(key);
+          return;
+        }
         entry.expiresAt = Date.now() + ttl;
         entry.staleUntil = entry.expiresAt + staleWhileRevalidateMs;
       }

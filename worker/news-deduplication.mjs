@@ -23,6 +23,10 @@ export const NEWS_DEDUP_RELATIONS = Object.freeze([
 ]);
 
 const RELATION_SET = new Set(NEWS_DEDUP_RELATIONS);
+const EVENT_TYPE_ALIASES = { racing_driver_move: "driver_transfer", driver_move: "driver_transfer", driver_signing: "driver_transfer" };
+const EVENT_STAGE_ALIASES = { announced: "announcement", announcement_made: "announcement", rumored: "rumour", rumor: "rumour", confirmed: "official_confirmation" };
+const eventTypeKey = value => EVENT_TYPE_ALIASES[normalizeSlug(value)] ?? normalizeSlug(value);
+const eventStageKey = value => EVENT_STAGE_ALIASES[normalizeSlug(value)] ?? normalizeSlug(value);
 const COMPARISON_STOP_WORDS = new Set([
   "a", "an", "and", "at", "by", "for", "from", "in", "of", "on", "the", "to", "with",
   "а", "без", "был", "была", "были", "в", "во", "для", "до", "и", "из", "к", "как", "на",
@@ -32,7 +36,7 @@ const COMPARISON_STOP_WORDS = new Set([
 export function getNewsDedupConfig(env = process.env) {
   return {
     enabled: parseBoolean(env.NEWS_DEDUP_ENABLED, true),
-    windowHours: clampInteger(env.NEWS_DEDUP_WINDOW_HOURS, 24, 1, 168),
+    windowHours: clampInteger(env.NEWS_DEDUP_WINDOW_HOURS, 72, 1, 168),
     maxCandidates: clampInteger(env.NEWS_DEDUP_MAX_CANDIDATES, 10, 1, 25),
     confidenceThreshold: clampNumber(env.NEWS_DEDUP_CONFIDENCE_THRESHOLD, 0.85, 0, 1),
     failMode: env.NEWS_DEDUP_FAIL_MODE === "publish" ? "publish" : "hold",
@@ -55,7 +59,9 @@ export function isNewsFeedItemPublishable(item) {
 
   return !(
     /^video draft \d+(?: formula 1)?$/.test(title) ||
-    /(?:^|\/)video-draft-\d+(?:\/|$)/i.test(pathname)
+    /(?:^|\/)video-draft-\d+(?:\/|$)/i.test(pathname) ||
+    /^(?:sponsored content|advertorial|paid partnership|paid post)\b/i.test(title) ||
+    /(?:^|\/)(?:sponsored-content|partner-content|advertorial)(?:\/|$)/i.test(pathname)
   );
 }
 
@@ -112,8 +118,8 @@ export function parseNewsEditorialMetadata(payload) {
   }
 
   const mainFact = normalizeString(payload.main_fact ?? payload.mainFact);
-  const eventType = normalizeSlug(payload.event_type ?? payload.eventType);
-  const eventStage = normalizeSlug(payload.event_stage ?? payload.eventStage);
+  const eventType = eventTypeKey(payload.event_type ?? payload.eventType);
+  const eventStage = eventStageKey(payload.event_stage ?? payload.eventStage);
   const eventDate = normalizeEventDate(payload.event_date ?? payload.eventDate);
   const normalizedEntities = normalizeEntities(
     payload.entities ?? payload.normalized_entities ?? payload.normalizedEntities,
@@ -199,10 +205,10 @@ export function makeNewsDedupLockKey(article) {
 export function rankNewsDedupCandidates(article, candidates, options = {}) {
   const windowHours = clampInteger(options.windowHours, 24, 1, 168);
   const maxCandidates = clampInteger(options.maxCandidates, 10, 1, 25);
-  const referenceTime = toTimestamp(article.ingestedAt ?? article.ingested_at) ?? Date.now();
+  const referenceTime = toTimestamp(options.referenceTime ?? article.ingestedAt ?? article.ingested_at) ?? Date.now();
   const windowStart = referenceTime - windowHours * 3_600_000;
   const newFingerprint = normalizeFingerprint(article.eventFingerprint ?? article.event_fingerprint);
-  const newEventType = normalizeSlug(article.eventType ?? article.event_type);
+  const newEventType = eventTypeKey(article.eventType ?? article.event_type);
   const newEntities = new Set(getEntityNames(article));
   const newMainFact = article.mainFact ?? article.main_fact;
   const newTitle = article.title ?? article.ai_title_ru ?? article.original_title;
@@ -235,7 +241,7 @@ export function rankNewsDedupCandidates(article, candidates, options = {}) {
       const candidateFingerprint = normalizeFingerprint(
         candidate.eventFingerprint ?? candidate.event_fingerprint,
       );
-      const candidateEventType = normalizeSlug(candidate.eventType ?? candidate.event_type);
+      const candidateEventType = eventTypeKey(candidate.eventType ?? candidate.event_type);
       const candidateEntities = new Set(getEntityNames(candidate));
       const entityOverlap = [...newEntities].filter((entity) => candidateEntities.has(entity)).length;
       const fingerprintMatch = Boolean(newFingerprint && newFingerprint === candidateFingerprint);
@@ -440,6 +446,7 @@ function makePublicationDecision({
 
 function toClassifierArticle(article) {
   return {
+    article_type: article.articleType ?? article.editorial_meta?.article_type ?? null,
     title: article.title ?? article.ai_title_ru ?? article.original_title ?? null,
     summary: article.summary ?? article.ai_summary_ru ?? article.original_description ?? null,
     main_fact: article.mainFact ?? article.main_fact ?? null,
@@ -452,6 +459,17 @@ function toClassifierArticle(article) {
 }
 
 export function isNewsDedupIdentityMatch(article, candidate) {
+  const genre = value => ["analysis", "technical_analysis", "opinion", "column"].includes(value) ? "analysis" : ["news", "breaking_news", "report"].includes(value) ? "news" : value;
+  const articleGenre = genre(article.articleType ?? article.editorial_meta?.article_type);
+  const candidateGenre = genre(candidate.articleType ?? candidate.editorial_meta?.article_type);
+  if (articleGenre && candidateGenre && articleGenre !== candidateGenre) return false;
+  const articleType = eventTypeKey(article.eventType ?? article.event_type);
+  const candidateType = eventTypeKey(candidate.eventType ?? candidate.event_type);
+  const articleStage = eventStageKey(article.eventStage ?? article.event_stage);
+  const candidateStage = eventStageKey(candidate.eventStage ?? candidate.event_stage);
+  if (articleStage && candidateStage && articleStage !== candidateStage) return false;
+  if (articleType && candidateType && articleType !== candidateType &&
+      /analysis|reaction|interview|opinion|result/.test(`${articleType} ${candidateType}`)) return false;
   const articleFingerprint = normalizeFingerprint(
     article.eventFingerprint ?? article.event_fingerprint,
   );
@@ -462,11 +480,6 @@ export function isNewsDedupIdentityMatch(article, candidate) {
   if (articleFingerprint && candidateFingerprint && articleFingerprint === candidateFingerprint) {
     return true;
   }
-
-  const articleType = normalizeSlug(article.eventType ?? article.event_type);
-  const candidateType = normalizeSlug(candidate.eventType ?? candidate.event_type);
-  const articleStage = normalizeSlug(article.eventStage ?? article.event_stage);
-  const candidateStage = normalizeSlug(candidate.eventStage ?? candidate.event_stage);
 
   return Boolean(
     articleType &&

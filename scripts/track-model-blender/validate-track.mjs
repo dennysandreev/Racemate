@@ -30,6 +30,64 @@ export async function validateTrackAsset({
   const metrics = inspectGltf(gltf, glbStats.size, previewStats.size);
   const failures = [];
 
+  if (modelId === "miami") {
+    const { auditMiamiSurfaces } = await import("./audit-miami-surfaces.mjs");
+    metrics.decodedSurfaceAudit = await auditMiamiSurfaces(glbBuffer);
+    const audit = metrics.decodedSurfaceAudit;
+    for (const layer of ["road", "paint"]) {
+      if (!audit[layer].triangles || audit[layer].intersections || audit[layer].missingSupport) failures.push(`Miami ${layer} fails decoded surface clearance`);
+    }
+    if (Object.keys(audit.structuralConflicts).length || audit.bridgeConflicts) failures.push("Miami driving corridors contain structural conflicts");
+    if (!(audit.road.maximumGradePercent < 12)) failures.push("Miami decoded road has a false ramp or height step");
+    const names = new Set((gltf.nodes ?? []).map((node) => node.name));
+    for (const name of [...Array.from({ length: 19 }, (_, i) => `Turn_${String(i + 1).padStart(2, "0")}`), "RaceStart", "SpeedTrap", "StartFinish", "SectorBoundary_02", "SectorBoundary_03", "HighPoint", "LowPoint"]) {
+      if (!names.has(name)) failures.push(`missing Miami anchor: ${name}`);
+    }
+    if (!metrics.extensionsRequired.includes("EXT_meshopt_compression")) failures.push("Miami requires Meshopt compression");
+    if (!gltf.images?.some((image) => image.bufferView !== undefined && /miami-orthophoto/.test(image.name))) failures.push("Miami county orthophoto must be embedded");
+    if (metadata.coordinateReferenceSystem !== "EPSG:32617" || metadata.verticalExaggeration !== 1) failures.push("Miami must retain native UTM 17N metres without vertical exaggeration");
+    if (!(metadata.lapLength?.relativeErrorPercent < .5) || metadata.lapLength.officialFiaMeters !== 5412) failures.push("Miami lap must match 5412 m within 0.5%");
+    if (metadata.objects?.turnAnchors !== 19 || metadata.objects.pitGarageBoxes !== 37 || metadata.objects.teamPavilions !== 11 || metadata.objects.grandstandSections < 80) failures.push("Miami required event geometry is missing");
+    if (!metadata.layoutQuality?.buildings?.rendered.some((building) => building.id === 1017340353)) failures.push("Miami mapped pit building is missing");
+    for (const key of ["entryGapMeters", "exitGapMeters"]) if (!(metadata.layoutQuality?.pitLane?.[key] < .05)) failures.push(`Miami pit ${key} is disconnected`);
+    if (metadata.layoutQuality?.surfaceClearance?.terrainBreakthroughSamples !== 0) failures.push("Miami terrain breaks through the asphalt");
+    if (metadata.layoutQuality?.flyovers?.maximumPanelJoinGapMeters !== 0 || !(metadata.layoutQuality.flyovers.highwayWaysWithConnectedApproaches > 13)) failures.push("Miami flyover approaches are disconnected");
+    if (metadata.controlPointReference?.referenceYear !== 2026 || metadata.controlPointReference.currentEventVerified !== true || !metadata.limitations?.length) failures.push("Miami requires 2026 event references and source limitations");
+    const lock = JSON.parse(await readFile(path.join(projectRoot, "docs/track-model-miami-source-manifest.json"), "utf8"));
+    if (JSON.stringify(metadata.sourceManifest.sources) !== JSON.stringify(lock.sources)) failures.push("Miami delivery source manifest differs from its pinned lock");
+    if (sourceDirectory) for (const source of lock.sources) {
+      const data = await readFile(path.join(sourceDirectory, source.file));
+      if (data.length !== source.bytes || createHash("sha256").update(data).digest("hex") !== source.sha256) failures.push(`Miami source cache changed: ${source.file}`);
+    }
+  }
+
+  if (modelId === "sepang") {
+    const { auditSepangSurfaces } = await import("./audit-sepang-surfaces.mjs");
+    const { verifySepangSources } = await import("./download-sepang-data.mjs");
+    metrics.decodedSurfaceAudit = await auditSepangSurfaces(glbBuffer);
+    const audit = metrics.decodedSurfaceAudit;
+    for (const layer of ["road", "paint"]) {
+      if (!audit[layer].triangles || audit[layer].intersections || audit[layer].missingSupport) failures.push(`Sepang ${layer} fails decoded surface clearance`);
+    }
+    if (audit.structuralRoadConflicts || audit.vegetationTrianglesAboveRoad || audit.roadBarrierTrianglesInsidePit) failures.push("Sepang driving corridors contain structural conflicts");
+    const names = new Set((gltf.nodes ?? []).map((node) => node.name));
+    for (const name of [...Array.from({ length: 15 }, (_, i) => `Turn_${String(i + 1).padStart(2, "0")}`), "SpeedTrap", "StartFinish", "SectorBoundary_02", "SectorBoundary_03", "HighPoint", "LowPoint"]) {
+      if (!names.has(name)) failures.push(`missing Sepang anchor: ${name}`);
+    }
+    if (!metrics.extensionsRequired.includes("EXT_meshopt_compression")) failures.push("Sepang requires Meshopt compression");
+    if (!gltf.images?.some((image) => image.bufferView !== undefined && image.name === "sepang-ground-surface")) failures.push("Sepang mapped ground texture must be embedded in GLB");
+    const ground = metadata.layoutQuality?.terrainSurface;
+    if (ground?.style !== "mapped-materials" || ground.detailSource !== "current OpenStreetMap ground geometry" || !(ground.currentGroundPolygons >= 90) || !(ground.textureWidth >= 4096)) failures.push("Sepang requires detailed mapped ground materials");
+    if (metadata.coordinateReferenceSystem !== "EPSG:32647" || metadata.verticalExaggeration !== 1) failures.push("Sepang must retain metric UTM 47N geometry without vertical exaggeration");
+    if (!(metadata.lapLength?.relativeErrorPercent < .5) || metadata.lapLength.officialFiaMeters !== 5543) failures.push("Sepang lap must match 5543 m within 0.5%");
+    if (metadata.objects?.turnAnchors !== 15 || metadata.objects.pitGarageBoxes !== 33 || metadata.objects.grandstandSections < 100) failures.push("Sepang required turn, pit or grandstand geometry is missing");
+    if (!metadata.layoutQuality?.buildings?.rendered.some((building) => building.id === 144362327)) failures.push("Sepang main pit building is missing");
+    for (const key of ["entryGapMeters", "exitGapMeters"]) if (!(metadata.layoutQuality?.pitLane?.[key] < .05)) failures.push(`Sepang pit ${key} is disconnected`);
+    if (metadata.layoutQuality?.surfaceClearance?.terrainBreakthroughSamples !== 0) failures.push("Sepang terrain breaks through its driving surface");
+    if (metadata.controlPointReference?.referenceYear !== 2017 || metadata.controlPointReference.currentEventVerified !== false || !metadata.limitations?.length) failures.push("Sepang must disclose the historical control map and source limitations");
+    if (sourceDirectory) await verifySepangSources(sourceDirectory, metadata.sourceManifest);
+  }
+
   if (metrics.bytes > LIMITS.bytes) {
     failures.push(`GLB size ${metrics.bytes} exceeds ${LIMITS.bytes} bytes`);
   }
@@ -62,7 +120,11 @@ export async function validateTrackAsset({
 
   if (modelId === "baku") {
     const { auditBakuSurfaces } = await import("./audit-baku-surfaces.mjs");
-    metrics.decodedSurfaceAudit = await auditBakuSurfaces(glbBuffer);
+    metrics.decodedSurfaceAudit = await auditBakuSurfaces(glbBuffer, metadata);
+    const restored = metrics.decodedSurfaceAudit.restoredBuildings.find((building) => building.osmRelationId === 2249851);
+    if (!restored || restored.courtyardSamples !== 10 || restored.coveredCourtyardSamples || restored.elevatedRoofSamples !== 4) failures.push("Baku restored building must have an elevated roof and two open courtyards");
+    if (metrics.decodedSurfaceAudit.vegetationTrianglesAboveRoad) failures.push("Baku vegetation overlaps the track or pit lane");
+    if (metrics.decodedSurfaceAudit.windowFacadeUVAlignmentErrors || metrics.decodedSurfaceAudit.roofUVRangeErrors) failures.push("Baku building UV coordinates are misaligned");
     if (metrics.decodedSurfaceAudit.road.intersections || metrics.decodedSurfaceAudit.road.missingSupport) failures.push("Baku decoded road intersects terrain");
     if (metrics.decodedSurfaceAudit.paint.intersections || metrics.decodedSurfaceAudit.paint.missingSupport) failures.push("Baku decoded paint intersects asphalt");
     if (metrics.decodedSurfaceAudit.roadBarrierTrianglesInsidePit) failures.push("Baku roadside fence blocks pit lane");
@@ -432,7 +494,6 @@ export async function validateTrackAsset({
       "Monaco_Street_Circuit_Asphalt",
       "Monaco_Current_OSM_Buildings",
       "Monaco_Grandstand_Frame",
-      "Monaco_2026_Race_Motorhomes",
       "Monaco_Pit_Wall_Concrete",
       "Monaco_Tunnel_Concrete",
       "Sector_1_Glow",
@@ -445,18 +506,38 @@ export async function validateTrackAsset({
     }
     for (const meshName of [
       "FIA_Monaco_Centreline_9m_Mesh",
-      "FIA_Pit_Lane_Markings_11_Boxes_Mesh",
+      "FIA_Pit_Lane_And_Road_Markings_Mesh",
+      "Monaco_Measured_Roofs_Mesh",
+      "Monaco_IGN69_LiDAR_Terrain_Mesh",
       "Monaco_2026_11_Team_Pit_Complex_Mesh",
       "Monaco_2026_Current_Grandstands_Mesh",
       "Monaco_Current_OSM_Buildings_Mesh",
       "Monaco_Tunnel_Shell_Mesh",
+      "Monaco_Start_Finish_Gantry_Mesh",
     ]) {
       if (!metrics.meshNames.includes(meshName)) {
         failures.push(`missing Monaco circuit mesh: ${meshName}`);
       }
     }
 
+    const { auditMonacoSurfaces } = await import("./audit-monaco-surfaces.mjs");
+    metrics.decodedSurfaceAudit = await auditMonacoSurfaces(glbBuffer, metadata);
+    for (const layer of ["road", "paint"]) {
+      const audit = metrics.decodedSurfaceAudit[layer];
+      if (!audit.triangles || audit.intersections || audit.missingSupport) failures.push(`Monaco decoded ${layer} intersects its support surface`);
+    }
+    if (Object.keys(metrics.decodedSurfaceAudit.structuralConflicts).length) failures.push("Monaco structures intersect the driving envelope");
+    if (metrics.decodedSurfaceAudit.pitOverlapAreaSquareMeters >= .1) failures.push("Monaco main/pit asphalt overlaps");
+    if (metrics.decodedSurfaceAudit.facades.missingTextures) failures.push("Monaco facade primitives have missing textures or UVs");
+    if (metrics.decodedSurfaceAudit.turnAnchors.some((anchor) => !anchor.onRoad)) failures.push("Monaco turn labels are displaced from the road");
+    if (metrics.decodedSurfaceAudit.portalObstructions.length) failures.push("Monaco terrain obstructs a tunnel portal");
+    if (!gltf.images?.some((image) => image.bufferView !== undefined && image.name === "monaco-government-orthophoto")) failures.push("Monaco orthophoto must be embedded");
+    for (const material of gltf.materials ?? []) {
+      if (!material.name?.endsWith("_Glow") && material.alphaMode === "BLEND") failures.push(`Monaco solid material is transparent: ${material.name}`);
+    }
     validateMonacoMetadata(metadata, failures);
+    const sourceLock = JSON.parse(await readFile(path.join(projectRoot, "docs/track-model-monaco-source-manifest.json"), "utf8"));
+    if (JSON.stringify(sourceLock.sources) !== JSON.stringify(metadata.sourceManifest.sources)) failures.push("Monaco source snapshot differs from its reviewed manifest");
     if (sourceDirectory) {
       await validateSourceFiles(sourceDirectory, metadata.sourceManifest, failures);
     }
@@ -1101,114 +1182,38 @@ function validateHungaroringMetadata(metadata, failures) {
 
 function validateMonacoMetadata(metadata, failures) {
   const quality = metadata.layoutQuality;
-  const expectedTurns = [
-    198, 604, 769, 892, 1_123, 1_242, 1_325, 1_414, 1_750, 2_086,
-    2_142, 2_375, 2_527, 2_556, 2_694, 2_716, 2_788, 2_911, 3_004,
-  ];
-
-  if (metadata.schemaVersion !== 5) {
-    failures.push(`unexpected Monaco metadata schema: ${metadata.schemaVersion}`);
+  const require = (condition, message) => { if (!condition) failures.push(message); };
+  require(metadata.schemaVersion === 6, "Monaco requires measured-terrain schema 6");
+  require(metadata.coordinateReferenceSystem === "EPSG:32632" && metadata.verticalDatum === "IGN69 (EPSG:5720)", "Monaco CRS/datum must match IGN rasters");
+  require(metadata.verticalExaggeration === 1 && metadata.baseElevationMeters === 0, "Monaco must use unexaggerated absolute metre elevations");
+  require(metadata.lapLength?.officialFiaMeters === 3337 && metadata.lapLength.relativeErrorPercent <= .5, "Monaco lap length must match FIA within 0.5%");
+  require(metadata.objects?.turnAnchors === 19, "Monaco requires 19 turn anchors");
+  require(metadata.turnAnchors?.length === 19 && metadata.turnAnchors.every(anchor => anchor.offsetMeters === 0), "Monaco turn labels must sit on their apex centreline");
+  require(quality?.buildings?.facades?.texturedFootprints === metadata.objects?.buildingsTotal && quality.buildings.facades.materialVariants === 4, "Monaco requires textured facades on every building");
+  require(quality?.tunnel?.terrainOpenings && quality.tunnel.portals?.length === 4 && quality.tunnel.portals.every(portal => portal.position?.length === 3 && portal.clearHeightMeters >= 5), "Monaco tunnel portals require open driving envelopes");
+  require(metadata.objects?.startGantries === 1, "Monaco requires a physical start-light frame");
+  require(quality?.terrainSurface?.orthophoto?.projection === "inverse UTM32N to Web Mercator mesh; 32 pixel cells", "Monaco orthophoto must be reprojected, not stretched into UTM bounds");
+  require(JSON.stringify(metadata.sectorBoundaryDistancesMeters) === JSON.stringify([1051,2470]), "Monaco sectors must match FIA 2026");
+  require(JSON.stringify(metadata.turnAnchorDistancesMeters) === JSON.stringify([219,604,759,897,1124,1255,1345,1438,1750,2090,2132,2374,2537,2573,2698,2726,2788,2921,3015]), "Monaco turn locations changed without revalidation");
+  require(metadata.objects?.buildingsTotal >= 1000 && quality?.buildings?.measuredRoofCount >= 990, "Monaco requires the measured city, not arbitrary-height boxes");
+  require(quality?.buildings?.multipolygonCount >= 20, "Monaco building relations are missing");
+  for (const id of ["relation/2093796", "relation/8280869", "relation/8269572"]) {
+    require(quality?.buildings?.rendered?.some((item) => item.id === id), `Monaco landmark is missing: ${id}`);
   }
-  if (metadata.realWorldScale !== "1 unit = 1 metre; no vertical exaggeration") {
-    failures.push("Monaco metadata must confirm real scale without vertical exaggeration");
-  }
-  if (metadata.coordinateReferenceSystem !== "EPSG:32632 + source DEM metres") {
-    failures.push(`unexpected Monaco coordinate reference system: ${metadata.coordinateReferenceSystem}`);
-  }
-  if (metadata.lapLength?.officialFiaMeters !== 3_337) {
-    failures.push(`official FIA Monaco lap length is not 3,337 m: ${metadata.lapLength?.officialFiaMeters}`);
-  }
-  if (!(metadata.lapLength?.relativeErrorPercent <= 0.5)) {
-    failures.push(`Monaco centreline differs from FIA length by ${metadata.lapLength?.relativeErrorPercent}%`);
-  }
-  if (metadata.objects?.turnAnchors !== 19) {
-    failures.push(`expected 19 Monaco turn anchors, got ${metadata.objects?.turnAnchors}`);
-  }
-  if (JSON.stringify(metadata.sectorBoundaryDistancesMeters) !== JSON.stringify([1_051, 2_470])) {
-    failures.push(`unexpected Monaco sector boundaries: ${metadata.sectorBoundaryDistancesMeters}`);
-  }
-  if (JSON.stringify(metadata.turnAnchorDistancesMeters) !== JSON.stringify(expectedTurns)) {
-    failures.push(`unexpected Monaco turn apex anchors: ${metadata.turnAnchorDistancesMeters}`);
-  }
-  if ((metadata.objects?.buildingsTotal ?? 0) < 800) {
-    failures.push(`expected Monaco city context, got ${metadata.objects?.buildingsTotal} buildings`);
-  }
-  if ((metadata.objects?.mappedGrandstands ?? 0) < 9 || (metadata.objects?.grandstandSections ?? 0) < 25) {
-    failures.push("Monaco current grandstand inventory is incomplete");
-  }
-  if ((metadata.objects?.fenceSegments ?? 0) < 250) {
-    failures.push(`expected current Monaco barriers, got ${metadata.objects?.fenceSegments} segments`);
-  }
-  if ((metadata.objects?.mappedTrees ?? 0) < 75) {
-    failures.push(`expected mapped Monaco trees, got ${metadata.objects?.mappedTrees}`);
-  }
-  if (metadata.objects?.raceMotorhomes !== 11) {
-    failures.push(`expected 11 Monaco paddock motorhomes, got ${metadata.objects?.raceMotorhomes}`);
-  }
-  if (quality?.buildings?.remainingTrackConflicts !== 0) {
-    failures.push("Monaco buildings must not intersect the circuit corridor");
-  }
-  if (
-    quality?.buildings?.roofedFootprints !== metadata.objects?.buildingsTotal
-    || quality?.buildings?.opaqueRoofMaterial !== true
-  ) {
-    failures.push("Monaco buildings must have complete opaque roof caps");
-  }
-  if (!(quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters >= 0.15)) {
-    failures.push(`Monaco track-to-terrain clearance is ${quality?.surfaceClearance?.minimumTrackTerrainClearanceMeters ?? "missing"} m`);
-  }
-  if (quality?.surfaceClearance?.terrainBreakthroughSamples !== 0) {
-    failures.push(`terrain breaks through Monaco outside the tunnel at ${quality?.surfaceClearance?.terrainBreakthroughSamples ?? "missing"} samples`);
-  }
-  if (
-    quality?.surfaceClearance?.tunnelExcludedFromTerrainClearance !== true
-    || !(quality?.surfaceClearance?.tunnelUndergroundSamples > 0)
-  ) {
-    failures.push("Monaco tunnel must retain a separately measured underground road profile");
-  }
-  if (quality?.surfaceSmoothing?.wholeLap?.applied !== true) {
-    failures.push("Monaco racing surface was not smoothed around the full lap");
-  }
-  if (!(quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters <= 4)) {
-    failures.push(`Monaco surface correction outside the tunnel is excessive: ${quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters ?? "missing"} m`);
-  }
-  if (
-    quality?.tunnel?.roofed !== true
-    || !(quality?.tunnel?.lengthMeters >= 450 && quality?.tunnel?.lengthMeters <= 480)
-  ) {
-    failures.push(`Monaco tunnel shell is invalid: ${quality?.tunnel?.lengthMeters ?? "missing"} m`);
-  }
-  if (quality?.pitLane?.pitBoxes !== 11 || quality?.pitLane?.pitComplex?.garageBoxes !== 11) {
-    failures.push("Monaco pit lane must contain the 11 current team garages from FIA Document 7");
-  }
-  if (!(quality?.pitLane?.lengthMeters >= 560 && quality?.pitLane?.lengthMeters <= 610)) {
-    failures.push(`Monaco pit-lane length is invalid: ${quality?.pitLane?.lengthMeters ?? "missing"} m`);
-  }
-  if (quality?.pitLane?.fastLaneSeparator !== true) {
-    failures.push("Monaco pit lane is missing its fast-lane separator");
-  }
-  if (
-    quality?.pitLane?.pitComplex?.coveredGrandstand !== true
-    || quality?.pitLane?.pitComplex?.canopyMaterialOpaque !== true
-  ) {
-    failures.push("Monaco pit complex must keep its opaque covered spectator structure");
-  }
-  const licenses = new Set(metadata.sourceManifest?.sources?.map((source) => source.license));
-  if (!licenses.has("ODbL 1.0")) {
-    failures.push("Monaco source manifest is missing ODbL 1.0 data");
-  }
-  if (!metadata.sourceManifest?.sources?.some((source) =>
-    source.file === "terrain-tile-manifest.json"
-    && source.license?.includes("Monaco public information reuse")
-  )) {
-    failures.push("Monaco source manifest is missing the official government orthophoto");
-  }
-  const officialSources = metadata.officialSources ?? [];
-  if (!officialSources.some((source) => source.url?.includes("2026_monaco_event"))) {
-    failures.push("official FIA 2026 Monaco circuit map is missing from model metadata");
-  }
-  if (!officialSources.some((source) => source.url?.includes("monaco-grandprix.com"))) {
-    failures.push("official ACM 2026 event source is missing from model metadata");
+  require(quality?.buildings?.roofedFootprints === metadata.objects?.buildingsTotal && quality.buildings.opaqueRoofMaterial, "Monaco buildings require opaque roof caps");
+  require(quality?.buildings?.remainingTrackConflicts === 0 && quality.buildings.excluded?.every((item) => item.id && item.reason), "Monaco requires an explicit building exclusion audit");
+  require(JSON.stringify(quality?.grandstands?.groups) === JSON.stringify(["A","B","E","K","L","N","O","P","T","V","X"]), "Monaco 2026 stand groups are incomplete");
+  require(quality?.grandstands?.sections?.length === 19 && quality.grandstands.blockOverlapPairs === 0 && quality.grandstands.minimumTrackClearanceMeters >= .8, "Monaco grandstands overlap each other or the driving corridor");
+  require(quality?.surfaceClearance?.terrainBreakthroughSamples === 0 && quality.surfaceClearance.minimumTrackTerrainClearanceMeters >= .1, "Monaco ground breaks through its road");
+  require(quality?.surfaceClearance?.sampleCount > 50000 && quality.surfaceClearance.tunnelUndergroundSamples > 0, "Monaco requires dense surface and tunnel checks");
+  require(quality?.surfaceSmoothing?.wholeLap?.maximumCorrectionMeters <= 4 && quality.surfaceSmoothing.wholeLap.maximumGradePercent < 12, "Monaco road has excessive correction or grade");
+  require(quality?.tunnel?.roofed === true && Math.abs(quality.tunnel.lengthMeters - 361.75) < .01 && quality.tunnel.portierCoverLengthMeters === 18, "Monaco must use the mapped main tunnel and separate Portier cover");
+  require(quality?.pitLane?.pitComplex?.garageBoxes === 11 && quality.pitLane.pitComplex.controlUnits === 2 && quality.pitLane.pitComplex.coveredGrandstand === false, "Monaco needs FIA garages without a copied spectator stand");
+  require(quality?.pitLane?.fastLaneSeparator && quality.pitLane.entryGapMeters < .05 && quality.pitLane.exitGapMeters < .05, "Monaco pit lane is disconnected or missing separation");
+  require(metadata.pitElevationProfile?.length > 290 && metadata.objects?.fenceSegments > 1000, "Monaco needs a measured pit profile and physical barriers");
+  require(metadata.limitations?.length >= 5 && quality?.paddock?.individualMotorhomesVerified === false && metadata.objects?.raceMotorhomes === 0, "Unverified Monaco motorhomes must not be represented as surveyed structures");
+  for (const file of ["ign-mnt-1m.tif", "ign-mns-1m.tif", "ign-lidar-coverage.json", "fia-media-kit-2026.pdf", "acm-hospitality-2026.pdf", "audi-monaco-2026-garages.html", "terrain-tile-manifest.json"]) {
+    require(metadata.sourceManifest?.sources?.some((source) => source.file === file && source.sha256 && source.license), `Monaco source provenance missing: ${file}`);
   }
 }
 

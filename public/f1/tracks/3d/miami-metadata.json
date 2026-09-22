@@ -1,0 +1,2848 @@
+{
+  "schemaVersion": 4,
+  "modelId": "miami",
+  "generatedWith": "Blender 5.2.0 LTS",
+  "coordinateReferenceSystem": "EPSG:32617",
+  "verticalDatum": "NAVD88 orthometric metres",
+  "verticalExaggeration": 1,
+  "realWorldScale": "1 unit = 1 metre; no vertical exaggeration",
+  "boundsMeters": {
+    "width": 1800,
+    "depth": 1100
+  },
+  "originMeters": {
+    "x": 576350.0,
+    "y": 2871250.0
+  },
+  "lapLength": {
+    "geometryMeters": 5411.840729961877,
+    "officialFiaMeters": 5412,
+    "relativeErrorPercent": 0.002942905360742708
+  },
+  "finishDistanceMeters": 0,
+  "raceStartDistanceMeters": 168.5463959496391,
+  "sectorBoundaryDistancesMeters": [
+    1790.361089238754,
+    3678.339498729536
+  ],
+  "elevationProfile": [
+    {
+      "distanceMeters": 0.0,
+      "elevationMeters": 1.858
+    },
+    {
+      "distanceMeters": 30.066,
+      "elevationMeters": 1.958
+    },
+    {
+      "distanceMeters": 60.132,
+      "elevationMeters": 2.076
+    },
+    {
+      "distanceMeters": 90.197,
+      "elevationMeters": 2.167
+    },
+    {
+      "distanceMeters": 120.263,
+      "elevationMeters": 2.165
+    },
+    {
+      "distanceMeters": 150.329,
+      "elevationMeters": 2.089
+    },
+    {
+      "distanceMeters": 180.395,
+      "elevationMeters": 2.01
+    },
+    {
+      "distanceMeters": 210.46,
+      "elevationMeters": 1.935
+    },
+    {
+      "distanceMeters": 240.526,
+      "elevationMeters": 1.85
+    },
+    {
+      "distanceMeters": 270.592,
+      "elevationMeters": 1.687
+    },
+    {
+      "distanceMeters": 300.658,
+      "elevationMeters": 1.426
+    },
+    {
+      "distanceMeters": 330.724,
+      "elevationMeters": 1.492
+    },
+    {
+      "distanceMeters": 360.789,
+      "elevationMeters": 1.799
+    },
+    {
+      "distanceMeters": 390.855,
+      "elevationMeters": 1.733
+    },
+    {
+      "distanceMeters": 420.921,
+      "elevationMeters": 1.477
+    },
+    {
+      "distanceMeters": 450.987,
+      "elevationMeters": 1.539
+    },
+    {
+      "distanceMeters": 481.053,
+      "elevationMeters": 1.618
+    },
+    {
+      "distanceMeters": 511.118,
+      "elevationMeters": 1.505
+    },
+    {
+      "distanceMeters": 541.184,
+      "elevationMeters": 1.482
+    },
+    {
+      "distanceMeters": 571.25,
+      "elevationMeters": 1.483
+    },
+    {
+      "distanceMeters": 601.316,
+      "elevationMeters": 1.375
+    },
+    {
+      "distanceMeters": 631.381,
+      "elevationMeters": 1.384
+    },
+    {
+      "distanceMeters": 661.447,
+      "elevationMeters": 1.657
+    },
+    {
+      "distanceMeters": 691.513,
+      "elevationMeters": 2.106
+    },
+    {
+      "distanceMeters": 721.579,
+      "elevationMeters": 2.515
+    },
+    {
+      "distanceMeters": 751.645,
+      "elevationMeters": 2.745
+    },
+    {
+      "distanceMeters": 781.71,
+      "elevationMeters": 2.771
+    },
+    {
+      "distanceMeters": 811.776,
+      "elevationMeters": 2.609
+    },
+    {
+      "distanceMeters": 841.842,
+      "elevationMeters": 2.259
+    },
+    {
+      "distanceMeters": 871.908,
+      "elevationMeters": 1.907
+    },
+    {
+      "distanceMeters": 901.973,
+      "elevationMeters": 1.809
+    },
+    {
+      "distanceMeters": 932.039,
+      "elevationMeters": 1.704
+    },
+    {
+      "distanceMeters": 962.105,
+      "elevationMeters": 1.833
+    },
+    {
+      "distanceMeters": 992.171,
+      "elevationMeters": 2.051
+    },
+    {
+      "distanceMeters": 1022.237,
+      "elevationMeters": 2.136
+    },
+    {
+      "distanceMeters": 1052.302,
+      "elevationMeters": 2.074
+    },
+    {
+      "distanceMeters": 1082.368,
+      "elevationMeters": 1.899
+    },
+    {
+      "distanceMeters": 1112.434,
+      "elevationMeters": 1.716
+    },
+    {
+      "distanceMeters": 1142.5,
+      "elevationMeters": 1.572
+    },
+    {
+      "distanceMeters": 1172.565,
+      "elevationMeters": 1.411
+    },
+    {
+      "distanceMeters": 1202.631,
+      "elevationMeters": 1.339
+    },
+    {
+      "distanceMeters": 1232.697,
+      "elevationMeters": 1.639
+    },
+    {
+      "distanceMeters": 1262.763,
+      "elevationMeters": 2.133
+    },
+    {
+      "distanceMeters": 1292.829,
+      "elevationMeters": 2.518
+    },
+    {
+      "distanceMeters": 1322.894,
+      "elevationMeters": 2.669
+    },
+    {
+      "distanceMeters": 1352.96,
+      "elevationMeters": 2.564
+    },
+    {
+      "distanceMeters": 1383.026,
+      "elevationMeters": 2.222
+    },
+    {
+      "distanceMeters": 1413.092,
+      "elevationMeters": 1.915
+    },
+    {
+      "distanceMeters": 1443.158,
+      "elevationMeters": 1.763
+    },
+    {
+      "distanceMeters": 1473.223,
+      "elevationMeters": 1.627
+    },
+    {
+      "distanceMeters": 1503.289,
+      "elevationMeters": 1.497
+    },
+    {
+      "distanceMeters": 1533.355,
+      "elevationMeters": 1.335
+    },
+    {
+      "distanceMeters": 1563.421,
+      "elevationMeters": 1.294
+    },
+    {
+      "distanceMeters": 1593.486,
+      "elevationMeters": 1.3
+    },
+    {
+      "distanceMeters": 1623.552,
+      "elevationMeters": 1.308
+    },
+    {
+      "distanceMeters": 1653.618,
+      "elevationMeters": 1.33
+    },
+    {
+      "distanceMeters": 1683.684,
+      "elevationMeters": 1.324
+    },
+    {
+      "distanceMeters": 1713.75,
+      "elevationMeters": 1.377
+    },
+    {
+      "distanceMeters": 1743.815,
+      "elevationMeters": 1.711
+    },
+    {
+      "distanceMeters": 1773.881,
+      "elevationMeters": 2.002
+    },
+    {
+      "distanceMeters": 1803.947,
+      "elevationMeters": 2.024
+    },
+    {
+      "distanceMeters": 1834.013,
+      "elevationMeters": 1.833
+    },
+    {
+      "distanceMeters": 1864.078,
+      "elevationMeters": 1.63
+    },
+    {
+      "distanceMeters": 1894.144,
+      "elevationMeters": 1.551
+    },
+    {
+      "distanceMeters": 1924.21,
+      "elevationMeters": 1.559
+    },
+    {
+      "distanceMeters": 1954.276,
+      "elevationMeters": 1.576
+    },
+    {
+      "distanceMeters": 1984.342,
+      "elevationMeters": 1.591
+    },
+    {
+      "distanceMeters": 2014.407,
+      "elevationMeters": 1.618
+    },
+    {
+      "distanceMeters": 2044.473,
+      "elevationMeters": 1.692
+    },
+    {
+      "distanceMeters": 2074.539,
+      "elevationMeters": 1.819
+    },
+    {
+      "distanceMeters": 2104.605,
+      "elevationMeters": 1.95
+    },
+    {
+      "distanceMeters": 2134.671,
+      "elevationMeters": 1.96
+    },
+    {
+      "distanceMeters": 2164.736,
+      "elevationMeters": 1.834
+    },
+    {
+      "distanceMeters": 2194.802,
+      "elevationMeters": 1.759
+    },
+    {
+      "distanceMeters": 2224.868,
+      "elevationMeters": 1.828
+    },
+    {
+      "distanceMeters": 2254.934,
+      "elevationMeters": 1.881
+    },
+    {
+      "distanceMeters": 2284.999,
+      "elevationMeters": 1.809
+    },
+    {
+      "distanceMeters": 2315.065,
+      "elevationMeters": 1.741
+    },
+    {
+      "distanceMeters": 2345.131,
+      "elevationMeters": 1.889
+    },
+    {
+      "distanceMeters": 2375.197,
+      "elevationMeters": 1.973
+    },
+    {
+      "distanceMeters": 2405.263,
+      "elevationMeters": 1.933
+    },
+    {
+      "distanceMeters": 2435.328,
+      "elevationMeters": 1.76
+    },
+    {
+      "distanceMeters": 2465.394,
+      "elevationMeters": 1.599
+    },
+    {
+      "distanceMeters": 2495.46,
+      "elevationMeters": 1.524
+    },
+    {
+      "distanceMeters": 2525.526,
+      "elevationMeters": 1.44
+    },
+    {
+      "distanceMeters": 2555.591,
+      "elevationMeters": 1.351
+    },
+    {
+      "distanceMeters": 2585.657,
+      "elevationMeters": 1.278
+    },
+    {
+      "distanceMeters": 2615.723,
+      "elevationMeters": 1.406
+    },
+    {
+      "distanceMeters": 2645.789,
+      "elevationMeters": 1.795
+    },
+    {
+      "distanceMeters": 2675.855,
+      "elevationMeters": 2.099
+    },
+    {
+      "distanceMeters": 2705.92,
+      "elevationMeters": 2.25
+    },
+    {
+      "distanceMeters": 2735.986,
+      "elevationMeters": 2.249
+    },
+    {
+      "distanceMeters": 2766.052,
+      "elevationMeters": 2.099
+    },
+    {
+      "distanceMeters": 2796.118,
+      "elevationMeters": 1.801
+    },
+    {
+      "distanceMeters": 2826.183,
+      "elevationMeters": 1.446
+    },
+    {
+      "distanceMeters": 2856.249,
+      "elevationMeters": 1.193
+    },
+    {
+      "distanceMeters": 2886.315,
+      "elevationMeters": 1.132
+    },
+    {
+      "distanceMeters": 2916.381,
+      "elevationMeters": 1.177
+    },
+    {
+      "distanceMeters": 2946.447,
+      "elevationMeters": 1.219
+    },
+    {
+      "distanceMeters": 2976.512,
+      "elevationMeters": 1.214
+    },
+    {
+      "distanceMeters": 3006.578,
+      "elevationMeters": 1.21
+    },
+    {
+      "distanceMeters": 3036.644,
+      "elevationMeters": 1.187
+    },
+    {
+      "distanceMeters": 3066.71,
+      "elevationMeters": 1.237
+    },
+    {
+      "distanceMeters": 3096.776,
+      "elevationMeters": 1.335
+    },
+    {
+      "distanceMeters": 3126.841,
+      "elevationMeters": 1.447
+    },
+    {
+      "distanceMeters": 3156.907,
+      "elevationMeters": 1.558
+    },
+    {
+      "distanceMeters": 3186.973,
+      "elevationMeters": 1.579
+    },
+    {
+      "distanceMeters": 3217.039,
+      "elevationMeters": 1.543
+    },
+    {
+      "distanceMeters": 3247.104,
+      "elevationMeters": 1.516
+    },
+    {
+      "distanceMeters": 3277.17,
+      "elevationMeters": 1.482
+    },
+    {
+      "distanceMeters": 3307.236,
+      "elevationMeters": 1.438
+    },
+    {
+      "distanceMeters": 3337.302,
+      "elevationMeters": 1.405
+    },
+    {
+      "distanceMeters": 3367.368,
+      "elevationMeters": 1.36
+    },
+    {
+      "distanceMeters": 3397.433,
+      "elevationMeters": 1.332
+    },
+    {
+      "distanceMeters": 3427.499,
+      "elevationMeters": 1.417
+    },
+    {
+      "distanceMeters": 3457.565,
+      "elevationMeters": 2.565
+    },
+    {
+      "distanceMeters": 3487.631,
+      "elevationMeters": 4.114
+    },
+    {
+      "distanceMeters": 3517.696,
+      "elevationMeters": 4.233
+    },
+    {
+      "distanceMeters": 3547.762,
+      "elevationMeters": 3.313
+    },
+    {
+      "distanceMeters": 3577.828,
+      "elevationMeters": 3.165
+    },
+    {
+      "distanceMeters": 3607.894,
+      "elevationMeters": 2.852
+    },
+    {
+      "distanceMeters": 3637.96,
+      "elevationMeters": 1.977
+    },
+    {
+      "distanceMeters": 3668.025,
+      "elevationMeters": 1.092
+    },
+    {
+      "distanceMeters": 3698.091,
+      "elevationMeters": 0.906
+    },
+    {
+      "distanceMeters": 3728.157,
+      "elevationMeters": 1.095
+    },
+    {
+      "distanceMeters": 3758.223,
+      "elevationMeters": 1.324
+    },
+    {
+      "distanceMeters": 3788.289,
+      "elevationMeters": 1.513
+    },
+    {
+      "distanceMeters": 3818.354,
+      "elevationMeters": 1.55
+    },
+    {
+      "distanceMeters": 3848.42,
+      "elevationMeters": 1.554
+    },
+    {
+      "distanceMeters": 3878.486,
+      "elevationMeters": 1.554
+    },
+    {
+      "distanceMeters": 3908.552,
+      "elevationMeters": 1.553
+    },
+    {
+      "distanceMeters": 3938.617,
+      "elevationMeters": 1.553
+    },
+    {
+      "distanceMeters": 3968.683,
+      "elevationMeters": 1.55
+    },
+    {
+      "distanceMeters": 3998.749,
+      "elevationMeters": 1.555
+    },
+    {
+      "distanceMeters": 4028.815,
+      "elevationMeters": 1.548
+    },
+    {
+      "distanceMeters": 4058.881,
+      "elevationMeters": 1.558
+    },
+    {
+      "distanceMeters": 4088.946,
+      "elevationMeters": 1.636
+    },
+    {
+      "distanceMeters": 4119.012,
+      "elevationMeters": 1.62
+    },
+    {
+      "distanceMeters": 4149.078,
+      "elevationMeters": 1.632
+    },
+    {
+      "distanceMeters": 4179.144,
+      "elevationMeters": 1.65
+    },
+    {
+      "distanceMeters": 4209.209,
+      "elevationMeters": 1.648
+    },
+    {
+      "distanceMeters": 4239.275,
+      "elevationMeters": 1.652
+    },
+    {
+      "distanceMeters": 4269.341,
+      "elevationMeters": 1.65
+    },
+    {
+      "distanceMeters": 4299.407,
+      "elevationMeters": 1.65
+    },
+    {
+      "distanceMeters": 4329.473,
+      "elevationMeters": 1.649
+    },
+    {
+      "distanceMeters": 4359.538,
+      "elevationMeters": 1.642
+    },
+    {
+      "distanceMeters": 4389.604,
+      "elevationMeters": 1.632
+    },
+    {
+      "distanceMeters": 4419.67,
+      "elevationMeters": 1.629
+    },
+    {
+      "distanceMeters": 4449.736,
+      "elevationMeters": 1.629
+    },
+    {
+      "distanceMeters": 4479.801,
+      "elevationMeters": 1.633
+    },
+    {
+      "distanceMeters": 4509.867,
+      "elevationMeters": 1.627
+    },
+    {
+      "distanceMeters": 4539.933,
+      "elevationMeters": 1.62
+    },
+    {
+      "distanceMeters": 4569.999,
+      "elevationMeters": 1.63
+    },
+    {
+      "distanceMeters": 4600.065,
+      "elevationMeters": 1.631
+    },
+    {
+      "distanceMeters": 4630.13,
+      "elevationMeters": 1.626
+    },
+    {
+      "distanceMeters": 4660.196,
+      "elevationMeters": 1.622
+    },
+    {
+      "distanceMeters": 4690.262,
+      "elevationMeters": 1.613
+    },
+    {
+      "distanceMeters": 4720.328,
+      "elevationMeters": 1.609
+    },
+    {
+      "distanceMeters": 4750.394,
+      "elevationMeters": 1.624
+    },
+    {
+      "distanceMeters": 4780.459,
+      "elevationMeters": 1.622
+    },
+    {
+      "distanceMeters": 4810.525,
+      "elevationMeters": 1.625
+    },
+    {
+      "distanceMeters": 4840.591,
+      "elevationMeters": 1.633
+    },
+    {
+      "distanceMeters": 4870.657,
+      "elevationMeters": 1.619
+    },
+    {
+      "distanceMeters": 4900.722,
+      "elevationMeters": 1.564
+    },
+    {
+      "distanceMeters": 4930.788,
+      "elevationMeters": 1.501
+    },
+    {
+      "distanceMeters": 4960.854,
+      "elevationMeters": 1.576
+    },
+    {
+      "distanceMeters": 4990.92,
+      "elevationMeters": 1.871
+    },
+    {
+      "distanceMeters": 5020.986,
+      "elevationMeters": 1.922
+    },
+    {
+      "distanceMeters": 5051.051,
+      "elevationMeters": 2.224
+    },
+    {
+      "distanceMeters": 5081.117,
+      "elevationMeters": 2.434
+    },
+    {
+      "distanceMeters": 5111.183,
+      "elevationMeters": 2.445
+    },
+    {
+      "distanceMeters": 5141.249,
+      "elevationMeters": 2.22
+    },
+    {
+      "distanceMeters": 5171.314,
+      "elevationMeters": 1.787
+    },
+    {
+      "distanceMeters": 5201.38,
+      "elevationMeters": 1.422
+    },
+    {
+      "distanceMeters": 5231.446,
+      "elevationMeters": 1.491
+    },
+    {
+      "distanceMeters": 5261.512,
+      "elevationMeters": 1.586
+    },
+    {
+      "distanceMeters": 5291.578,
+      "elevationMeters": 1.551
+    },
+    {
+      "distanceMeters": 5321.643,
+      "elevationMeters": 1.611
+    },
+    {
+      "distanceMeters": 5351.709,
+      "elevationMeters": 1.702
+    },
+    {
+      "distanceMeters": 5381.775,
+      "elevationMeters": 1.76
+    },
+    {
+      "distanceMeters": 5411.841,
+      "elevationMeters": 1.858
+    }
+  ],
+  "elevationsMeters": {
+    "low": 0.9062046456405116,
+    "high": 4.3651377784645
+  },
+  "baseElevationMeters": 0,
+  "objects": {
+    "turnAnchors": 19,
+    "pitGarageBoxes": 37,
+    "grandstandSections": 87,
+    "buildingsTotal": 254,
+    "teamPavilions": 11,
+    "raceMotorhomes": 0,
+    "mappedBridges": 13,
+    "mappedTrees": 323,
+    "barrierPanels": 1720
+  },
+  "layoutQuality": {
+    "surfaceClearance": {
+      "minimumTrackTerrainClearanceMeters": 0.191,
+      "startStraightMinimumClearanceMeters": 0.294,
+      "terrainBreakthroughSamples": 0
+    },
+    "pitLane": {
+      "lengthMeters": 740.6496736172284,
+      "laneWidthMeters": 8,
+      "pitBoxes": 37,
+      "fastLaneSeparator": true,
+      "pitWall": {
+        "fenceHeightMeters": 1.15,
+        "lengthMeters": 275.827,
+        "panels": 92,
+        "wallHeightMeters": 1.05
+      },
+      "garageFrontageDistanceMeters": [
+        252.88498698185674,
+        528.7122128835073
+      ],
+      "entryGapMeters": 0.0,
+      "exitGapMeters": 0.0,
+      "surfaceClearance": {
+        "minimumTrackTerrainClearanceMeters": 0.118,
+        "startStraightMinimumClearanceMeters": 0.118,
+        "terrainBreakthroughSamples": 0
+      }
+    },
+    "grandstands": {
+      "sections": 87,
+      "stands": [
+        {
+          "name": "Start / Finish",
+          "sections": 24,
+          "source": "FIA 2026 media kit campus map",
+          "heightMeters": 13,
+          "heightEstimated": true
+        },
+        {
+          "name": "Turn 1",
+          "sections": 10,
+          "source": "FIA 2026 media kit campus map",
+          "heightMeters": 13,
+          "heightEstimated": true
+        },
+        {
+          "name": "Turn 18",
+          "sections": 15,
+          "source": "FIA 2026 media kit campus map",
+          "heightMeters": 12,
+          "heightEstimated": true
+        },
+        {
+          "name": "Marina North",
+          "sections": 5,
+          "source": "FIA 2026 media kit campus map",
+          "heightMeters": 10,
+          "heightEstimated": true
+        },
+        {
+          "name": "Marina West",
+          "sections": 5,
+          "source": "FIA 2026 media kit campus map",
+          "heightMeters": 10,
+          "heightEstimated": true
+        },
+        {
+          "name": "Marina South",
+          "sections": 5,
+          "source": "FIA 2026 media kit campus map",
+          "heightMeters": 10,
+          "heightEstimated": true
+        },
+        {
+          "name": "North Beach",
+          "sections": 13,
+          "source": "FIA 2026 media kit campus map",
+          "heightMeters": 12,
+          "heightEstimated": true
+        },
+        {
+          "name": "South Beach",
+          "sections": 10,
+          "source": "FIA 2026 media kit campus map",
+          "heightMeters": 12,
+          "heightEstimated": true
+        }
+      ],
+      "minimumTrackClearanceMeters": 14.494899881595167
+    },
+    "buildings": {
+      "rendered": [
+        {
+          "id": 435520307,
+          "name": null,
+          "heightMeters": 13.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 435528763,
+          "name": null,
+          "heightMeters": 13.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 436030801,
+          "name": null,
+          "heightMeters": 13.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767036,
+          "name": null,
+          "heightMeters": 6.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767104,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767151,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767156,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767177,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767212,
+          "name": null,
+          "heightMeters": 4.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767261,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767318,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767321,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767323,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767324,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767389,
+          "name": null,
+          "heightMeters": 4.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767410,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767429,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767488,
+          "name": null,
+          "heightMeters": 4.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767513,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641767516,
+          "name": null,
+          "heightMeters": 4.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768007,
+          "name": null,
+          "heightMeters": 2.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768010,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768160,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768217,
+          "name": null,
+          "heightMeters": 4.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768306,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768419,
+          "name": null,
+          "heightMeters": 4.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768420,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768516,
+          "name": null,
+          "heightMeters": 6.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768538,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768653,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768696,
+          "name": null,
+          "heightMeters": 4.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768702,
+          "name": null,
+          "heightMeters": 9.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768732,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768740,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768792,
+          "name": null,
+          "heightMeters": 4.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768842,
+          "name": null,
+          "heightMeters": 2.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768845,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641768909,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 641769044,
+          "name": null,
+          "heightMeters": 4.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304629,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304634,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304636,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304637,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304639,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304640,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304643,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304644,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304645,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304658,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304660,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304665,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304669,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304672,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304673,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304674,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304675,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304677,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304681,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304682,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304683,
+          "name": null,
+          "heightMeters": 5.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304685,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304686,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304687,
+          "name": null,
+          "heightMeters": 3.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304689,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304690,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304692,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304699,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304700,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304703,
+          "name": null,
+          "heightMeters": 5.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304708,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304710,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304712,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304713,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304721,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304725,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304726,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304729,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304731,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304732,
+          "name": null,
+          "heightMeters": 5.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304733,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304734,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304736,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304737,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304738,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304744,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304746,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304748,
+          "name": null,
+          "heightMeters": 4.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304749,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304751,
+          "name": null,
+          "heightMeters": 3.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304756,
+          "name": null,
+          "heightMeters": 4.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304760,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304761,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304762,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304764,
+          "name": null,
+          "heightMeters": 5.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304767,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304769,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304771,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304776,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304778,
+          "name": null,
+          "heightMeters": 5.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304779,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304780,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304788,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304792,
+          "name": null,
+          "heightMeters": 5.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304794,
+          "name": null,
+          "heightMeters": 4.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304795,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304797,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304798,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304805,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304809,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304814,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304821,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304831,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304833,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304837,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304843,
+          "name": null,
+          "heightMeters": 3.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304846,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304847,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304852,
+          "name": null,
+          "heightMeters": 2.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304853,
+          "name": null,
+          "heightMeters": 2.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304854,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304855,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304857,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304859,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304867,
+          "name": null,
+          "heightMeters": 4.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304869,
+          "name": null,
+          "heightMeters": 5.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304874,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304876,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304877,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304878,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304883,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304886,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304888,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304891,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304901,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304904,
+          "name": null,
+          "heightMeters": 5.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304905,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304907,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304910,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304912,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304914,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304916,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304917,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304918,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304926,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304927,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304928,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304929,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304933,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304934,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304935,
+          "name": null,
+          "heightMeters": 3.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304936,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304938,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304949,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304954,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304960,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304962,
+          "name": null,
+          "heightMeters": 6.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304963,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304964,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304966,
+          "name": null,
+          "heightMeters": 5.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304971,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304972,
+          "name": null,
+          "heightMeters": 5.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304973,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304978,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304979,
+          "name": null,
+          "heightMeters": 5.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304980,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304981,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304982,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304984,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304986,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304987,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304989,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304991,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304992,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304994,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304995,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304996,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642304999,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305003,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305004,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305005,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305006,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305010,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305012,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305014,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305017,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305023,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305036,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305044,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305067,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305076,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305078,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305083,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305084,
+          "name": null,
+          "heightMeters": 5.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305086,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305094,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305096,
+          "name": null,
+          "heightMeters": 6.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305098,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305099,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305102,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305103,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305110,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305113,
+          "name": null,
+          "heightMeters": 5.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305116,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305129,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305132,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305140,
+          "name": null,
+          "heightMeters": 4.0,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305143,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305148,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305167,
+          "name": null,
+          "heightMeters": 6.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305168,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305169,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305171,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305172,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305173,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305182,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305185,
+          "name": null,
+          "heightMeters": 5.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305188,
+          "name": null,
+          "heightMeters": 3.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305191,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305197,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305200,
+          "name": null,
+          "heightMeters": 4.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305202,
+          "name": null,
+          "heightMeters": 3.1,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305204,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305207,
+          "name": null,
+          "heightMeters": 2.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305209,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305224,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305241,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305256,
+          "name": null,
+          "heightMeters": 5.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305264,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305269,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305276,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305279,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305286,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305300,
+          "name": null,
+          "heightMeters": 5.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305301,
+          "name": null,
+          "heightMeters": 3.4,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305303,
+          "name": null,
+          "heightMeters": 5.3,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305305,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305306,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305307,
+          "name": null,
+          "heightMeters": 3.7,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305308,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305312,
+          "name": null,
+          "heightMeters": 3.8,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305316,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305324,
+          "name": null,
+          "heightMeters": 7.2,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305329,
+          "name": null,
+          "heightMeters": 3.5,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 642305332,
+          "name": null,
+          "heightMeters": 3.9,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 643489569,
+          "name": null,
+          "heightMeters": 3.6,
+          "heightSource": "OSM"
+        },
+        {
+          "id": 1017340353,
+          "name": "Paddock/Garage",
+          "heightMeters": 15.0,
+          "heightSource": "photographic estimate"
+        },
+        {
+          "id": 1017340356,
+          "name": "Baptist Health Training Complex",
+          "heightMeters": 18.0,
+          "heightSource": "photographic estimate"
+        },
+        {
+          "id": 1018182269,
+          "name": null,
+          "heightMeters": 5.5,
+          "heightSource": "photographic estimate"
+        },
+        {
+          "id": 1018182276,
+          "name": null,
+          "heightMeters": 5.5,
+          "heightSource": "photographic estimate"
+        },
+        {
+          "id": 1018182277,
+          "name": null,
+          "heightMeters": 5.5,
+          "heightSource": "photographic estimate"
+        },
+        {
+          "id": 1018182278,
+          "name": null,
+          "heightMeters": 5.5,
+          "heightSource": "photographic estimate"
+        },
+        {
+          "id": 1267250717,
+          "name": null,
+          "heightMeters": 5.5,
+          "heightSource": "photographic estimate"
+        },
+        {
+          "id": 1267250718,
+          "name": null,
+          "heightMeters": 5.5,
+          "heightSource": "photographic estimate"
+        }
+      ],
+      "excluded": [
+        {
+          "id": 1018182271,
+          "reason": "reserved circuit, pit or grandstand corridor"
+        },
+        {
+          "id": 1018182272,
+          "reason": "reserved circuit, pit or grandstand corridor"
+        },
+        {
+          "id": 1018182273,
+          "reason": "nested footprint inside larger current building"
+        }
+      ],
+      "count": 253,
+      "roofTexture": "county orthophoto projected in EPSG:32617",
+      "facades": "window bays, frames, doors, plinths and cornices; small details estimated"
+    },
+    "stadium": {
+      "footprintSource": "OSM relation 2278785, outer 171419981, inner 171419979; county ortho",
+      "roofHeightMeters": 43,
+      "pylonHeightMeters": 106.68,
+      "pylonHeightSource": "STRUCTURE magazine: 350 ft cable masts",
+      "heightsEstimated": true,
+      "teamPavilions": 11
+    },
+    "event": {
+      "hospitalityBuildings": 5,
+      "hospitality": [
+        {
+          "name": "Turn 1 hospitality",
+          "footprint": [
+            [
+              576510.875,
+              2871242.75
+            ],
+            [
+              576487.375,
+              2871224.25
+            ],
+            [
+              576479.875,
+              2871233.75
+            ],
+            [
+              576503.375,
+              2871252.25
+            ]
+          ],
+          "minimumTrackClearanceMeters": 19.2273079253685
+        },
+        {
+          "name": "Turn 2 hospitality",
+          "footprint": [
+            [
+              576512.5625,
+              2871165.25
+            ],
+            [
+              576525.3125,
+              2871101.75
+            ],
+            [
+              576542.9375,
+              2871105.25
+            ],
+            [
+              576530.1875,
+              2871168.75
+            ]
+          ],
+          "minimumTrackClearanceMeters": 8.693754989920677
+        },
+        {
+          "name": "Turn 3 hospitality",
+          "footprint": [
+            [
+              576475.875,
+              2871109.5
+            ],
+            [
+              576450.0,
+              2871061.0
+            ],
+            [
+              576435.875,
+              2871068.5
+            ],
+            [
+              576461.75,
+              2871117.0
+            ]
+          ],
+          "minimumTrackClearanceMeters": 12.195651303035088
+        },
+        {
+          "name": "Marina hospitality",
+          "footprint": [
+            [
+              575847.8125,
+              2871080.75
+            ],
+            [
+              575802.5625,
+              2871096.75
+            ],
+            [
+              575795.1875,
+              2871076.25
+            ],
+            [
+              575840.4375,
+              2871060.25
+            ]
+          ],
+          "minimumTrackClearanceMeters": 28.47318361026555
+        },
+        {
+          "name": "South straight hospitality",
+          "footprint": [
+            [
+              576237.875,
+              2871009.5
+            ],
+            [
+              576272.0,
+              2870998.0
+            ],
+            [
+              576274.875,
+              2871006.5
+            ],
+            [
+              576240.75,
+              2871018.0
+            ]
+          ],
+          "minimumTrackClearanceMeters": 3.635437986909043
+        }
+      ],
+      "yachtDecks": 5,
+      "beachClub": "open deck, two pools and cabanas from 2026 campus plan; small details estimated",
+      "source": "FIA official 2026 campus plan; heights estimated"
+    },
+    "flyovers": {
+      "mappedBridges": 13,
+      "highwayWaysWithConnectedApproaches": 41,
+      "maximumPanelJoinGapMeters": 0.0,
+      "atGradeClosedRampPanelsExcluded": 11,
+      "bridges": [
+        {
+          "osmWayId": 39360817,
+          "deckElevationMeters": 12.43102080037237,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 39360821,
+          "deckElevationMeters": 12.743519187525143,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 39361802,
+          "deckElevationMeters": 10.320929475783899,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 39361815,
+          "deckElevationMeters": 10.366714900376495,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 39361892,
+          "deckElevationMeters": 10.172042596953291,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 39361952,
+          "deckElevationMeters": 12.116426512075916,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 39361975,
+          "deckElevationMeters": 19.027167954214246,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 39362012,
+          "deckElevationMeters": 10.818410562678887,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 39374254,
+          "deckElevationMeters": 12.999694066470635,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 1053301606,
+          "deckElevationMeters": 7.901885857872565,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 1233165688,
+          "deckElevationMeters": 7.968787524598257,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 1525113996,
+          "deckElevationMeters": 8.168310828400656,
+          "estimatedElevation": true
+        },
+        {
+          "osmWayId": 1525113997,
+          "deckElevationMeters": 8.283645255972585,
+          "estimatedElevation": true
+        }
+      ]
+    },
+    "curbs": {
+      "sections": 896,
+      "widthMeters": 0.81,
+      "extentAccuracy": "metre-level visual interpretation of county orthophoto"
+    },
+    "terrainSurface": {
+      "style": "orthophoto",
+      "source": "Miami-Dade County aerial imagery service, labelled 2025",
+      "textureWidth": 3510,
+      "textureHeight": 2144,
+      "resolutionMeters": 0.5128205128205128
+    },
+    "roadGrading": {
+      "verticalReference": "smoothed centreline USGS D23 lidar; adjacent embankments excluded",
+      "smoothingSigmaMeters": 8,
+      "gradedHalfWidthMeters": 14,
+      "blendOuterHalfWidthMeters": 24,
+      "terrainGridMeters": [
+        5,
+        10
+      ],
+      "refinedCells": 3060,
+      "maximumRoadGradePercent": 6.212224147584823
+    }
+  },
+  "surfaceExport": {
+    "meshoptPositionBits": 18,
+    "meshoptColourBits": 8,
+    "meshoptNormalBits": 9,
+    "meshoptUvBits": 16,
+    "paintVerticesDraped": 12182
+  },
+  "sourceManifest": {
+    "schemaVersion": 1,
+    "modelId": "miami",
+    "sources": [
+      {
+        "file": "osm.xml",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-80.248,25.952,-80.225,25.965",
+        "role": "circuit, road, building and vegetation geometry",
+        "license": "ODbL 1.0",
+        "attribution": "\u00a9 OpenStreetMap contributors",
+        "retrievedAt": "2026-09-22T08:52:44.188717+00:00",
+        "bbox": [
+          -80.248,
+          25.952,
+          -80.225,
+          25.965
+        ],
+        "crs": "EPSG:4326",
+        "verticalDatum": null,
+        "resolution": "vector/document reference",
+        "bytes": 5302559,
+        "sha256": "4cd75333ae87dcf17155774533baeb36d1f0bdb7b07372c3f6bdeab07710d44a"
+      },
+      {
+        "file": "fia-2026.pdf",
+        "url": "https://www.fia.com/system/files/decision-document/2026_miami_grand_prix_-_competition_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_and_red_zone.pdf",
+        "role": "official 2026 controls and pit allocation",
+        "license": "Copyright FIA/FOM; reference only, not embedded or redistributed in the GLB",
+        "attribution": "FIA / Formula One World Championship Limited",
+        "retrievedAt": "2026-09-22T08:52:44.192272+00:00",
+        "bbox": null,
+        "crs": null,
+        "verticalDatum": null,
+        "resolution": "vector/document reference",
+        "bytes": 3965270,
+        "sha256": "57e96ed983ca1cd7d951fc8485f88a93e971f93736bbaf758d49733ac791c261"
+      },
+      {
+        "file": "fia-media-kit-2026.pdf",
+        "url": "https://www.fia.com/sites/default/files/final_2026_media_kit.pdf",
+        "role": "official 2026 venue and temporary event infrastructure reference",
+        "license": "Copyright FIA/FOM; reference only, not embedded or redistributed in the GLB",
+        "attribution": "FIA / Formula One World Championship Limited",
+        "retrievedAt": "2026-09-22T08:52:44.199243+00:00",
+        "bbox": null,
+        "crs": null,
+        "verticalDatum": null,
+        "resolution": "vector/document reference",
+        "bytes": 17499763,
+        "sha256": "bcfc0c97c5cd2bedcb645d8c9a630be3c079345a42344974f1acd0c87ff994e3"
+      },
+      {
+        "file": "ortho.jpg",
+        "url": "https://gisweb.miamidade.gov/arcgis/rest/services/MapCache/MDCImagery_WebMercator/MapServer/export?bbox=575450%2C2870450%2C577550%2C2871850&bboxSR=32617&imageSR=32617&size=4095%2C2730&format=jpg&f=image",
+        "role": "orthophoto and public-use terms",
+        "license": "Miami-Dade County: For Public Use, as-is; attribution retained",
+        "attribution": "Miami-Dade County | GIS Groups",
+        "retrievedAt": "2026-09-22T08:52:44.206505+00:00",
+        "bbox": [
+          575450,
+          2870450,
+          577550,
+          2871850
+        ],
+        "crs": "EPSG:32617",
+        "verticalDatum": null,
+        "resolution": "0.51282 m/px export",
+        "bytes": 2982123,
+        "sha256": "d28467963dedd6cbeb81bb28e2c8ea549b7a1445daea7aadb707858cf718c74e"
+      },
+      {
+        "file": "usgs-d23-1m.tif",
+        "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage?bbox=575450%2C2870700%2C577250%2C2871800&bboxSR=32617&imageSR=32617&size=1800%2C1100&format=tiff&pixelType=F32&interpolation=RSP_BilinearInterpolation&renderingRule=%7B%22rasterFunction%22%3A+%22None%22%7D&mosaicRule=%7B%22mosaicMethod%22%3A+%22esriMosaicLockRaster%22%2C+%22lockRasterIds%22%3A+%5B91889%5D%7D&f=image",
+        "role": "bare-earth terrain and provenance",
+        "license": "USGS public domain",
+        "attribution": "USGS 3DEP",
+        "retrievedAt": "2026-09-22T08:52:44.210665+00:00",
+        "bbox": [
+          575450,
+          2870700,
+          577250,
+          2871800
+        ],
+        "crs": "EPSG:32617",
+        "verticalDatum": "NAVD88",
+        "resolution": "1 m source; 1 m export",
+        "bytes": 8849560,
+        "sha256": "9a1ac568be5293e50c0e639d6de887c136ea70c7fd51d18a4857200452c27690"
+      },
+      {
+        "file": "county-imagery-service.json",
+        "url": "https://gisweb.miamidade.gov/arcgis/rest/services/MapCache/MDCImagery_WebMercator/MapServer?f=pjson",
+        "role": "orthophoto and public-use terms",
+        "license": "Miami-Dade County: For Public Use, as-is; attribution retained",
+        "attribution": "Miami-Dade County | GIS Groups",
+        "retrievedAt": "2026-09-22T08:52:44.214231+00:00",
+        "bbox": null,
+        "crs": null,
+        "verticalDatum": null,
+        "resolution": "vector/document reference",
+        "bytes": 5532,
+        "sha256": "18a64f499de81f400f3067c44b63ec9c74fe80f89e24cba68aae617eb24a76de"
+      },
+      {
+        "file": "county-license.json",
+        "url": "https://www.arcgis.com/sharing/rest/content/items/2e7e836d383a44b688b36a6ae4a4763d?f=pjson",
+        "role": "orthophoto and public-use terms",
+        "license": "Miami-Dade County: For Public Use, as-is; attribution retained",
+        "attribution": "Miami-Dade County | GIS Groups",
+        "retrievedAt": "2026-09-22T08:52:44.214439+00:00",
+        "bbox": null,
+        "crs": null,
+        "verticalDatum": null,
+        "resolution": "vector/document reference",
+        "bytes": 3584,
+        "sha256": "3f36a0733573dad22223a6747b66801345b79736a3242772cdec89a6a860368b"
+      },
+      {
+        "file": "dem-local-catalog.json",
+        "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/query?geometry=%7B%22xmin%22%3A+575450%2C+%22ymin%22%3A+2870700%2C+%22xmax%22%3A+577250%2C+%22ymax%22%3A+2871800%2C+%22spatialReference%22%3A+%7B%22wkid%22%3A+32617%7D%7D&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=%2A&returnGeometry=false&f=json",
+        "role": "bare-earth terrain and provenance",
+        "license": "USGS public domain",
+        "attribution": "USGS 3DEP",
+        "retrievedAt": "2026-09-22T08:52:44.214985+00:00",
+        "bbox": [
+          575450,
+          2870700,
+          577250,
+          2871800
+        ],
+        "crs": "EPSG:32617",
+        "verticalDatum": "NAVD88",
+        "resolution": "vector/document reference",
+        "bytes": 602182,
+        "sha256": "e406760850b547c65b40e68968cd6ea2e1ac28c2a118999dd7f5205a07e301aa"
+      }
+    ]
+  },
+  "controlPointReference": {
+    "referenceYear": 2026,
+    "document": 5,
+    "currentEventVerified": true,
+    "sectorBoundaryDistancesMeters": [
+      1790.361089238754,
+      3678.339498729536
+    ],
+    "publishedSectorLengthsMeters": [
+      1866,
+      1730,
+      1816
+    ],
+    "sectorPlacementMethod": "FIA spatial notes: 110 m after T8 and 70 m after T16; table discrepancy disclosed",
+    "controlLineRegistration": {
+      "rmsMeters": 6.40192390179427,
+      "separationFromCenterlineMeters": 0.08995406923730924,
+      "fiaPage": 2,
+      "renderLongEdgePixels": 1800,
+      "pixelControls": [
+        [
+          806,
+          899
+        ],
+        [
+          203,
+          1437
+        ],
+        [
+          1085,
+          470
+        ],
+        [
+          131,
+          1022
+        ]
+      ],
+      "worldControls": [
+        [
+          576559.4023579787,
+          2871240.1992621673
+        ],
+        [
+          575625.7753546296,
+          2871048.957079305
+        ],
+        [
+          577100.7053364059,
+          2871490.1086822883
+        ],
+        [
+          575785.0963591081,
+          2871522.536940151
+        ]
+      ],
+      "controlLinePixel": [
+        462,
+        884
+      ]
+    },
+    "raceStartDistanceMeters": 168.5463959496391,
+    "speedTrapDistanceMeters": 4783.847434840429,
+    "drs": [],
+    "straightModeActivationDistancesMeters": [
+      1845.361089238754,
+      3698.339498729536,
+      5326.160952663677
+    ]
+  },
+  "limitations": [
+    "County orthophoto is labelled 2025 (some legacy service metadata still says 2024); it shows the permanent venue outside race week.",
+    "USGS FL_MiamiDade_D23 lidar acquisition 2023-12-27 to 2024-05-29, NAVD88; no vertical exaggeration. Adaptive terrain grid is 5 m near roads and 10 m elsewhere. Pavement follows the centreline lidar with an 8 m Gaussian filter; the adjoining 14 m corridor is graded and blended to 24 m to remove bridge-embankment bleed. This is a visual terrain reconstruction, not a road survey.",
+    "Current footprints come from OSM and orthophoto. Unmeasured building and temporary structure heights are photographic estimates, not LoD2 survey.",
+    "2026 event structures are geolocated from the official FIA media-kit campus plan. Their temporary footprints and dimensions are approximate; no engineering-accuracy claim.",
+    "Control line is registered from the FIA drawing (about 6.4 m GCP RMS). FIA printed sector lengths disagree with its corner-relative timing-loop notes; spatial notes take precedence. No geometry is stretched to fit that table.",
+    "Small tents, containers, service vehicles and individual spectators are omitted.",
+    "Flyover plan geometry follows OSM, but bridge deck elevations and connecting ramp gradients are estimates; no bridge survey was available. Safety barriers follow an approximate road envelope, not a surveyed barrier inventory."
+  ],
+  "publicationStatus": "review-required"
+}

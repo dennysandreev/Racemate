@@ -82,6 +82,32 @@ def project_to_line(points, target):
     return best
 
 
+def extract_building_relation(root, relation_id):
+    """Resolve one verified courtyard landmark without flattening its holes."""
+    relation = next((e for e in root.findall("relation") if int(e.attrib["id"]) == relation_id), None)
+    if relation is None:
+        raise ValueError(f"Building relation {relation_id} is missing")
+    nodes = {n.attrib["id"]: n for n in root.findall("node")}
+    ways = {w.attrib["id"]: w for w in root.findall("way")}
+    rings = {"outer": [], "inner": []}
+    for member in relation.findall("member"):
+        role = member.attrib.get("role", "outer") or "outer"
+        if member.attrib["type"] != "way" or role not in rings:
+            continue
+        way = ways.get(member.attrib["ref"])
+        if way is None:
+            raise ValueError(f"Incomplete building relation {relation_id}")
+        ids = [n.attrib["ref"] for n in way.findall("nd")]
+        if len(ids) < 4 or ids[0] != ids[-1] or any(i not in nodes for i in ids):
+            raise ValueError(f"Unclosed or incomplete building ring in relation {relation_id}")
+        rings[role].append([{"lat": float(nodes[i].attrib["lat"]), "lon": float(nodes[i].attrib["lon"])} for i in ids])
+    if len(rings["outer"]) != 1:
+        raise ValueError(f"Expected one outer ring for building relation {relation_id}")
+    return {"type": "relation", "id": relation_id,
+            "tags": {t.attrib["k"]: t.attrib["v"] for t in relation.findall("tag")},
+            "geometry": rings["outer"][0], "innerRings": rings["inner"]}
+
+
 def extract_geometry(xml):
     root = ET.fromstring(xml)
     nodes = {int(e.attrib["id"]): e for e in root.findall("node")}

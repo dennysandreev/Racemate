@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { exportTrackData } from "./export-track-data.mjs";
 import { buildBakuTrack } from "./build-baku-track.mjs";
+import { buildMiamiTrack } from "./build-miami-track.mjs";
 import { exportCatalunyaTrackData } from "./export-catalunya-track-data.mjs";
 import { exportHungaroringTrackData } from "./export-hungaroring-track-data.mjs";
 import { exportMonacoTrackData } from "./export-monaco-track-data.mjs";
@@ -14,6 +15,7 @@ import { exportMadringTrackData } from "./export-madring-track-data.mjs";
 import { exportRedBullRingTrackData } from "./export-red-bull-ring-track-data.mjs";
 import { exportSilverstoneTrackData } from "./export-silverstone-track-data.mjs";
 import { exportSpaTrackData } from "./export-spa-track-data.mjs";
+import { exportSepangTrackData } from "./export-sepang-track-data.mjs";
 import { validateTrackAsset } from "./validate-track.mjs";
 import { writeCatalunyaClientModel } from "./write-catalunya-client-model.mjs";
 import { writeHungaroringClientModel } from "./write-hungaroring-client-model.mjs";
@@ -24,12 +26,17 @@ import { writeMadringClientModel } from "./write-madring-client-model.mjs";
 import { writeRedBullRingClientModel } from "./write-red-bull-ring-client-model.mjs";
 import { writeSilverstoneClientModel } from "./write-silverstone-client-model.mjs";
 import { writeSpaClientModel } from "./write-spa-client-model.mjs";
+import { writeSepangClientModel } from "./write-sepang-client-model.mjs";
 import { writeZandvoortClientModel } from "./write-zandvoort-client-model.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "../..");
 
 const modelId = process.argv.slice(2).find((value) => !value.startsWith("--")) ?? "zandvoort";
+if (modelId === "miami") {
+  await buildMiamiTrack();
+  process.exit(0);
+}
 if (modelId === "baku") {
   await buildBakuTrack();
   process.exit(0);
@@ -48,7 +55,9 @@ await Promise.all([
   mkdir(publicDirectory, { recursive: true }),
 ]);
 const forceSources = process.argv.includes("--force-sources");
-const payload = modelId === "madring"
+const payload = modelId === "sepang"
+  ? await exportSepangTrackData({ forceSources, outputPath: inputPath })
+  : modelId === "madring"
   ? await exportMadringTrackData({ forceSources, outputPath: inputPath })
   : modelId === "catalunya"
   ? await exportCatalunyaTrackData({ forceSources, outputPath: inputPath })
@@ -68,6 +77,7 @@ const payload = modelId === "madring"
           ? await exportMonacoTrackData({ forceSources, outputPath: inputPath })
       : await exportTrackData({ forceSources, modelId, outputPath: inputPath });
 const isSpa = modelId === "spa";
+const isSepang = modelId === "sepang";
 const isCatalunya = modelId === "catalunya";
 const isHungaroring = modelId === "hungaroring";
 const isMonaco = modelId === "monaco";
@@ -80,7 +90,9 @@ const isSilverstone = modelId === "silverstone";
 run(process.env.PYTHON_BIN ?? "python3", [
   path.join(
     scriptDirectory,
-    isMadring
+    isSepang
+      ? "prepare-sepang-rasters.py"
+      : isMadring
       ? "prepare-madring-rasters.py"
       : isCatalunya
       ? "prepare-catalunya-rasters.py"
@@ -114,7 +126,9 @@ run(process.env.BLENDER_BIN ?? "blender", [
   "--python",
   path.join(
     scriptDirectory,
-    isMadring
+    isSepang
+      ? "build-sepang-digital-twin.py"
+      : isMadring
       ? "build-madring-digital-twin.py"
       : isCatalunya
       ? "build-catalunya-digital-twin.py"
@@ -147,7 +161,9 @@ run(process.env.BLENDER_BIN ?? "blender", [
   metadataPath,
 ]);
 
-if (isMadring) {
+if (isSepang) {
+  await writeSepangClientModel({ configPath: inputPath, metadataPath });
+} else if (isMadring) {
   await writeMadringClientModel({ configPath: inputPath, metadataPath });
 } else if (isCatalunya) {
   await writeCatalunyaClientModel({ configPath: inputPath, metadataPath });

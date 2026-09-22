@@ -10,8 +10,18 @@ import {
 } from "../../../../worker/telemetry/service.mjs";
 export { resultKey } from "../../../../worker/telemetry/service.mjs";
 import { resampleComparison } from "../../../../worker/telemetry/core.mjs";
-import type { Comparison, Meeting, Session, SavedComparison } from "./types";
+import type {
+  Catalog,
+  Comparison,
+  Meeting,
+  Session,
+  SavedComparison,
+  TelemetryBootstrapData,
+  TelemetrySetupCatalog,
+} from "./types";
 import { telemetryFlags } from "./flags";
+import type { TelemetryDemoScope } from "./demo-access";
+import { withServerTtlCache } from "@/lib/server-ttl-cache";
 export function telemetryStore() {
   return new TelemetryStore(createTelemetryDb());
 }
@@ -75,6 +85,161 @@ export async function queryTelemetry(input: Task) {
     taskId,
     message: "Готовим телеметрию. Это сравнение ещё не открывали.",
   };
+}
+
+type TelemetryBootstrapOptions = {
+  demoScope?: TelemetryDemoScope | null;
+  season?: number;
+  meeting?: number;
+  session?: number;
+  waitMs?: number;
+};
+
+export function toTelemetrySetupCatalog(
+  catalog: Catalog,
+): TelemetrySetupCatalog {
+  return {
+    session: catalog.session,
+    drivers: catalog.drivers,
+    laps: catalog.laps,
+  };
+}
+
+export async function getTelemetryBootstrap(
+  options: TelemetryBootstrapOptions = {},
+): Promise<TelemetryBootstrapData> {
+  const scopeKey = options.demoScope
+    ? `demo:${options.demoScope.meeting.id}`
+    : "full";
+  const cacheKey = [
+    "telemetry:bootstrap",
+    scopeKey,
+    options.season ?? "default",
+    options.meeting ?? "default",
+    options.session ?? "default",
+  ].join(":");
+
+  return withServerTtlCache(
+    cacheKey,
+    60_000,
+    () => loadTelemetryBootstrap(options),
+    {
+      shouldCache: (data) =>
+        (data as TelemetryBootstrapData).stage === "ready",
+      staleWhileRevalidateMs: 5 * 60_000,
+    },
+  );
+}
+
+async function loadTelemetryBootstrap(
+  options: TelemetryBootstrapOptions,
+): Promise<TelemetryBootstrapData> {
+  const deadline = Date.now() + Math.max(0, options.waitMs ?? 0);
+  const partial: TelemetryBootstrapData = {
+    seasons: [],
+    season: null,
+    meetings: [],
+    meeting: null,
+    sessions: [],
+    session: null,
+    catalog: null,
+    stage: "seasons",
+  };
+
+  if (options.demoScope) {
+    partial.seasons = [options.demoScope.meeting.season];
+  } else {
+    const seasons = await resolveBootstrapTask<number[]>(
+      { kind: "seasons" },
+      deadline,
+    );
+    if (!seasons.ready) return partial;
+    partial.seasons = [...seasons.data].sort((a, b) => b - a);
+  }
+
+  if (!partial.seasons.length) return { ...partial, stage: "ready" };
+  partial.season = partial.seasons.includes(options.season ?? 0)
+    ? options.season!
+    : partial.seasons[0];
+  partial.stage = "meetings";
+
+  if (options.demoScope) {
+    partial.meetings =
+      partial.season === options.demoScope.meeting.season
+        ? [options.demoScope.meeting]
+        : [];
+  } else {
+    const meetings = await resolveBootstrapTask<Meeting[]>(
+      { kind: "meetings", season: partial.season },
+      deadline,
+    );
+    if (!meetings.ready) return partial;
+    partial.meetings = meetings.data;
+  }
+
+  if (!partial.meetings.length) return { ...partial, stage: "ready" };
+  const chosenMeeting =
+    partial.meetings.find((item) => item.id === options.meeting) ??
+    [...partial.meetings].sort(
+      (a, b) => Date.parse(b.start) - Date.parse(a.start),
+    )[0];
+  partial.meeting = chosenMeeting.id;
+  partial.stage = "sessions";
+
+  if (options.demoScope) {
+    partial.sessions =
+      chosenMeeting.id === options.demoScope.meeting.id
+        ? options.demoScope.sessions
+        : [];
+  } else {
+    const sessions = await resolveBootstrapTask<Session[]>(
+      { kind: "sessions", meeting: chosenMeeting.id },
+      deadline,
+    );
+    if (!sessions.ready) return partial;
+    partial.sessions = sessions.data;
+  }
+
+  if (!partial.sessions.length) return { ...partial, stage: "ready" };
+  const chosenSession =
+    partial.sessions.find((item) => item.id === options.session) ??
+    [...partial.sessions]
+      .reverse()
+      .find((item) => item.type === "Qualifying") ??
+    partial.sessions.at(-1)!;
+  partial.session = chosenSession.id;
+  partial.stage = "catalog";
+
+  const catalog = await resolveBootstrapTask<Catalog>(
+    { kind: "catalog", session: chosenSession.id },
+    deadline,
+  );
+  if (!catalog.ready) return partial;
+  partial.catalog = toTelemetrySetupCatalog(catalog.data);
+  partial.stage = "ready";
+  return partial;
+}
+
+async function resolveBootstrapTask<T>(
+  task: Task,
+  deadline: number,
+): Promise<{ ready: true; data: T } | { ready: false }> {
+  const result = await queryTelemetry(task);
+  if (result.status === 200) return { ready: true, data: result.data as T };
+  if (!result.taskId || Date.now() >= deadline) return { ready: false };
+
+  const store = telemetryStore();
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const pending = await store.task(result.taskId);
+    if (pending?.status === "failed")
+      throw new Error(pending.error_code ?? "PROVIDER_UNAVAILABLE");
+    if (pending?.status === "ready" && pending.result_key) {
+      const data = await store.get<T>(pending.result_key);
+      if (data) return { ready: true, data };
+    }
+  }
+  return { ready: false };
 }
 export async function getTelemetryCatalogPages() {
   try {

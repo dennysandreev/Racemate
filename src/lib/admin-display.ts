@@ -180,6 +180,8 @@ const entityLabels: Record<string, string> = {
 };
 
 const aiPurposeLabels: Record<string, string> = {
+  "news.extract": "Факты и авторство",
+  "news.verify": "Проверка перед публикацией",
   "news.audit_metadata": "Проверка метаданных новости",
   "news.daily_digest": "Дневная сводка",
   "news.dedup": "Проверка дублей",

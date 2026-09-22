@@ -4,6 +4,7 @@ export const MAX_MOTION_GAP_MS = 180_000;
 
 export type DriverMotion = {
   events: ReplayPositionEvent[];
+  timed?: boolean;
   finalLapComplete?: boolean;
   times: number[];
   values: number[];
@@ -155,6 +156,7 @@ export function buildDriverMotion(
   if (officialTimingMotion) {
     return {
       events: sorted,
+      timed: true,
       finalLapComplete: officialTimingMotion.finalLapComplete,
       slopes: fritschCarlsonSlopes(officialTimingMotion.times, officialTimingMotion.values),
       times: officialTimingMotion.times,
@@ -607,7 +609,7 @@ export function trackProgressAt(motion: DriverMotion, elapsedMs: number): Motion
 
   const span = times[high] - times[low];
 
-  if (span > MAX_MOTION_GAP_MS) {
+  if (span > MAX_MOTION_GAP_MS && !motion.timed) {
     return { hold: true, unwrapped: values[low] };
   }
 
@@ -625,6 +627,37 @@ export function trackProgressAt(motion: DriverMotion, elapsedMs: number): Motion
     h11 * span * slopes[high];
 
   return { hold: false, unwrapped: Math.max(values[low], Math.min(values[high], value)) };
+}
+
+// Pit timestamps anchor the car to the actual entry/exit on the circuit. Lap
+// timing alone describes the start line, not the detour through the pit lane.
+export function anchorMotionToPits(
+  motion: DriverMotion,
+  pits: { startOffsetMs: number; endOffsetMs: number }[],
+  entryProgress: number,
+  exitProgress: number,
+): DriverMotion {
+  let knots = motion.times.map((time, index) => ({ time, value: motion.values[index] }));
+  for (const pit of [...pits].sort((a, b) => a.startOffsetMs - b.startOffsetMs)) {
+    const sample = trackProgressAt(motion, pit.startOffsetMs);
+    if (!sample || pit.endOffsetMs <= pit.startOffsetMs) continue;
+    const entry = Math.round(sample.unwrapped - entryProgress) + entryProgress;
+    const exit = entry + normalizeProgress(exitProgress - entryProgress);
+    // Discard neighbouring timing anchors that would require an impossible
+    // catch-up lap. Pit and lap feeds can disagree by an entire lap.
+    const minimumLapMs = 40_000;
+    knots = knots.filter(({time, value}) =>
+      (time < pit.startOffsetMs && value <= entry &&
+        (entry - value) * minimumLapMs <= pit.startOffsetMs - time) ||
+      (time > pit.endOffsetMs && value >= exit &&
+        (value - exit) * minimumLapMs <= time - pit.endOffsetMs),
+    );
+    knots.push({time: pit.startOffsetMs, value: entry}, {time: pit.endOffsetMs, value: exit});
+    knots.sort((a, b) => a.time - b.time);
+  }
+  const times = knots.map((knot) => knot.time);
+  const values = knots.map((knot) => knot.value);
+  return { ...motion, times, values, slopes: fritschCarlsonSlopes(times, values) };
 }
 
 export function isDriverRetiredOnTrack(

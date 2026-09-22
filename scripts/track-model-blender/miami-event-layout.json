@@ -1,0 +1,26 @@
+{
+  "reference": "FIA official Miami 2026 media kit, printed page 9, campus plan; positions checked against Miami-Dade orthophoto",
+  "coordinateReferenceSystem": "EPSG:32617",
+  "placementAccuracy": "approximate map-to-orthophoto registration; permanent structures use OSM footprints",
+  "grandstands": [
+    { "name": "Start / Finish", "from": 35, "to": 320, "side": 1, "offset": 22, "depth": 24, "height": 13, "roof": true },
+    { "name": "Turn 1", "from": 355, "to": 465, "side": 1, "offset": 32, "depth": 26, "height": 13, "roof": true },
+    { "name": "Turn 18", "fromTurn": 18, "startOffset": -95, "endOffset": 75, "side": -1, "offset": 25, "depth": 22, "height": 12, "roof": true },
+    { "name": "Marina North", "fromTurn": 6, "startOffset": 32, "endOffset": 82, "side": -1, "offset": 27, "depth": 19, "height": 10, "roof": true },
+    { "name": "Marina West", "fromTurn": 7, "startOffset": -40, "endOffset": 20, "side": -1, "offset": 26, "depth": 19, "height": 10, "roof": true },
+    { "name": "Marina South", "fromTurn": 8, "startOffset": -24, "endOffset": 25, "side": -1, "offset": 28, "depth": 19, "height": 10, "roof": true },
+    { "name": "North Beach", "fromTurn": 12, "startOffset": -55, "endOffset": 98, "side": 1, "offset": 28, "depth": 22, "height": 12, "roof": true },
+    { "name": "South Beach", "fromTurn": 11, "startOffset": -135, "endOffset": -20, "side": -1, "offset": 30, "depth": 23, "height": 12, "roof": true }
+  ],
+  "hospitality": [
+    { "name": "Turn 1 hospitality", "turn": 1, "along": 55, "side": -1, "offset": 49, "length": 30, "width": 12, "height": 9 },
+    { "name": "Turn 2 hospitality", "turn": 2, "along": 28, "side": 1, "offset": 34, "length": 65, "width": 18, "height": 9 },
+    { "name": "Turn 3 hospitality", "turn": 3, "along": -30, "side": -1, "offset": 35, "length": 55, "width": 16, "height": 8 },
+    { "name": "Marina hospitality", "turn": 5, "along": 20, "side": 1, "offset": 47, "length": 48, "width": 22, "height": 8 },
+    { "name": "South straight hospitality", "turn": 9, "along": 75, "side": 1, "offset": 17, "length": 36, "width": 9, "height": 9 }
+  ],
+  "yachtClub": { "name": "MSC Yacht Club 2026", "center": [575720, 2871111], "length": 80, "width": 29, "height": 21, "rotationDeg": 89, "decks": 5 },
+  "beachClub": { "name": "Hard Rock Beach Club", "center": [577035, 2871260], "length": 50, "width": 25, "height": 9, "rotationDeg": 88 },
+  "teamVillage": { "source": "2026 campus plan: 11 team hospitality pavilions on the Hard Rock Stadium field", "teams": 11, "height": 5.5 },
+  "omitted": ["individual containers", "small service tents", "service vehicles", "spectators"]
+}

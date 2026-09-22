@@ -3,9 +3,16 @@ import test from "node:test";
 
 import {
   getReplayClosedTrackDistances,
+  getReplayDurationMs,
   getReplayPitLaneGeometryOverride,
   smoothReplayTrackPoints,
 } from "./index.mjs";
+
+test("replay duration includes final lap timing when the location feed ends early", () => {
+  assert.equal(getReplayDurationMs([{offsetMs: 581999}], [[43, 78, 8770850, 76654]]), 8847504);
+  assert.equal(getReplayDurationMs([{offsetMs: 9000000}], [[43, 78, 8770850, 76654]]), 9000000);
+  assert.equal(getReplayDurationMs([], []), 1);
+});
 
 test("closed track smoothing uses neighbours across the start line", () => {
   const points = [

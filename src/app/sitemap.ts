@@ -62,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     entries.push(
       ...news.map((item) => ({
-        ...(item.publishedAt ? { lastModified: item.publishedAt } : {}),
+        ...(item.modifiedAt || item.publishedAt ? { lastModified: item.modifiedAt ?? item.publishedAt! } : {}),
         url: absoluteUrl(`/news/${item.slug}`),
       })),
     );

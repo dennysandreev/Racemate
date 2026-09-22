@@ -122,6 +122,8 @@ export function TrackModel3DLazy({ modelId, ...props }: TrackModel3DLazyProps) {
 
 async function loadTrackModel(modelId: TrackModelId): Promise<TrackModelDefinition> {
   switch (modelId) {
+    case "sepang":
+      return (await import("@/data/sepang-model")).SEPANG_TRACK_MODEL;
     case "albert-park":
       return (await import("@/data/albert-park-model")).ALBERT_PARK_TRACK_MODEL;
     case "shanghai":

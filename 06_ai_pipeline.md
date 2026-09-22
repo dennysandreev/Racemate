@@ -20,135 +20,26 @@ OpenRouter.
 - не копирует полные статьи;
 - не заменяет правила тегирования, если хватает словарей.
 
-## Pipeline новости
+## Pipeline news (editorial version 1)
 
-1. RSS item fetched.
-2. Normalize URL and calculate a stable content hash.
-3. Check technical duplicates by normalized URL, RSS GUID and content hash without an AI call.
-4. Save a new article as `publication_status = processing`.
-5. Build the Russian article and normalized editorial metadata in one AI call.
-6. Validate JSON; retry metadata extraction separately when the first response is incomplete.
-7. Select no more than 10 plausible candidates from the previous 24 hours.
-8. Under an event lock, classify only those candidates as duplicate, update, confirmation, decision, result, analysis, reaction, related or unrelated.
-9. Publish the first ingested version of a fact. A later article is hidden only when relation is `duplicate` and confidence reaches the configured threshold.
-10. Save the decision, candidate count, timing and reason in `news_dedup_decisions`.
-11. Apply rule-based tags and log AI usage.
+1. RSS ingestion and technical URL/GUID/content deduplication.
+2. Source snapshot with URL, author, date and coverage.
+3. `news.extract`: attributed facts, exact evidence, caveats, article type and primary entities.
+4. Current RaceSide context from sporting tables, scoped by season and round/session.
+5. `news.article`: Russian draft using fact/context IDs, with no invented details or filler.
+6. Deterministic checks plus independent `news.verify`. One rewrite at most.
+7. Private provenance and quality scores in `news_editorial_reviews`. Sensitive or uncertain material, columns and analysis wait for manual review. Live Gemini checks did not establish sufficiently reliable automatic handling of opinion prose.
+8. Semantic deduplication under a publication lock, up to 10 candidates over 72 hours by default. New stages and independent angles remain separate.
+9. Same-stage updates can combine up to three sources, re-run verification and atomically update the original article while preserving URL and publication date.
+10. Only verified drafts proceed to automated publication; a database trigger prevents retry jobs from bypassing verification. Manual editing/publication remains audited.
 
-После формирования `title_ru` материал получает стабильный публичный `slug`, транслитерированный из короткого редакционного заголовка. Slug фиксируется при публикации: последующее редактирование заголовка не меняет URL. При совпадении заголовков к slug добавляется короткий уникальный суффикс.
+`src/config/ai-prompts.json` is the authoritative prompt/response contract for extraction, writing, verification, deduplication and daily digests. Published admin overrides must be checked when deploying a new contract.
 
-Rumor, official confirmation, new decision, result, reaction and analysis remain separate publications even when they concern the same participants. Public queries return only `status = processed`, `publication_status = published` rows without `duplicate_of`.
+Daily digests group events and preserve article IDs. Code constructs links and rejects invented numbers or repeated events; an independent verifier checks the result. The fallback uses existing article text without generation.
 
-## Prompt: article summary
+Public queries still require `status = processed`, `publication_status = published` and no `duplicate_of`. Existing history is preserved; there is no automatic mass regeneration. Pages show sources, exact publication/update times and verified statistical context. Original authors and classification remain in editorial metadata, admin and structured data. Reader-facing headlines and prose convey the actual idea without narrating a journalist's opinion; proposals stay conditional and official decisions retain their actual decision maker. Raw source snapshots and reviews stay private.
 
-System:
-
-```text
-Ты редактор фанатского приложения про Формулу 1.
-
-Твоя задача — кратко пересказать новость на русском языке.
-Нельзя придумывать факты.
-Используй только данные, переданные пользователем.
-Если данных недостаточно, сделай осторожное саммари без домыслов.
-
-Верни только валидный JSON.
-```
-
-User:
-
-```text
-Сделай русскоязычное саммари новости.
-
-Источник: {{source_name}}
-Оригинальный заголовок: {{original_title}}
-Описание из RSS: {{original_description}}
-Дата публикации: {{published_at}}
-URL: {{canonical_url}}
-
-Верни JSON:
-{
-  "title_ru": "короткий заголовок на русском, без кликбейта",
-  "summary_ru": "2-4 предложения, своими словами",
-  "details_ru": "подробный редакторский пересказ",
-  "highlight_phrases_ru": ["фраза, которая дословно есть в тексте"],
-  "importance_score": число от 1 до 10,
-  "why_it_matters": "1 короткое предложение, почему это важно",
-  "confidence": число от 0 до 1,
-  "main_fact": "одно предложение с центральным новым фактом",
-  "event_type": "стабильный тип события в snake_case",
-  "event_stage": "стадия события в snake_case",
-  "event_date": "YYYY-MM-DD или null",
-  "event_fingerprint": "стабильный ключ события в snake_case на латинице",
-  "entities": [
-    {
-      "type": "team | person | race | organization | other",
-      "name": "отображаемое имя",
-      "normalized_name": "имя в snake_case на латинице"
-    }
-  ]
-}
-```
-
-## Prompt: semantic deduplication
-
-System:
-
-```text
-Ты проверяешь новости автоспорта на смысловые дубли.
-Определи, сообщает ли новая новость тот же центральный факт, который уже опубликован.
-Разница только в формулировке, переводе, заголовке, несущественной цитате или общем контексте означает duplicate.
-Официальное подтверждение, решение, наказание, результат, новый статус, самостоятельный анализ, интервью или реакция с новым существенным фактом не являются дублем.
-Верни только валидный JSON.
-```
-
-Response:
-
-```json
-{
-  "is_duplicate": true,
-  "duplicate_of": "uuid из переданного списка или null",
-  "relation": "duplicate | update | official_confirmation | decision | result | analysis | reaction | related | unrelated",
-  "confidence": 0.97,
-  "reason": "короткое объяснение решения"
-}
-```
-
-## Prompt: daily digest
-
-System:
-
-```text
-Ты редактор фанатского приложения про Формулу 1.
-Составь краткую дневную сводку на русском.
-Нельзя придумывать факты.
-Нужно группировать похожие новости и не повторяться.
-У каждой важной истории должны быть источники.
-Верни только валидный JSON.
-```
-
-User:
-
-```text
-Составь "Главное в F1 за день" на основе списка новостей.
-
-Дата: {{date}}
-Новости:
-{{articles_json}}
-
-Верни JSON:
-{
-  "title": "Главное в F1 за {{date}}",
-  "intro": "1 короткое предложение",
-  "items": [
-    {
-      "headline": "короткий заголовок",
-      "summary": "2-3 предложения",
-      "related_article_ids": ["uuid"],
-      "tags": ["Ferrari", "FIA"]
-    }
-  ],
-  "closing": "короткое завершение без воды"
-}
-```
+See [news editorial runbook](docs/news-editorial-runbook.md) for rollout, checks, limitations, costs and the historical-content strategy.
 
 ## Cost control
 
@@ -185,14 +76,7 @@ Rules:
 `estimated_cost_usd` берётся из `usage.cost`, а токены из нативных полей
 `usage.prompt_tokens` и `usage.completion_tokens`.
 
-Основная редакторская обработка `news.article` использует
-`google/gemini-2.5-flash` с лимитом 3200 completion tokens. Этот запас нужен для
-валидного JSON с полным текстом статьи и метаданными; короткие задачи метаданных и
-дедупликации остаются на Flash Lite со своими меньшими лимитами. Worker принимает
-как обычную JSON-строку, так и JSON в контент-блоках или служебной обёртке.
-Лимиты остальных промптов сверяются с фактическим 95-м перцентилем usage; для
-длинного структурированного ответа сохраняется запас, а короткие классификаторы
-не получают завышенный бюджет.
+Extraction, writing and verification use separate `google/gemini-2.5-flash` requests. Default token limits and runtime overrides are defined by the prompt catalog. Each call, including a retry, goes through the existing usage and budget guard. Model output is treated as untrusted structured input and validated before storage/publication.
 
 Админская статистика за период агрегируется функцией
 `get_admin_ai_usage_summary`, без ограничения PostgREST по числу строк. Старые

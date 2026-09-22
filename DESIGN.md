@@ -28,7 +28,7 @@ RaceSide is a product UI for a premium Formula 1 companion: public fan surfaces,
 
 ## RaceSide Plus page
 
-RaceSide Plus is not a primary product section in the main navigation. Its entry point is a compact branded `RS+` mark in the account area, directly above the personal-account control; the public footer may also link to `/plus`.
+RaceSide Plus is not a primary product section in the main navigation. Its entry point is the first row of a unified account dock: the branded `RS+` row keeps the `RaceSide Plus` label horizontally centered and shows `Подключить` or the muted active status with the remaining access time when applicable, while the personal-account action sits below it inside the same bordered surface. The two rows remain separate links, and the public footer may also link to `/plus`.
 
 `/plus` is a public, brand-led product page inside the existing RaceSide shell. It explains the value of the subscription before opening YooMoney or Tribute checkout. It keeps the Apex Performance identity: Geist typography, obsidian surfaces, semantic theme tokens and Ferrari red actions. It must not resemble a separate fintech product or a generic SaaS pricing template.
 

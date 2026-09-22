@@ -6,9 +6,9 @@ import { AdSlot } from "@/components/racemate/ad-slot";
 import { IntentLink as Link } from "@/components/racemate/intent-link";
 import {
   Activity,
-  ArrowRight,
   CalendarDays,
   CarFront,
+  ChevronRight,
   Flag,
   Menu,
   Newspaper,
@@ -18,7 +18,6 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { ActiveNavigationLink } from "@/components/racemate/active-navigation-link";
 import { MobileAutoHideHeader } from "@/components/racemate/mobile-auto-hide-header";
 import {
@@ -105,10 +104,11 @@ export function AppShell({
   leaderboardTable?: "drivers" | "constructors";
   viewport?: boolean;
 }) {
+  const userPromise = getSessionUser();
   const profilePromise = getSessionProfileSummary();
   const adminPromise = getIsAdmin();
   const nextSessionPromise = getNextSession();
-  const subscriptionPromise = getSessionUser().then((user) =>
+  const subscriptionPromise = userPromise.then((user) =>
     getSubscriptionAccess(user?.id ?? null),
   );
   const visibleNavigation = navigation.filter((item) => item.href !== "/admin");
@@ -154,14 +154,13 @@ export function AppShell({
             </Suspense>
             <div className="mt-1 grid gap-2 border-t border-border pt-2">
               <ThemeToggle />
-              <Suspense fallback={<PlusNavigationMark compact />}>
-                <PlusNavigationStatus
+              <Suspense fallback={<AccountDockSkeleton compact />}>
+                <AccountDockStatus
                   compact
+                  profilePromise={profilePromise}
                   subscriptionPromise={subscriptionPromise}
+                  userPromise={userPromise}
                 />
-              </Suspense>
-              <Suspense fallback={<Skeleton className="h-10 w-full" />}>
-                <SessionAuthPanel profilePromise={profilePromise} />
               </Suspense>
             </div>
           </div>
@@ -218,11 +217,12 @@ export function AppShell({
         </nav>
         <div className="raceside-sidebar-account grid border-t border-border px-6">
           <ThemeToggle />
-          <Suspense fallback={<PlusNavigationMark />}>
-            <PlusNavigationStatus subscriptionPromise={subscriptionPromise} />
-          </Suspense>
-          <Suspense fallback={<Skeleton className="h-10 w-full" />}>
-            <SessionAuthPanel profilePromise={profilePromise} />
+          <Suspense fallback={<AccountDockSkeleton />}>
+            <AccountDockStatus
+              profilePromise={profilePromise}
+              subscriptionPromise={subscriptionPromise}
+              userPromise={userPromise}
+            />
           </Suspense>
         </div>
       </aside>
@@ -248,88 +248,177 @@ export function AppShell({
   );
 }
 
-function PlusNavigationMark({
-  active = false,
+function AccountDock({
   compact = false,
-  periodEnd = null,
+  profile,
+  subscription,
+  user,
 }: {
-  active?: boolean;
   compact?: boolean;
-  periodEnd?: string | null;
+  profile: Awaited<ReturnType<typeof getSessionProfileSummary>>;
+  subscription: SubscriptionAccess;
+  user: Awaited<ReturnType<typeof getSessionUser>>;
 }) {
-  const timeLeft = active ? formatSubscriptionTimeLeft(periodEnd) : null;
+  const isAuthenticated = Boolean(user);
+  const isActive = subscription.active;
+  const timeLeft = isActive
+    ? formatSubscriptionTimeLeft(subscription.periodEnd)
+    : null;
+  const displayName =
+    profile?.displayName ||
+    user?.email?.split("@")[0] ||
+    "Участник RaceSide";
+  const plusDetail = isActive
+    ? (timeLeft ?? "Доступ открыт")
+    : isAuthenticated
+      ? "Подключить"
+      : null;
 
   return (
-    <Link
-      aria-label={
-        timeLeft
-          ? `RaceSide Plus — подписка активна, ${timeLeft.toLowerCase()}`
-          : "RaceSide Plus — подписка"
-      }
+    <div
       className={cn(
-        "group flex items-center justify-between rounded-md border px-3 transition-[border-color,background-color,box-shadow]",
-        compact ? "py-2" : "mb-2 py-2.5",
-        timeLeft
-          ? "border-success/30 bg-success/5 shadow-[0_0_18px_rgb(57_255_20_/_0.04)] hover:border-success/45 hover:bg-success/8"
-          : "border-primary/25 bg-primary/6 hover:border-primary/55 hover:bg-primary/10",
+        "raceside-account-dock overflow-hidden rounded-md border border-border bg-card/70",
+        compact && "w-full",
       )}
-      href="/plus"
     >
-      <span className="flex shrink-0 items-center gap-1">
-        <RaceMateMark
-          className={cn("h-4 w-[2.15rem]", timeLeft && "text-success/70")}
+      <Link
+        aria-label={
+          isActive
+            ? `RaceSide Plus, подписка активна${timeLeft ? `, ${timeLeft.toLowerCase()}` : ""}`
+            : isAuthenticated
+              ? "Подключить RaceSide Plus"
+              : "Открыть RaceSide Plus"
+        }
+        className={cn(
+          "group grid min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-2.5 transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring active:bg-accent motion-reduce:transition-none",
+          compact ? "h-10" : "h-11",
+          isActive && "bg-success/[0.035] hover:bg-success/[0.065]",
+        )}
+        href="/plus"
+      >
+        <span className="flex w-7 items-center justify-center gap-0.5 justify-self-start">
+          <RaceMateMark
+            className={cn("h-3 w-6", isActive && "text-success/65")}
+          />
+          <span
+            className={cn(
+              "font-display text-sm font-black leading-none text-primary",
+              isActive && "text-success/65",
+            )}
+          >
+            +
+          </span>
+        </span>
+        <span className="min-w-0 max-w-28 justify-self-center text-center">
+          <span
+            className={cn(
+              "block truncate text-xs font-semibold leading-tight text-foreground",
+              isActive && "text-success/75",
+            )}
+          >
+            {isActive ? "Plus активен" : "RaceSide Plus"}
+          </span>
+          {plusDetail && (
+            <span
+              className={cn(
+                "block truncate text-[0.65rem] leading-tight text-muted-foreground",
+                isActive && "text-success/65",
+              )}
+            >
+              {plusDetail}
+            </span>
+          )}
+        </span>
+        <ChevronRight
+          aria-hidden="true"
+          className={cn(
+            "size-4 shrink-0 justify-self-end text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none",
+            isActive && "text-success/55",
+          )}
         />
+      </Link>
+
+      <Link
+        aria-label={isAuthenticated ? `Открыть профиль ${displayName}` : "Войти в RaceSide"}
+        className={cn(
+          "group flex min-w-0 items-center gap-2.5 border-t border-border/80 px-2.5 transition-colors hover:bg-accent/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring active:bg-accent motion-reduce:transition-none",
+          compact ? "h-10" : "h-11",
+        )}
+        href={isAuthenticated ? "/account" : "/auth"}
+      >
         <span
           className={cn(
-            "font-display text-lg font-black leading-none",
-            timeLeft ? "text-success/70" : "text-primary",
+            "grid size-7 shrink-0 place-items-center rounded-sm text-primary",
+            isAuthenticated ? "bg-primary/12" : "bg-primary text-primary-foreground",
           )}
         >
-          +
+          <UserRound aria-hidden="true" className="size-4" />
         </span>
-      </span>
-      <span
-        className={cn(
-          "flex min-w-0 flex-col items-end font-telemetry font-bold uppercase leading-none transition-colors",
-          timeLeft
-            ? "text-success/70"
-            : "text-muted-foreground group-hover:text-foreground",
-        )}
-      >
-        <span className="whitespace-nowrap text-[0.48rem] tracking-[0.14em]">
-          {timeLeft ? "Подписка активна" : "Подписка"}
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-xs font-semibold leading-tight text-foreground">
+            {isAuthenticated ? displayName : "Войти"}
+          </span>
+          <span className="block truncate text-[0.65rem] leading-tight text-muted-foreground">
+            {isAuthenticated ? "Личный кабинет" : "Аккаунт и настройки"}
+          </span>
         </span>
-        <span className="mt-1 whitespace-nowrap text-[0.53rem] tracking-[0.13em]">
-          {timeLeft ?? "RaceSide Plus"}
-        </span>
-      </span>
-    </Link>
+        <ChevronRight
+          aria-hidden="true"
+          className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none"
+        />
+      </Link>
+    </div>
   );
 }
 
-async function PlusNavigationStatus({
+function AccountDockSkeleton({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className="raceside-account-dock overflow-hidden rounded-md border border-border bg-card/70">
+      {["plus", "account"].map((row) => (
+        <div
+          className={cn(
+            "flex items-center gap-2.5 px-2.5",
+            compact ? "h-10" : "h-11",
+            row === "account" && "border-t border-border/80",
+          )}
+          key={row}
+        >
+          <Skeleton className="size-7 shrink-0 rounded-sm" />
+          <span className="grid flex-1 gap-1">
+            <Skeleton className="h-2.5 w-20" />
+            <Skeleton className="h-2 w-24" />
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+async function AccountDockStatus({
   compact = false,
+  profilePromise,
   subscriptionPromise,
+  userPromise,
 }: {
   compact?: boolean;
+  profilePromise: ReturnType<typeof getSessionProfileSummary>;
   subscriptionPromise: Promise<SubscriptionAccess>;
+  userPromise: ReturnType<typeof getSessionUser>;
 }) {
-  const access = await subscriptionPromise;
+  const [profile, subscription, user] = await Promise.all([
+    profilePromise,
+    subscriptionPromise,
+    userPromise,
+  ]);
+
   return (
-    <PlusNavigationMark
-      active={access.active}
+    <AccountDock
       compact={compact}
-      periodEnd={access.periodEnd}
+      profile={profile}
+      subscription={subscription}
+      user={user}
     />
   );
-}
-
-async function SessionAuthPanel({
-  profilePromise,
-}: {
-  profilePromise: ReturnType<typeof getSessionProfileSummary>;
-}) {
-  return <AuthPanel profile={await profilePromise} />;
 }
 
 async function NextSessionPanel({
@@ -404,40 +493,4 @@ function getNavigationHref(
   }
 
   return href;
-}
-
-function AuthPanel({
-  profile,
-}: {
-  profile: Awaited<ReturnType<typeof getSessionProfileSummary>>;
-}) {
-  if (!profile) {
-    return (
-      <Button asChild className="h-10 w-full justify-center" size="sm">
-        <Link href="/auth">
-          Войти
-          <ArrowRight aria-hidden="true" data-icon="inline-end" />
-        </Link>
-      </Button>
-    );
-  }
-
-  return (
-    <Link
-      className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-border bg-card/75 px-2.5 py-1.5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      href="/account"
-    >
-      <span className="grid size-7 shrink-0 place-items-center rounded-sm bg-primary/12 text-primary">
-        <UserRound aria-hidden="true" className="size-4" />
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate text-xs font-semibold leading-tight text-foreground">
-          {profile.displayName}
-        </span>
-        <span className="block truncate text-[0.65rem] leading-tight text-muted-foreground">
-          Личный кабинет
-        </span>
-      </span>
-    </Link>
-  );
 }

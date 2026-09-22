@@ -284,7 +284,7 @@ export async function loadAdminNews(admin: AdminClient, query: AdminTableQuery) 
   const from = (query.page - 1) * query.pageSize;
   let request = admin
     .from("news_articles")
-    .select("id, slug, source_id, original_title, ai_title_ru, ai_summary_ru, ai_summary_long_ru, publication_status, dedup_status, duplicate_of, published_at, source_published_at, ingested_at, ai_processed_at, raw_payload, updated_at", { count: "exact" })
+    .select("id, slug, source_id, canonical_url, original_title, ai_title_ru, ai_summary_ru, ai_summary_long_ru, publication_status, dedup_status, duplicate_of, published_at, source_published_at, ingested_at, ai_processed_at, raw_payload, updated_at", { count: "exact" })
     .order("ingested_at", { ascending: false })
     .order("id", { ascending: false })
     .range(from, from + query.pageSize - 1);
@@ -292,7 +292,9 @@ export async function loadAdminNews(admin: AdminClient, query: AdminTableQuery) 
   if (query.search) {
     request = request.or(`original_title.ilike.%${query.search}%,ai_title_ru.ilike.%${query.search}%`);
   }
-  if (query.status === "removed") {
+  if (query.status === "review") {
+    request = request.eq("publication_status", "draft").eq("raw_payload->>aiFailureReason", "editorial_review_required");
+  } else if (query.status === "removed") {
     request = request.eq("publication_status", "draft").not("published_at", "is", null);
   } else if (query.status && query.status !== "all") {
     request = request.eq("publication_status", query.status);
@@ -306,6 +308,17 @@ export async function loadAdminNews(admin: AdminClient, query: AdminTableQuery) 
   throwFirstError([articlesResult.error, sourcesResult.error, digestsResult.error]);
   const sourceNames = new Map((sourcesResult.data ?? []).map((source) => [source.id, source.name]));
   const articleIds = (articlesResult.data ?? []).map((article) => article.id);
+  const { data: reviews } = articleIds.length
+    ? await admin.from("news_editorial_reviews").select("article_id,decision,issues,created_at").in("article_id", articleIds).order("created_at", { ascending: false }).limit(1000)
+    : { data: [] };
+  const latestReviews = new Map<string, { decision: string; issues: string[] }>();
+  for (const review of reviews ?? []) {
+    if (!latestReviews.has(review.article_id)) latestReviews.set(review.article_id, { decision: review.decision, issues: Array.isArray(review.issues) ? review.issues.filter((issue): issue is string => typeof issue === "string") : [] });
+  }
+  const { data: metadataRows } = articleIds.length
+    ? await admin.from("news_articles").select("id,editorial_meta").in("id", articleIds)
+    : { data: [] };
+  const articleMetadata = new Map((metadataRows ?? []).map(row => [row.id, row.editorial_meta]));
   const relationsResult = articleIds.length
     ? await admin.from("news_article_tags").select("article_id, tag_id").in("article_id", articleIds)
     : { data: [], error: null };
@@ -330,6 +343,8 @@ export async function loadAdminNews(admin: AdminClient, query: AdminTableQuery) 
     items: (articlesResult.data ?? []).map((article) => ({
       ...article,
       aiFailureLabel: getNewsAiFailureLabel(article.raw_payload),
+      editorialReview: (articleMetadata.get(article.id) as import("@/lib/news-editorial").NewsEditorialMeta | undefined)?.status === "manually_reviewed" ? undefined : latestReviews.get(article.id),
+      editorialMeta: articleMetadata.get(article.id) as import("@/lib/news-editorial").NewsEditorialMeta | undefined,
       sourceName: article.source_id ? sourceNames.get(article.source_id) ?? "Источник уточняется" : "Источник уточняется",
       tagNames: tagNamesByArticle.get(article.id) ?? [],
     })),
@@ -356,6 +371,8 @@ function getNewsAiFailureLabel(rawPayload: Json | null) {
     openrouter_key_limit_exceeded: "Исчерпан лимит API-ключа OpenRouter",
     openrouter_permission_denied: "OpenRouter запретил запрос",
     openrouter_rate_limited: "OpenRouter временно ограничил запросы",
+    editorial_review_required: "Нужна проверка фактов и источника перед публикацией",
+    editorial_service_unavailable: "Проверка новости временно недоступна",
   };
 
   return reason ? labels[reason] ?? "AI не смог обработать материал" : null;
@@ -827,7 +844,7 @@ export async function loadAdminAi(admin: AdminClient) {
   ] = await Promise.all([
     admin.rpc("get_admin_ai_usage_summary", { p_since: thirtyDaysAgo }),
     admin.from("ai_usage_logs").select("id, purpose, provider, model, input_tokens, output_tokens, estimated_cost_usd, related_article_id, related_digest_id, prompt_key, prompt_version_id, created_at").gte("created_at", thirtyDaysAgo).order("created_at", { ascending: false }).limit(100),
-    admin.from("news_articles").select("id, slug, original_title, ai_title_ru, publication_status, image_status, ai_model, ai_processed_at, updated_at").or("ai_model.eq.fallback,publication_status.eq.ai_failed").order("updated_at", { ascending: false }).limit(100),
+    admin.from("news_articles").select("id, slug, original_title, ai_title_ru, publication_status, image_status, ai_model, ai_processed_at, updated_at").or("ai_model.eq.fallback,publication_status.eq.failed,raw_payload->>aiFailureReason.eq.editorial_review_required,raw_payload->>aiFailureReason.eq.editorial_service_unavailable").order("updated_at", { ascending: false }).limit(100),
     admin.from("social_posts").select("id, platform, title, ai_title_ru, status, last_processing_error, processing_attempts, updated_at").not("last_processing_error", "is", null).order("updated_at", { ascending: false }).limit(100),
     admin.from("admin_ai_budgets").select("scope, daily_limit_usd, monthly_limit_usd, updated_at").eq("scope", "default"),
     admin.from("ai_prompt_versions").select("id, prompt_key, version, status, system_prompt, user_template, model, max_tokens, change_note, checksum, created_at, published_at").eq("status", "published"),

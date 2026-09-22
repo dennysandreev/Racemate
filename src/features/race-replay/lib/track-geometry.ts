@@ -155,6 +155,23 @@ function dedupeBasePoints(centerline: TrackPoint[]) {
     result.pop();
   }
 
+  // Some archived centerlines label the last distinct point as 1. That
+  // leaves zero time for the closing segment and teleports cars at the line.
+  if (first && result.at(-1)!.progress >= first.progress + 1) {
+    const distances = [0];
+    for (let index = 1; index < result.length; index += 1) {
+      distances.push(distances[index - 1] + Math.hypot(
+        result[index].svgX - result[index - 1].svgX,
+        result[index].svgY - result[index - 1].svgY,
+      ));
+    }
+    const end = result[result.length - 1];
+    const length = distances.at(-1)! + Math.hypot(end.svgX - first.svgX, end.svgY - first.svgY);
+    if (length > 0) return result.map((point, index) => ({
+      ...point, progress: first.progress + distances[index] / length,
+    }));
+  }
+
   return result;
 }
 
@@ -240,6 +257,7 @@ function smoothCurvature(samples: TrackSample[], radius: number) {
 
 function makeProgressLookup(samples: TrackSample[]) {
   const first = samples[0].progress;
+  const closed = [...samples, { ...samples[0], progress: first + 1 }];
 
   return (progress: number) => {
     let target = ((progress % 1) + 1) % 1;
@@ -249,12 +267,12 @@ function makeProgressLookup(samples: TrackSample[]) {
     }
 
     let low = 0;
-    let high = samples.length - 1;
+    let high = closed.length - 1;
 
     while (low < high) {
       const mid = Math.floor((low + high) / 2);
 
-      if (samples[mid].progress < target) {
+      if (closed[mid].progress < target) {
         low = mid + 1;
       } else {
         high = mid;
@@ -263,8 +281,8 @@ function makeProgressLookup(samples: TrackSample[]) {
 
     const upper = Math.max(1, low);
     const lower = upper - 1;
-    const a = samples[lower];
-    const b = samples[upper];
+    const a = closed[lower];
+    const b = closed[upper];
     const span = Math.max(b.progress - a.progress, 1e-9);
     const ratio = clampNumber((target - a.progress) / span, 0, 1);
 

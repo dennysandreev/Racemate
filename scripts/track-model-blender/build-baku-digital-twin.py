@@ -7,10 +7,12 @@ This is a geographically grounded visual model, not a surveyed road-height model
 import importlib.util
 import json
 import math
+import random
 from array import array
 from pathlib import Path
 
 import bpy
+import bmesh
 from mathutils import Vector, kdtree
 from mathutils.bvhtree import BVHTree
 
@@ -26,6 +28,7 @@ def module(name, filename):
 
 hung = module("baku_shared_meshes", "build-hungaroring-digital-twin.py")
 source = module("baku_sources", "prepare-baku-sources.py")
+landmarks = module("baku_landmarks", "build-baku-landmarks.py")
 base = hung.base
 base.rd_from_wgs84 = source.utm39n
 base.TERRAIN_COLUMNS, base.TERRAIN_ROWS = 248, 161
@@ -139,6 +142,19 @@ def main():
     concrete = material("Concrete", (.55, .54, .50, 1))
     metal = material("Metal", (.15, .18, .19, 1), metallic=.55)
     city_mat = material("Mapped_Buildings", (.8, .8, .8, 1), use_vertex_color=True)
+    window_material = material("Window_Bays", (1,1,1,1), use_vertex_color=True)
+    nodes=window_material.node_tree.nodes
+    links=window_material.node_tree.links
+    window_image=nodes.new("ShaderNodeTexImage")
+    window_image.image=bpy.data.images.load(str(prepared / "baku-window-bay.png"))
+    window_image.image.pack()
+    multiply=nodes.new("ShaderNodeMix")
+    multiply.data_type="RGBA"
+    multiply.blend_type="MULTIPLY"
+    multiply.inputs[0].default_value=1
+    links.new(next(node for node in nodes if node.type=="VERTEX_COLOR").outputs["Color"],multiply.inputs[6])
+    links.new(window_image.outputs["Color"],multiply.inputs[7])
+    links.new(multiply.outputs[2],nodes.get("Principled BSDF").inputs["Base Color"])
     pit_mat = material("Pit_Facades", (.8, .8, .8, 1), use_vertex_color=True)
     green = material("Trees", (.18, .24, .12, 1), use_vertex_color=True)
     seat = material("Seats_Green", (.24, .42, .27, 1))
@@ -240,7 +256,7 @@ def main():
     footprints = []
     for element in osm["elements"]:
         tags = element.get("tags", {})
-        if element["type"] != "way" or not (tags.get("building") or tags.get("building:part")):
+        if element["type"] not in ("way", "relation") or not (tags.get("building") or tags.get("building:part")):
             continue
         polygon = [source.utm39n(p["lat"], p["lon"]) for p in element["geometry"]]
         if len(polygon)<4 or math.dist(polygon[0],polygon[-1])>.1:
@@ -282,6 +298,8 @@ def main():
     covered.create_object("Baku_Absheron_C_Upper_Canopy",[white,metal],collections["Grandstands"])
 
     city = base.MeshBuilder()
+    hotel_geometry = base.MeshBuilder()
+    hotel_details, restored_relations = [], []
     facade_vertices, facade_faces, facade_uvs = [], [], []
     def facade_quad(vertices, uvs):
         first=len(facade_vertices)
@@ -305,64 +323,52 @@ def main():
         min_y,max_y = min(p[1] for p in polygon),max(p[1] for p in polygon)
         return any(min_x<x<max_x and min_y<y<max_y and base.point_in_polygon((x,y),polygon) for x,y in road_points)
     facade_details = {"buildings": 0, "windows": 0, "cornices": 0, "doors": 0,
-                      "accuracy": "Approximate floor-based facade details; photographed landmarks preserved."}
-    # Spend geometry on the buildings visible from the circuit first. All details
-    # share the existing city mesh/material, so they add no draw calls or textures.
-    footprints.sort(key=lambda item: min(tree.find((*p,0))[2] for p in item[1]))
-    def add_street_windows(element, polygon, ground, top, wall):
-        if element["id"] in (153876715,299418016) or facade_details["windows"] >= 4200:
+                      "excludedBuildings": [],
+                      "accuracy": "Approximate repeating window bays on all residential/city facades; photographed landmarks preserved."}
+    facade_planes = {}
+    def add_building_windows(element, first_face, ground, top):
+        tags=element["tags"]
+        excluded=element["id"] in (153876715,299418016) or tags.get("building") in ("roof","carport","shed","garages","garage","ruins")
+        if excluded:
+            facade_details["excludedBuildings"].append({"osmWayId":element["id"],
+                "reason":"photographed landmark" if element["id"] in (153876715,299418016) else "non-residential utility structure"})
             return
-        signed_area = sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(polygon,polygon[1:]))
-        orientation = 1 if signed_area > 0 else -1
-        before = facade_details["windows"]
-        for a,b in zip(polygon,polygon[1:]):
-            dx,dy=b[0]-a[0],b[1]-a[1]
-            length=math.hypot(dx,dy)
-            if length < 3.5: continue
-            tangent=(dx/length,dy/length)
-            normal=(orientation*tangent[1],-orientation*tangent[0])
-            midpoint=((a[0]+b[0])/2,(a[1]+b[1])/2)
-            nearest,_,distance=tree.find((*midpoint,0))
-            if distance > 150 or sum(normal[i]*(nearest[i]-midpoint[i]) for i in range(2)) < -distance*.2:
-                continue
-            def panel(left,right,bottom,upper,offset,color):
-                def point(along,z):
-                    x,y=base.local_xy((a[0]+tangent[0]*along+normal[0]*offset,
-                                       a[1]+tangent[1]*along+normal[1]*offset),center)
-                    return (x,y,z)
-                quad=[point(left,bottom),point(right,bottom),point(right,upper),point(left,upper)]
-                city.add_quad(quad if orientation > 0 else list(reversed(quad)),color=color)
-            floors=max(1,min(35,round((top-ground)/3.2)))
-            floor_height=(top-ground)/floors
-            columns=max(1,int((length-1.2)/3.0))
-            spacing=(length-1.2)/columns
-            frame=tuple(min(1,c*1.28+.025) for c in wall[:3])+(1,)
-            for floor in range(floors):
-                sill=ground+floor*floor_height+.85
-                upper=min(sill+1.7,ground+(floor+1)*floor_height-.4)
-                if upper-sill < .7: continue
-                for column in range(columns):
-                    if facade_details["windows"] >= 4200 or facade_details["windows"]-before >= 160: break
-                    middle=.6+(column+.5)*spacing
-                    half_width=min(.7,spacing*.3)
-                    variation=((element["id"]+floor*7+column*11)%9)/120
-                    glass=tuple(linear_rgb(c+variation) for c in (.15,.20,.23))+(1,)
-                    panel(middle-half_width-.12,middle+half_width+.12,sill-.12,upper+.12,.055,frame)
-                    panel(middle-half_width,middle+half_width,sill,upper,.085,glass)
-                    panel(middle-.035,middle+.035,sill,upper,.11,frame)
-                    facade_details["windows"] += 1
-                cornice=ground+(floor+1)*floor_height-.2
-                panel(.08,length-.08,cornice,cornice+.14,.14,frame)
-                facade_details["cornices"] += 1
-            if length > 7:
-                panel(length/2-.65,length/2+.65,ground+.03,ground+min(2.4,floor_height-.2),.12,
-                      tuple(linear_rgb(c) for c in (.23,.20,.16))+(1,))
-                facade_details["doors"] += 1
-        if facade_details["windows"] > before: facade_details["buildings"] += 1
+        floors=max(1,min(40,round((top-ground)/3.2)))
+        edges=set()
+        for index in range(first_face,len(city.faces)):
+            points=[city.vertices[i] for i in city.faces[index]]
+            if max(p[2] for p in points)-min(p[2] for p in points)<.1: continue
+            ends=sorted(set((p[0],p[1]) for p in points))
+            if len(ends)!=2: continue
+            a,b=ends
+            length=math.dist(a,b)
+            if length<1.8: continue
+            columns=max(1,round(length/3.4))
+            city.material_indices[index]=2
+            city.face_colors[index]=tuple(linear_rgb(v) for v in (.64,.58,.48))+(1,)
+            tangent=((b[0]-a[0])/length,(b[1]-a[1])/length)
+            plane=(round(tangent[0],5),round(tangent[1],5),round(a[0]*tangent[1]-a[1]*tangent[0],2))
+            facade_planes.setdefault(plane,[]).append((element["id"],index,a,b,tangent,ground))
+            edge=tuple(ends)
+            if edge not in edges:
+                edges.add(edge)
+                facade_details["windows"]+=columns*floors
+                facade_details["cornices"]+=floors
+        if edges:
+            facade_details["buildings"]+=1
+        else:
+            facade_details["excludedBuildings"].append({"osmWayId":element["id"],"reason":"no wall wide enough for a window bay"})
     for element, polygon in footprints:
         tags = element["tags"]
         if road_conflict(polygon) or any(base.polygons_overlap(polygon,p) for p in pit_reservations):
             omitted_road += 1
+            continue
+        if element["id"] in landmarks.HOTELS:
+            ground = min(raster.sample(*p) for p in polygon)-origin_z
+            hotel_details.append(landmarks.build_hotel(hotel_geometry, base, element, polygon, center, ground))
+            facade_details["excludedBuildings"].append({"osmWayId":element["id"], "reason":"individual photo-referenced hotel facade"})
+            building_count += 1
+            tagged_heights += 1
             continue
         try:
             height = float(tags["height"].replace(" m", "")) if "height" in tags else float(tags["building:levels"])*3.2
@@ -378,9 +384,19 @@ def main():
         shade = ((element["id"]*17)%19)/100
         wall = tuple(linear_rgb(v) for v in (.55+shade,.49+shade,.39+shade))+(1,)
         roof = (.43+shade,.41+shade,.37+shade,1)
-        if base.add_polygon_prism(city,[polygon],center,ground,top,roof_color=roof,wall_color=wall,roof_quality=roof_quality):
+        first_face=len(city.faces)
+        rings = [polygon] + [[source.utm39n(p["lat"], p["lon"]) for p in ring] for ring in element.get("innerRings", [])]
+        if len(rings)>1:
+            for i,ring in enumerate(rings):
+                area=sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(ring,ring[1:]))
+                if (area>0)!=(i==0): ring.reverse()
+        if base.add_polygon_prism(city,rings,center,ground,top,roof_color=roof,wall_color=wall,roof_quality=roof_quality):
             building_count += 1
-            add_street_windows(element,polygon,ground,top,wall)
+            add_building_windows(element,first_face,ground,top)
+            if element["type"]=="relation":
+                restored_relations.append({"osmRelationId":element["id"], "name":tags.get("name:ru",tags.get("name")),
+                    "courtyards":len(rings)-1, "heightMeters":round(top-ground,3),
+                    "localRings":[[list(base.local_xy(p,center)) for p in ring] for ring in rings]})
         if element["id"] == 153876715:
             a,b=polygon[2],polygon[3]
             dx,dy=b[0]-a[0],b[1]-a[1]
@@ -398,23 +414,67 @@ def main():
                 b=base.local_xy((b[0]+dy/length*.04,b[1]-dx/length*.04),center)
                 facade_quad([(*a,ground),(*b,ground),(*b,top),(*a,top)],
                             [(1537/1792,.001),(.999,.001),(.999,.999),(1537/1792,.999)])
-    city_object = city.create_object("Baku_OSM_Permanent_Buildings", [city_mat], collections["Buildings"], vertex_colors=True)
+    # OSM building parts sometimes share a facade with the parent footprint.
+    # Identical world-space bays and colours on overlapping planes prevent
+    # two different window patterns from fighting over the same pixels.
+    facade_details["sharedFacadePlanesAligned"]=0
+    for records in facade_planes.values():
+        if len({record[0] for record in records})<2: continue
+        tangent=records[0][4]
+        def along(p): return p[0]*tangent[0]+p[1]*tangent[1]
+        if not any(a[0]!=b[0] and min(along(a[3]),along(b[3]))-max(along(a[2]),along(b[2]))>.1
+                   for i,a in enumerate(records) for b in records[:i]): continue
+        facade_details["sharedFacadePlanesAligned"]+=1
+    city_object = city.create_object("Baku_OSM_Permanent_Buildings", [city_mat,aerial,window_material], collections["Buildings"], vertex_colors=True)
     city_object.data.validate(clean_customdata=False)
     city_object.data.update()
     # The roof receives the pixels at this building's actual geographic location.
     # Reuse the ground image datablock: no duplicated satellite texture in the GLB.
-    city_object.data.materials.append(aerial)
     roof_uv = city_object.data.uv_layers.new(name="Baku_Roof_Orthophoto_UV")
     textured_roof_faces = 0
     for polygon in city_object.data.polygons:
         if polygon.normal.z > .9:
             polygon.material_index=1
             textured_roof_faces += 1
+        points=[city_object.data.vertices[i].co for i in polygon.vertices]
+        axis=0 if max(p.x for p in points)-min(p.x for p in points)>=max(p.y for p in points)-min(p.y for p in points) else 1
         for loop_index in polygon.loop_indices:
             vertex=city_object.data.vertices[city_object.data.loops[loop_index].vertex_index].co
+            if polygon.material_index==2:
+                # Derive UVs after validate(), which removes duplicate OSM
+                # faces and changes polygon indices. World coordinates also
+                # keep nearly coincident parent/part facades aligned.
+                # Half-texel precision is sufficient for the 128 px bay and
+                # compresses shared-facade coordinates without visible drift.
+                roof_uv.data[loop_index].uv=tuple(round(value*256)/256 for value in (vertex[axis]/3.4,vertex.z/3.2))
+                continue
             roof_uv.data[loop_index].uv=(((vertex.x+center["x"]-bounds["minX"])/(bounds["maxX"]-bounds["minX"]),
                                           (vertex.y+center["y"]-bounds["minY"])/(bounds["maxY"]-bounds["minY"]))
                                          if polygon.material_index==1 else (0,0))
+    # Blender 5.2's exporter drops the colour attribute on the second material
+    # that uses the same vertex colours. Split the facade into one mesh/material;
+    # the number of rendered primitives stays unchanged.
+    window_mesh=city_object.data.copy()
+    for mesh,keep_windows in ((window_mesh,True),(city_object.data,False)):
+        editable=bmesh.new()
+        editable.from_mesh(mesh)
+        bmesh.ops.delete(editable,geom=[face for face in editable.faces if (face.material_index==2)!=keep_windows],context="FACES")
+        editable.to_mesh(mesh)
+        editable.free()
+    window_object=bpy.data.objects.new("Baku_Window_Facades",window_mesh)
+    collections["Buildings"].objects.link(window_object)
+    window_mesh.name="Baku_Window_Facades_Mesh"
+    window_object.data.materials.clear()
+    window_object.data.materials.append(window_material)
+    for polygon in window_object.data.polygons: polygon.material_index=0
+    # Share the existing city material and draw call. Keep these architectural
+    # roof colours separate from the geographic UV assignment above.
+    hotels_object=hotel_geometry.create_object("Baku_Individual_Hotels",[city_mat],collections["Buildings"],vertex_colors=True)
+    bpy.ops.object.select_all(action="DESELECT")
+    city_object.select_set(True)
+    hotels_object.select_set(True)
+    bpy.context.view_layer.objects.active=city_object
+    bpy.ops.object.join()
     facade_mesh=bpy.data.meshes.new("Baku_Actual_Landmark_Facades_Mesh")
     facade_mesh.from_pydata(facade_vertices,[],facade_faces)
     facade_mesh.materials.append(facade_material)
@@ -430,17 +490,92 @@ def main():
     wall_segments = 0
     trees = base.MeshBuilder()
     tree_count = 0
+    landscape={"treeRowTrees":0,"areaTrees":0,"shrubs":0,"plantingBorders":0,
+               "areas":[],"placements":[],
+               "accuracy":"OSM tree points/rows and planted areas; park infill constrained by green vegetation in Planet 2018 imagery. Spacing, crowns and heights approximate. Paths and water excluded."}
+    planted={}
+    obstacle_cells={}
+    def index_polygon(polygon):
+        box=(min(p[0] for p in polygon),min(p[1] for p in polygon),max(p[0] for p in polygon),max(p[1] for p in polygon))
+        for gx in range(math.floor(box[0]/64),math.floor(box[2]/64)+1):
+            for gy in range(math.floor(box[1]/64),math.floor(box[3]/64)+1):
+                obstacle_cells.setdefault((gx,gy),[]).append((box,polygon))
+    for _,polygon in footprints: index_polygon(polygon)
+    for polygon in pit_reservations+base.grandstand_reservation_polygons(stand_config,line,cumulative): index_polygon(polygon)
+    mapped_ways=[]
+    path_points=[]
+    for element in osm["elements"]:
+        if element["type"]!="way": continue
+        tags=element.get("tags",{})
+        polygon=[source.utm39n(p["lat"],p["lon"]) for p in element["geometry"]]
+        mapped_ways.append((element,polygon))
+        if tags.get("natural")=="water" and len(polygon)>3 and polygon[0]==polygon[-1]: index_polygon(polygon)
+        if "highway" not in tags: continue
+        road_type=tags["highway"]
+        default_width=2 if road_type in ("footway","path","steps","cycleway") else 5 if road_type in ("service","pedestrian") else 9
+        try: width=float(tags.get("width",default_width))
+        except ValueError: width=default_width
+        for a,b in zip(polygon,polygon[1:]):
+            count=max(1,math.ceil(math.dist(a,b)/3))
+            for i in range(count):
+                t=i/count
+                path_points.append((a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,width/2))
+    path_tree=kdtree.KDTree(len(path_points))
+    for i,(x,y,_) in enumerate(path_points): path_tree.insert((x,y,0),i)
+    path_tree.balance()
+    def segment_distance(p,a,b):
+        dx,dy=b[0]-a[0],b[1]-a[1]
+        t=max(0,min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/max(dx*dx+dy*dy,1e-9)))
+        return math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy)
+    def planting_clear(x,y,radius):
+        if not(bounds["minX"]+radius<x<bounds["maxX"]-radius and bounds["minY"]+radius<y<bounds["maxY"]-radius): return False
+        _,i,distance=tree.find((x,y,0))
+        if distance<track_width(samples[i][0])/2+radius+2: return False
+        for _,i,distance in path_tree.find_range((x,y,0),radius+14):
+            if distance<path_points[i][2]+radius+1.5: return False
+        for gx in range(math.floor((x-radius)/64),math.floor((x+radius)/64)+1):
+            for gy in range(math.floor((y-radius)/64),math.floor((y+radius)/64)+1):
+                for box,polygon in obstacle_cells.get((gx,gy),[]):
+                    if not(box[0]-radius<=x<=box[2]+radius and box[1]-radius<=y<=box[3]+radius): continue
+                    if base.point_in_polygon((x,y),polygon) or any(segment_distance((x,y),a,b)<radius for a,b in zip(polygon,polygon[1:])): return False
+        for gx in range(math.floor((x-radius-4)/8),math.floor((x+radius+4)/8)+1):
+            for gy in range(math.floor((y-radius-4)/8),math.floor((y+radius+4)/8)+1):
+                if any(math.hypot(x-px,y-py)<radius+pr+.6 for px,py,pr in planted.get((gx,gy),[])): return False
+        return True
+    def crown(x,y,z,radius,height,color,phase=0):
+        sides=6
+        rings=[]
+        for fraction,scale in ((.22,.78),(.65,1)):
+            rings.append([(x+math.cos(phase+i*math.tau/sides)*radius*scale,
+                           y+math.sin(phase+i*math.tau/sides)*radius*scale,z+height*fraction) for i in range(sides)])
+        for i in range(sides):
+            following=(i+1)%sides
+            shade=tuple(c*(.86+.14*(i%3)/2) for c in color[:3])+(1,)
+            trees.add_triangle(((x,y,z),rings[0][following],rings[0][i]),color=shade)
+            trees.add_quad((rings[0][i],rings[0][following],rings[1][following],rings[1][i]),color=shade)
+            trees.add_triangle((rings[1][i],rings[1][following],(x,y,z+height)),color=color)
+    def plant(x,y,seed,source_id,kind,shrub=False):
+        rng=random.Random(seed)
+        radius=rng.uniform(.65,1.05) if shrub else rng.uniform(1.8,2.6)
+        if not planting_clear(x,y,radius): return False
+        lx,ly=base.local_xy((x,y),center)
+        z=raster.sample_rendered_terrain(x,y)-origin_z
+        if shrub:
+            crown(lx,ly,z,radius,rng.uniform(.7,1.25),(.10,.18,.055,1),rng.random())
+            landscape["shrubs"]+=1
+        else:
+            trunk=rng.uniform(2.5,3.5)
+            trees.add_cylinder((lx,ly,z-.04),.17,trunk+1,sides=4,color=(.12,.085,.04,1))
+            crown(lx,ly,z+trunk-.6,radius,rng.uniform(3.2,4.8),(.12+rng.random()*.045,.23+rng.random()*.07,.065,1),rng.random())
+        planted.setdefault((math.floor(x/8),math.floor(y/8)),[]).append((x,y,radius))
+        landscape["placements"].append({"sourceId":source_id,"kind":kind,"x":round(x,3),"y":round(y,3),"radius":round(radius,3)})
+        return True
     for element in osm["elements"]:
         tags = element.get("tags", {})
         if element["type"] == "node" and tags.get("natural") == "tree":
             x,y = source.utm39n(element["lat"],element["lon"])
-            if not(bounds["minX"]<x<bounds["maxX"] and bounds["minY"]<y<bounds["maxY"]): continue
-            if tree.find((x,y,0))[2] < 10: continue
-            lx,ly = base.local_xy((x,y),center)
-            z = raster.sample(x,y)-origin_z
-            trees.add_cylinder((lx,ly,z),.25,3.5,sides=5,color=(.23,.18,.10,1))
-            trees.add_cylinder((lx,ly,z+3),2.1,3.5,sides=7,color=(.19,.28,.12,1))
-            tree_count += 1
+            if plant(x,y,element["id"],element["id"],"mapped-tree"):
+                tree_count += 1
         elif element["type"] == "way" and (tags.get("historic") in ("citywalls","city_wall") or tags.get("barrier")=="city_wall"):
             points = [source.utm39n(p["lat"],p["lon"]) for p in element["geometry"]]
             for a,b in zip(points,points[1:]):
@@ -451,8 +586,84 @@ def main():
                 z = raster.sample(*midpoint)-origin_z
                 walls.add_box((lx,ly,z+4.5),(math.dist(a,b),2,9),color=(.58,.49,.34,1),rotation=math.atan2(b[1]-a[1],b[0]-a[0]))
                 wall_segments += 1
+    # Complete tree rows using mapped lines, then populate mapped planted areas.
+    # Park outlines do not imply that their paths, squares or fountains are woodland.
+    for element,polygon in mapped_ways:
+        if element.get("tags",{}).get("natural")!="tree_row": continue
+        cumulative_row,row_length=base.line_distance(polygon)
+        count=max(1,round(row_length/9))
+        for i in range(count+1):
+            x,y=base.sample_polyline(polygon,cumulative_row,row_length*i/count,closed=False)
+            if plant(x,y,element["id"]*101+i,element["id"],"tree-row"):
+                landscape["treeRowTrees"]+=1
+    planting_areas=[]
+    aerial_image=next(node.image for node in aerial.node_tree.nodes if node.type=="TEX_IMAGE")
+    aerial_pixels=list(aerial_image.pixels)
+    image_width,image_height=aerial_image.size
+    def pictured_vegetation(x,y):
+        column=int((x-bounds["minX"])/(bounds["maxX"]-bounds["minX"])*image_width)
+        row=int((y-bounds["minY"])/(bounds["maxY"]-bounds["minY"])*image_height)
+        green_samples=0
+        for dx,dy in ((0,0),(-1,0),(1,0),(0,-1),(0,1)):
+            col,rr=max(0,min(image_width-1,column+dx)),max(0,min(image_height-1,row+dy))
+            r,g,b=aerial_pixels[(rr*image_width+col)*4:(rr*image_width+col)*4+3]
+            green_samples+=g>r*1.025 and g>b*1.08 and g<.72
+        return green_samples>=3
+    for element,polygon in mapped_ways:
+        tags=element.get("tags",{})
+        if len(polygon)<4 or polygon[0]!=polygon[-1]: continue
+        if not (tags.get("landuse") in ("grass","forest") or tags.get("natural") in ("wood","scrub") or tags.get("leisure") in ("garden","park")): continue
+        if not any(bounds["minX"]<x<bounds["maxX"] and bounds["minY"]<y<bounds["maxY"] for x,y in polygon): continue
+        planting_areas.append((element,polygon))
+    planting_areas.sort(key=lambda item: min(tree.find((*p,0))[2] for p in item[1]))
+    for element,polygon in planting_areas:
+        tags=element["tags"]
+        wooded=tags.get("natural")=="wood" or tags.get("landuse")=="forest"
+        park=tags.get("leisure") in ("park","garden")
+        before=len(landscape["placements"])
+        spacing=13 if wooded or park else 18
+        min_x,max_x=max(bounds["minX"],min(p[0] for p in polygon)),min(bounds["maxX"],max(p[0] for p in polygon))
+        min_y,max_y=max(bounds["minY"],min(p[1] for p in polygon)),min(bounds["maxY"],max(p[1] for p in polygon))
+        rng=random.Random(element["id"])
+        for ix in range(math.floor(min_x/spacing),math.ceil(max_x/spacing)):
+            for iy in range(math.floor(min_y/spacing),math.ceil(max_y/spacing)):
+                x,y=(ix+.5+rng.uniform(-.18,.18))*spacing,(iy+.5+rng.uniform(-.18,.18))*spacing
+                if not base.point_in_polygon((x,y),polygon): continue
+                if min(segment_distance((x,y),a,b) for a,b in zip(polygon,polygon[1:]))<3: continue
+                tall=wooded or park
+                if park and not pictured_vegetation(x,y): continue
+                if landscape["areaTrees"]>=700 and tall: continue
+                if landscape["shrubs"]>=550 and not tall: continue
+                if plant(x,y,element["id"]*173+ix*19+iy,element["id"],"woodland" if wooded else "park-imagery" if park else "planted-bed",shrub=not tall):
+                    if tall: landscape["areaTrees"]+=1
+        # A low border along the actual small lawn footprint gives planted beds
+        # depth without replacing the aerial ground image or inventing new hills.
+        area=abs(sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(polygon,polygon[1:])))/2
+        if tags.get("landuse")=="grass" and 15<area<1800:
+            for a,b in zip(polygon,polygon[1:]):
+                length=math.dist(a,b)
+                count=max(1,math.ceil(length/5))
+                for i in range(count):
+                    p=tuple(a[k]+(b[k]-a[k])*i/count for k in range(2))
+                    q=tuple(a[k]+(b[k]-a[k])*(i+1)/count for k in range(2))
+                    if not all(planting_clear(x,y,.15) for x,y in (p,q,((p[0]+q[0])/2,(p[1]+q[1])/2))): continue
+                    px,py=base.local_xy(p,center)
+                    qx,qy=base.local_xy(q,center)
+                    pz=raster.sample_rendered_terrain(*p)-origin_z+.02
+                    qz=raster.sample_rendered_terrain(*q)-origin_z+.02
+                    trees.add_quad(((px,py,pz),(qx,qy,qz),(qx,qy,qz+.22),(px,py,pz+.22)),color=(.29,.29,.24,1))
+                    landscape["plantingBorders"]+=1
+        if len(landscape["placements"])>before:
+            landscape["areas"].append({"osmWayId":element["id"],"tags":tags,"plants":len(landscape["placements"])-before})
+    landscape["mappedPointTrees"]=tree_count
+    tree_count += landscape["treeRowTrees"]+landscape["areaTrees"]
+    planted={}
+    landscape["placementConflicts"]=sum(not planting_clear(p["x"],p["y"],p["radius"]) for p in landscape["placements"])
+    if landscape["placementConflicts"]: raise ValueError("Baku planting overlaps a road, path, water or reserved footprint")
     if wall_segments: walls.create_object("Baku_Mapped_Old_City_Walls",[city_mat],collections["Buildings"],vertex_colors=True)
-    if tree_count: trees.create_object("Baku_Mapped_Trees",[green],collections["Buildings"],vertex_colors=True)
+    if tree_count:
+        tree_object=trees.create_object("Baku_Mapped_Trees",[green],collections["Buildings"],vertex_colors=True)
+        tree_object.data.validate(clean_customdata=False)
 
     # Road-edge safety wall modules, with open pit entry and exit.
     fence_segments = 0
@@ -569,18 +780,21 @@ def main():
         "accuracy":{**config["accuracy"],"roadProfile":"Street grades regularised from lower-decile GEDTM heights; coastal straight flattened; approximate, not surveyed."},"sourceManifest":config["sourceManifest"],
         "buildingTextures":{"roofFaces":textured_roof_faces,"roofSource":"georegistered Planet SkySat 2018-04-09",
                             "facadeDetails":facade_details,
+                            "individualHotels":hotel_details,
+                            "hotelReferences":base.load_json(HERE.parents[1]/"docs/track-model-baku-hotels.json"),
                             "facadeSources":base.load_json(HERE.parents[1]/"docs/track-model-baku-building-textures.json")},
         "assetLicense":"CC BY-SA 4.0; OSM database ODbL; see /f1/ATTRIBUTION.md",
         "boundsMeters":{"width":2470,"depth":1600},"baseElevationMeters":origin_z,
         "lapLength":{"geometryMeters":round(total,3),"officialFiaMeters":6003,"relativeErrorPercent":round(abs(total-6003)/6003*100,4)},
         "finishDistanceMeters":finish,"raceStartDistanceMeters":start,"sectorBoundaryDistancesMeters":sectors,
         "elevationsMeters":{"low":low[0],"high":high[0]},"elevationProfile":profile,
+        "landscape":landscape,
         "objects":{"buildingsTotal":building_count,"buildingsWithTaggedHeightsOrLevels":tagged_heights,
                    "grandstandSections":stand_count,"pitGarageBoxes":44,"turnAnchors":20,
                    "mappedTrees":tree_count,"historicWallSegments":wall_segments,"fenceSegments":fence_segments},
         "layoutQuality":{"surfaceClearance":base.measure_ribbon_terrain_clearance(samples,raster,origin_z),
                          "streetProfile":street_quality,
-                         "grandstands":stand_quality,"buildings":{**roof_quality,"omittedRoadOrPitConflicts":omitted_road},
+                         "grandstands":stand_quality,"buildings":{**roof_quality,"omittedRoadOrPitConflicts":omitted_road,"restoredRelations":restored_relations},
                          "curbs":{"segments":curb_segments},"pitLane":{"pitWall":wall_quality,
                          "entrySourceGapMeters":math.dist(pit[0],source_pit[0]),"exitSourceGapMeters":math.dist(pit[-1],source_pit[-1]),
                          "workingSideExpansionMeters":2,"roadBarrierSegmentsOmittedAtPitOpenings":pit_opening_omissions}},

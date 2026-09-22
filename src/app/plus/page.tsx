@@ -90,7 +90,7 @@ export default async function PlusPage({
                 Важное по выбранным событиям
               </Feature>
               <Feature icon={Rocket} title="Больше возможностей">
-                Регулярно расширяем возможности сайта
+                Ранний доступ к новым функциям
               </Feature>
             </div>
 

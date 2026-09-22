@@ -5,6 +5,7 @@ import math
 from pathlib import Path
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 
 
 SPEC = importlib.util.spec_from_file_location(
@@ -59,6 +60,28 @@ class BakuSourceTests(unittest.TestCase):
         self.assertGreater(report["pitLaneLengthMeters"], 500)
         self.assertFalse(report["publicationReady"])
         self.assertIsNone(report["verticalDatum"])
+
+    def test_finish_straight_building_preserves_both_courtyards(self):
+        path = baku.ROOT / ".track-model-build/baku-source/openstreetmap-map.osm"
+        if not path.exists():
+            self.skipTest("Download the pinned Baku source snapshot")
+        element = baku.extract_building_relation(ET.parse(path).getroot(), 2249851)
+        self.assertEqual(element["type"], "relation")
+        self.assertEqual(element["tags"]["building:levels"], "5")
+        self.assertEqual(len(element["innerRings"]), 2)
+        for ring in [element["geometry"], *element["innerRings"]]:
+            self.assertEqual(ring[0], ring[-1])
+            self.assertEqual(len(ring), 5)
+        outer = element["geometry"]
+        for hole in element["innerRings"]:
+            for point in hole:
+                self.assertTrue(min(p["lon"] for p in outer) < point["lon"] < max(p["lon"] for p in outer))
+                self.assertTrue(min(p["lat"] for p in outer) < point["lat"] < max(p["lat"] for p in outer))
+
+    def test_incomplete_courtyard_is_not_silently_filled(self):
+        root = ET.fromstring('<osm><relation id="42"><member type="way" ref="999" role="inner"/></relation></osm>')
+        with self.assertRaisesRegex(ValueError, "Incomplete building relation"):
+            baku.extract_building_relation(root, 42)
 
 
 if __name__ == "__main__":

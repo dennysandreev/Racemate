@@ -1,0 +1,565 @@
+{
+  "schemaVersion": 1,
+  "coordinateReferenceSystem": "EPSG:32632",
+  "sources": [
+    "fia-media-kit-2026.pdf: PDF page 13, ACM plan dated 27 May 2026",
+    "acm-hospitality-2026.pdf: PDF page 2"
+  ],
+  "method": "ACM event footprints registered to government orthophoto using pool, quays and street edges; front edge first. Heights reconstructed from visible stepped rows, not a structure survey.",
+  "planPositionUncertaintyMeters": 5,
+  "structureHeightUncertaintyMeters": 2,
+  "grandstands": [
+    {
+      "name": "A",
+      "group": "A",
+      "footprint": [
+        [
+          372914.647,
+          4843829.6
+        ],
+        [
+          372930.341,
+          4843841.368
+        ],
+        [
+          372922.494,
+          4843850.194
+        ],
+        [
+          372907.781,
+          4843834.503
+        ]
+      ],
+      "rows": 8,
+      "heightMeters": 4.2,
+      "covered": false
+    },
+    {
+      "name": "K1",
+      "group": "K",
+      "footprint": [
+        [
+          372909.742,
+          4843823.716
+        ],
+        [
+          372901.895,
+          4843798.219
+        ],
+        [
+          372883.259,
+          4843804.103
+        ],
+        [
+          372892.086,
+          4843830.581
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": false
+    },
+    {
+      "name": "K2",
+      "group": "K",
+      "footprint": [
+        [
+          372901.895,
+          4843796.258
+        ],
+        [
+          372895.029,
+          4843770.761
+        ],
+        [
+          372880.373,
+          4843773.703
+        ],
+        [
+          372886.259,
+          4843801.161
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": false
+    },
+    {
+      "name": "K3",
+      "group": "K",
+      "footprint": [
+        [
+          372895.029,
+          4843767.819
+        ],
+        [
+          372892.086,
+          4843745.265
+        ],
+        [
+          372877.431,
+          4843746.245
+        ],
+        [
+          372880.373,
+          4843770.761
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": false
+    },
+    {
+      "name": "K4",
+      "group": "K",
+      "footprint": [
+        [
+          372892.086,
+          4843742.323
+        ],
+        [
+          372890.125,
+          4843722.71
+        ],
+        [
+          372875.469,
+          4843722.71
+        ],
+        [
+          372877.431,
+          4843743.303
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": false
+    },
+    {
+      "name": "K5",
+      "group": "K",
+      "footprint": [
+        [
+          372890.125,
+          4843719.768
+        ],
+        [
+          372890.125,
+          4843704.077
+        ],
+        [
+          372872.469,
+          4843704.077
+        ],
+        [
+          372872.469,
+          4843719.768
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": false
+    },
+    {
+      "name": "K6",
+      "group": "K",
+      "footprint": [
+        [
+          372894.048,
+          4843700.155
+        ],
+        [
+          372898.953,
+          4843685.445
+        ],
+        [
+          372877.373,
+          4843680.542
+        ],
+        [
+          372872.469,
+          4843699.174
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": false
+    },
+    {
+      "name": "B",
+      "group": "B",
+      "footprint": [
+        [
+          373332.387,
+          4844142.484
+        ],
+        [
+          373353.967,
+          4844173.865
+        ],
+        [
+          373340.234,
+          4844182.69
+        ],
+        [
+          373318.655,
+          4844151.31
+        ]
+      ],
+      "rows": 10,
+      "heightMeters": 5.2,
+      "covered": false
+    },
+    {
+      "name": "E",
+      "group": "E",
+      "footprint": [
+        [
+          372918.57,
+          4843650.142
+        ],
+        [
+          372913.666,
+          4843666.813
+        ],
+        [
+          372902.876,
+          4843663.871
+        ],
+        [
+          372907.781,
+          4843647.2
+        ]
+      ],
+      "rows": 8,
+      "heightMeters": 4.2,
+      "covered": false
+    },
+    {
+      "name": "L",
+      "group": "L",
+      "footprint": [
+        [
+          372944.073,
+          4843556.981
+        ],
+        [
+          372920.532,
+          4843553.058
+        ],
+        [
+          372918.57,
+          4843564.826
+        ],
+        [
+          372942.111,
+          4843569.729
+        ]
+      ],
+      "rows": 12,
+      "heightMeters": 6.3,
+      "covered": true
+    },
+    {
+      "name": "N",
+      "group": "N",
+      "footprint": [
+        [
+          372966.633,
+          4843663.871
+        ],
+        [
+          372974.48,
+          4843615.819
+        ],
+        [
+          372997.041,
+          4843619.742
+        ],
+        [
+          372989.194,
+          4843667.794
+        ]
+      ],
+      "rows": 16,
+      "heightMeters": 8.3,
+      "covered": false
+    },
+    {
+      "name": "O",
+      "group": "O",
+      "footprint": [
+        [
+          372976.442,
+          4843610.916
+        ],
+        [
+          372979.385,
+          4843591.303
+        ],
+        [
+          373001.945,
+          4843595.226
+        ],
+        [
+          372999.002,
+          4843614.839
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": false
+    },
+    {
+      "name": "P",
+      "group": "P",
+      "footprint": [
+        [
+          372982.328,
+          4843586.4
+        ],
+        [
+          372990.175,
+          4843538.348
+        ],
+        [
+          373012.735,
+          4843542.271
+        ],
+        [
+          373004.888,
+          4843590.323
+        ]
+      ],
+      "rows": 16,
+      "heightMeters": 8.3,
+      "covered": false
+    },
+    {
+      "name": "T1",
+      "group": "T",
+      "footprint": [
+        [
+          372951.249,
+          4843492.142
+        ],
+        [
+          372967.387,
+          4843468.089
+        ],
+        [
+          372985.524,
+          4843479.509
+        ],
+        [
+          372969.978,
+          4843504.363
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": true
+    },
+    {
+      "name": "T2",
+      "group": "T",
+      "footprint": [
+        [
+          372969.354,
+          4843464.195
+        ],
+        [
+          372991.398,
+          4843433.382
+        ],
+        [
+          373007.368,
+          4843445.149
+        ],
+        [
+          372986.112,
+          4843475.388
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": true
+    },
+    {
+      "name": "T3",
+      "group": "T",
+      "footprint": [
+        [
+          372994.745,
+          4843429.716
+        ],
+        [
+          373002.026,
+          4843418.262
+        ],
+        [
+          373016.621,
+          4843434.722
+        ],
+        [
+          373011.307,
+          4843442.282
+        ]
+      ],
+      "rows": 14,
+      "heightMeters": 7.1,
+      "covered": true
+    },
+    {
+      "name": "X1",
+      "group": "X",
+      "footprint": [
+        [
+          372925.436,
+          4843404.0
+        ],
+        [
+          372905.819,
+          4843436.361
+        ],
+        [
+          372898.953,
+          4843432.439
+        ],
+        [
+          372918.57,
+          4843400.077
+        ]
+      ],
+      "rows": 6,
+      "heightMeters": 3.2,
+      "covered": false
+    },
+    {
+      "name": "X2",
+      "group": "X",
+      "footprint": [
+        [
+          372903.857,
+          4843439.303
+        ],
+        [
+          372889.144,
+          4843468.723
+        ],
+        [
+          372882.278,
+          4843464.8
+        ],
+        [
+          372896.991,
+          4843435.381
+        ]
+      ],
+      "rows": 6,
+      "heightMeters": 3.2,
+      "covered": false
+    },
+    {
+      "name": "V",
+      "group": "V",
+      "footprint": [
+        [
+          372987.232,
+          4843344.181
+        ],
+        [
+          373024.505,
+          4843351.045
+        ],
+        [
+          373026.467,
+          4843341.239
+        ],
+        [
+          372989.194,
+          4843334.374
+        ]
+      ],
+      "rows": 8,
+      "heightMeters": 4.2,
+      "covered": false
+    }
+  ],
+  "pitGarages": {
+    "source": "FIA media kit PDF page 31: 15 x 10.2 m type 1 garages, 17 m pitch, service opening at Piscine",
+    "widthMeters": 15,
+    "depthMeters": 10.2,
+    "heightMeters": 9.3,
+    "heightMethod": "Three storeys confirmed by Audi's 2026 event account; 3.1 m per storey is an estimate, not a surveyed roof elevation",
+    "heightSource": "https://www.audif1.com/en/news/2026/the-race-between-races",
+    "side": 1,
+    "teams": [
+      {
+        "team": "McLaren",
+        "distanceMeters": 82
+      },
+      {
+        "team": "Mercedes",
+        "distanceMeters": 99
+      },
+      {
+        "team": "Red Bull Racing",
+        "distanceMeters": 116
+      },
+      {
+        "team": "Ferrari",
+        "distanceMeters": 133
+      },
+      {
+        "team": "Williams",
+        "distanceMeters": 150
+      },
+      {
+        "team": "Racing Bulls",
+        "distanceMeters": 167
+      },
+      {
+        "team": "Aston Martin",
+        "distanceMeters": 184
+      },
+      {
+        "team": "Haas",
+        "distanceMeters": 214
+      },
+      {
+        "team": "Audi",
+        "distanceMeters": 235
+      },
+      {
+        "team": "Alpine",
+        "distanceMeters": 256
+      },
+      {
+        "team": "Cadillac",
+        "distanceMeters": 277
+      }
+    ]
+  },
+  "paddock": {
+    "footprint": [
+      [
+        373052.951,
+        4843391.252
+      ],
+      [
+        373403.126,
+        4843466.761
+      ],
+      [
+        373410.973,
+        4843437.342
+      ],
+      [
+        373058.836,
+        4843361.832
+      ]
+    ],
+    "source": "ACM 2026 paddock zone on Quai Antoine Ier; exact individual team footprints are not published in the retrieved event plans",
+    "individualMotorhomesVerified": false
+  }
+}

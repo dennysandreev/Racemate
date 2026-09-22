@@ -18,13 +18,16 @@ import {
 } from "lucide-react";
 import { TrackOrientationSphere } from "@/components/racemate/track-orientation-sphere";
 import {
+  clampTrackModelPan,
   normalizeDegrees,
   orbitTrackModelCamera,
   pinchTrackModelCamera,
+  preserveTrackModelOrbitFocus,
   TRACK_MODEL_MIN_ZOOM,
   TRACK_MODEL_MAX_ZOOM,
   TRACK_MODEL_ZOOM_STEP,
   type TrackModelCameraState,
+  zoomTrackModelAtPoint,
 } from "@/lib/track-model-camera";
 import { buildMarshalSectorPath } from "../lib/track-sectors";
 const Track3D = dynamic(
@@ -261,19 +264,29 @@ function Animated3D({
   onSelect: (n: number) => void;
 }) {
   const store = useLiveStore();
-  const [camera, setCamera] = useState({
+  type LiveCameraState = {
+    zoom: number;
+    rotation: number;
+    tilt: number;
+    pan: { x: number; y: number };
+  };
+  const initialCamera: LiveCameraState = {
     zoom: 1,
     rotation: 0,
     tilt: 48,
     pan: { x: 0, y: 0 },
-  });
+  };
+  const [camera, setCamera] = useState(initialCamera);
   const [follow, setFollow] = useState(false);
   const stage = useRef<HTMLDivElement>(null);
   const drag = useRef<{
+    mode: "orbit" | "pan";
     pointerId: number;
-    x: number;
-    y: number;
-    camera: typeof camera;
+    startPan: LiveCameraState["pan"];
+    startRotation: number;
+    startTilt: number;
+    startX: number;
+    startY: number;
   } | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{
@@ -284,42 +297,79 @@ function Animated3D({
   } | null>(null);
   const cameraRef = useRef(camera);
   const moved = useRef(false);
-  useEffect(() => {
-    cameraRef.current = camera;
-  }, [camera]);
-  const zoomBy = (amount: number) =>
-    setCamera((c) => ({
-      ...c,
-      zoom: Math.min(
+  const applyCamera = useCallback((next: LiveCameraState) => {
+    cameraRef.current = next;
+    setCamera(next);
+  }, []);
+  const zoomTo = useCallback(
+    (requestedZoom: number, focalPoint = { x: 0, y: 0 }) => {
+      const current = cameraRef.current;
+      const nextZoom = Math.min(
         TRACK_MODEL_MAX_ZOOM,
-        Math.max(TRACK_MODEL_MIN_ZOOM, c.zoom + amount),
-      ),
-    }));
+        Math.max(TRACK_MODEL_MIN_ZOOM, requestedZoom),
+      );
+      if (nextZoom === current.zoom) return;
+      const zoomed = zoomTrackModelAtPoint(current, nextZoom, focalPoint);
+      applyCamera({ ...current, pan: zoomed.pan, zoom: zoomed.zoom });
+    },
+    [applyCamera],
+  );
+  const zoomBy = useCallback(
+    (amount: number) => zoomTo(cameraRef.current.zoom + amount),
+    [zoomTo],
+  );
+  const setOrbit = useCallback(
+    (rotation: number, tilt: number) => {
+      const current = cameraRef.current;
+      const bounds = stage.current?.getBoundingClientRect();
+      const pan = preserveTrackModelOrbitFocus({
+        nextRotationDeg: rotation,
+        nextTiltDeg: tilt,
+        pan: current.pan,
+        startRotationDeg: current.rotation,
+        startTiltDeg: current.tilt,
+        viewportAspectRatio: bounds ? bounds.width / bounds.height : 1,
+        zoom: current.zoom,
+      });
+      applyCamera({ ...current, pan, rotation, tilt });
+    },
+    [applyCamera],
+  );
   useEffect(() => {
     const node = stage.current;
     if (!node) return;
     const wheel = (e: WheelEvent) => {
+      if (e.deltaY === 0) return;
       e.preventDefault();
-      setCamera((c) => ({
-        ...c,
-        zoom: Math.max(
-          TRACK_MODEL_MIN_ZOOM,
-          Math.min(TRACK_MODEL_MAX_ZOOM, c.zoom * Math.exp(-e.deltaY * 0.0015)),
-        ),
-      }));
+      const bounds = node.getBoundingClientRect();
+      const deltaUnit =
+        e.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? 16
+          : e.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? bounds.height
+            : 1;
+      zoomTo(cameraRef.current.zoom * Math.exp(-e.deltaY * deltaUnit * 0.0015), {
+        x: (e.clientX - bounds.left) / bounds.width - 0.5,
+        y: (e.clientY - bounds.top) / bounds.height - 0.5,
+      });
     };
     node.addEventListener("wheel", wheel, { passive: false });
     return () => node.removeEventListener("wheel", wheel);
-  }, []);
-  const beginOrbit = (
+  }, [zoomTo]);
+  const beginDrag = (
     pointerId: number,
     pointer: { x: number; y: number },
+    mode: "orbit" | "pan",
   ) => {
+    const current = cameraRef.current;
     drag.current = {
+      mode,
       pointerId,
-      x: pointer.x,
-      y: pointer.y,
-      camera: cameraRef.current,
+      startPan: current.pan,
+      startRotation: current.rotation,
+      startTilt: current.tilt,
+      startX: pointer.x,
+      startY: pointer.y,
     };
   };
   const endPointer = (pointerId: number, element: HTMLDivElement) => {
@@ -332,7 +382,7 @@ function Animated3D({
     if (pointers.current.size === 1) {
       const [remainingId, remainingPointer] = pointers.current.entries().next()
         .value as [number, { x: number; y: number }];
-      beginOrbit(remainingId, remainingPointer);
+      beginDrag(remainingId, remainingPointer, "pan");
     }
   };
   const sampleCar = useCallback(
@@ -348,6 +398,7 @@ function Animated3D({
         isSelected: driverNumber === selected,
         lateralOffset: 0,
         pitLaneProgress: p.pitLaneProgress ?? null,
+        pitTrackProgress: p.pitTrackProgress,
         progress: p.progress,
         teamColor: d.teamColour,
       };
@@ -375,15 +426,23 @@ function Animated3D({
       ref={stage}
       className="live-3d-stage"
       tabIndex={0}
-      aria-label="Управление 3D-картой. Перетаскивайте мышью или пальцем, чтобы вращать трассу. Колесо мыши или жест двумя пальцами меняют масштаб."
+      aria-label="Интерактивная 3D-карта. Перетаскивайте пальцем или левой кнопкой мыши, чтобы двигать трассу. Правая кнопка или Shift и перетаскивание поворачивают модель. Колесо мыши или щипок меняют масштаб."
       onContextMenu={(e) => e.preventDefault()}
+      onDoubleClick={(e) => {
+        if ((e.target as HTMLElement).closest("button, a")) return;
+        const bounds = e.currentTarget.getBoundingClientRect();
+        zoomTo(cameraRef.current.zoom + TRACK_MODEL_ZOOM_STEP * 2, {
+          x: (e.clientX - bounds.left) / bounds.width - 0.5,
+          y: (e.clientY - bounds.top) / bounds.height - 0.5,
+        });
+      }}
       onPointerDown={(e) => {
         if (
           (e.pointerType === "mouse" && e.button !== 0 && e.button !== 2) ||
-          (e.target as Element).closest("button")
+          (e.target as Element).closest("button, a")
         )
           return;
-        e.preventDefault();
+        if (follow) setFollow(false);
         e.currentTarget.setPointerCapture(e.pointerId);
         moved.current = false;
         pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -403,10 +462,15 @@ function Animated3D({
             },
           };
           drag.current = null;
-          setFollow(false);
           return;
         }
-        beginOrbit(e.pointerId, { x: e.clientX, y: e.clientY });
+        beginDrag(
+          e.pointerId,
+          { x: e.clientX, y: e.clientY },
+          e.pointerType === "mouse" && (e.button === 2 || e.shiftKey)
+            ? "orbit"
+            : "pan",
+        );
       }}
       onPointerMove={(e) => {
         if (!pointers.current.has(e.pointerId)) return;
@@ -428,33 +492,41 @@ function Animated3D({
             startState: pinch.current.startState,
           });
           moved.current = true;
-          setCamera((current) => ({
-            ...current,
+          applyCamera({
+            ...cameraRef.current,
             pan: next.pan,
             rotation: next.rotationDeg,
             zoom: next.zoom,
-          }));
+          });
           return;
         }
         const start = drag.current;
         if (!start || start.pointerId !== e.pointerId) return;
-        const dx = e.clientX - start.x,
-          dy = e.clientY - start.y;
+        const dx = e.clientX - start.startX,
+          dy = e.clientY - start.startY;
         if (Math.hypot(dx, dy) < 4) return;
         moved.current = true;
+        if (start.mode === "pan") {
+          const bounds = e.currentTarget.getBoundingClientRect();
+          const pan = clampTrackModelPan(
+            {
+              x: start.startPan.x + dx / bounds.width,
+              y: start.startPan.y + dy / bounds.height,
+            },
+            cameraRef.current.zoom,
+          );
+          applyCamera({ ...cameraRef.current, pan });
+          return;
+        }
         const next = orbitTrackModelCamera({
           deltaX: dx,
           deltaY: dy,
-          startRotationDeg: start.camera.rotation,
-          startTiltDeg: start.camera.tilt,
+          startRotationDeg: start.startRotation,
+          startTiltDeg: start.startTilt,
           minimumTiltDeg: 15,
           maximumTiltDeg: 85,
         });
-        setCamera((current) => ({
-          ...current,
-          rotation: next.rotationDeg,
-          tilt: next.tiltDeg,
-        }));
+        setOrbit(next.rotationDeg, next.tiltDeg);
       }}
       onPointerUp={(e) => {
         endPointer(e.pointerId, e.currentTarget);
@@ -479,21 +551,20 @@ function Animated3D({
         if (e.key === "+" || e.key === "=") zoomBy(TRACK_MODEL_ZOOM_STEP);
         if (e.key === "-") zoomBy(-TRACK_MODEL_ZOOM_STEP);
         if (e.key.startsWith("Arrow"))
-          setCamera((c) => ({
-            ...c,
-            rotation: normalizeDegrees(
-              c.rotation +
+          setOrbit(
+            normalizeDegrees(
+              cameraRef.current.rotation +
                 (e.key === "ArrowLeft" ? -15 : e.key === "ArrowRight" ? 15 : 0),
             ),
-            tilt: Math.min(
+            Math.min(
               85,
               Math.max(
                 15,
-                c.tilt +
+                cameraRef.current.tilt +
                   (e.key === "ArrowUp" ? -5 : e.key === "ArrowDown" ? 5 : 0),
               ),
             ),
-          }));
+          );
       }}
     >
       <Track3D
@@ -537,10 +608,10 @@ function Animated3D({
           title="Повернуть влево"
           aria-label="Повернуть влево"
           onClick={() =>
-            setCamera((c) => ({
-              ...c,
-              rotation: normalizeDegrees(c.rotation - 20),
-            }))
+            setOrbit(
+              normalizeDegrees(cameraRef.current.rotation - 20),
+              cameraRef.current.tilt,
+            )
           }
         >
           <RotateCcw />
@@ -551,10 +622,10 @@ function Animated3D({
           title="Повернуть вправо"
           aria-label="Повернуть вправо"
           onClick={() =>
-            setCamera((c) => ({
-              ...c,
-              rotation: normalizeDegrees(c.rotation + 20),
-            }))
+            setOrbit(
+              normalizeDegrees(cameraRef.current.rotation + 20),
+              cameraRef.current.tilt,
+            )
           }
         >
           <RotateCw />
@@ -565,7 +636,10 @@ function Animated3D({
           title="Вид сверху"
           aria-label="Поднять камеру"
           onClick={() =>
-            setCamera((c) => ({ ...c, tilt: Math.min(85, c.tilt + 10) }))
+            setOrbit(
+              cameraRef.current.rotation,
+              Math.min(85, cameraRef.current.tilt + 10),
+            )
           }
         >
           <ChevronUp />
@@ -576,7 +650,10 @@ function Animated3D({
           title="Опустить камеру"
           aria-label="Опустить камеру"
           onClick={() =>
-            setCamera((c) => ({ ...c, tilt: Math.max(15, c.tilt - 10) }))
+            setOrbit(
+              cameraRef.current.rotation,
+              Math.max(15, cameraRef.current.tilt - 10),
+            )
           }
         >
           <ChevronDown />
@@ -596,7 +673,7 @@ function Animated3D({
           size="sm"
           variant="secondary"
           onClick={() => {
-            setCamera({ zoom: 1, rotation: 0, tilt: 48, pan: { x: 0, y: 0 } });
+            applyCamera(initialCamera);
             setFollow(false);
           }}
         >
@@ -608,9 +685,7 @@ function Animated3D({
         initialTiltDeg={48}
         rotationDeg={camera.rotation}
         tiltDeg={camera.tilt}
-        onChange={(rotation, tilt) =>
-          setCamera((c) => ({ ...c, rotation, tilt }))
-        }
+        onChange={setOrbit}
       />
       <div className="live-camera-status" aria-live="polite">
         {follow

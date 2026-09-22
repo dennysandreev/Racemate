@@ -8,12 +8,21 @@ import {
   Minimize,
   Wifi,
   CloudRain,
+  FastForward,
   Flag,
+  Pause,
+  Play,
+  Rewind,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RaceMateMark } from "@/components/racemate/racemate-logo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LiveProvider, useConnection, useLive } from "./live-provider";
+import {
+  LiveProvider,
+  useConnection,
+  useLive,
+  useLiveReplay,
+} from "./live-provider";
 import {
   TimingTower,
   SelectedDriver,
@@ -24,6 +33,7 @@ import { LiveTrack } from "./live-track";
 import { Analytics, DriverPanel, EventFeed, RadioFeed } from "./live-panels";
 import { sessionCapabilities, sessionLabel } from "../lib/session";
 import { gapText, lapTime } from "../lib/format";
+import type { RaceReplaySnapshot } from "@/types/racemate";
 import "./live.css";
 const flagLabels: Record<string, string> = {
   GREEN: "Зелёный флаг",
@@ -35,18 +45,26 @@ const flagLabels: Record<string, string> = {
   VSC_ENDING: "VSC завершается",
   CHEQUERED: "Финиш",
 };
-export function LiveTerminal({ returnUrl }: { returnUrl: string }) {
+export function LiveTerminal({
+  replay,
+  returnUrl,
+}: {
+  replay?: RaceReplaySnapshot;
+  returnUrl: string;
+}) {
   return (
-    <LiveProvider>
+    <LiveProvider replay={replay}>
       <Terminal returnUrl={returnUrl} />
     </LiveProvider>
   );
 }
 function Terminal({ returnUrl }: { returnUrl: string }) {
+  const replay = useLiveReplay();
   const [selected, setSelected] = useState<number | null>(null),
     [mode, setMode] = useState("track"),
     [feed, setFeed] = useState("events"),
     [filter, setFilter] = useState<number | null>(null),
+    [eventFilter, setEventFilter] = useState<number | null>(null),
     [seenRadio, setSeenRadio] = useState<string[]>([]);
   const radio = useLive("radio"),
     drivers = useLive("drivers"),
@@ -93,7 +111,11 @@ function Terminal({ returnUrl }: { returnUrl: string }) {
     (message) => !seenRadio.includes(message.id),
   ).length;
   return (
-    <main className="live-terminal" data-flag={flag}>
+    <main
+      className="live-terminal"
+      data-flag={flag}
+      data-replay={replay ? "true" : undefined}
+    >
       <Hud returnUrl={returnUrl} />
       <div className="live-body">
         <aside className="live-left">
@@ -145,7 +167,11 @@ function Terminal({ returnUrl }: { returnUrl: string }) {
             <Analytics />
           </TabsContent>
           <TabsContent value="events" className="live-central-panel">
-            <EventFeed key={session?.session_key} />
+            <EventFeed
+              key={session?.session_key}
+              filter={eventFilter}
+              onFilter={setEventFilter}
+            />
           </TabsContent>
           <TabsContent value="radio" className="live-central-panel">
             <RadioFeed
@@ -174,7 +200,11 @@ function Terminal({ returnUrl }: { returnUrl: string }) {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="events">
-            <EventFeed key={session?.session_key} />
+            <EventFeed
+              key={session?.session_key}
+              filter={eventFilter}
+              onFilter={setEventFilter}
+            />
           </TabsContent>
           <TabsContent value="radio">
             <RadioFeed
@@ -185,11 +215,13 @@ function Terminal({ returnUrl }: { returnUrl: string }) {
           </TabsContent>
         </Tabs>
       </div>
+      {replay ? <ReplayControls /> : null}
     </main>
   );
 }
 function Hud({ returnUrl }: { returnUrl: string }) {
   const router = useRouter();
+  const replay = useLiveReplay();
   const session = useLive("session"),
     status = useLive("status"),
     flag = useLive("flag"),
@@ -242,7 +274,7 @@ function Hud({ returnUrl }: { returnUrl: string }) {
         <span className="live-wordmark">
           <RaceMateMark className="live-logo" />
           <span>
-            RaceSide <b>LIVE</b>
+            RaceSide <b>{replay ? "REPLAY" : "LIVE"}</b>
           </span>
         </span>
         <strong className="live-grand-prix">
@@ -251,7 +283,11 @@ function Hud({ returnUrl }: { returnUrl: string }) {
       </div>
       <div className="live-session-hud">
         <span className="live-indicator" data-active={status === "live"}>
-          {status === "finished"
+          {replay
+            ? replay.isPlaying
+              ? "Повтор"
+              : "Пауза"
+            : status === "finished"
             ? "Финиш"
             : status === "waiting"
               ? "Скоро"
@@ -281,27 +317,33 @@ function Hud({ returnUrl }: { returnUrl: string }) {
           {weather?.air ?? "—"}° / {weather?.track ?? "—"}°{" "}
           {weather?.rain === 1 && <CloudRain />}
         </span>
-        <span
-          className="live-connection"
-          data-connected={connection === "connected"}
-          title={
-            connection === "connected"
-              ? "Соединение установлено"
-              : connection === "offline"
-                ? "Нет связи. Переподключаемся автоматически."
-                : "Восстанавливаем соединение"
-          }
-        >
-          <Wifi />
-          <span>
-            {connection === "connected"
-              ? "В эфире"
-              : connection === "offline"
-                ? "Нет связи"
-                : "Подключение…"}
+        {replay ? (
+          <span className="live-replay-clock">
+            {formatReplayClock(replay.elapsedMs)} / {formatReplayClock(replay.durationMs)}
           </span>
-        </span>
-        {replayReady && session && (
+        ) : (
+          <span
+            className="live-connection"
+            data-connected={connection === "connected"}
+            title={
+              connection === "connected"
+                ? "Соединение установлено"
+                : connection === "offline"
+                  ? "Нет связи. Переподключаемся автоматически."
+                  : "Восстанавливаем соединение"
+            }
+          >
+            <Wifi />
+            <span>
+              {connection === "connected"
+                ? "В эфире"
+                : connection === "offline"
+                  ? "Нет связи"
+                  : "Подключение…"}
+            </span>
+          </span>
+        )}
+        {!replay && replayReady && session && (
           <Button asChild size="sm" variant="secondary">
             <Link href={`/race-replay/${session.session_key}`}>
               Открыть повтор
@@ -323,6 +365,106 @@ function Hud({ returnUrl }: { returnUrl: string }) {
       </div>
     </header>
   );
+}
+
+function ReplayControls() {
+  const replay = useLiveReplay();
+
+  useEffect(() => {
+    if (!replay) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey ||
+        target?.matches("input,textarea,select") ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+      if (event.code === "Space") {
+        event.preventDefault();
+        replay.toggle();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        replay.seekBy(-15_000);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        replay.seekBy(15_000);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [replay]);
+
+  if (!replay) return null;
+
+  return (
+    <section className="live-replay-controls" aria-label="Управление повтором">
+      <div className="live-replay-actions">
+        <Button onClick={replay.toggle} size="sm" type="button">
+          {replay.isPlaying ? <Pause /> : <Play />}
+          {replay.isPlaying ? "Пауза" : "Смотреть"}
+        </Button>
+        <Button
+          aria-label="Назад на 15 секунд"
+          onClick={() => replay.seekBy(-15_000)}
+          size="icon"
+          title="Назад на 15 секунд"
+          type="button"
+          variant="secondary"
+        >
+          <Rewind />
+        </Button>
+        <Button
+          aria-label="Вперёд на 15 секунд"
+          onClick={() => replay.seekBy(15_000)}
+          size="icon"
+          title="Вперёд на 15 секунд"
+          type="button"
+          variant="secondary"
+        >
+          <FastForward />
+        </Button>
+        <div className="live-replay-speeds" aria-label="Скорость повтора">
+          {[1, 2, 5, 10].map((speed) => (
+            <button
+              aria-pressed={replay.speed === speed}
+              data-active={replay.speed === speed}
+              key={speed}
+              onClick={() => replay.setSpeed(speed)}
+              type="button"
+            >
+              {speed}×
+            </button>
+          ))}
+        </div>
+      </div>
+      <input
+        aria-label="Позиция повтора"
+        max={replay.durationMs}
+        min={0}
+        onChange={(event) => replay.seekTo(Number(event.target.value))}
+        type="range"
+        value={Math.round(replay.elapsedMs)}
+      />
+      <span className="live-replay-time">
+        {formatReplayClock(replay.elapsedMs)} / {formatReplayClock(replay.durationMs)}
+      </span>
+    </section>
+  );
+}
+
+function formatReplayClock(milliseconds: number) {
+  const seconds = Math.max(0, Math.floor(milliseconds / 1_000));
+  const hours = Math.floor(seconds / 3_600);
+  const minutes = Math.floor((seconds % 3_600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  return hours
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`
+    : `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
 }
 function SessionWorkspace({
   selected,

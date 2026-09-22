@@ -67,14 +67,159 @@
     ]
   },
   "buildingTextures": {
-    "roofFaces": 5552,
+    "roofFaces": 5506,
     "roofSource": "georegistered Planet SkySat 2018-04-09",
     "facadeDetails": {
-      "buildings": 37,
-      "windows": 4200,
-      "cornices": 913,
-      "doors": 163,
-      "accuracy": "Approximate floor-based facade details; photographed landmarks preserved."
+      "buildings": 952,
+      "windows": 177454,
+      "cornices": 36909,
+      "doors": 0,
+      "excludedBuildings": [
+        {
+          "osmWayId": 152192792,
+          "reason": "individual photo-referenced hotel facade"
+        },
+        {
+          "osmWayId": 153128834,
+          "reason": "individual photo-referenced hotel facade"
+        },
+        {
+          "osmWayId": 153876715,
+          "reason": "photographed landmark"
+        },
+        {
+          "osmWayId": 224648430,
+          "reason": "non-residential utility structure"
+        },
+        {
+          "osmWayId": 299418016,
+          "reason": "photographed landmark"
+        },
+        {
+          "osmWayId": 379525880,
+          "reason": "no wall wide enough for a window bay"
+        },
+        {
+          "osmWayId": 379525881,
+          "reason": "no wall wide enough for a window bay"
+        },
+        {
+          "osmWayId": 1069368467,
+          "reason": "non-residential utility structure"
+        },
+        {
+          "osmWayId": 1413368983,
+          "reason": "non-residential utility structure"
+        },
+        {
+          "osmWayId": 1413368987,
+          "reason": "non-residential utility structure"
+        },
+        {
+          "osmWayId": 1414182639,
+          "reason": "non-residential utility structure"
+        },
+        {
+          "osmWayId": 1414182643,
+          "reason": "non-residential utility structure"
+        },
+        {
+          "osmWayId": 1414182653,
+          "reason": "non-residential utility structure"
+        },
+        {
+          "osmWayId": 1502989777,
+          "reason": "non-residential utility structure"
+        },
+        {
+          "osmWayId": 1512710103,
+          "reason": "no wall wide enough for a window bay"
+        }
+      ],
+      "accuracy": "Approximate repeating window bays on all residential/city facades; photographed landmarks preserved.",
+      "sharedFacadePlanesAligned": 762
+    },
+    "individualHotels": [
+      {
+        "osmWayId": 152192792,
+        "name": "Hilton Baku",
+        "floors": 25,
+        "height": 105.5,
+        "glazingPanels": 2160,
+        "floorBandSegments": 320,
+        "footprintSource": "OpenStreetMap",
+        "heightAccuracy": "Approximate architectural height; storey counts checked against operator/official sources",
+        "facadeAccuracy": "Photo-referenced opaque glazing, stone bands, mullions and roof geometry; not a photogrammetric survey"
+      },
+      {
+        "osmWayId": 153128834,
+        "name": "JW Marriott Absheron Baku",
+        "floors": 23,
+        "height": 82.8,
+        "glazingPanels": 2204,
+        "floorBandSegments": 817,
+        "footprintSource": "OpenStreetMap",
+        "heightAccuracy": "Approximate architectural height; storey counts checked against operator/official sources",
+        "facadeAccuracy": "Photo-referenced opaque glazing, stone bands, mullions and roof geometry; not a photogrammetric survey"
+      }
+    ],
+    "hotelReferences": {
+      "sources": [
+        {
+          "name": "Hilton Baku",
+          "osmWayId": 152192792,
+          "file": ".track-model-build/baku-source/hotels/hilton-exterior.jpg",
+          "page": "https://commons.wikimedia.org/wiki/File:Hilton_Hotel_and_Government_House,_Baku.jpg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/8/82/Hilton_Hotel_and_Government_House%2C_Baku.jpg",
+          "author": "Nemoralis",
+          "date": "2024-03-13",
+          "retrieved": "2026-09-22",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "bytes": 12630995,
+          "sha256": "9e69d5af94977dacf76169ecc33062f2614f1ee03d6e06e06faf76eeadebae03",
+          "role": "External architectural reference; facade colours, mullions, stone bands and roof silhouette reconstructed as geometry. Photograph is not embedded as a texture."
+        },
+        {
+          "name": "JW Marriott Absheron Baku",
+          "osmWayId": 153128834,
+          "file": ".track-model-build/baku-source/hotels/marriott.jpg",
+          "page": "https://commons.wikimedia.org/wiki/File:JW_Marriott_Absheron.jpg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/3/35/JW_Marriott_Absheron.jpg",
+          "author": "Nemoralis",
+          "date": "2024-03-13",
+          "retrieved": "2026-09-22",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "bytes": 14632593,
+          "sha256": "c9c2e061439d0ddb9fea2cac9c901585aec40c4174f06f09e6a47ccfde36e893",
+          "role": "External architectural reference; facade colours, mullions, stone bands and roof silhouette reconstructed as geometry. Photograph is not embedded as a texture."
+        }
+      ],
+      "storeyReferences": [
+        {
+          "name": "Hilton Baku",
+          "floors": 25,
+          "url": "https://president.az/en/articles/view/3215/print"
+        },
+        {
+          "name": "JW Marriott Absheron Baku",
+          "floors": 23,
+          "url": "https://www.marriott.com/en-us/hotels/gydjw-jw-marriott-absheron-baku/overview/"
+        }
+      ],
+      "restoredBuilding": {
+        "osmRelationId": 2249851,
+        "url": "https://www.openstreetmap.org/relation/2249851",
+        "outerWayId": 152192632,
+        "innerWayIds": [
+          152192634,
+          152192633
+        ],
+        "levels": 5,
+        "source": "Pinned openstreetmap-map.osm; ODbL 1.0"
+      },
+      "accuracy": "Mapped horizontal geometry. Hotel heights, glazing dimensions, colours and architectural details are photo-derived approximations, not a measured architectural model. Courtyard building has its source footprint and five mapped storeys."
     },
     "facadeSources": {
       "sources": [
@@ -132,8 +277,13 @@
         1792,
         768
       ],
-      "outputSha256": "e37eb162be10196e6b47a3ad447d67a8a999b36b6be86ddad4a2e34917da5e3f",
-      "limits": "Two actual photographed landmarks; other facades use approximate stone colours. Roofs use the georegistered Planet image."
+      "outputSha256": "a9ad6e6d4422b49c254d33bec2fbf4b9e4218cd5432884e90508d153f511b05a",
+      "windowBay": {
+        "file": "baku-window-bay.png",
+        "sha256": "6036945baf4df3b58ff9ebc0ca0e99b1244ab2653d90e5e2d09e2ebb80b29ca7",
+        "accuracy": "Procedural window frames, glazing, sill and floor cornice; not a surveyed or photographed facade."
+      },
+      "limits": "Two actual photographed landmarks; other facades use approximate window bays and stone colours. Roofs use the georegistered Planet image."
     }
   },
   "assetLicense": "CC BY-SA 4.0; OSM database ODbL; see /f1/ATTRIBUTION.md",
@@ -13079,13 +13229,6785 @@
       "elevationMeters": -24.452
     }
   ],
+  "landscape": {
+    "treeRowTrees": 172,
+    "areaTrees": 270,
+    "shrubs": 213,
+    "plantingBorders": 3127,
+    "areas": [
+      {
+        "osmWayId": 220915360,
+        "tags": {
+          "leisure": "park",
+          "name": "A\u011f Liliyalar Fontan Ba\u011f\u0131"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 249016043,
+        "tags": {
+          "leisure": "park",
+          "name": "D\u0259nizk\u0259nar\u0131 Milli Park",
+          "wikidata": "Q2665945",
+          "wikimedia_commons": "Category:Baku Boulevard",
+          "wikipedia": "az:Bak\u0131 bulvar\u0131"
+        },
+        "plants": 89
+      },
+      {
+        "osmWayId": 360221025,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 15
+      },
+      {
+        "osmWayId": 299424032,
+        "tags": {
+          "designation": "Park",
+          "leisure": "park",
+          "name": "Sabir park\u0131",
+          "name:en": "Sabir Park",
+          "name:fa": "\u067e\u0627\u0631\u06a9 \u0633\u0627\u0628\u06cc\u0631",
+          "name:ru": "\u0421\u0430\u0434 \u0438\u043c.\u0421\u0430\u0431\u0438\u0440",
+          "source": "Baku City Administration",
+          "wikidata": "Q4421712",
+          "wikimedia_commons": "Category:Sabir Garden",
+          "wikipedia": "az:Sabir ba\u011f\u0131"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 153520520,
+        "tags": {
+          "designation": "Park",
+          "landuse": "forest",
+          "name": "Filarmoniya Ba\u011f\u0131",
+          "name:az": "Filarmoniya Ba\u011f\u0131",
+          "name:fa": "\u0628\u0627\u063a \u0641\u06cc\u0644\u0627\u0631\u0645\u0648\u0646\u06cc\u06a9",
+          "name:ru": "\u0421\u0430\u0434 \u0444\u0438\u043b\u0430\u0440\u043c\u043e\u043d\u0438\u0438",
+          "source": "Baku City Administration",
+          "wikidata": "Q17227271",
+          "wikimedia_commons": "Category:Gubernator's Park, Baku",
+          "wikipedia": "en:Philharmonic Garden"
+        },
+        "plants": 68
+      },
+      {
+        "osmWayId": 360221795,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 25405353,
+        "tags": {
+          "leisure": "garden"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 224648423,
+        "tags": {
+          "leisure": "park",
+          "name": "Qubernator ba\u011f\u0131",
+          "name:en": "Governor's Park",
+          "name:ru": "\u0413\u0443\u0431\u0435\u0440\u043d\u0430\u0442\u043e\u0440\u0441\u043a\u0438\u0439 \u0441\u0430\u0434"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221796,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 10
+      },
+      {
+        "osmWayId": 360221794,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 12
+      },
+      {
+        "osmWayId": 1414726937,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 175835406,
+        "tags": {
+          "addr:city": "Bak\u0131",
+          "addr:street": "Az\u0259rbaycan prospekti",
+          "designation": "Park",
+          "leisure": "park",
+          "name": "Nizami ba\u011f\u0131",
+          "name:az": "Nizami ba\u011f\u0131",
+          "name:en": "Nizami Garden",
+          "name:fa": "\u0628\u0627\u063a \u0646\u0638\u0627\u0645\u06cc",
+          "name:ru": "\u0421\u0430\u0434 \u041d\u0438\u0437\u0430\u043c\u0438",
+          "source": "Baku City Administration"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 1413587034,
+        "tags": {
+          "natural": "wood"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25405469,
+        "tags": {
+          "leisure": "garden"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25402492,
+        "tags": {
+          "addr:city": "Bak\u0131",
+          "addr:street": "Pu\u015fkin k\u00fc\u00e7\u0259si",
+          "leisure": "park",
+          "name": "Pu\u015fkin Ba\u011f\u0131"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221024,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 8
+      },
+      {
+        "osmWayId": 1413982317,
+        "tags": {
+          "landuse": "grass",
+          "natural": "wood"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 1413982314,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 299418027,
+        "tags": {
+          "landuse": "forest",
+          "leaf_type": "broadleaved"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 1413982312,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 360231618,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 1414726936,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221023,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221022,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 1413982311,
+        "tags": {
+          "natural": "wood"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 1413587305,
+        "tags": {
+          "natural": "wood"
+        },
+        "plants": 16
+      },
+      {
+        "osmWayId": 299418028,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221792,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 360231626,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 360229794,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 25402639,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 360229814,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 299177308,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360229795,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 12
+      },
+      {
+        "osmWayId": 286018720,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360229800,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 1413964377,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 270087949,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360229804,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221019,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 465973265,
+        "tags": {
+          "area": "yes",
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 299418029,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 299453899,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 25402731,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 1413982309,
+        "tags": {
+          "natural": "wood"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 286020266,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 6
+      },
+      {
+        "osmWayId": 360220389,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25402705,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 5
+      },
+      {
+        "osmWayId": 1413346249,
+        "tags": {
+          "natural": "wood"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 360221793,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 5
+      },
+      {
+        "osmWayId": 360221036,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 360221033,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 1413964406,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 360229793,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 360241461,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221042,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 452783353,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 273101274,
+        "tags": {
+          "leisure": "park",
+          "name": "F\u0259vvar\u0259l\u0259r Meydan\u0131",
+          "name:az": "F\u0259vvar\u0259l\u0259r Meydan\u0131",
+          "name:en": "Fountains Square",
+          "name:ru": "\u041f\u043b\u043e\u0449\u0430\u0434\u044c \u0444\u043e\u043d\u0442\u0430\u043d\u043e\u0432",
+          "wikidata": "Q5474853",
+          "wikimedia_commons": "Category:Fountains Square, Baku",
+          "wikipedia": "az:F\u0259vvar\u0259l\u0259r meydan\u0131 (Bak\u0131)"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 1413346248,
+        "tags": {
+          "natural": "wood"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 387071133,
+        "tags": {
+          "landuse": "forest"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360220329,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 360221040,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 5
+      },
+      {
+        "osmWayId": 380450181,
+        "tags": {
+          "landuse": "forest"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221027,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25452751,
+        "tags": {
+          "leisure": "park",
+          "name": "Prezident Park\u0131",
+          "name:ru": "\u041f\u0440\u0435\u0437\u0438\u0434\u0435\u043d\u0442\u0441\u043a\u0438\u0439 \u043f\u0430\u0440\u043a"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 360221028,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360220387,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25402460,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25402478,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221038,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 360229807,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 360221035,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 25635976,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 360221026,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360220331,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221037,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 360229797,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 178464276,
+        "tags": {
+          "leisure": "park"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221039,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 1413558983,
+        "tags": {
+          "natural": "wood"
+        },
+        "plants": 12
+      },
+      {
+        "osmWayId": 360229803,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 25402457,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 220273384,
+        "tags": {
+          "barrier": "hedge",
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 384682417,
+        "tags": {
+          "landuse": "forest"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25636047,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360231608,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 5
+      },
+      {
+        "osmWayId": 360220340,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 360221031,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 4
+      },
+      {
+        "osmWayId": 380450180,
+        "tags": {
+          "landuse": "forest"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360221029,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360229812,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 4
+      },
+      {
+        "osmWayId": 299058456,
+        "tags": {
+          "landuse": "forest"
+        },
+        "plants": 13
+      },
+      {
+        "osmWayId": 25637208,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 25637187,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 25637206,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 360220386,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25636289,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25449429,
+        "tags": {
+          "designation": "Park",
+          "leisure": "park",
+          "name": "X\u0259qani ba\u011f\u0131 ( Malakan ba\u011f\u0131 )",
+          "name:az": "X\u0259qani ba\u011f\u0131 ( Malakan ba\u011f\u0131 )",
+          "name:en": "Khagani Park",
+          "name:ru": "\u041c\u0430\u043b\u0430\u043a\u0430\u043d\u043a\u0430",
+          "source": "Baku City Administration",
+          "wikidata": "Q4404494",
+          "wikimedia_commons": "Category:Khagani Garden",
+          "wikipedia": "az:Xaqani ba\u011f\u0131"
+        },
+        "plants": 2
+      },
+      {
+        "osmWayId": 25636290,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 380444872,
+        "tags": {
+          "landuse": "forest"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25636280,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25636281,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 25452657,
+        "tags": {
+          "designation": "Park",
+          "leisure": "park",
+          "name": "\u015e\u0259lal\u0259 park\u0131"
+        },
+        "plants": 8
+      },
+      {
+        "osmWayId": 380443679,
+        "tags": {
+          "landuse": "forest"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 384669744,
+        "tags": {
+          "landuse": "forest"
+        },
+        "plants": 1
+      },
+      {
+        "osmWayId": 384669527,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 19
+      },
+      {
+        "osmWayId": 299464082,
+        "tags": {
+          "leisure": "park"
+        },
+        "plants": 5
+      },
+      {
+        "osmWayId": 1445572427,
+        "tags": {
+          "landuse": "grass"
+        },
+        "plants": 3
+      },
+      {
+        "osmWayId": 133850131,
+        "tags": {
+          "addr:city": "Bak\u0131",
+          "addr:street": "F\u00fczuli k\u00fc\u00e7\u0259si",
+          "designation": "Park",
+          "leisure": "park",
+          "name": "Q\u0131\u015f Park\u0131",
+          "name:az": "Q\u0131\u015f Park\u0131",
+          "name:en": "Winter Park",
+          "name:fa": "\u067e\u0627\u0631\u06a9 \u0632\u0645\u0633\u062a\u0627\u0646\u06cc",
+          "name:ru": "\u0417\u0438\u043c\u043d\u0438\u0439 \u041f\u0430\u0440\u043a",
+          "source": "Baku City Administration",
+          "wikidata": "Q125554640",
+          "wikimedia_commons": "Category:Winter Park, Baku",
+          "wikipedia": "az:Q\u0131\u015f bulvar\u0131 (Bak\u0131)"
+        },
+        "plants": 21
+      }
+    ],
+    "placements": [
+      {
+        "sourceId": 3131765174,
+        "kind": "mapped-tree",
+        "x": 402389.053,
+        "y": 4469971.343,
+        "radius": 2.332
+      },
+      {
+        "sourceId": 3131765177,
+        "kind": "mapped-tree",
+        "x": 402384.767,
+        "y": 4469983.866,
+        "radius": 2.21
+      },
+      {
+        "sourceId": 3880382648,
+        "kind": "mapped-tree",
+        "x": 401652.729,
+        "y": 4469926.964,
+        "radius": 2.161
+      },
+      {
+        "sourceId": 3880382650,
+        "kind": "mapped-tree",
+        "x": 401619.324,
+        "y": 4469938.492,
+        "radius": 2.436
+      },
+      {
+        "sourceId": 3880382652,
+        "kind": "mapped-tree",
+        "x": 401614.973,
+        "y": 4469934.319,
+        "radius": 2.252
+      },
+      {
+        "sourceId": 3880383659,
+        "kind": "mapped-tree",
+        "x": 401623.999,
+        "y": 4469932.436,
+        "radius": 2.201
+      },
+      {
+        "sourceId": 3880383660,
+        "kind": "mapped-tree",
+        "x": 401646.375,
+        "y": 4469952.015,
+        "radius": 1.844
+      },
+      {
+        "sourceId": 3880383663,
+        "kind": "mapped-tree",
+        "x": 401648.361,
+        "y": 4469945.45,
+        "radius": 1.946
+      },
+      {
+        "sourceId": 3880383664,
+        "kind": "mapped-tree",
+        "x": 401606.237,
+        "y": 4469940.218,
+        "radius": 2.346
+      },
+      {
+        "sourceId": 3880383672,
+        "kind": "mapped-tree",
+        "x": 401644.508,
+        "y": 4469957.902,
+        "radius": 1.823
+      },
+      {
+        "sourceId": 3880383676,
+        "kind": "mapped-tree",
+        "x": 401642.632,
+        "y": 4469963.166,
+        "radius": 2.397
+      },
+      {
+        "sourceId": 12763079667,
+        "kind": "mapped-tree",
+        "x": 401751.923,
+        "y": 4469280.827,
+        "radius": 1.995
+      },
+      {
+        "sourceId": 12763079669,
+        "kind": "mapped-tree",
+        "x": 401763.109,
+        "y": 4469287.497,
+        "radius": 1.914
+      },
+      {
+        "sourceId": 12763079685,
+        "kind": "mapped-tree",
+        "x": 401758.809,
+        "y": 4469284.7,
+        "radius": 2.037
+      },
+      {
+        "sourceId": 12763079686,
+        "kind": "mapped-tree",
+        "x": 401638.021,
+        "y": 4469206.003,
+        "radius": 2.027
+      },
+      {
+        "sourceId": 12988451763,
+        "kind": "mapped-tree",
+        "x": 402901.953,
+        "y": 4469727.244,
+        "radius": 2.362
+      },
+      {
+        "sourceId": 12988451764,
+        "kind": "mapped-tree",
+        "x": 402907.503,
+        "y": 4469742.148,
+        "radius": 1.881
+      },
+      {
+        "sourceId": 12988451776,
+        "kind": "mapped-tree",
+        "x": 402898.931,
+        "y": 4469775.265,
+        "radius": 2.394
+      },
+      {
+        "sourceId": 12988451777,
+        "kind": "mapped-tree",
+        "x": 402894.058,
+        "y": 4469794.379,
+        "radius": 2.454
+      },
+      {
+        "sourceId": 12988451789,
+        "kind": "mapped-tree",
+        "x": 402835.167,
+        "y": 4469731.627,
+        "radius": 2.47
+      },
+      {
+        "sourceId": 12988451790,
+        "kind": "mapped-tree",
+        "x": 402822.656,
+        "y": 4469724.073,
+        "radius": 2.462
+      },
+      {
+        "sourceId": 12988451791,
+        "kind": "mapped-tree",
+        "x": 402820.205,
+        "y": 4469736.805,
+        "radius": 1.984
+      },
+      {
+        "sourceId": 12988451792,
+        "kind": "mapped-tree",
+        "x": 402823.17,
+        "y": 4469746.07,
+        "radius": 2.2
+      },
+      {
+        "sourceId": 12988451793,
+        "kind": "mapped-tree",
+        "x": 402854.44,
+        "y": 4469733.42,
+        "radius": 1.897
+      },
+      {
+        "sourceId": 12988451794,
+        "kind": "mapped-tree",
+        "x": 402845.654,
+        "y": 4469754.639,
+        "radius": 2.239
+      },
+      {
+        "sourceId": 12988453701,
+        "kind": "mapped-tree",
+        "x": 402757.833,
+        "y": 4469710.18,
+        "radius": 1.81
+      },
+      {
+        "sourceId": 12988453733,
+        "kind": "mapped-tree",
+        "x": 402478.068,
+        "y": 4469618.742,
+        "radius": 2.508
+      },
+      {
+        "sourceId": 12988621473,
+        "kind": "mapped-tree",
+        "x": 402376.993,
+        "y": 4469716.41,
+        "radius": 1.956
+      },
+      {
+        "sourceId": 12990301097,
+        "kind": "mapped-tree",
+        "x": 402502.814,
+        "y": 4469783.063,
+        "radius": 2.175
+      },
+      {
+        "sourceId": 12990301098,
+        "kind": "mapped-tree",
+        "x": 402490.79,
+        "y": 4469783.042,
+        "radius": 1.982
+      },
+      {
+        "sourceId": 12990315438,
+        "kind": "mapped-tree",
+        "x": 402514.258,
+        "y": 4469822.171,
+        "radius": 1.92
+      },
+      {
+        "sourceId": 12990315452,
+        "kind": "mapped-tree",
+        "x": 402576.464,
+        "y": 4469943.918,
+        "radius": 2.19
+      },
+      {
+        "sourceId": 12990315453,
+        "kind": "mapped-tree",
+        "x": 402567.55,
+        "y": 4469949.929,
+        "radius": 2.345
+      },
+      {
+        "sourceId": 12990315454,
+        "kind": "mapped-tree",
+        "x": 402527.532,
+        "y": 4469902.133,
+        "radius": 1.906
+      },
+      {
+        "sourceId": 12990315455,
+        "kind": "mapped-tree",
+        "x": 402514.725,
+        "y": 4469897.98,
+        "radius": 2.586
+      },
+      {
+        "sourceId": 12990315456,
+        "kind": "mapped-tree",
+        "x": 402519.163,
+        "y": 4469889.308,
+        "radius": 2.433
+      },
+      {
+        "sourceId": 12990315457,
+        "kind": "mapped-tree",
+        "x": 402523.766,
+        "y": 4469875.637,
+        "radius": 2.53
+      },
+      {
+        "sourceId": 12990315458,
+        "kind": "mapped-tree",
+        "x": 402529.506,
+        "y": 4469861.263,
+        "radius": 2.515
+      },
+      {
+        "sourceId": 12990315459,
+        "kind": "mapped-tree",
+        "x": 402540.561,
+        "y": 4469835.718,
+        "radius": 2.208
+      },
+      {
+        "sourceId": 12990315460,
+        "kind": "mapped-tree",
+        "x": 402558.808,
+        "y": 4469803.041,
+        "radius": 2.21
+      },
+      {
+        "sourceId": 12990315461,
+        "kind": "mapped-tree",
+        "x": 402553.329,
+        "y": 4469810.706,
+        "radius": 2.287
+      },
+      {
+        "sourceId": 12990315462,
+        "kind": "mapped-tree",
+        "x": 402548.734,
+        "y": 4469816.439,
+        "radius": 2.415
+      },
+      {
+        "sourceId": 12990587744,
+        "kind": "mapped-tree",
+        "x": 402622.703,
+        "y": 4469876.94,
+        "radius": 2.046
+      },
+      {
+        "sourceId": 12990587745,
+        "kind": "mapped-tree",
+        "x": 402613.102,
+        "y": 4469875.81,
+        "radius": 2.403
+      },
+      {
+        "sourceId": 12990587747,
+        "kind": "mapped-tree",
+        "x": 402584.061,
+        "y": 4469862.587,
+        "radius": 2.397
+      },
+      {
+        "sourceId": 12990587796,
+        "kind": "mapped-tree",
+        "x": 402673.383,
+        "y": 4469889.228,
+        "radius": 1.92
+      },
+      {
+        "sourceId": 12990587797,
+        "kind": "mapped-tree",
+        "x": 402680.582,
+        "y": 4469852.475,
+        "radius": 1.984
+      },
+      {
+        "sourceId": 12990587798,
+        "kind": "mapped-tree",
+        "x": 402686.603,
+        "y": 4469857.76,
+        "radius": 2.413
+      },
+      {
+        "sourceId": 12990587799,
+        "kind": "mapped-tree",
+        "x": 402682.073,
+        "y": 4469862.67,
+        "radius": 2.506
+      },
+      {
+        "sourceId": 12990587800,
+        "kind": "mapped-tree",
+        "x": 402680.869,
+        "y": 4469874.62,
+        "radius": 1.964
+      },
+      {
+        "sourceId": 12990593750,
+        "kind": "mapped-tree",
+        "x": 401528.87,
+        "y": 4469625.802,
+        "radius": 2.06
+      },
+      {
+        "sourceId": 12990593751,
+        "kind": "mapped-tree",
+        "x": 401568.101,
+        "y": 4469667.331,
+        "radius": 2.219
+      },
+      {
+        "sourceId": 12990593753,
+        "kind": "mapped-tree",
+        "x": 401590.298,
+        "y": 4469644.081,
+        "radius": 2.205
+      },
+      {
+        "sourceId": 12990593754,
+        "kind": "mapped-tree",
+        "x": 401552.629,
+        "y": 4469604.419,
+        "radius": 2.097
+      },
+      {
+        "sourceId": 12990593758,
+        "kind": "mapped-tree",
+        "x": 401553.37,
+        "y": 4469667.435,
+        "radius": 1.957
+      },
+      {
+        "sourceId": 12990593759,
+        "kind": "mapped-tree",
+        "x": 401512.921,
+        "y": 4469670.93,
+        "radius": 1.842
+      },
+      {
+        "sourceId": 12990593760,
+        "kind": "mapped-tree",
+        "x": 401511.506,
+        "y": 4469652.408,
+        "radius": 2.308
+      },
+      {
+        "sourceId": 12990593761,
+        "kind": "mapped-tree",
+        "x": 401533.761,
+        "y": 4469660.753,
+        "radius": 2.134
+      },
+      {
+        "sourceId": 12990593762,
+        "kind": "mapped-tree",
+        "x": 401522.723,
+        "y": 4469646.588,
+        "radius": 2.308
+      },
+      {
+        "sourceId": 12990593764,
+        "kind": "mapped-tree",
+        "x": 401550.662,
+        "y": 4469674.576,
+        "radius": 2.275
+      },
+      {
+        "sourceId": 12990593765,
+        "kind": "mapped-tree",
+        "x": 401557.644,
+        "y": 4469683.221,
+        "radius": 2.23
+      },
+      {
+        "sourceId": 12990593767,
+        "kind": "mapped-tree",
+        "x": 401581.422,
+        "y": 4469614.754,
+        "radius": 2.054
+      },
+      {
+        "sourceId": 12990593768,
+        "kind": "mapped-tree",
+        "x": 401562.926,
+        "y": 4469610.678,
+        "radius": 2.139
+      },
+      {
+        "sourceId": 12990593770,
+        "kind": "mapped-tree",
+        "x": 401567.99,
+        "y": 4469619.382,
+        "radius": 2.09
+      },
+      {
+        "sourceId": 12990595932,
+        "kind": "mapped-tree",
+        "x": 402749.326,
+        "y": 4469914.822,
+        "radius": 1.953
+      },
+      {
+        "sourceId": 12990595990,
+        "kind": "mapped-tree",
+        "x": 402550.898,
+        "y": 4469914.464,
+        "radius": 2.549
+      },
+      {
+        "sourceId": 12990595991,
+        "kind": "mapped-tree",
+        "x": 402549.018,
+        "y": 4469929.92,
+        "radius": 1.981
+      },
+      {
+        "sourceId": 12990595992,
+        "kind": "mapped-tree",
+        "x": 402500.777,
+        "y": 4469926.971,
+        "radius": 2.497
+      },
+      {
+        "sourceId": 12990595993,
+        "kind": "mapped-tree",
+        "x": 402521.555,
+        "y": 4469930.276,
+        "radius": 1.823
+      },
+      {
+        "sourceId": 12990595995,
+        "kind": "mapped-tree",
+        "x": 402514.538,
+        "y": 4469926.082,
+        "radius": 2.325
+      },
+      {
+        "sourceId": 12993295504,
+        "kind": "mapped-tree",
+        "x": 402865.896,
+        "y": 4469896.304,
+        "radius": 2.167
+      },
+      {
+        "sourceId": 12993295505,
+        "kind": "mapped-tree",
+        "x": 402867.087,
+        "y": 4469890.616,
+        "radius": 2.273
+      },
+      {
+        "sourceId": 12993295558,
+        "kind": "mapped-tree",
+        "x": 402838.208,
+        "y": 4469921.953,
+        "radius": 2.004
+      },
+      {
+        "sourceId": 12993295560,
+        "kind": "mapped-tree",
+        "x": 402822.777,
+        "y": 4469913.193,
+        "radius": 2.048
+      },
+      {
+        "sourceId": 12993295567,
+        "kind": "mapped-tree",
+        "x": 402821.943,
+        "y": 4469922.252,
+        "radius": 2.077
+      },
+      {
+        "sourceId": 12993295568,
+        "kind": "mapped-tree",
+        "x": 402809.222,
+        "y": 4469916.844,
+        "radius": 2.351
+      },
+      {
+        "sourceId": 12993295569,
+        "kind": "mapped-tree",
+        "x": 402848.668,
+        "y": 4469898.903,
+        "radius": 2.54
+      },
+      {
+        "sourceId": 12993295570,
+        "kind": "mapped-tree",
+        "x": 402846.218,
+        "y": 4469905.107,
+        "radius": 2.44
+      },
+      {
+        "sourceId": 12993295576,
+        "kind": "mapped-tree",
+        "x": 402826.903,
+        "y": 4469900.672,
+        "radius": 2.599
+      },
+      {
+        "sourceId": 12999815042,
+        "kind": "mapped-tree",
+        "x": 401292.498,
+        "y": 4469486.933,
+        "radius": 2.162
+      },
+      {
+        "sourceId": 12999815043,
+        "kind": "mapped-tree",
+        "x": 401285.183,
+        "y": 4469476.315,
+        "radius": 1.942
+      },
+      {
+        "sourceId": 12999815044,
+        "kind": "mapped-tree",
+        "x": 401287.642,
+        "y": 4469466.991,
+        "radius": 1.931
+      },
+      {
+        "sourceId": 12999815045,
+        "kind": "mapped-tree",
+        "x": 401300.402,
+        "y": 4469466.112,
+        "radius": 2.056
+      },
+      {
+        "sourceId": 12999815046,
+        "kind": "mapped-tree",
+        "x": 401293.353,
+        "y": 4469475.775,
+        "radius": 2.169
+      },
+      {
+        "sourceId": 12999815047,
+        "kind": "mapped-tree",
+        "x": 401276.586,
+        "y": 4469477.283,
+        "radius": 2.113
+      },
+      {
+        "sourceId": 12999978282,
+        "kind": "mapped-tree",
+        "x": 401189.806,
+        "y": 4469225.187,
+        "radius": 1.803
+      },
+      {
+        "sourceId": 12999978283,
+        "kind": "mapped-tree",
+        "x": 401188.256,
+        "y": 4469217.103,
+        "radius": 1.934
+      },
+      {
+        "sourceId": 12999978284,
+        "kind": "mapped-tree",
+        "x": 401261.214,
+        "y": 4469300.83,
+        "radius": 1.923
+      },
+      {
+        "sourceId": 12999978289,
+        "kind": "mapped-tree",
+        "x": 401270.837,
+        "y": 4469279.01,
+        "radius": 1.994
+      },
+      {
+        "sourceId": 12999978290,
+        "kind": "mapped-tree",
+        "x": 401263.712,
+        "y": 4469291.238,
+        "radius": 2.065
+      },
+      {
+        "sourceId": 12999978294,
+        "kind": "mapped-tree",
+        "x": 401226.546,
+        "y": 4469283.045,
+        "radius": 2.13
+      },
+      {
+        "sourceId": 12999978295,
+        "kind": "mapped-tree",
+        "x": 401233.059,
+        "y": 4469283.681,
+        "radius": 2.042
+      },
+      {
+        "sourceId": 12999978296,
+        "kind": "mapped-tree",
+        "x": 401244.658,
+        "y": 4469285.516,
+        "radius": 2.284
+      },
+      {
+        "sourceId": 12999978297,
+        "kind": "mapped-tree",
+        "x": 401247.465,
+        "y": 4469306.54,
+        "radius": 2.078
+      },
+      {
+        "sourceId": 12999978298,
+        "kind": "mapped-tree",
+        "x": 401178.024,
+        "y": 4469296.562,
+        "radius": 1.976
+      },
+      {
+        "sourceId": 12999978299,
+        "kind": "mapped-tree",
+        "x": 401179.021,
+        "y": 4469284.57,
+        "radius": 2.537
+      },
+      {
+        "sourceId": 12999980980,
+        "kind": "mapped-tree",
+        "x": 401216.735,
+        "y": 4469464.781,
+        "radius": 2.539
+      },
+      {
+        "sourceId": 12999987413,
+        "kind": "mapped-tree",
+        "x": 401022.57,
+        "y": 4469331.56,
+        "radius": 2.38
+      },
+      {
+        "sourceId": 12999987424,
+        "kind": "mapped-tree",
+        "x": 401057.216,
+        "y": 4469349.655,
+        "radius": 2.494
+      },
+      {
+        "sourceId": 12999987425,
+        "kind": "mapped-tree",
+        "x": 401025.377,
+        "y": 4469336.464,
+        "radius": 2.339
+      },
+      {
+        "sourceId": 12999987426,
+        "kind": "mapped-tree",
+        "x": 401036.632,
+        "y": 4469317.375,
+        "radius": 2.306
+      },
+      {
+        "sourceId": 12999987427,
+        "kind": "mapped-tree",
+        "x": 401063.403,
+        "y": 4469326.77,
+        "radius": 2.39
+      },
+      {
+        "sourceId": 12999987428,
+        "kind": "mapped-tree",
+        "x": 401164.031,
+        "y": 4469363.07,
+        "radius": 2.259
+      },
+      {
+        "sourceId": 12999987430,
+        "kind": "mapped-tree",
+        "x": 401152.752,
+        "y": 4469356.435,
+        "radius": 2.146
+      },
+      {
+        "sourceId": 12999987431,
+        "kind": "mapped-tree",
+        "x": 401127.767,
+        "y": 4469344.041,
+        "radius": 2.565
+      },
+      {
+        "sourceId": 12999987432,
+        "kind": "mapped-tree",
+        "x": 401115.471,
+        "y": 4469347.2,
+        "radius": 2.195
+      },
+      {
+        "sourceId": 12999987433,
+        "kind": "mapped-tree",
+        "x": 401114.522,
+        "y": 4469340.929,
+        "radius": 2.552
+      },
+      {
+        "sourceId": 12999987434,
+        "kind": "mapped-tree",
+        "x": 401099.781,
+        "y": 4469343.554,
+        "radius": 2.102
+      },
+      {
+        "sourceId": 12999987435,
+        "kind": "mapped-tree",
+        "x": 401091.674,
+        "y": 4469337.944,
+        "radius": 2.089
+      },
+      {
+        "sourceId": 12999987437,
+        "kind": "mapped-tree",
+        "x": 401109.836,
+        "y": 4469377.15,
+        "radius": 2.581
+      },
+      {
+        "sourceId": 12999987443,
+        "kind": "mapped-tree",
+        "x": 401143.119,
+        "y": 4469376.856,
+        "radius": 2.353
+      },
+      {
+        "sourceId": 12999987444,
+        "kind": "mapped-tree",
+        "x": 401158.651,
+        "y": 4469379.505,
+        "radius": 2.488
+      },
+      {
+        "sourceId": 12999987445,
+        "kind": "mapped-tree",
+        "x": 401149.735,
+        "y": 4469388.559,
+        "radius": 2.2
+      },
+      {
+        "sourceId": 12999987446,
+        "kind": "mapped-tree",
+        "x": 401139.919,
+        "y": 4469384.037,
+        "radius": 2.225
+      },
+      {
+        "sourceId": 13002477224,
+        "kind": "mapped-tree",
+        "x": 401073.426,
+        "y": 4469477.814,
+        "radius": 2.23
+      },
+      {
+        "sourceId": 13002477225,
+        "kind": "mapped-tree",
+        "x": 401070.813,
+        "y": 4469486.42,
+        "radius": 2.183
+      },
+      {
+        "sourceId": 13002477226,
+        "kind": "mapped-tree",
+        "x": 401090.943,
+        "y": 4469500.309,
+        "radius": 1.945
+      },
+      {
+        "sourceId": 13002477227,
+        "kind": "mapped-tree",
+        "x": 401073.654,
+        "y": 4469549.275,
+        "radius": 1.805
+      },
+      {
+        "sourceId": 13002477228,
+        "kind": "mapped-tree",
+        "x": 401067.564,
+        "y": 4469555.639,
+        "radius": 1.856
+      },
+      {
+        "sourceId": 13002477230,
+        "kind": "mapped-tree",
+        "x": 401060.941,
+        "y": 4469542.726,
+        "radius": 2.529
+      },
+      {
+        "sourceId": 13002498298,
+        "kind": "mapped-tree",
+        "x": 401650.493,
+        "y": 4469937.14,
+        "radius": 2.208
+      },
+      {
+        "sourceId": 13005396002,
+        "kind": "mapped-tree",
+        "x": 401859.607,
+        "y": 4469603.198,
+        "radius": 2.498
+      },
+      {
+        "sourceId": 13005396024,
+        "kind": "mapped-tree",
+        "x": 401814.386,
+        "y": 4469590.455,
+        "radius": 2.542
+      },
+      {
+        "sourceId": 13005396025,
+        "kind": "mapped-tree",
+        "x": 401838.538,
+        "y": 4469599.143,
+        "radius": 1.993
+      },
+      {
+        "sourceId": 13005402012,
+        "kind": "mapped-tree",
+        "x": 401227.219,
+        "y": 4469677.569,
+        "radius": 2.26
+      },
+      {
+        "sourceId": 13005402013,
+        "kind": "mapped-tree",
+        "x": 401210.893,
+        "y": 4469673.277,
+        "radius": 1.818
+      },
+      {
+        "sourceId": 13005402014,
+        "kind": "mapped-tree",
+        "x": 401220.472,
+        "y": 4469645.606,
+        "radius": 2.115
+      },
+      {
+        "sourceId": 13005402015,
+        "kind": "mapped-tree",
+        "x": 401220.891,
+        "y": 4469636.775,
+        "radius": 2.135
+      },
+      {
+        "sourceId": 13005402016,
+        "kind": "mapped-tree",
+        "x": 401234.987,
+        "y": 4469649.734,
+        "radius": 2.291
+      },
+      {
+        "sourceId": 13005402017,
+        "kind": "mapped-tree",
+        "x": 401208.105,
+        "y": 4469640.185,
+        "radius": 2.097
+      },
+      {
+        "sourceId": 13005402021,
+        "kind": "mapped-tree",
+        "x": 400981.506,
+        "y": 4469513.897,
+        "radius": 2.468
+      },
+      {
+        "sourceId": 13005402028,
+        "kind": "mapped-tree",
+        "x": 401086.771,
+        "y": 4469532.372,
+        "radius": 2.121
+      },
+      {
+        "sourceId": 13007132423,
+        "kind": "mapped-tree",
+        "x": 401210.205,
+        "y": 4469772.682,
+        "radius": 2.034
+      },
+      {
+        "sourceId": 13007132424,
+        "kind": "mapped-tree",
+        "x": 401193.362,
+        "y": 4469769.662,
+        "radius": 2.065
+      },
+      {
+        "sourceId": 13007132425,
+        "kind": "mapped-tree",
+        "x": 401063.373,
+        "y": 4469739.566,
+        "radius": 2.571
+      },
+      {
+        "sourceId": 13007132429,
+        "kind": "mapped-tree",
+        "x": 401188.894,
+        "y": 4469863.133,
+        "radius": 2.583
+      },
+      {
+        "sourceId": 13007132430,
+        "kind": "mapped-tree",
+        "x": 401183.044,
+        "y": 4469816.027,
+        "radius": 1.948
+      },
+      {
+        "sourceId": 13007390738,
+        "kind": "mapped-tree",
+        "x": 401405.272,
+        "y": 4469586.468,
+        "radius": 2.181
+      },
+      {
+        "sourceId": 13007390740,
+        "kind": "mapped-tree",
+        "x": 401612.578,
+        "y": 4469539.685,
+        "radius": 2.294
+      },
+      {
+        "sourceId": 13007390741,
+        "kind": "mapped-tree",
+        "x": 401661.691,
+        "y": 4469509.122,
+        "radius": 2.129
+      },
+      {
+        "sourceId": 13007390742,
+        "kind": "mapped-tree",
+        "x": 401630.394,
+        "y": 4469492.435,
+        "radius": 2.15
+      },
+      {
+        "sourceId": 13007390743,
+        "kind": "mapped-tree",
+        "x": 401643.396,
+        "y": 4469488.69,
+        "radius": 2.368
+      },
+      {
+        "sourceId": 13007390744,
+        "kind": "mapped-tree",
+        "x": 401634.329,
+        "y": 4469481.026,
+        "radius": 2.124
+      },
+      {
+        "sourceId": 13007390754,
+        "kind": "mapped-tree",
+        "x": 401436.302,
+        "y": 4469528.43,
+        "radius": 2.155
+      },
+      {
+        "sourceId": 13007390755,
+        "kind": "mapped-tree",
+        "x": 401453.958,
+        "y": 4469509.825,
+        "radius": 1.919
+      },
+      {
+        "sourceId": 13007630160,
+        "kind": "mapped-tree",
+        "x": 401683.085,
+        "y": 4469548.343,
+        "radius": 2.209
+      },
+      {
+        "sourceId": 13007630161,
+        "kind": "mapped-tree",
+        "x": 401752.697,
+        "y": 4469550.951,
+        "radius": 2.185
+      },
+      {
+        "sourceId": 13007630164,
+        "kind": "mapped-tree",
+        "x": 401655.873,
+        "y": 4469586.779,
+        "radius": 1.84
+      },
+      {
+        "sourceId": 13007630166,
+        "kind": "mapped-tree",
+        "x": 401751.871,
+        "y": 4469571.523,
+        "radius": 1.829
+      },
+      {
+        "sourceId": 13007630167,
+        "kind": "mapped-tree",
+        "x": 401741.218,
+        "y": 4469584.74,
+        "radius": 1.859
+      },
+      {
+        "sourceId": 13007630168,
+        "kind": "mapped-tree",
+        "x": 401735.674,
+        "y": 4469594.527,
+        "radius": 2.336
+      },
+      {
+        "sourceId": 13007630169,
+        "kind": "mapped-tree",
+        "x": 401737.265,
+        "y": 4469606.441,
+        "radius": 2.503
+      },
+      {
+        "sourceId": 13007630170,
+        "kind": "mapped-tree",
+        "x": 401683.842,
+        "y": 4469553.628,
+        "radius": 2.25
+      },
+      {
+        "sourceId": 13007630172,
+        "kind": "mapped-tree",
+        "x": 401639.776,
+        "y": 4469576.632,
+        "radius": 2.514
+      },
+      {
+        "sourceId": 13009981975,
+        "kind": "mapped-tree",
+        "x": 402327.432,
+        "y": 4469946.943,
+        "radius": 2.066
+      },
+      {
+        "sourceId": 13009981976,
+        "kind": "mapped-tree",
+        "x": 402295.806,
+        "y": 4469947.177,
+        "radius": 1.929
+      },
+      {
+        "sourceId": 13009981977,
+        "kind": "mapped-tree",
+        "x": 402464.922,
+        "y": 4470011.423,
+        "radius": 2.121
+      },
+      {
+        "sourceId": 13017720549,
+        "kind": "mapped-tree",
+        "x": 401214.534,
+        "y": 4469067.724,
+        "radius": 2.338
+      },
+      {
+        "sourceId": 13018099527,
+        "kind": "mapped-tree",
+        "x": 401149.991,
+        "y": 4469435.717,
+        "radius": 2.263
+      },
+      {
+        "sourceId": 13018099528,
+        "kind": "mapped-tree",
+        "x": 401167.542,
+        "y": 4469427.915,
+        "radius": 1.911
+      },
+      {
+        "sourceId": 13018099529,
+        "kind": "mapped-tree",
+        "x": 401184.682,
+        "y": 4469433.396,
+        "radius": 2.321
+      },
+      {
+        "sourceId": 13018099530,
+        "kind": "mapped-tree",
+        "x": 401128.811,
+        "y": 4469456.213,
+        "radius": 1.911
+      },
+      {
+        "sourceId": 13018099531,
+        "kind": "mapped-tree",
+        "x": 401119.45,
+        "y": 4469453.339,
+        "radius": 1.911
+      },
+      {
+        "sourceId": 13018099532,
+        "kind": "mapped-tree",
+        "x": 401151.589,
+        "y": 4469455.214,
+        "radius": 1.855
+      },
+      {
+        "sourceId": 13018099533,
+        "kind": "mapped-tree",
+        "x": 401157.824,
+        "y": 4469457.285,
+        "radius": 2.252
+      },
+      {
+        "sourceId": 13018099534,
+        "kind": "mapped-tree",
+        "x": 401164.228,
+        "y": 4469459.355,
+        "radius": 2.009
+      },
+      {
+        "sourceId": 13018099535,
+        "kind": "mapped-tree",
+        "x": 401170.231,
+        "y": 4469461.263,
+        "radius": 2.479
+      },
+      {
+        "sourceId": 13018099536,
+        "kind": "mapped-tree",
+        "x": 401176.343,
+        "y": 4469463.004,
+        "radius": 1.883
+      },
+      {
+        "sourceId": 13018099537,
+        "kind": "mapped-tree",
+        "x": 401181.076,
+        "y": 4469445.866,
+        "radius": 2.299
+      },
+      {
+        "sourceId": 13018099538,
+        "kind": "mapped-tree",
+        "x": 401175.646,
+        "y": 4469444.295,
+        "radius": 2.109
+      },
+      {
+        "sourceId": 13018099539,
+        "kind": "mapped-tree",
+        "x": 401169.863,
+        "y": 4469442.328,
+        "radius": 2.341
+      },
+      {
+        "sourceId": 13018099540,
+        "kind": "mapped-tree",
+        "x": 401163.689,
+        "y": 4469440.311,
+        "radius": 2.323
+      },
+      {
+        "sourceId": 13018099541,
+        "kind": "mapped-tree",
+        "x": 401157.227,
+        "y": 4469438.353,
+        "radius": 2.472
+      },
+      {
+        "sourceId": 13018099542,
+        "kind": "mapped-tree",
+        "x": 401145.626,
+        "y": 4469430.501,
+        "radius": 2.258
+      },
+      {
+        "sourceId": 13018099572,
+        "kind": "mapped-tree",
+        "x": 401128.833,
+        "y": 4469417.911,
+        "radius": 2.193
+      },
+      {
+        "sourceId": 13018099573,
+        "kind": "mapped-tree",
+        "x": 401136.901,
+        "y": 4469425.065,
+        "radius": 2.148
+      },
+      {
+        "sourceId": 13018099574,
+        "kind": "mapped-tree",
+        "x": 401148.373,
+        "y": 4469423.094,
+        "radius": 2.331
+      },
+      {
+        "sourceId": 13018099575,
+        "kind": "mapped-tree",
+        "x": 401127.434,
+        "y": 4469424.502,
+        "radius": 2.485
+      },
+      {
+        "sourceId": 13018099576,
+        "kind": "mapped-tree",
+        "x": 401102.681,
+        "y": 4469412.238,
+        "radius": 2.053
+      },
+      {
+        "sourceId": 13018099577,
+        "kind": "mapped-tree",
+        "x": 401084.33,
+        "y": 4469402.499,
+        "radius": 1.962
+      },
+      {
+        "sourceId": 13018099578,
+        "kind": "mapped-tree",
+        "x": 401082.367,
+        "y": 4469409.441,
+        "radius": 2.211
+      },
+      {
+        "sourceId": 13018099579,
+        "kind": "mapped-tree",
+        "x": 401094.063,
+        "y": 4469406.456,
+        "radius": 2.59
+      },
+      {
+        "sourceId": 13018099580,
+        "kind": "mapped-tree",
+        "x": 401075.926,
+        "y": 4469438.802,
+        "radius": 2.112
+      },
+      {
+        "sourceId": 13018099581,
+        "kind": "mapped-tree",
+        "x": 401081.65,
+        "y": 4469432.365,
+        "radius": 2.384
+      },
+      {
+        "sourceId": 13018099583,
+        "kind": "mapped-tree",
+        "x": 401137.501,
+        "y": 4469453.867,
+        "radius": 2.275
+      },
+      {
+        "sourceId": 13018099584,
+        "kind": "mapped-tree",
+        "x": 401079.83,
+        "y": 4469414.126,
+        "radius": 2.461
+      },
+      {
+        "sourceId": 13018099585,
+        "kind": "mapped-tree",
+        "x": 401075.584,
+        "y": 4469428.315,
+        "radius": 1.881
+      },
+      {
+        "sourceId": 13018148817,
+        "kind": "mapped-tree",
+        "x": 401023.092,
+        "y": 4469897.424,
+        "radius": 2.237
+      },
+      {
+        "sourceId": 13018148819,
+        "kind": "mapped-tree",
+        "x": 401060.7,
+        "y": 4469977.463,
+        "radius": 2.581
+      },
+      {
+        "sourceId": 13018148822,
+        "kind": "mapped-tree",
+        "x": 401071.063,
+        "y": 4469930.098,
+        "radius": 2.132
+      },
+      {
+        "sourceId": 13018148824,
+        "kind": "mapped-tree",
+        "x": 401078.579,
+        "y": 4469934.074,
+        "radius": 1.94
+      },
+      {
+        "sourceId": 286018707,
+        "kind": "tree-row",
+        "x": 402667.758,
+        "y": 4469937.544,
+        "radius": 1.812
+      },
+      {
+        "sourceId": 331335814,
+        "kind": "tree-row",
+        "x": 402489.847,
+        "y": 4469934.03,
+        "radius": 2.056
+      },
+      {
+        "sourceId": 331335814,
+        "kind": "tree-row",
+        "x": 402498.378,
+        "y": 4469937.54,
+        "radius": 2.584
+      },
+      {
+        "sourceId": 331335814,
+        "kind": "tree-row",
+        "x": 402506.909,
+        "y": 4469941.05,
+        "radius": 2.247
+      },
+      {
+        "sourceId": 331335814,
+        "kind": "tree-row",
+        "x": 402515.44,
+        "y": 4469944.561,
+        "radius": 2.192
+      },
+      {
+        "sourceId": 331335814,
+        "kind": "tree-row",
+        "x": 402523.971,
+        "y": 4469948.071,
+        "radius": 2.003
+      },
+      {
+        "sourceId": 331335814,
+        "kind": "tree-row",
+        "x": 402532.501,
+        "y": 4469951.581,
+        "radius": 2.193
+      },
+      {
+        "sourceId": 331335814,
+        "kind": "tree-row",
+        "x": 402541.032,
+        "y": 4469955.092,
+        "radius": 2.04
+      },
+      {
+        "sourceId": 331335815,
+        "kind": "tree-row",
+        "x": 402473.35,
+        "y": 4469934.089,
+        "radius": 2.573
+      },
+      {
+        "sourceId": 626039009,
+        "kind": "tree-row",
+        "x": 401519.682,
+        "y": 4469073.842,
+        "radius": 2.3
+      },
+      {
+        "sourceId": 626039009,
+        "kind": "tree-row",
+        "x": 401527.178,
+        "y": 4469075.079,
+        "radius": 1.996
+      },
+      {
+        "sourceId": 626039009,
+        "kind": "tree-row",
+        "x": 401534.045,
+        "y": 4469079.469,
+        "radius": 2.579
+      },
+      {
+        "sourceId": 626039009,
+        "kind": "tree-row",
+        "x": 401536.697,
+        "y": 4469086.541,
+        "radius": 2.578
+      },
+      {
+        "sourceId": 626039009,
+        "kind": "tree-row",
+        "x": 401537.767,
+        "y": 4469094.62,
+        "radius": 2.109
+      },
+      {
+        "sourceId": 1413346250,
+        "kind": "tree-row",
+        "x": 402531.129,
+        "y": 4469574.212,
+        "radius": 1.814
+      },
+      {
+        "sourceId": 1413346250,
+        "kind": "tree-row",
+        "x": 402522.709,
+        "y": 4469570.706,
+        "radius": 2.075
+      },
+      {
+        "sourceId": 1413346250,
+        "kind": "tree-row",
+        "x": 402514.289,
+        "y": 4469567.201,
+        "radius": 2.234
+      },
+      {
+        "sourceId": 1413346250,
+        "kind": "tree-row",
+        "x": 402505.869,
+        "y": 4469563.696,
+        "radius": 2.048
+      },
+      {
+        "sourceId": 1413346250,
+        "kind": "tree-row",
+        "x": 402497.449,
+        "y": 4469560.191,
+        "radius": 2.518
+      },
+      {
+        "sourceId": 1413346250,
+        "kind": "tree-row",
+        "x": 402489.029,
+        "y": 4469556.686,
+        "radius": 2.301
+      },
+      {
+        "sourceId": 1413346250,
+        "kind": "tree-row",
+        "x": 402480.609,
+        "y": 4469553.181,
+        "radius": 1.832
+      },
+      {
+        "sourceId": 1413346250,
+        "kind": "tree-row",
+        "x": 402472.189,
+        "y": 4469549.676,
+        "radius": 2.228
+      },
+      {
+        "sourceId": 1413346250,
+        "kind": "tree-row",
+        "x": 402463.769,
+        "y": 4469546.171,
+        "radius": 1.812
+      },
+      {
+        "sourceId": 1413346251,
+        "kind": "tree-row",
+        "x": 402578.781,
+        "y": 4469596.561,
+        "radius": 2.395
+      },
+      {
+        "sourceId": 1413346251,
+        "kind": "tree-row",
+        "x": 402586.897,
+        "y": 4469599.972,
+        "radius": 2.135
+      },
+      {
+        "sourceId": 1413346251,
+        "kind": "tree-row",
+        "x": 402595.014,
+        "y": 4469603.384,
+        "radius": 2.179
+      },
+      {
+        "sourceId": 1413346251,
+        "kind": "tree-row",
+        "x": 402603.13,
+        "y": 4469606.795,
+        "radius": 2.141
+      },
+      {
+        "sourceId": 1413346251,
+        "kind": "tree-row",
+        "x": 402611.247,
+        "y": 4469610.207,
+        "radius": 2.343
+      },
+      {
+        "sourceId": 1413346251,
+        "kind": "tree-row",
+        "x": 402619.364,
+        "y": 4469613.619,
+        "radius": 2.004
+      },
+      {
+        "sourceId": 1413346251,
+        "kind": "tree-row",
+        "x": 402627.48,
+        "y": 4469617.03,
+        "radius": 1.943
+      },
+      {
+        "sourceId": 1413346251,
+        "kind": "tree-row",
+        "x": 402635.597,
+        "y": 4469620.442,
+        "radius": 2.497
+      },
+      {
+        "sourceId": 1413346251,
+        "kind": "tree-row",
+        "x": 402643.713,
+        "y": 4469623.853,
+        "radius": 2.168
+      },
+      {
+        "sourceId": 1413346254,
+        "kind": "tree-row",
+        "x": 402767.052,
+        "y": 4469673.169,
+        "radius": 2.592
+      },
+      {
+        "sourceId": 1413346254,
+        "kind": "tree-row",
+        "x": 402775.131,
+        "y": 4469676.683,
+        "radius": 1.943
+      },
+      {
+        "sourceId": 1413346254,
+        "kind": "tree-row",
+        "x": 402783.21,
+        "y": 4469680.198,
+        "radius": 1.898
+      },
+      {
+        "sourceId": 1413346254,
+        "kind": "tree-row",
+        "x": 402799.368,
+        "y": 4469687.227,
+        "radius": 2.237
+      },
+      {
+        "sourceId": 1413346254,
+        "kind": "tree-row",
+        "x": 402807.446,
+        "y": 4469690.742,
+        "radius": 2.424
+      },
+      {
+        "sourceId": 1413346254,
+        "kind": "tree-row",
+        "x": 402815.525,
+        "y": 4469694.257,
+        "radius": 2.286
+      },
+      {
+        "sourceId": 1413346254,
+        "kind": "tree-row",
+        "x": 402823.604,
+        "y": 4469697.771,
+        "radius": 1.942
+      },
+      {
+        "sourceId": 1413346254,
+        "kind": "tree-row",
+        "x": 402831.683,
+        "y": 4469701.286,
+        "radius": 2.02
+      },
+      {
+        "sourceId": 1413346254,
+        "kind": "tree-row",
+        "x": 402839.762,
+        "y": 4469704.801,
+        "radius": 2.194
+      },
+      {
+        "sourceId": 1413346255,
+        "kind": "tree-row",
+        "x": 402834.671,
+        "y": 4469781.204,
+        "radius": 2.451
+      },
+      {
+        "sourceId": 1413346255,
+        "kind": "tree-row",
+        "x": 402837.491,
+        "y": 4469774.384,
+        "radius": 2.453
+      },
+      {
+        "sourceId": 1413346255,
+        "kind": "tree-row",
+        "x": 402840.311,
+        "y": 4469767.564,
+        "radius": 1.957
+      },
+      {
+        "sourceId": 1413346256,
+        "kind": "tree-row",
+        "x": 402769.433,
+        "y": 4469755.503,
+        "radius": 2.398
+      },
+      {
+        "sourceId": 1413346256,
+        "kind": "tree-row",
+        "x": 402777.6,
+        "y": 4469758.876,
+        "radius": 1.839
+      },
+      {
+        "sourceId": 1413346256,
+        "kind": "tree-row",
+        "x": 402785.766,
+        "y": 4469762.249,
+        "radius": 2.515
+      },
+      {
+        "sourceId": 1413346256,
+        "kind": "tree-row",
+        "x": 402793.933,
+        "y": 4469765.622,
+        "radius": 2.511
+      },
+      {
+        "sourceId": 1413346256,
+        "kind": "tree-row",
+        "x": 402802.1,
+        "y": 4469768.995,
+        "radius": 1.84
+      },
+      {
+        "sourceId": 1413346256,
+        "kind": "tree-row",
+        "x": 402810.267,
+        "y": 4469772.368,
+        "radius": 2.247
+      },
+      {
+        "sourceId": 1413346256,
+        "kind": "tree-row",
+        "x": 402818.433,
+        "y": 4469775.741,
+        "radius": 2.31
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402737.624,
+        "y": 4469763.201,
+        "radius": 1.976
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402745.834,
+        "y": 4469766.645,
+        "radius": 2.564
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402754.043,
+        "y": 4469770.089,
+        "radius": 2.428
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402762.252,
+        "y": 4469773.533,
+        "radius": 2.1
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402770.461,
+        "y": 4469776.977,
+        "radius": 2.102
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402795.089,
+        "y": 4469787.309,
+        "radius": 1.942
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402819.716,
+        "y": 4469797.642,
+        "radius": 1.808
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402827.925,
+        "y": 4469801.086,
+        "radius": 1.985
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402852.553,
+        "y": 4469811.418,
+        "radius": 2.225
+      },
+      {
+        "sourceId": 1413346257,
+        "kind": "tree-row",
+        "x": 402868.971,
+        "y": 4469818.307,
+        "radius": 1.954
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402737.836,
+        "y": 4469688.501,
+        "radius": 1.855
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402734.267,
+        "y": 4469696.824,
+        "radius": 2.478
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402730.698,
+        "y": 4469705.147,
+        "radius": 2.003
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402727.13,
+        "y": 4469713.47,
+        "radius": 2.385
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402723.561,
+        "y": 4469721.793,
+        "radius": 1.922
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402719.993,
+        "y": 4469730.116,
+        "radius": 2.52
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402722.906,
+        "y": 4469735.836,
+        "radius": 1.869
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402731.239,
+        "y": 4469739.381,
+        "radius": 2.22
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402739.572,
+        "y": 4469742.926,
+        "radius": 2.296
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402745.18,
+        "y": 4469739.68,
+        "radius": 1.931
+      },
+      {
+        "sourceId": 1413346258,
+        "kind": "tree-row",
+        "x": 402748.75,
+        "y": 4469731.358,
+        "radius": 1.97
+      },
+      {
+        "sourceId": 1413346261,
+        "kind": "tree-row",
+        "x": 402618.372,
+        "y": 4469636.661,
+        "radius": 2.283
+      },
+      {
+        "sourceId": 1413346261,
+        "kind": "tree-row",
+        "x": 402627.53,
+        "y": 4469640.283,
+        "radius": 2.092
+      },
+      {
+        "sourceId": 1413346262,
+        "kind": "tree-row",
+        "x": 402624.69,
+        "y": 4469665.533,
+        "radius": 2.256
+      },
+      {
+        "sourceId": 1413346262,
+        "kind": "tree-row",
+        "x": 402632.548,
+        "y": 4469668.618,
+        "radius": 2.012
+      },
+      {
+        "sourceId": 1413346262,
+        "kind": "tree-row",
+        "x": 402637.074,
+        "y": 4469664.039,
+        "radius": 2.118
+      },
+      {
+        "sourceId": 1413346262,
+        "kind": "tree-row",
+        "x": 402640.179,
+        "y": 4469656.189,
+        "radius": 1.867
+      },
+      {
+        "sourceId": 1413346262,
+        "kind": "tree-row",
+        "x": 402643.284,
+        "y": 4469648.339,
+        "radius": 2.369
+      },
+      {
+        "sourceId": 1413346263,
+        "kind": "tree-row",
+        "x": 402602.008,
+        "y": 4469669.957,
+        "radius": 2.519
+      },
+      {
+        "sourceId": 1413346263,
+        "kind": "tree-row",
+        "x": 402598.795,
+        "y": 4469678.278,
+        "radius": 1.967
+      },
+      {
+        "sourceId": 1413346263,
+        "kind": "tree-row",
+        "x": 402597.123,
+        "y": 4469685.914,
+        "radius": 2.402
+      },
+      {
+        "sourceId": 1413346263,
+        "kind": "tree-row",
+        "x": 402605.453,
+        "y": 4469689.105,
+        "radius": 2.193
+      },
+      {
+        "sourceId": 1413346263,
+        "kind": "tree-row",
+        "x": 402613.783,
+        "y": 4469692.295,
+        "radius": 1.801
+      },
+      {
+        "sourceId": 1413346263,
+        "kind": "tree-row",
+        "x": 402622.113,
+        "y": 4469695.486,
+        "radius": 1.916
+      },
+      {
+        "sourceId": 1413346263,
+        "kind": "tree-row",
+        "x": 402625.582,
+        "y": 4469687.745,
+        "radius": 2.029
+      },
+      {
+        "sourceId": 1413346263,
+        "kind": "tree-row",
+        "x": 402628.793,
+        "y": 4469679.423,
+        "radius": 2.554
+      },
+      {
+        "sourceId": 1413346264,
+        "kind": "tree-row",
+        "x": 402536.035,
+        "y": 4469621.154,
+        "radius": 1.996
+      },
+      {
+        "sourceId": 1413346264,
+        "kind": "tree-row",
+        "x": 402539.471,
+        "y": 4469612.777,
+        "radius": 2.421
+      },
+      {
+        "sourceId": 1413346264,
+        "kind": "tree-row",
+        "x": 402542.908,
+        "y": 4469604.4,
+        "radius": 2.126
+      },
+      {
+        "sourceId": 1413346265,
+        "kind": "tree-row",
+        "x": 402522.1,
+        "y": 4469655.085,
+        "radius": 2.072
+      },
+      {
+        "sourceId": 1413346265,
+        "kind": "tree-row",
+        "x": 402525.417,
+        "y": 4469647.009,
+        "radius": 1.908
+      },
+      {
+        "sourceId": 1413346265,
+        "kind": "tree-row",
+        "x": 402528.734,
+        "y": 4469638.934,
+        "radius": 2.325
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402554.705,
+        "y": 4469618.991,
+        "radius": 2.247
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402551.286,
+        "y": 4469627.476,
+        "radius": 2.54
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402547.867,
+        "y": 4469635.961,
+        "radius": 2.393
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402544.448,
+        "y": 4469644.447,
+        "radius": 2.313
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402541.029,
+        "y": 4469652.932,
+        "radius": 2.585
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402542.085,
+        "y": 4469659.505,
+        "radius": 1.981
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402550.58,
+        "y": 4469662.898,
+        "radius": 1.954
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402559.076,
+        "y": 4469666.292,
+        "radius": 2.139
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402567.572,
+        "y": 4469669.685,
+        "radius": 1.986
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402571.001,
+        "y": 4469661.225,
+        "radius": 1.842
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402577.839,
+        "y": 4469644.254,
+        "radius": 2.443
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402581.257,
+        "y": 4469635.769,
+        "radius": 2.559
+      },
+      {
+        "sourceId": 1413346266,
+        "kind": "tree-row",
+        "x": 402584.676,
+        "y": 4469627.283,
+        "radius": 2.489
+      },
+      {
+        "sourceId": 1413346268,
+        "kind": "tree-row",
+        "x": 402499.376,
+        "y": 4469645.24,
+        "radius": 2.019
+      },
+      {
+        "sourceId": 1413346268,
+        "kind": "tree-row",
+        "x": 402502.59,
+        "y": 4469636.804,
+        "radius": 1.833
+      },
+      {
+        "sourceId": 1413346268,
+        "kind": "tree-row",
+        "x": 402505.804,
+        "y": 4469628.367,
+        "radius": 2.209
+      },
+      {
+        "sourceId": 1413346268,
+        "kind": "tree-row",
+        "x": 402509.018,
+        "y": 4469619.931,
+        "radius": 2.014
+      },
+      {
+        "sourceId": 1413346268,
+        "kind": "tree-row",
+        "x": 402512.232,
+        "y": 4469611.495,
+        "radius": 1.866
+      },
+      {
+        "sourceId": 1413346268,
+        "kind": "tree-row",
+        "x": 402515.447,
+        "y": 4469603.058,
+        "radius": 1.975
+      },
+      {
+        "sourceId": 1413368978,
+        "kind": "tree-row",
+        "x": 402429.678,
+        "y": 4469714.948,
+        "radius": 1.944
+      },
+      {
+        "sourceId": 1413368979,
+        "kind": "tree-row",
+        "x": 402411.081,
+        "y": 4469707.018,
+        "radius": 2.234
+      },
+      {
+        "sourceId": 1413368989,
+        "kind": "tree-row",
+        "x": 402478.671,
+        "y": 4469803.094,
+        "radius": 2.042
+      },
+      {
+        "sourceId": 1413368991,
+        "kind": "tree-row",
+        "x": 402394.141,
+        "y": 4469746.129,
+        "radius": 2.067
+      },
+      {
+        "sourceId": 1413368991,
+        "kind": "tree-row",
+        "x": 402402.899,
+        "y": 4469749.745,
+        "radius": 2.199
+      },
+      {
+        "sourceId": 1413368995,
+        "kind": "tree-row",
+        "x": 402416.565,
+        "y": 4469758.488,
+        "radius": 2.169
+      },
+      {
+        "sourceId": 1413368995,
+        "kind": "tree-row",
+        "x": 402425.085,
+        "y": 4469762.024,
+        "radius": 2.531
+      },
+      {
+        "sourceId": 1413368996,
+        "kind": "tree-row",
+        "x": 402389.894,
+        "y": 4469766.816,
+        "radius": 1.951
+      },
+      {
+        "sourceId": 1413368996,
+        "kind": "tree-row",
+        "x": 402398.801,
+        "y": 4469770.59,
+        "radius": 1.992
+      },
+      {
+        "sourceId": 1413368996,
+        "kind": "tree-row",
+        "x": 402407.708,
+        "y": 4469774.365,
+        "radius": 2.086
+      },
+      {
+        "sourceId": 1413368996,
+        "kind": "tree-row",
+        "x": 402416.615,
+        "y": 4469778.139,
+        "radius": 1.976
+      },
+      {
+        "sourceId": 1413368996,
+        "kind": "tree-row",
+        "x": 402425.522,
+        "y": 4469781.913,
+        "radius": 2.593
+      },
+      {
+        "sourceId": 1413368997,
+        "kind": "tree-row",
+        "x": 402417.667,
+        "y": 4469702.044,
+        "radius": 2.496
+      },
+      {
+        "sourceId": 1413368997,
+        "kind": "tree-row",
+        "x": 402425.447,
+        "y": 4469705.346,
+        "radius": 1.848
+      },
+      {
+        "sourceId": 1413368997,
+        "kind": "tree-row",
+        "x": 402433.227,
+        "y": 4469708.649,
+        "radius": 2.078
+      },
+      {
+        "sourceId": 1413368997,
+        "kind": "tree-row",
+        "x": 402441.007,
+        "y": 4469711.952,
+        "radius": 2.556
+      },
+      {
+        "sourceId": 1413368997,
+        "kind": "tree-row",
+        "x": 402448.787,
+        "y": 4469715.255,
+        "radius": 2.473
+      },
+      {
+        "sourceId": 1413369008,
+        "kind": "tree-row",
+        "x": 402421.832,
+        "y": 4469689.429,
+        "radius": 2.313
+      },
+      {
+        "sourceId": 1413369008,
+        "kind": "tree-row",
+        "x": 402429.602,
+        "y": 4469692.773,
+        "radius": 2.264
+      },
+      {
+        "sourceId": 1413558984,
+        "kind": "tree-row",
+        "x": 402631.729,
+        "y": 4469945.055,
+        "radius": 1.957
+      },
+      {
+        "sourceId": 1413558984,
+        "kind": "tree-row",
+        "x": 402639.95,
+        "y": 4469948.314,
+        "radius": 2.422
+      },
+      {
+        "sourceId": 1413558984,
+        "kind": "tree-row",
+        "x": 402648.17,
+        "y": 4469951.572,
+        "radius": 2.107
+      },
+      {
+        "sourceId": 1413558984,
+        "kind": "tree-row",
+        "x": 402651.461,
+        "y": 4469943.389,
+        "radius": 1.88
+      },
+      {
+        "sourceId": 1413558984,
+        "kind": "tree-row",
+        "x": 402654.738,
+        "y": 4469935.176,
+        "radius": 2.204
+      },
+      {
+        "sourceId": 1413558984,
+        "kind": "tree-row",
+        "x": 402658.015,
+        "y": 4469926.962,
+        "radius": 2.379
+      },
+      {
+        "sourceId": 1413558984,
+        "kind": "tree-row",
+        "x": 402661.293,
+        "y": 4469918.749,
+        "radius": 2.032
+      },
+      {
+        "sourceId": 1413587283,
+        "kind": "tree-row",
+        "x": 402703.339,
+        "y": 4469919.359,
+        "radius": 1.954
+      },
+      {
+        "sourceId": 1413587283,
+        "kind": "tree-row",
+        "x": 402710.893,
+        "y": 4469922.323,
+        "radius": 2.548
+      },
+      {
+        "sourceId": 1413587283,
+        "kind": "tree-row",
+        "x": 402718.448,
+        "y": 4469925.287,
+        "radius": 2.556
+      },
+      {
+        "sourceId": 1413587283,
+        "kind": "tree-row",
+        "x": 402726.002,
+        "y": 4469928.251,
+        "radius": 1.937
+      },
+      {
+        "sourceId": 1413587283,
+        "kind": "tree-row",
+        "x": 402733.557,
+        "y": 4469931.215,
+        "radius": 2.572
+      },
+      {
+        "sourceId": 1413587283,
+        "kind": "tree-row",
+        "x": 402741.112,
+        "y": 4469934.179,
+        "radius": 2.099
+      },
+      {
+        "sourceId": 1413587289,
+        "kind": "tree-row",
+        "x": 402472.378,
+        "y": 4469822.659,
+        "radius": 2.384
+      },
+      {
+        "sourceId": 1413587289,
+        "kind": "tree-row",
+        "x": 402481.703,
+        "y": 4469826.302,
+        "radius": 2.372
+      },
+      {
+        "sourceId": 1413587289,
+        "kind": "tree-row",
+        "x": 402491.029,
+        "y": 4469829.944,
+        "radius": 1.975
+      },
+      {
+        "sourceId": 1413587289,
+        "kind": "tree-row",
+        "x": 402500.354,
+        "y": 4469833.587,
+        "radius": 2.139
+      },
+      {
+        "sourceId": 1413964374,
+        "kind": "tree-row",
+        "x": 402939.58,
+        "y": 4469997.389,
+        "radius": 1.958
+      },
+      {
+        "sourceId": 1413964374,
+        "kind": "tree-row",
+        "x": 402942.718,
+        "y": 4469989.233,
+        "radius": 2.18
+      },
+      {
+        "sourceId": 1413964374,
+        "kind": "tree-row",
+        "x": 402945.855,
+        "y": 4469981.077,
+        "radius": 2.194
+      },
+      {
+        "sourceId": 1413964390,
+        "kind": "tree-row",
+        "x": 402817.918,
+        "y": 4469916.649,
+        "radius": 2.053
+      },
+      {
+        "sourceId": 1413964391,
+        "kind": "tree-row",
+        "x": 402823.435,
+        "y": 4469894.522,
+        "radius": 2.481
+      },
+      {
+        "sourceId": 1413964391,
+        "kind": "tree-row",
+        "x": 402833.15,
+        "y": 4469897.927,
+        "radius": 2.181
+      },
+      {
+        "sourceId": 1413964392,
+        "kind": "tree-row",
+        "x": 402821.029,
+        "y": 4469889.002,
+        "radius": 2.117
+      },
+      {
+        "sourceId": 1413964393,
+        "kind": "tree-row",
+        "x": 402868.915,
+        "y": 4469913.096,
+        "radius": 1.837
+      },
+      {
+        "sourceId": 1413964394,
+        "kind": "tree-row",
+        "x": 402871.77,
+        "y": 4469885.693,
+        "radius": 2.302
+      },
+      {
+        "sourceId": 1413964396,
+        "kind": "tree-row",
+        "x": 402828.537,
+        "y": 4469872.785,
+        "radius": 2.33
+      },
+      {
+        "sourceId": 1413982316,
+        "kind": "tree-row",
+        "x": 402789.139,
+        "y": 4469965.231,
+        "radius": 1.994
+      },
+      {
+        "sourceId": 1413982316,
+        "kind": "tree-row",
+        "x": 402797.809,
+        "y": 4469968.549,
+        "radius": 1.896
+      },
+      {
+        "sourceId": 1414182649,
+        "kind": "tree-row",
+        "x": 402245.974,
+        "y": 4469711.853,
+        "radius": 1.919
+      },
+      {
+        "sourceId": 1414182649,
+        "kind": "tree-row",
+        "x": 402256.141,
+        "y": 4469716.006,
+        "radius": 1.882
+      },
+      {
+        "sourceId": 1415279258,
+        "kind": "tree-row",
+        "x": 401084.519,
+        "y": 4469622.45,
+        "radius": 1.871
+      },
+      {
+        "sourceId": 1415279258,
+        "kind": "tree-row",
+        "x": 401086.842,
+        "y": 4469613.843,
+        "radius": 2.581
+      },
+      {
+        "sourceId": 1415279258,
+        "kind": "tree-row",
+        "x": 401089.166,
+        "y": 4469605.236,
+        "radius": 2.029
+      },
+      {
+        "sourceId": 1415281100,
+        "kind": "tree-row",
+        "x": 401362.987,
+        "y": 4469655.767,
+        "radius": 1.867
+      },
+      {
+        "sourceId": 1415281100,
+        "kind": "tree-row",
+        "x": 401359.896,
+        "y": 4469647.667,
+        "radius": 2.181
+      },
+      {
+        "sourceId": 1415281100,
+        "kind": "tree-row",
+        "x": 401356.805,
+        "y": 4469639.566,
+        "radius": 2.197
+      },
+      {
+        "sourceId": 1415281100,
+        "kind": "tree-row",
+        "x": 401353.714,
+        "y": 4469631.465,
+        "radius": 1.864
+      },
+      {
+        "sourceId": 1415281100,
+        "kind": "tree-row",
+        "x": 401350.623,
+        "y": 4469623.364,
+        "radius": 2.022
+      },
+      {
+        "sourceId": 1415281100,
+        "kind": "tree-row",
+        "x": 401347.532,
+        "y": 4469615.263,
+        "radius": 1.834
+      },
+      {
+        "sourceId": 1415281100,
+        "kind": "tree-row",
+        "x": 401344.441,
+        "y": 4469607.162,
+        "radius": 2.105
+      },
+      {
+        "sourceId": 220915360,
+        "kind": "park-imagery",
+        "x": 401355.871,
+        "y": 4469171.338,
+        "radius": 1.893
+      },
+      {
+        "sourceId": 220915360,
+        "kind": "park-imagery",
+        "x": 401370.443,
+        "y": 4469171.969,
+        "radius": 1.838
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401158.43,
+        "y": 4468718.65,
+        "radius": 1.884
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401159.795,
+        "y": 4468755.675,
+        "radius": 1.807
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401211.326,
+        "y": 4468663.672,
+        "radius": 2.442
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401226.278,
+        "y": 4468589.131,
+        "radius": 2.242
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401227.214,
+        "y": 4468598.254,
+        "radius": 2.403
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401227.098,
+        "y": 4468767.565,
+        "radius": 2.248
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401238.737,
+        "y": 4468625.487,
+        "radius": 2.398
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401240.604,
+        "y": 4468653.205,
+        "radius": 1.883
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401240.037,
+        "y": 4468704.388,
+        "radius": 2.216
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401237.143,
+        "y": 4468846.808,
+        "radius": 1.889
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401252.402,
+        "y": 4468615.715,
+        "radius": 2.135
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401251.272,
+        "y": 4468704.297,
+        "radius": 2.296
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401251.187,
+        "y": 4468719.798,
+        "radius": 2.484
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401249.76,
+        "y": 4468832.554,
+        "radius": 2.038
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401266.82,
+        "y": 4468821.773,
+        "radius": 2.589
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401266.249,
+        "y": 4468875.765,
+        "radius": 2.562
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401277.614,
+        "y": 4468705.443,
+        "radius": 2.048
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401277.896,
+        "y": 4468732.176,
+        "radius": 2.069
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401277.968,
+        "y": 4468884.399,
+        "radius": 2.242
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401288.993,
+        "y": 4468784.828,
+        "radius": 2.25
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401302.13,
+        "y": 4468767.828,
+        "radius": 1.966
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401302.072,
+        "y": 4468793.167,
+        "radius": 2.093
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401305.288,
+        "y": 4468807.524,
+        "radius": 2.577
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401317.936,
+        "y": 4468783.047,
+        "radius": 2.239
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401314.596,
+        "y": 4468820.889,
+        "radius": 1.806
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401330.152,
+        "y": 4468806.487,
+        "radius": 1.972
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401329.261,
+        "y": 4468845.54,
+        "radius": 2.385
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401353.825,
+        "y": 4468873.406,
+        "radius": 1.976
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401366.993,
+        "y": 4468910.287,
+        "radius": 2.239
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401405.278,
+        "y": 4469068.763,
+        "radius": 2.058
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401408.433,
+        "y": 4469079.273,
+        "radius": 1.906
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401408.796,
+        "y": 4469106.605,
+        "radius": 2.558
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401422.106,
+        "y": 4469096.833,
+        "radius": 1.899
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401420.657,
+        "y": 4469107.53,
+        "radius": 2.537
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401434.625,
+        "y": 4468951.403,
+        "radius": 2.353
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401434.068,
+        "y": 4469093.653,
+        "radius": 2.409
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401445.392,
+        "y": 4469082.48,
+        "radius": 2.329
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401460.358,
+        "y": 4469092.16,
+        "radius": 1.987
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401474.301,
+        "y": 4469119.252,
+        "radius": 2.549
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401497.437,
+        "y": 4469147.495,
+        "radius": 2.428
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401549.991,
+        "y": 4469068.677,
+        "radius": 2.029
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401563.813,
+        "y": 4469083.575,
+        "radius": 2.035
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401577.778,
+        "y": 4469093.381,
+        "radius": 2.233
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401589.466,
+        "y": 4469131.469,
+        "radius": 2.525
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401614.253,
+        "y": 4469120.079,
+        "radius": 2.535
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401630.683,
+        "y": 4469158.012,
+        "radius": 2.396
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401655.506,
+        "y": 4469275.967,
+        "radius": 2.545
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401667.183,
+        "y": 4469159.102,
+        "radius": 2.28
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401666.269,
+        "y": 4469262.041,
+        "radius": 2.448
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401667.975,
+        "y": 4469276.907,
+        "radius": 1.806
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401668.658,
+        "y": 4469289.459,
+        "radius": 1.857
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401679.126,
+        "y": 4469275.686,
+        "radius": 1.93
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401679.547,
+        "y": 4469287.482,
+        "radius": 1.979
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401717.342,
+        "y": 4469329.878,
+        "radius": 2.292
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401876.713,
+        "y": 4469367.692,
+        "radius": 2.195
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401875.568,
+        "y": 4469378.275,
+        "radius": 2.501
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401952.249,
+        "y": 4469420.148,
+        "radius": 2.529
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401968.482,
+        "y": 4469381.828,
+        "radius": 1.826
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401966.314,
+        "y": 4469393.076,
+        "radius": 2.174
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401968.429,
+        "y": 4469404.183,
+        "radius": 2.256
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 401977.216,
+        "y": 4469391.471,
+        "radius": 2.025
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402043.019,
+        "y": 4469432.134,
+        "radius": 1.828
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402042.857,
+        "y": 4469469.387,
+        "radius": 2.383
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402058.248,
+        "y": 4469417.988,
+        "radius": 2.398
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402068.207,
+        "y": 4469419.952,
+        "radius": 2.371
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402094.299,
+        "y": 4469444.665,
+        "radius": 2.167
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402095.321,
+        "y": 4469470.698,
+        "radius": 2.48
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402121.77,
+        "y": 4469369.796,
+        "radius": 2.037
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402123.073,
+        "y": 4469496.712,
+        "radius": 2.366
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402148.165,
+        "y": 4469445.832,
+        "radius": 2.343
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402159.833,
+        "y": 4469495.542,
+        "radius": 1.859
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402264.332,
+        "y": 4469417.482,
+        "radius": 2.052
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402280.15,
+        "y": 4469419.682,
+        "radius": 1.824
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402407.416,
+        "y": 4469484.596,
+        "radius": 2.441
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402422.052,
+        "y": 4469486.156,
+        "radius": 2.558
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402449.661,
+        "y": 4469612.21,
+        "radius": 2.276
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402459.144,
+        "y": 4469586.27,
+        "radius": 1.81
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402458.608,
+        "y": 4469603.096,
+        "radius": 2.125
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402458.683,
+        "y": 4469612.757,
+        "radius": 2.519
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402461.043,
+        "y": 4469629.05,
+        "radius": 2.039
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402472.386,
+        "y": 4469576.906,
+        "radius": 2.36
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402474.279,
+        "y": 4469588.576,
+        "radius": 2.421
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402474.99,
+        "y": 4469626.96,
+        "radius": 1.811
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402488.285,
+        "y": 4469586.679,
+        "radius": 2.322
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402488.707,
+        "y": 4469601.55,
+        "radius": 1.825
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402484.727,
+        "y": 4469615.328,
+        "radius": 2.036
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402513.544,
+        "y": 4469626.249,
+        "radius": 2.161
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402774.408,
+        "y": 4469742.506,
+        "radius": 2.537
+      },
+      {
+        "sourceId": 249016043,
+        "kind": "park-imagery",
+        "x": 402863.22,
+        "y": 4469680.719,
+        "radius": 2.419
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401195.956,
+        "y": 4468710.093,
+        "radius": 0.93
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401231.683,
+        "y": 4468763.634,
+        "radius": 1.015
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401231.525,
+        "y": 4468835.914,
+        "radius": 0.98
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401230.219,
+        "y": 4468853.622,
+        "radius": 0.78
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401248.873,
+        "y": 4468871.811,
+        "radius": 0.774
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401263.925,
+        "y": 4468815.854,
+        "radius": 0.92
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401267.632,
+        "y": 4468832.879,
+        "radius": 0.79
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401263.227,
+        "y": 4468848.945,
+        "radius": 0.659
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401264.251,
+        "y": 4468868.417,
+        "radius": 0.787
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401267.191,
+        "y": 4468885.473,
+        "radius": 0.83
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401283.778,
+        "y": 4468848.007,
+        "radius": 0.735
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401281.763,
+        "y": 4468884.198,
+        "radius": 0.689
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401300.01,
+        "y": 4468871.468,
+        "radius": 0.726
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401315.962,
+        "y": 4468903.027,
+        "radius": 0.931
+      },
+      {
+        "sourceId": 360221025,
+        "kind": "planted-bed",
+        "x": 401334.22,
+        "y": 4468943.747,
+        "radius": 0.772
+      },
+      {
+        "sourceId": 299424032,
+        "kind": "park-imagery",
+        "x": 401161.507,
+        "y": 4469355.439,
+        "radius": 2.536
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400785.49,
+        "y": 4468899.615,
+        "radius": 2.226
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400782.997,
+        "y": 4468924.192,
+        "radius": 2.304
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400781.357,
+        "y": 4468937.723,
+        "radius": 2.247
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400782.09,
+        "y": 4468977.031,
+        "radius": 2.423
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400782.364,
+        "y": 4468988.767,
+        "radius": 2.584
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400796.805,
+        "y": 4468874.052,
+        "radius": 2.043
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400794.393,
+        "y": 4468912.725,
+        "radius": 1.84
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400796.931,
+        "y": 4468940.176,
+        "radius": 2.47
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400795.762,
+        "y": 4468951.431,
+        "radius": 1.838
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400798.741,
+        "y": 4468965.805,
+        "radius": 1.976
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400798.216,
+        "y": 4468991.934,
+        "radius": 1.929
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400809.141,
+        "y": 4468875.691,
+        "radius": 2.218
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400810.744,
+        "y": 4468926.281,
+        "radius": 2.067
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400811.29,
+        "y": 4468939.736,
+        "radius": 2.459
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400810.327,
+        "y": 4468950.278,
+        "radius": 2.469
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400809.855,
+        "y": 4468964.481,
+        "radius": 2.086
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400824.631,
+        "y": 4468927.715,
+        "radius": 2.062
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400837.018,
+        "y": 4468845.668,
+        "radius": 2.422
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400835.46,
+        "y": 4468925.641,
+        "radius": 2.014
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400834.387,
+        "y": 4468939.438,
+        "radius": 2.194
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400850.389,
+        "y": 4468770.957,
+        "radius": 2.116
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400849.347,
+        "y": 4468783.498,
+        "radius": 2.076
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400850.212,
+        "y": 4468898.811,
+        "radius": 2.159
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400849.882,
+        "y": 4468911.532,
+        "radius": 2.561
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400848.127,
+        "y": 4468926.718,
+        "radius": 2.209
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400847.386,
+        "y": 4468939.12,
+        "radius": 2.497
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400860.662,
+        "y": 4468797.711,
+        "radius": 1.849
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400862.957,
+        "y": 4468809.269,
+        "radius": 2.006
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400861.37,
+        "y": 4468846.753,
+        "radius": 1.823
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400862.606,
+        "y": 4468859.248,
+        "radius": 2.149
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400875.188,
+        "y": 4468771.375,
+        "radius": 2.361
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400874.852,
+        "y": 4468781.998,
+        "radius": 2.115
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400874.61,
+        "y": 4468834.256,
+        "radius": 2.558
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400875.773,
+        "y": 4468846.664,
+        "radius": 1.857
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400885.54,
+        "y": 4468769.154,
+        "radius": 2.264
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400886.304,
+        "y": 4468796.147,
+        "radius": 1.909
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400889.0,
+        "y": 4468807.993,
+        "radius": 1.92
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400902.071,
+        "y": 4468754.389,
+        "radius": 1.834
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400898.646,
+        "y": 4468770.424,
+        "radius": 2.596
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400900.166,
+        "y": 4468797.195,
+        "radius": 2.111
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400899.173,
+        "y": 4468820.672,
+        "radius": 2.271
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400914.662,
+        "y": 4468755.132,
+        "radius": 2.432
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400915.813,
+        "y": 4468768.059,
+        "radius": 1.868
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400911.918,
+        "y": 4468806.76,
+        "radius": 2.085
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400912.272,
+        "y": 4468820.598,
+        "radius": 2.259
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400927.388,
+        "y": 4468743.519,
+        "radius": 2.326
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400928.564,
+        "y": 4468771.298,
+        "radius": 2.194
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400924.707,
+        "y": 4468795.904,
+        "radius": 1.911
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400926.77,
+        "y": 4468807.77,
+        "radius": 2.208
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400939.341,
+        "y": 4468731.752,
+        "radius": 1.961
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400940.935,
+        "y": 4468741.402,
+        "radius": 2.036
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400941.688,
+        "y": 4468757.329,
+        "radius": 2.278
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400938.874,
+        "y": 4468783.585,
+        "radius": 1.869
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400940.321,
+        "y": 4468796.835,
+        "radius": 2.224
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400951.274,
+        "y": 4468729.71,
+        "radius": 2.342
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400951.65,
+        "y": 4468795.496,
+        "radius": 2.279
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400963.521,
+        "y": 4468719.2,
+        "radius": 2.264
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400963.755,
+        "y": 4468728.871,
+        "radius": 2.27
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400967.247,
+        "y": 4468742.443,
+        "radius": 2.285
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400965.198,
+        "y": 4468754.794,
+        "radius": 2.476
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400963.171,
+        "y": 4468769.428,
+        "radius": 2.484
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400977.595,
+        "y": 4468716.261,
+        "radius": 2.147
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400976.464,
+        "y": 4468730.262,
+        "radius": 2.483
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400978.981,
+        "y": 4468757.283,
+        "radius": 1.852
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400978.222,
+        "y": 4468771.833,
+        "radius": 2.544
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 400992.644,
+        "y": 4468758.044,
+        "radius": 2.409
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 401002.374,
+        "y": 4468719.137,
+        "radius": 2.478
+      },
+      {
+        "sourceId": 153520520,
+        "kind": "woodland",
+        "x": 401032.443,
+        "y": 4468729.349,
+        "radius": 1.905
+      },
+      {
+        "sourceId": 360221795,
+        "kind": "planted-bed",
+        "x": 401733.15,
+        "y": 4469338.843,
+        "radius": 0.878
+      },
+      {
+        "sourceId": 360221795,
+        "kind": "planted-bed",
+        "x": 401752.003,
+        "y": 4469336.489,
+        "radius": 0.907
+      },
+      {
+        "sourceId": 360221795,
+        "kind": "planted-bed",
+        "x": 401747.944,
+        "y": 4469352.419,
+        "radius": 1.011
+      },
+      {
+        "sourceId": 25405353,
+        "kind": "park-imagery",
+        "x": 401694.213,
+        "y": 4469430.732,
+        "radius": 2.309
+      },
+      {
+        "sourceId": 224648423,
+        "kind": "park-imagery",
+        "x": 400899.544,
+        "y": 4468706.155,
+        "radius": 2.592
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401929.189,
+        "y": 4469409.024,
+        "radius": 0.941
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401929.324,
+        "y": 4469424.257,
+        "radius": 1.01
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401952.083,
+        "y": 4469375.846,
+        "radius": 0.665
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401948.271,
+        "y": 4469391.681,
+        "radius": 0.803
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401950.913,
+        "y": 4469409.876,
+        "radius": 1.034
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401950.575,
+        "y": 4469427.622,
+        "radius": 0.692
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401969.565,
+        "y": 4469389.663,
+        "radius": 0.969
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401964.339,
+        "y": 4469411.801,
+        "radius": 0.876
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401968.268,
+        "y": 4469429.807,
+        "radius": 0.985
+      },
+      {
+        "sourceId": 360221796,
+        "kind": "planted-bed",
+        "x": 401981.891,
+        "y": 4469393.516,
+        "radius": 0.946
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401807.135,
+        "y": 4469370.713,
+        "radius": 0.808
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401821.348,
+        "y": 4469340.118,
+        "radius": 0.791
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401823.622,
+        "y": 4469354.021,
+        "radius": 0.933
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401821.726,
+        "y": 4469375.779,
+        "radius": 0.848
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401838.963,
+        "y": 4469338.393,
+        "radius": 0.889
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401839.172,
+        "y": 4469352.094,
+        "radius": 0.822
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401840.604,
+        "y": 4469375.967,
+        "radius": 0.999
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401838.914,
+        "y": 4469388.387,
+        "radius": 0.826
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401861.079,
+        "y": 4469353.006,
+        "radius": 1.005
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401857.651,
+        "y": 4469392.666,
+        "radius": 0.778
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401879.631,
+        "y": 4469388.744,
+        "radius": 0.894
+      },
+      {
+        "sourceId": 360221794,
+        "kind": "planted-bed",
+        "x": 401878.509,
+        "y": 4469410.297,
+        "radius": 1.002
+      },
+      {
+        "sourceId": 1414726937,
+        "kind": "planted-bed",
+        "x": 401100.132,
+        "y": 4469339.285,
+        "radius": 0.938
+      },
+      {
+        "sourceId": 175835406,
+        "kind": "park-imagery",
+        "x": 401133.489,
+        "y": 4469457.828,
+        "radius": 2.342
+      },
+      {
+        "sourceId": 1413587034,
+        "kind": "woodland",
+        "x": 401405.488,
+        "y": 4469199.305,
+        "radius": 2.02
+      },
+      {
+        "sourceId": 25405469,
+        "kind": "park-imagery",
+        "x": 401796.822,
+        "y": 4469456.955,
+        "radius": 2.043
+      },
+      {
+        "sourceId": 25402492,
+        "kind": "park-imagery",
+        "x": 402783.232,
+        "y": 4469990.147,
+        "radius": 1.88
+      },
+      {
+        "sourceId": 360221024,
+        "kind": "planted-bed",
+        "x": 401392.636,
+        "y": 4469033.868,
+        "radius": 1.003
+      },
+      {
+        "sourceId": 360221024,
+        "kind": "planted-bed",
+        "x": 401393.059,
+        "y": 4469049.189,
+        "radius": 0.822
+      },
+      {
+        "sourceId": 360221024,
+        "kind": "planted-bed",
+        "x": 401393.88,
+        "y": 4469064.32,
+        "radius": 0.744
+      },
+      {
+        "sourceId": 360221024,
+        "kind": "planted-bed",
+        "x": 401389.472,
+        "y": 4469087.342,
+        "radius": 0.982
+      },
+      {
+        "sourceId": 360221024,
+        "kind": "planted-bed",
+        "x": 401410.881,
+        "y": 4469084.68,
+        "radius": 0.893
+      },
+      {
+        "sourceId": 360221024,
+        "kind": "planted-bed",
+        "x": 401410.096,
+        "y": 4469119.42,
+        "radius": 0.911
+      },
+      {
+        "sourceId": 360221024,
+        "kind": "planted-bed",
+        "x": 401428.663,
+        "y": 4469087.745,
+        "radius": 0.958
+      },
+      {
+        "sourceId": 360221024,
+        "kind": "planted-bed",
+        "x": 401426.209,
+        "y": 4469103.354,
+        "radius": 1.021
+      },
+      {
+        "sourceId": 1413982317,
+        "kind": "woodland",
+        "x": 402783.709,
+        "y": 4469979.643,
+        "radius": 2.208
+      },
+      {
+        "sourceId": 1413982314,
+        "kind": "planted-bed",
+        "x": 402778.092,
+        "y": 4470003.464,
+        "radius": 0.849
+      },
+      {
+        "sourceId": 299418027,
+        "kind": "woodland",
+        "x": 400784.94,
+        "y": 4469081.023,
+        "radius": 2.061
+      },
+      {
+        "sourceId": 299418027,
+        "kind": "woodland",
+        "x": 400798.408,
+        "y": 4469067.503,
+        "radius": 2.545
+      },
+      {
+        "sourceId": 299418027,
+        "kind": "woodland",
+        "x": 400811.772,
+        "y": 4469067.106,
+        "radius": 2.4
+      },
+      {
+        "sourceId": 1413982312,
+        "kind": "planted-bed",
+        "x": 402758.295,
+        "y": 4470021.729,
+        "radius": 0.886
+      },
+      {
+        "sourceId": 1413982312,
+        "kind": "planted-bed",
+        "x": 402757.353,
+        "y": 4470040.255,
+        "radius": 0.986
+      },
+      {
+        "sourceId": 360231618,
+        "kind": "planted-bed",
+        "x": 402437.386,
+        "y": 4469642.477,
+        "radius": 0.651
+      },
+      {
+        "sourceId": 1414726936,
+        "kind": "planted-bed",
+        "x": 401030.089,
+        "y": 4469340.18,
+        "radius": 0.777
+      },
+      {
+        "sourceId": 360221023,
+        "kind": "planted-bed",
+        "x": 401392.184,
+        "y": 4468994.025,
+        "radius": 0.849
+      },
+      {
+        "sourceId": 360221022,
+        "kind": "planted-bed",
+        "x": 401158.776,
+        "y": 4468725.891,
+        "radius": 0.859
+      },
+      {
+        "sourceId": 1413982311,
+        "kind": "woodland",
+        "x": 402759.697,
+        "y": 4470029.616,
+        "radius": 2.189
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402681.793,
+        "y": 4469976.391,
+        "radius": 2.338
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402683.049,
+        "y": 4469989.278,
+        "radius": 2.311
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402695.897,
+        "y": 4469941.334,
+        "radius": 2.226
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402695.268,
+        "y": 4469950.391,
+        "radius": 2.276
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402694.308,
+        "y": 4469965.547,
+        "radius": 2.15
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402694.854,
+        "y": 4469979.198,
+        "radius": 2.474
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402692.754,
+        "y": 4469990.219,
+        "radius": 2.488
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402695.717,
+        "y": 4470005.844,
+        "radius": 1.942
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402706.627,
+        "y": 4469952.927,
+        "radius": 2.57
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402709.059,
+        "y": 4469967.259,
+        "radius": 2.047
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402706.19,
+        "y": 4469977.895,
+        "radius": 2.555
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402709.729,
+        "y": 4469993.661,
+        "radius": 2.471
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402709.349,
+        "y": 4470005.659,
+        "radius": 1.949
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402718.187,
+        "y": 4469954.767,
+        "radius": 1.861
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402722.679,
+        "y": 4469963.589,
+        "radius": 1.891
+      },
+      {
+        "sourceId": 1413587305,
+        "kind": "woodland",
+        "x": 402719.413,
+        "y": 4469979.686,
+        "radius": 2.161
+      },
+      {
+        "sourceId": 299418028,
+        "kind": "planted-bed",
+        "x": 401298.768,
+        "y": 4468997.472,
+        "radius": 0.776
+      },
+      {
+        "sourceId": 360221792,
+        "kind": "planted-bed",
+        "x": 401661.104,
+        "y": 4469301.448,
+        "radius": 0.705
+      },
+      {
+        "sourceId": 360221792,
+        "kind": "planted-bed",
+        "x": 401677.795,
+        "y": 4469315.874,
+        "radius": 0.704
+      },
+      {
+        "sourceId": 360221792,
+        "kind": "planted-bed",
+        "x": 401697.884,
+        "y": 4469317.185,
+        "radius": 0.775
+      },
+      {
+        "sourceId": 360231626,
+        "kind": "planted-bed",
+        "x": 402506.258,
+        "y": 4469623.869,
+        "radius": 0.974
+      },
+      {
+        "sourceId": 360231626,
+        "kind": "planted-bed",
+        "x": 402509.239,
+        "y": 4469640.748,
+        "radius": 0.686
+      },
+      {
+        "sourceId": 360231626,
+        "kind": "planted-bed",
+        "x": 402523.36,
+        "y": 4469609.858,
+        "radius": 0.786
+      },
+      {
+        "sourceId": 360229794,
+        "kind": "planted-bed",
+        "x": 402041.995,
+        "y": 4469460.351,
+        "radius": 0.995
+      },
+      {
+        "sourceId": 360229794,
+        "kind": "planted-bed",
+        "x": 402057.148,
+        "y": 4469482.08,
+        "radius": 0.766
+      },
+      {
+        "sourceId": 25402639,
+        "kind": "planted-bed",
+        "x": 402758.936,
+        "y": 4469769.502,
+        "radius": 0.844
+      },
+      {
+        "sourceId": 25402639,
+        "kind": "planted-bed",
+        "x": 402810.097,
+        "y": 4469789.847,
+        "radius": 1.041
+      },
+      {
+        "sourceId": 360229814,
+        "kind": "planted-bed",
+        "x": 402180.465,
+        "y": 4469532.788,
+        "radius": 0.909
+      },
+      {
+        "sourceId": 360229814,
+        "kind": "planted-bed",
+        "x": 402203.016,
+        "y": 4469514.503,
+        "radius": 0.657
+      },
+      {
+        "sourceId": 360229814,
+        "kind": "planted-bed",
+        "x": 402257.782,
+        "y": 4469553.414,
+        "radius": 0.827
+      },
+      {
+        "sourceId": 299177308,
+        "kind": "planted-bed",
+        "x": 400706.731,
+        "y": 4468795.007,
+        "radius": 0.671
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402095.642,
+        "y": 4469461.693,
+        "radius": 0.68
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402096.074,
+        "y": 4469483.553,
+        "radius": 0.833
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402110.849,
+        "y": 4469465.364,
+        "radius": 0.838
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402130.274,
+        "y": 4469463.71,
+        "radius": 0.914
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402130.393,
+        "y": 4469498.397,
+        "radius": 0.668
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402145.797,
+        "y": 4469460.754,
+        "radius": 0.923
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402166.982,
+        "y": 4469464.722,
+        "radius": 0.819
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402165.962,
+        "y": 4469478.954,
+        "radius": 0.988
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402179.93,
+        "y": 4469461.642,
+        "radius": 1.023
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402202.112,
+        "y": 4469478.366,
+        "radius": 0.95
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402218.876,
+        "y": 4469479.157,
+        "radius": 1.006
+      },
+      {
+        "sourceId": 360229795,
+        "kind": "planted-bed",
+        "x": 402237.284,
+        "y": 4469481.423,
+        "radius": 1.012
+      },
+      {
+        "sourceId": 286018720,
+        "kind": "planted-bed",
+        "x": 402757.035,
+        "y": 4469893.834,
+        "radius": 0.734
+      },
+      {
+        "sourceId": 360229800,
+        "kind": "planted-bed",
+        "x": 402167.466,
+        "y": 4469499.334,
+        "radius": 1.027
+      },
+      {
+        "sourceId": 1413964377,
+        "kind": "planted-bed",
+        "x": 402814.648,
+        "y": 4469932.369,
+        "radius": 0.778
+      },
+      {
+        "sourceId": 270087949,
+        "kind": "planted-bed",
+        "x": 401119.536,
+        "y": 4468653.179,
+        "radius": 1.021
+      },
+      {
+        "sourceId": 360229804,
+        "kind": "planted-bed",
+        "x": 402003.501,
+        "y": 4469447.445,
+        "radius": 0.723
+      },
+      {
+        "sourceId": 360221019,
+        "kind": "planted-bed",
+        "x": 401462.741,
+        "y": 4469139.897,
+        "radius": 0.856
+      },
+      {
+        "sourceId": 360221019,
+        "kind": "planted-bed",
+        "x": 401481.214,
+        "y": 4469118.428,
+        "radius": 0.907
+      },
+      {
+        "sourceId": 465973265,
+        "kind": "planted-bed",
+        "x": 402093.399,
+        "y": 4469572.611,
+        "radius": 0.662
+      },
+      {
+        "sourceId": 465973265,
+        "kind": "planted-bed",
+        "x": 402091.715,
+        "y": 4469588.21,
+        "radius": 0.972
+      },
+      {
+        "sourceId": 465973265,
+        "kind": "planted-bed",
+        "x": 402093.203,
+        "y": 4469607.608,
+        "radius": 1.023
+      },
+      {
+        "sourceId": 299418029,
+        "kind": "planted-bed",
+        "x": 401300.165,
+        "y": 4469031.642,
+        "radius": 0.708
+      },
+      {
+        "sourceId": 299453899,
+        "kind": "planted-bed",
+        "x": 402558.145,
+        "y": 4469622.437,
+        "radius": 0.952
+      },
+      {
+        "sourceId": 299453899,
+        "kind": "planted-bed",
+        "x": 402563.051,
+        "y": 4469660.323,
+        "radius": 0.803
+      },
+      {
+        "sourceId": 299453899,
+        "kind": "planted-bed",
+        "x": 402577.934,
+        "y": 4469623.509,
+        "radius": 0.829
+      },
+      {
+        "sourceId": 25402731,
+        "kind": "planted-bed",
+        "x": 402632.164,
+        "y": 4469645.001,
+        "radius": 0.905
+      },
+      {
+        "sourceId": 25402731,
+        "kind": "planted-bed",
+        "x": 402634.954,
+        "y": 4469658.393,
+        "radius": 1.013
+      },
+      {
+        "sourceId": 1413982309,
+        "kind": "woodland",
+        "x": 402785.438,
+        "y": 4470031.018,
+        "radius": 2.564
+      },
+      {
+        "sourceId": 1413982309,
+        "kind": "woodland",
+        "x": 402783.25,
+        "y": 4470045.772,
+        "radius": 2.465
+      },
+      {
+        "sourceId": 1413982309,
+        "kind": "woodland",
+        "x": 402796.923,
+        "y": 4470017.66,
+        "radius": 2.352
+      },
+      {
+        "sourceId": 286020266,
+        "kind": "planted-bed",
+        "x": 402451.971,
+        "y": 4469621.907,
+        "radius": 1.005
+      },
+      {
+        "sourceId": 286020266,
+        "kind": "planted-bed",
+        "x": 402468.544,
+        "y": 4469572.299,
+        "radius": 0.938
+      },
+      {
+        "sourceId": 286020266,
+        "kind": "planted-bed",
+        "x": 402469.901,
+        "y": 4469606.71,
+        "radius": 0.93
+      },
+      {
+        "sourceId": 286020266,
+        "kind": "planted-bed",
+        "x": 402470.672,
+        "y": 4469625.465,
+        "radius": 0.911
+      },
+      {
+        "sourceId": 286020266,
+        "kind": "planted-bed",
+        "x": 402486.498,
+        "y": 4469590.041,
+        "radius": 0.751
+      },
+      {
+        "sourceId": 286020266,
+        "kind": "planted-bed",
+        "x": 402486.433,
+        "y": 4469607.466,
+        "radius": 0.822
+      },
+      {
+        "sourceId": 360220389,
+        "kind": "planted-bed",
+        "x": 401156.333,
+        "y": 4468668.19,
+        "radius": 0.658
+      },
+      {
+        "sourceId": 25402705,
+        "kind": "planted-bed",
+        "x": 402852.003,
+        "y": 4469788.909,
+        "radius": 0.775
+      },
+      {
+        "sourceId": 25402705,
+        "kind": "planted-bed",
+        "x": 402866.682,
+        "y": 4469752.062,
+        "radius": 0.814
+      },
+      {
+        "sourceId": 25402705,
+        "kind": "planted-bed",
+        "x": 402867.734,
+        "y": 4469767.684,
+        "radius": 1.02
+      },
+      {
+        "sourceId": 25402705,
+        "kind": "planted-bed",
+        "x": 402868.016,
+        "y": 4469787.151,
+        "radius": 0.784
+      },
+      {
+        "sourceId": 25402705,
+        "kind": "planted-bed",
+        "x": 402885.05,
+        "y": 4469748.067,
+        "radius": 0.807
+      },
+      {
+        "sourceId": 1413346249,
+        "kind": "woodland",
+        "x": 402851.214,
+        "y": 4469782.243,
+        "radius": 2.246
+      },
+      {
+        "sourceId": 1413346249,
+        "kind": "woodland",
+        "x": 402864.765,
+        "y": 4469784.84,
+        "radius": 2.374
+      },
+      {
+        "sourceId": 360221793,
+        "kind": "planted-bed",
+        "x": 401659.447,
+        "y": 4469246.142,
+        "radius": 0.704
+      },
+      {
+        "sourceId": 360221793,
+        "kind": "planted-bed",
+        "x": 401679.656,
+        "y": 4469248.225,
+        "radius": 0.829
+      },
+      {
+        "sourceId": 360221793,
+        "kind": "planted-bed",
+        "x": 401696.546,
+        "y": 4469248.32,
+        "radius": 0.964
+      },
+      {
+        "sourceId": 360221793,
+        "kind": "planted-bed",
+        "x": 401695.665,
+        "y": 4469264.372,
+        "radius": 0.717
+      },
+      {
+        "sourceId": 360221793,
+        "kind": "planted-bed",
+        "x": 401714.788,
+        "y": 4469301.676,
+        "radius": 1.023
+      },
+      {
+        "sourceId": 360221036,
+        "kind": "planted-bed",
+        "x": 401370.049,
+        "y": 4468905.655,
+        "radius": 1.023
+      },
+      {
+        "sourceId": 360221036,
+        "kind": "planted-bed",
+        "x": 401372.891,
+        "y": 4468922.122,
+        "radius": 1.028
+      },
+      {
+        "sourceId": 360221036,
+        "kind": "planted-bed",
+        "x": 401393.943,
+        "y": 4468906.783,
+        "radius": 0.892
+      },
+      {
+        "sourceId": 360221033,
+        "kind": "planted-bed",
+        "x": 401392.299,
+        "y": 4468940.39,
+        "radius": 0.737
+      },
+      {
+        "sourceId": 360221033,
+        "kind": "planted-bed",
+        "x": 401410.486,
+        "y": 4468922.813,
+        "radius": 1.046
+      },
+      {
+        "sourceId": 1413964406,
+        "kind": "planted-bed",
+        "x": 402850.886,
+        "y": 4469931.507,
+        "radius": 0.672
+      },
+      {
+        "sourceId": 1413964406,
+        "kind": "planted-bed",
+        "x": 402849.93,
+        "y": 4469951.805,
+        "radius": 0.76
+      },
+      {
+        "sourceId": 1413964406,
+        "kind": "planted-bed",
+        "x": 402865.374,
+        "y": 4469951.204,
+        "radius": 0.785
+      },
+      {
+        "sourceId": 360229793,
+        "kind": "planted-bed",
+        "x": 402054.021,
+        "y": 4469429.076,
+        "radius": 0.776
+      },
+      {
+        "sourceId": 360229793,
+        "kind": "planted-bed",
+        "x": 402073.539,
+        "y": 4469428.692,
+        "radius": 0.982
+      },
+      {
+        "sourceId": 360241461,
+        "kind": "planted-bed",
+        "x": 402254.006,
+        "y": 4469517.706,
+        "radius": 1.017
+      },
+      {
+        "sourceId": 360221042,
+        "kind": "planted-bed",
+        "x": 401334.735,
+        "y": 4468848.149,
+        "radius": 0.909
+      },
+      {
+        "sourceId": 360221042,
+        "kind": "planted-bed",
+        "x": 401339.169,
+        "y": 4468870.8,
+        "radius": 0.886
+      },
+      {
+        "sourceId": 360221042,
+        "kind": "planted-bed",
+        "x": 401353.329,
+        "y": 4468868.867,
+        "radius": 0.794
+      },
+      {
+        "sourceId": 452783353,
+        "kind": "planted-bed",
+        "x": 402396.595,
+        "y": 4469750.146,
+        "radius": 0.885
+      },
+      {
+        "sourceId": 273101274,
+        "kind": "park-imagery",
+        "x": 401251.001,
+        "y": 4469561.098,
+        "radius": 2.077
+      },
+      {
+        "sourceId": 273101274,
+        "kind": "park-imagery",
+        "x": 401251.486,
+        "y": 4469615.761,
+        "radius": 1.998
+      },
+      {
+        "sourceId": 273101274,
+        "kind": "park-imagery",
+        "x": 401265.513,
+        "y": 4469549.513,
+        "radius": 2.579
+      },
+      {
+        "sourceId": 1413346248,
+        "kind": "woodland",
+        "x": 402874.294,
+        "y": 4469744.879,
+        "radius": 2.315
+      },
+      {
+        "sourceId": 1413346248,
+        "kind": "woodland",
+        "x": 402875.506,
+        "y": 4469757.565,
+        "radius": 2.142
+      },
+      {
+        "sourceId": 387071133,
+        "kind": "woodland",
+        "x": 401162.093,
+        "y": 4469511.135,
+        "radius": 1.985
+      },
+      {
+        "sourceId": 360220329,
+        "kind": "planted-bed",
+        "x": 401157.15,
+        "y": 4468596.871,
+        "radius": 0.981
+      },
+      {
+        "sourceId": 360220329,
+        "kind": "planted-bed",
+        "x": 401171.957,
+        "y": 4468599.169,
+        "radius": 0.737
+      },
+      {
+        "sourceId": 360221040,
+        "kind": "planted-bed",
+        "x": 401441.927,
+        "y": 4468958.774,
+        "radius": 0.805
+      },
+      {
+        "sourceId": 360221040,
+        "kind": "planted-bed",
+        "x": 401463.658,
+        "y": 4468979.818,
+        "radius": 0.957
+      },
+      {
+        "sourceId": 360221040,
+        "kind": "planted-bed",
+        "x": 401479.397,
+        "y": 4468992.003,
+        "radius": 0.686
+      },
+      {
+        "sourceId": 360221040,
+        "kind": "planted-bed",
+        "x": 401497.041,
+        "y": 4469012.178,
+        "radius": 0.893
+      },
+      {
+        "sourceId": 360221040,
+        "kind": "planted-bed",
+        "x": 401514.868,
+        "y": 4469030.598,
+        "radius": 0.672
+      },
+      {
+        "sourceId": 380450181,
+        "kind": "woodland",
+        "x": 400888.247,
+        "y": 4469407.219,
+        "radius": 2.35
+      },
+      {
+        "sourceId": 360221027,
+        "kind": "planted-bed",
+        "x": 401517.791,
+        "y": 4469122.83,
+        "radius": 0.743
+      },
+      {
+        "sourceId": 25452751,
+        "kind": "park-imagery",
+        "x": 400576.043,
+        "y": 4468914.8,
+        "radius": 2.3
+      },
+      {
+        "sourceId": 25452751,
+        "kind": "park-imagery",
+        "x": 400577.4,
+        "y": 4468924.987,
+        "radius": 1.814
+      },
+      {
+        "sourceId": 360221028,
+        "kind": "planted-bed",
+        "x": 401228.587,
+        "y": 4468726.878,
+        "radius": 0.978
+      },
+      {
+        "sourceId": 360220387,
+        "kind": "planted-bed",
+        "x": 401213.244,
+        "y": 4468674.0,
+        "radius": 0.983
+      },
+      {
+        "sourceId": 25402460,
+        "kind": "planted-bed",
+        "x": 402632.355,
+        "y": 4469966.152,
+        "radius": 0.708
+      },
+      {
+        "sourceId": 25402478,
+        "kind": "planted-bed",
+        "x": 402651.495,
+        "y": 4469948.179,
+        "radius": 0.937
+      },
+      {
+        "sourceId": 360221038,
+        "kind": "planted-bed",
+        "x": 401247.125,
+        "y": 4468709.723,
+        "radius": 0.825
+      },
+      {
+        "sourceId": 360221038,
+        "kind": "planted-bed",
+        "x": 401247.754,
+        "y": 4468724.717,
+        "radius": 1.003
+      },
+      {
+        "sourceId": 360221038,
+        "kind": "planted-bed",
+        "x": 401263.825,
+        "y": 4468740.943,
+        "radius": 0.674
+      },
+      {
+        "sourceId": 360229807,
+        "kind": "planted-bed",
+        "x": 401981.96,
+        "y": 4469355.804,
+        "radius": 0.862
+      },
+      {
+        "sourceId": 360229807,
+        "kind": "planted-bed",
+        "x": 402019.617,
+        "y": 4469374.354,
+        "radius": 0.902
+      },
+      {
+        "sourceId": 360221035,
+        "kind": "planted-bed",
+        "x": 401550.426,
+        "y": 4469119.039,
+        "radius": 0.985
+      },
+      {
+        "sourceId": 360221035,
+        "kind": "planted-bed",
+        "x": 401573.834,
+        "y": 4469136.532,
+        "radius": 0.651
+      },
+      {
+        "sourceId": 25635976,
+        "kind": "planted-bed",
+        "x": 402777.714,
+        "y": 4469680.758,
+        "radius": 0.706
+      },
+      {
+        "sourceId": 25635976,
+        "kind": "planted-bed",
+        "x": 402811.245,
+        "y": 4469694.757,
+        "radius": 0.976
+      },
+      {
+        "sourceId": 360221026,
+        "kind": "planted-bed",
+        "x": 401302.294,
+        "y": 4468759.563,
+        "radius": 0.972
+      },
+      {
+        "sourceId": 360220331,
+        "kind": "planted-bed",
+        "x": 401195.99,
+        "y": 4468596.849,
+        "radius": 0.78
+      },
+      {
+        "sourceId": 360221037,
+        "kind": "planted-bed",
+        "x": 401555.145,
+        "y": 4469102.827,
+        "radius": 0.741
+      },
+      {
+        "sourceId": 360221037,
+        "kind": "planted-bed",
+        "x": 401625.751,
+        "y": 4469156.152,
+        "radius": 0.975
+      },
+      {
+        "sourceId": 360229797,
+        "kind": "planted-bed",
+        "x": 401987.366,
+        "y": 4469335.481,
+        "radius": 0.743
+      },
+      {
+        "sourceId": 360229797,
+        "kind": "planted-bed",
+        "x": 402022.782,
+        "y": 4469353.406,
+        "radius": 0.745
+      },
+      {
+        "sourceId": 178464276,
+        "kind": "park-imagery",
+        "x": 400603.391,
+        "y": 4468730.441,
+        "radius": 2.435
+      },
+      {
+        "sourceId": 360221039,
+        "kind": "planted-bed",
+        "x": 401281.01,
+        "y": 4468726.87,
+        "radius": 0.845
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402447.602,
+        "y": 4469887.028,
+        "radius": 2.08
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402448.597,
+        "y": 4469899.123,
+        "radius": 2.025
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402460.91,
+        "y": 4469862.391,
+        "radius": 1.875
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402462.217,
+        "y": 4469874.534,
+        "radius": 2.41
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402460.08,
+        "y": 4469889.176,
+        "radius": 2.308
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402461.473,
+        "y": 4469899.441,
+        "radius": 2.319
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402471.722,
+        "y": 4469849.509,
+        "radius": 1.923
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402475.035,
+        "y": 4469860.09,
+        "radius": 2.259
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402471.757,
+        "y": 4469872.337,
+        "radius": 2.264
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402473.883,
+        "y": 4469885.894,
+        "radius": 1.959
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402471.39,
+        "y": 4469901.357,
+        "radius": 2.452
+      },
+      {
+        "sourceId": 1413558983,
+        "kind": "woodland",
+        "x": 402485.754,
+        "y": 4469862.857,
+        "radius": 2.175
+      },
+      {
+        "sourceId": 360229803,
+        "kind": "planted-bed",
+        "x": 402218.123,
+        "y": 4469424.424,
+        "radius": 0.84
+      },
+      {
+        "sourceId": 360229803,
+        "kind": "planted-bed",
+        "x": 402271.836,
+        "y": 4469442.529,
+        "radius": 0.943
+      },
+      {
+        "sourceId": 25402457,
+        "kind": "planted-bed",
+        "x": 402509.252,
+        "y": 4469914.031,
+        "radius": 1.009
+      },
+      {
+        "sourceId": 220273384,
+        "kind": "planted-bed",
+        "x": 402577.767,
+        "y": 4469948.725,
+        "radius": 1.039
+      },
+      {
+        "sourceId": 384682417,
+        "kind": "woodland",
+        "x": 401809.337,
+        "y": 4469941.666,
+        "radius": 1.881
+      },
+      {
+        "sourceId": 25636047,
+        "kind": "planted-bed",
+        "x": 402833.839,
+        "y": 4469678.618,
+        "radius": 0.989
+      },
+      {
+        "sourceId": 360231608,
+        "kind": "planted-bed",
+        "x": 402864.114,
+        "y": 4469664.19,
+        "radius": 1.045
+      },
+      {
+        "sourceId": 360231608,
+        "kind": "planted-bed",
+        "x": 402867.463,
+        "y": 4469676.363,
+        "radius": 0.966
+      },
+      {
+        "sourceId": 360231608,
+        "kind": "planted-bed",
+        "x": 402883.537,
+        "y": 4469678.908,
+        "radius": 0.898
+      },
+      {
+        "sourceId": 360231608,
+        "kind": "planted-bed",
+        "x": 402903.317,
+        "y": 4469677.247,
+        "radius": 0.899
+      },
+      {
+        "sourceId": 360231608,
+        "kind": "planted-bed",
+        "x": 402901.919,
+        "y": 4469695.513,
+        "radius": 0.898
+      },
+      {
+        "sourceId": 360220340,
+        "kind": "planted-bed",
+        "x": 401231.222,
+        "y": 4468596.346,
+        "radius": 0.698
+      },
+      {
+        "sourceId": 360220340,
+        "kind": "planted-bed",
+        "x": 401249.786,
+        "y": 4468583.521,
+        "radius": 0.936
+      },
+      {
+        "sourceId": 360220340,
+        "kind": "planted-bed",
+        "x": 401246.686,
+        "y": 4468596.372,
+        "radius": 0.69
+      },
+      {
+        "sourceId": 360221031,
+        "kind": "planted-bed",
+        "x": 401569.39,
+        "y": 4469085.34,
+        "radius": 0.926
+      },
+      {
+        "sourceId": 360221031,
+        "kind": "planted-bed",
+        "x": 401589.037,
+        "y": 4469102.905,
+        "radius": 1.012
+      },
+      {
+        "sourceId": 360221031,
+        "kind": "planted-bed",
+        "x": 401645.985,
+        "y": 4469139.235,
+        "radius": 0.727
+      },
+      {
+        "sourceId": 360221031,
+        "kind": "planted-bed",
+        "x": 401663.807,
+        "y": 4469156.45,
+        "radius": 0.837
+      },
+      {
+        "sourceId": 380450180,
+        "kind": "woodland",
+        "x": 400885.292,
+        "y": 4469473.558,
+        "radius": 2.548
+      },
+      {
+        "sourceId": 360221029,
+        "kind": "planted-bed",
+        "x": 401554.396,
+        "y": 4469068.381,
+        "radius": 0.983
+      },
+      {
+        "sourceId": 360229812,
+        "kind": "planted-bed",
+        "x": 402185.271,
+        "y": 4469392.619,
+        "radius": 0.711
+      },
+      {
+        "sourceId": 360229812,
+        "kind": "planted-bed",
+        "x": 402234.065,
+        "y": 4469409.64,
+        "radius": 0.658
+      },
+      {
+        "sourceId": 360229812,
+        "kind": "planted-bed",
+        "x": 402270.165,
+        "y": 4469423.814,
+        "radius": 0.786
+      },
+      {
+        "sourceId": 360229812,
+        "kind": "planted-bed",
+        "x": 402292.808,
+        "y": 4469429.474,
+        "radius": 0.913
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400733.442,
+        "y": 4468586.299,
+        "radius": 1.921
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400745.364,
+        "y": 4468588.409,
+        "radius": 1.903
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400743.164,
+        "y": 4468600.462,
+        "radius": 2.133
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400759.808,
+        "y": 4468589.735,
+        "radius": 1.884
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400756.443,
+        "y": 4468598.466,
+        "radius": 2.491
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400770.733,
+        "y": 4468585.219,
+        "radius": 1.873
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400771.497,
+        "y": 4468601.572,
+        "radius": 2.571
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400783.943,
+        "y": 4468585.683,
+        "radius": 2.013
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400784.085,
+        "y": 4468600.376,
+        "radius": 2.2
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400794.518,
+        "y": 4468588.804,
+        "radius": 2.575
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400795.349,
+        "y": 4468601.547,
+        "radius": 2.243
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400810.442,
+        "y": 4468586.08,
+        "radius": 2.135
+      },
+      {
+        "sourceId": 299058456,
+        "kind": "woodland",
+        "x": 400809.284,
+        "y": 4468599.943,
+        "radius": 1.953
+      },
+      {
+        "sourceId": 25637208,
+        "kind": "planted-bed",
+        "x": 402471.871,
+        "y": 4469497.986,
+        "radius": 0.792
+      },
+      {
+        "sourceId": 25637208,
+        "kind": "planted-bed",
+        "x": 402487.645,
+        "y": 4469516.148,
+        "radius": 0.852
+      },
+      {
+        "sourceId": 25637187,
+        "kind": "planted-bed",
+        "x": 402343.337,
+        "y": 4469447.745,
+        "radius": 0.811
+      },
+      {
+        "sourceId": 25637187,
+        "kind": "planted-bed",
+        "x": 402362.347,
+        "y": 4469461.701,
+        "radius": 0.828
+      },
+      {
+        "sourceId": 25637206,
+        "kind": "planted-bed",
+        "x": 402414.434,
+        "y": 4469482.402,
+        "radius": 1.021
+      },
+      {
+        "sourceId": 360220386,
+        "kind": "planted-bed",
+        "x": 401262.128,
+        "y": 4468636.077,
+        "radius": 0.788
+      },
+      {
+        "sourceId": 25636289,
+        "kind": "planted-bed",
+        "x": 402689.213,
+        "y": 4469569.932,
+        "radius": 0.661
+      },
+      {
+        "sourceId": 25449429,
+        "kind": "park-imagery",
+        "x": 401535.419,
+        "y": 4469614.174,
+        "radius": 2.411
+      },
+      {
+        "sourceId": 25449429,
+        "kind": "park-imagery",
+        "x": 401538.861,
+        "y": 4469654.994,
+        "radius": 2.538
+      },
+      {
+        "sourceId": 25636290,
+        "kind": "planted-bed",
+        "x": 402721.106,
+        "y": 4469573.673,
+        "radius": 0.834
+      },
+      {
+        "sourceId": 380444872,
+        "kind": "woodland",
+        "x": 400690.419,
+        "y": 4469407.266,
+        "radius": 2.164
+      },
+      {
+        "sourceId": 25636280,
+        "kind": "planted-bed",
+        "x": 402774.953,
+        "y": 4469586.362,
+        "radius": 1.048
+      },
+      {
+        "sourceId": 25636281,
+        "kind": "planted-bed",
+        "x": 402724.044,
+        "y": 4469549.972,
+        "radius": 0.807
+      },
+      {
+        "sourceId": 25452657,
+        "kind": "park-imagery",
+        "x": 400511.346,
+        "y": 4468809.98,
+        "radius": 2.597
+      },
+      {
+        "sourceId": 25452657,
+        "kind": "park-imagery",
+        "x": 400509.189,
+        "y": 4468822.086,
+        "radius": 2.131
+      },
+      {
+        "sourceId": 25452657,
+        "kind": "park-imagery",
+        "x": 400508.884,
+        "y": 4468833.517,
+        "radius": 2.057
+      },
+      {
+        "sourceId": 25452657,
+        "kind": "park-imagery",
+        "x": 400522.045,
+        "y": 4468718.716,
+        "radius": 2.177
+      },
+      {
+        "sourceId": 25452657,
+        "kind": "park-imagery",
+        "x": 400523.708,
+        "y": 4468848.673,
+        "radius": 1.809
+      },
+      {
+        "sourceId": 25452657,
+        "kind": "park-imagery",
+        "x": 400523.884,
+        "y": 4468859.223,
+        "radius": 2.028
+      },
+      {
+        "sourceId": 25452657,
+        "kind": "park-imagery",
+        "x": 400523.369,
+        "y": 4468872.05,
+        "radius": 2.476
+      },
+      {
+        "sourceId": 25452657,
+        "kind": "park-imagery",
+        "x": 400536.828,
+        "y": 4468678.736,
+        "radius": 2.222
+      },
+      {
+        "sourceId": 380443679,
+        "kind": "woodland",
+        "x": 400590.219,
+        "y": 4469418.83,
+        "radius": 2.463
+      },
+      {
+        "sourceId": 380443679,
+        "kind": "woodland",
+        "x": 400600.602,
+        "y": 4469421.696,
+        "radius": 1.858
+      },
+      {
+        "sourceId": 380443679,
+        "kind": "woodland",
+        "x": 400603.483,
+        "y": 4469432.06,
+        "radius": 2.479
+      },
+      {
+        "sourceId": 384669744,
+        "kind": "woodland",
+        "x": 401187.953,
+        "y": 4469797.507,
+        "radius": 2.039
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401357.135,
+        "y": 4470130.104,
+        "radius": 0.888
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401392.166,
+        "y": 4470126.289,
+        "radius": 1.034
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401429.012,
+        "y": 4470145.195,
+        "radius": 0.733
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401442.969,
+        "y": 4470146.535,
+        "radius": 1.022
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401464.087,
+        "y": 4470149.769,
+        "radius": 0.843
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401478.8,
+        "y": 4470128.011,
+        "radius": 0.66
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401481.151,
+        "y": 4470149.19,
+        "radius": 0.853
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401499.809,
+        "y": 4470130.036,
+        "radius": 1.005
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401499.521,
+        "y": 4470145.14,
+        "radius": 0.785
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401501.785,
+        "y": 4470162.001,
+        "radius": 0.85
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401517.028,
+        "y": 4470146.855,
+        "radius": 0.699
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401517.444,
+        "y": 4470167.18,
+        "radius": 1.033
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401533.663,
+        "y": 4470147.63,
+        "radius": 0.829
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401532.543,
+        "y": 4470165.829,
+        "radius": 0.757
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401555.595,
+        "y": 4470143.947,
+        "radius": 0.708
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401553.982,
+        "y": 4470163.001,
+        "radius": 0.787
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401572.787,
+        "y": 4470149.781,
+        "radius": 0.707
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401574.15,
+        "y": 4470162.731,
+        "radius": 0.943
+      },
+      {
+        "sourceId": 384669527,
+        "kind": "planted-bed",
+        "x": 401587.085,
+        "y": 4470164.332,
+        "radius": 0.937
+      },
+      {
+        "sourceId": 299464082,
+        "kind": "park-imagery",
+        "x": 401291.462,
+        "y": 4470145.179,
+        "radius": 2.118
+      },
+      {
+        "sourceId": 299464082,
+        "kind": "park-imagery",
+        "x": 401301.648,
+        "y": 4470147.992,
+        "radius": 2.213
+      },
+      {
+        "sourceId": 299464082,
+        "kind": "park-imagery",
+        "x": 401315.704,
+        "y": 4470145.773,
+        "radius": 1.897
+      },
+      {
+        "sourceId": 299464082,
+        "kind": "park-imagery",
+        "x": 401340.929,
+        "y": 4470162.115,
+        "radius": 1.876
+      },
+      {
+        "sourceId": 299464082,
+        "kind": "park-imagery",
+        "x": 401367.997,
+        "y": 4470162.085,
+        "radius": 2.22
+      },
+      {
+        "sourceId": 1445572427,
+        "kind": "planted-bed",
+        "x": 400506.418,
+        "y": 4469694.917,
+        "radius": 0.965
+      },
+      {
+        "sourceId": 1445572427,
+        "kind": "planted-bed",
+        "x": 400509.006,
+        "y": 4469714.147,
+        "radius": 0.846
+      },
+      {
+        "sourceId": 1445572427,
+        "kind": "planted-bed",
+        "x": 400509.78,
+        "y": 4469730.185,
+        "radius": 1.048
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400900.433,
+        "y": 4470095.769,
+        "radius": 2.204
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400915.769,
+        "y": 4470054.669,
+        "radius": 2.304
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400913.259,
+        "y": 4470071.706,
+        "radius": 2.533
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400912.857,
+        "y": 4470093.92,
+        "radius": 2.07
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400925.569,
+        "y": 4470058.544,
+        "radius": 1.913
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400952.654,
+        "y": 4470107.028,
+        "radius": 1.965
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400966.224,
+        "y": 4470068.358,
+        "radius": 1.841
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400964.799,
+        "y": 4470119.342,
+        "radius": 2.592
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400980.614,
+        "y": 4470067.267,
+        "radius": 2.245
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400979.875,
+        "y": 4470082.024,
+        "radius": 2.519
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400977.363,
+        "y": 4470119.934,
+        "radius": 1.969
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400991.473,
+        "y": 4470081.022,
+        "radius": 2.16
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 400990.044,
+        "y": 4470120.268,
+        "radius": 1.852
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 401006.024,
+        "y": 4470093.968,
+        "radius": 2.373
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 401004.907,
+        "y": 4470134.898,
+        "radius": 2.369
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 401058.456,
+        "y": 4470096.209,
+        "radius": 1.979
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 401084.582,
+        "y": 4470107.955,
+        "radius": 1.867
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 401083.861,
+        "y": 4470121.776,
+        "radius": 2.566
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 401084.026,
+        "y": 4470149.335,
+        "radius": 2.402
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 401080.524,
+        "y": 4470161.762,
+        "radius": 2.244
+      },
+      {
+        "sourceId": 133850131,
+        "kind": "park-imagery",
+        "x": 401096.708,
+        "y": 4470110.176,
+        "radius": 1.95
+      }
+    ],
+    "accuracy": "OSM tree points/rows and planted areas; park infill constrained by green vegetation in Planet 2018 imagery. Spacing, crowns and heights approximate. Paths and water excluded.",
+    "mappedPointTrees": 191,
+    "placementConflicts": 0
+  },
   "objects": {
-    "buildingsTotal": 966,
-    "buildingsWithTaggedHeightsOrLevels": 377,
+    "buildingsTotal": 967,
+    "buildingsWithTaggedHeightsOrLevels": 378,
     "grandstandSections": 62,
     "pitGarageBoxes": 44,
     "turnAnchors": 20,
-    "mappedTrees": 348,
+    "mappedTrees": 633,
     "historicWallSegments": 26,
     "fenceSegments": 1778
   },
@@ -13187,10 +20109,86 @@
       "placementAccuracy": "estimated from event maps/photos; conflicting sections omitted"
     },
     "buildings": {
-      "roofWindingRepairs": 2808,
-      "roofTriangles": 5552,
+      "roofTriangles": 5506,
       "downwardFacingRoofTriangles": 0,
-      "omittedRoadOrPitConflicts": 6
+      "roofWindingRepairs": 2808,
+      "omittedRoadOrPitConflicts": 6,
+      "restoredRelations": [
+        {
+          "osmRelationId": 2249851,
+          "name": "\u041f\u043e\u0433\u0440\u0430\u043d\u0438\u0447\u043d\u0430\u044f \u0441\u043b\u0443\u0436\u0431\u0430 \u0410\u0437\u0435\u0440\u0431\u0430\u0439\u0434\u0436\u0430\u043d\u0430",
+          "courtyards": 2,
+          "heightMeters": 29.436,
+          "localRings": [
+            [
+              [
+                383.01260238018585,
+                273.2250877637416
+              ],
+              [
+                420.1079042199417,
+                189.5988112287596
+              ],
+              [
+                495.817148255941,
+                222.90664868615568
+              ],
+              [
+                458.7213407563977,
+                306.54364345408976
+              ],
+              [
+                383.01260238018585,
+                273.2250877637416
+              ]
+            ],
+            [
+              [
+                408.5871116675553,
+                262.06729498971254
+              ],
+              [
+                448.61507987056393,
+                279.6863680751994
+              ],
+              [
+                456.03092810418457,
+                262.970087534748
+              ],
+              [
+                416.0028911901172,
+                245.3509740876034
+              ],
+              [
+                408.5871116675553,
+                262.06729498971254
+              ]
+            ],
+            [
+              [
+                422.86951360397507,
+                229.496670932509
+              ],
+              [
+                462.27067121397704,
+                247.22390599548817
+              ],
+              [
+                469.1466408947017,
+                232.08005334064364
+              ],
+              [
+                429.7369329367066,
+                214.352892100811
+              ],
+              [
+                422.86951360397507,
+                229.496670932509
+              ]
+            ]
+          ]
+        }
+      ]
     },
     "curbs": {
       "segments": 285

@@ -1,15 +1,52 @@
 "use client";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   useSyncExternalStore,
 } from "react";
 import { LiveStore } from "../lib/store";
+import { LiveReplayAdapter } from "../lib/replay";
+import { ReplayClock } from "../lib/replay-clock";
 import type { LiveMessage, LiveSessionState } from "../lib/types";
+import type { RaceReplaySnapshot } from "@/types/racemate";
 const Context = createContext<LiveStore | null>(null);
-export function LiveProvider({ children }: { children: React.ReactNode }) {
+
+export type LiveReplayController = {
+  durationMs: number;
+  elapsedMs: number;
+  isPlaying: boolean;
+  seekBy: (deltaMs: number) => void;
+  seekTo: (elapsedMs: number) => void;
+  setSpeed: (speed: number) => void;
+  speed: number;
+  toggle: () => void;
+};
+
+const ReplayContext = createContext<LiveReplayController | null>(null);
+
+export function LiveProvider({
+  children,
+  replay,
+}: {
+  children: React.ReactNode;
+  replay?: RaceReplaySnapshot;
+}) {
+  if (replay) {
+    return (
+      <ReplayProvider key={replay.replaySessionId} replay={replay}>
+        {children}
+      </ReplayProvider>
+    );
+  }
+
+  return <StreamingProvider>{children}</StreamingProvider>;
+}
+
+function StreamingProvider({ children }: { children: React.ReactNode }) {
   const [store] = useState(() => new LiveStore());
   useEffect(() => {
     let disposed = false,
@@ -87,6 +124,89 @@ export function LiveProvider({ children }: { children: React.ReactNode }) {
   }, [store]);
   return <Context.Provider value={store}>{children}</Context.Provider>;
 }
+
+function ReplayProvider({
+  children,
+  replay,
+}: {
+  children: React.ReactNode;
+  replay: RaceReplaySnapshot;
+}) {
+  const [adapter] = useState(() => new LiveReplayAdapter(replay));
+  const [store] = useState(() => {
+    const initial = new LiveStore();
+    initial.accept(adapter.frame(adapter.playbackStartMs, false));
+    initial.setConnection("connected");
+    return initial;
+  });
+  const [clock] = useState(() => new ReplayClock(adapter.durationMs, adapter.playbackStartMs));
+  const [elapsedMs, setElapsedMs] = useState(adapter.playbackStartMs);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+
+  const publish = useCallback(() => {
+    const elapsed = clock.read();
+    if (elapsed >= adapter.durationMs) clock.setPlaying(false);
+    const message = adapter.frame(elapsed, clock.playing);
+    store.accept(message);
+    store.setConnection("connected");
+    setElapsedMs(elapsed);
+    setIsPlaying(clock.playing);
+  }, [adapter, clock, store]);
+
+  useEffect(() => {
+    store.setReplaySampler((driverNumber) => adapter.sampleLocation(driverNumber, clock.read()));
+    const first = requestAnimationFrame(publish);
+    return () => {
+      cancelAnimationFrame(first);
+      store.setReplaySampler(null);
+    };
+  }, [adapter, clock, publish, store]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    const timer = window.setInterval(publish, 100);
+    return () => window.clearInterval(timer);
+  }, [isPlaying, publish]);
+
+  const seekTo = useCallback((nextElapsedMs: number) => {
+    clock.seek(nextElapsedMs);
+    store.resetSamples();
+    publish();
+  }, [clock, publish, store]);
+
+  const controller = useMemo<LiveReplayController>(
+    () => ({
+      durationMs: adapter.durationMs,
+      elapsedMs,
+      isPlaying,
+      seekBy: (deltaMs) => seekTo(clock.read() + deltaMs),
+      seekTo,
+      setSpeed: (nextSpeed) => {
+        clock.setSpeed(nextSpeed);
+        setSpeed(nextSpeed);
+        publish();
+      },
+      speed,
+      toggle: () => {
+        if (!clock.playing && clock.read() >= adapter.durationMs) {
+          seekTo(adapter.playbackStartMs);
+        }
+        clock.setPlaying(!clock.playing);
+        publish();
+      },
+    }),
+    [adapter, clock, elapsedMs, isPlaying, publish, seekTo, speed],
+  );
+
+  return (
+    <Context.Provider value={store}>
+      <ReplayContext.Provider value={controller}>
+        {children}
+      </ReplayContext.Provider>
+    </Context.Provider>
+  );
+}
 export function useLiveStore() {
   const store = useContext(Context);
   if (!store) throw new Error("LiveProvider required");
@@ -107,4 +227,8 @@ export function useConnection() {
     () => store.connection,
     () => store.connection,
   );
+}
+
+export function useLiveReplay() {
+  return useContext(ReplayContext);
 }

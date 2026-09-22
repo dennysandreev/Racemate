@@ -29,6 +29,7 @@ import {
   truncateSeoText,
 } from "@/lib/seo";
 import { getOrCreateNewsShareUrl } from "@/lib/share-links";
+import { formatNewsDate, formatNewsContext, newsArticleTypeLabel } from "@/lib/news-editorial";
 
 type NewsArticlePageProps = {
   params: Promise<{ slug: string }>;
@@ -61,6 +62,7 @@ export async function generateMetadata({
     image: imageUrl,
     path: canonicalUrl,
     publishedTime: article.publishedAt,
+    modifiedTime: article.modifiedAt,
     section: "Новости Формулы-1",
     tags: article.tags.map((tag) => tag.name),
     title: article.title,
@@ -91,6 +93,10 @@ export default async function NewsArticlePage({
   const detailParagraphs = splitArticleDetails(article.details);
   const imageUrl = toAbsoluteUrl(article.imageUrl);
   const raceTag = article.tags.find((tag) => tag.type === "race");
+  const sources = article.sources?.length ? article.sources : [{ source_url: article.href ?? "", source_name: article.source, source_authors: article.editorial?.source_authors ?? [] }];
+  const publishedDate = formatNewsDate(article.publishedAt);
+  const modifiedDate = article.modifiedAt !== article.publishedAt ? formatNewsDate(article.modifiedAt) : null;
+  const contextFacts = article.editorial?.context?.map(formatNewsContext).filter(Boolean) ?? [];
   const orderedTags = raceTag
     ? [raceTag, ...article.tags.filter((tag) => tag.slug !== raceTag.slug)]
     : article.tags;
@@ -131,14 +137,15 @@ export default async function NewsArticlePage({
             author: {
               "@id": `${SITE_URL}/#organization`,
             },
-            citation: article.href,
-            dateModified: article.publishedAt,
+            citation: sources.map(source => source.source_url).filter(Boolean),
+            dateModified: article.modifiedAt ?? article.publishedAt,
             datePublished: article.publishedAt,
             description: truncateSeoText(article.summary),
             headline: truncateSeoText(article.title, 110),
             image: imageUrl ? [imageUrl] : undefined,
             inLanguage: "ru-RU",
-            isBasedOn: article.href,
+            genre: newsArticleTypeLabel(article.editorial?.article_type),
+            isBasedOn: sources.map(source => ({ "@type": "CreativeWork", url: source.source_url, publisher: { "@type": "Organization", name: source.source_name }, author: source.source_authors?.map(name => ({ "@type": "Person", name })) })),
             keywords: article.tags.map((tag) => tag.name).join(", "),
             mainEntityOfPage: canonicalUrl,
             publisher: {
@@ -152,16 +159,17 @@ export default async function NewsArticlePage({
         <h1 className="font-display max-w-5xl text-balance text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:text-4xl">
           {article.title}
         </h1>
-        <div className="mt-3 flex max-w-full items-center gap-2 text-sm text-muted-foreground">
-          <span className="shrink-0 whitespace-nowrap">{article.time}</span>
+        <div className="mt-3 flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+          {publishedDate ? <time dateTime={article.publishedAt}>{publishedDate} МСК</time> : <span>{article.time}</span>}
           <span aria-hidden="true">·</span>
-          <span className="min-w-0 truncate">
+          <span className="min-w-0 break-words">
             Источник:{" "}
             <span className="font-medium text-foreground" title={article.source}>
               {article.source}
             </span>
           </span>
         </div>
+        {modifiedDate ? <p className="mt-1 text-sm text-muted-foreground">Обновлено <time dateTime={article.modifiedAt}>{modifiedDate} МСК</time></p> : null}
         {orderedTags.length || article.raceTag ? (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {!raceTag && article.raceTag ? (
@@ -205,16 +213,19 @@ export default async function NewsArticlePage({
               Подробности появятся после обработки материала.
             </p>
           )}
-          <footer className="mt-6 flex items-center justify-between gap-2 border-t border-border pt-4">
-            {article.href ? (
-              <Button asChild className="px-0 hover:bg-transparent hover:text-primary" size="sm" variant="ghost">
-                <Link href={article.href} rel="noreferrer" target="_blank">
-                  Открыть оригинал
-                  <ExternalLink aria-hidden="true" data-icon="inline-end" />
-                </Link>
-              </Button>
-            ) : <span />}
-            <NewsErrorReport articleId={article.id} articleSlug={article.slug} />
+          {contextFacts.length ? <section aria-label="Контекст RaceSide" className="mt-6 border-t border-border pt-4">
+            <h2 className="text-base font-semibold text-foreground">Контекст RaceSide</h2>
+            <ul className="mt-2 grid gap-2 text-sm leading-6 text-muted-foreground">{contextFacts.map(fact => <li key={fact}>{fact}</li>)}</ul>
+            {article.raceFilter ? <Link className="mt-3 inline-block text-sm text-primary underline-offset-4 hover:underline" href={`/calendar/${article.raceFilter.replace("-", "/")}`}>Открыть результаты этапа</Link> : null}
+          </section> : null}
+          <footer className="mt-6 border-t border-border pt-4">
+            <p className="text-sm leading-6 text-muted-foreground">Подготовлено RaceSide с помощью ИИ по указанным источникам.</p>
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {sources.filter(source => /^https?:\/\//.test(source.source_url)).map(source => <Link className="inline-flex min-h-10 items-center gap-1.5 text-sm underline-offset-4 hover:text-primary hover:underline" href={source.source_url} key={source.source_url} rel="noreferrer" target="_blank">{source.source_name}<ExternalLink aria-hidden="true" className="size-3.5" /></Link>)}
+              </div>
+              <NewsErrorReport articleId={article.id} articleSlug={article.slug} />
+            </div>
           </footer>
         </article>
 

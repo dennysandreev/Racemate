@@ -1,0 +1,1770 @@
+{
+  "bounds": {
+    "minX": 372640,
+    "minY": 4843100,
+    "maxX": 373820,
+    "maxY": 4844620
+  },
+  "coordinateReferenceSystem": "WGS 84 / UTM zone 32N (EPSG:32632)",
+  "generatedAt": "2026-08-13T09:51:21.653Z",
+  "schemaVersion": 4,
+  "sources": [
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 7849024,
+      "crs": "EPSG:4326 / document reference",
+      "date": "live OSM snapshot at retrieval",
+      "file": "openstreetmap-map.osm",
+      "license": "ODbL 1.0",
+      "resolution": "current surveyed vector geometry inside the scene bbox",
+      "role": "raw circuit relation, pit lane, buildings, barriers and mapped trees",
+      "sha256": "744aff57617ac7632ea572c555bdfb72cf23657d280b13c64a4102660d4e4f1a",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=7.4188,43.7304,7.4327,43.7435",
+      "verticalDatum": null
+    },
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 108637,
+      "crs": "EPSG:4326 / document reference",
+      "date": "derived without coordinate loss from the raw OSM snapshot",
+      "file": "openstreetmap-raceway.json",
+      "license": "ODbL 1.0",
+      "resolution": "original OSM vertices and tags; circuit members joined in relation order",
+      "role": "Blender-ready raceway layer",
+      "sha256": "4526108b0d135662c0aa44caba7367380016ec50338e4650de8bc56da14752c0",
+      "url": "https://www.openstreetmap.org/copyright",
+      "verticalDatum": null
+    },
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 1429829,
+      "crs": "EPSG:4326 / document reference",
+      "date": "derived without coordinate loss from the raw OSM snapshot",
+      "file": "openstreetmap-buildings.json",
+      "license": "ODbL 1.0",
+      "resolution": "OSM ways, building parts and multipolygons with outer/inner rings",
+      "role": "Blender-ready buildings layer",
+      "sha256": "24703bdd20240fa6f0218ef7f8c5391f32fd33afb84187aa07148b8f959f8213",
+      "url": "https://www.openstreetmap.org/copyright",
+      "verticalDatum": null
+    },
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 59468,
+      "crs": "EPSG:4326 / document reference",
+      "date": "derived without coordinate loss from the raw OSM snapshot",
+      "file": "openstreetmap-barriers.json",
+      "license": "ODbL 1.0",
+      "resolution": "original OSM vertices and tags; circuit members joined in relation order",
+      "role": "Blender-ready barriers layer",
+      "sha256": "ccb9424ea66a1f44e2083808f3845c3f432cbe0e672f96ee7b91adc465bf714b",
+      "url": "https://www.openstreetmap.org/copyright",
+      "verticalDatum": null
+    },
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 36194,
+      "crs": "EPSG:4326 / document reference",
+      "date": "derived without coordinate loss from the raw OSM snapshot",
+      "file": "openstreetmap-trees.json",
+      "license": "ODbL 1.0",
+      "resolution": "original OSM vertices and tags; circuit members joined in relation order",
+      "role": "Blender-ready trees layer",
+      "sha256": "60f89b39363903e4470bc304386e5664adddcebcf1fbeede938c86eeee0ac8f2",
+      "url": "https://www.openstreetmap.org/copyright",
+      "verticalDatum": null
+    },
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 67492,
+      "crs": "EPSG:3857 tiles prepared to EPSG:32632",
+      "date": "official Monaco orthophoto service current at retrieval; elevation tiles retrieved 2026-08-13",
+      "file": "terrain-tile-manifest.json",
+      "license": "Orthophoto copyright DPUM, Gouvernement Princier de Monaco; public service, no explicit redistribution licence in service metadata. Legacy elevation CC BY 4.0",
+      "members": [
+        {
+          "bytes": 23833,
+          "file": "orthophoto-tiles/18-136474-95579.tile",
+          "sha256": "6cda9480631dd32821c26b80d4e7571fe21acacccc5c9835f42f898c8c6b3df0",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136474",
+          "x": 136474,
+          "y": 95579
+        },
+        {
+          "bytes": 28283,
+          "file": "orthophoto-tiles/18-136475-95579.tile",
+          "sha256": "1fd61a0753a94b70f7e6179bc4c23d12d20a4f27cd873bd2ccbc9c8113063d2f",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136475",
+          "x": 136475,
+          "y": 95579
+        },
+        {
+          "bytes": 26782,
+          "file": "orthophoto-tiles/18-136476-95579.tile",
+          "sha256": "361c0ee10a9e0d55d8d2849836a8de46966a9b395e7fcbdf9dce6d7b51249b1e",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136476",
+          "x": 136476,
+          "y": 95579
+        },
+        {
+          "bytes": 31863,
+          "file": "orthophoto-tiles/18-136477-95579.tile",
+          "sha256": "58954687824bfcf583026b4ad3e861a2c8064ad0cb10d7dc58d7f7633aaa175f",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136477",
+          "x": 136477,
+          "y": 95579
+        },
+        {
+          "bytes": 32409,
+          "file": "orthophoto-tiles/18-136478-95579.tile",
+          "sha256": "339267d71febb7d1961261540f31127213ff6542c9befe99139debff0f5c8d1a",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136478",
+          "x": 136478,
+          "y": 95579
+        },
+        {
+          "bytes": 31411,
+          "file": "orthophoto-tiles/18-136479-95579.tile",
+          "sha256": "2101122babc7e0c5b97b79d7f98cff52fdd7aecda9efff06f3bbaf2317bd9270",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136479",
+          "x": 136479,
+          "y": 95579
+        },
+        {
+          "bytes": 30316,
+          "file": "orthophoto-tiles/18-136480-95579.tile",
+          "sha256": "b830ea4ac0df0559d3d675af12f6b0cc9d707889bd1a536e09180c90f3039bc2",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136480",
+          "x": 136480,
+          "y": 95579
+        },
+        {
+          "bytes": 28350,
+          "file": "orthophoto-tiles/18-136481-95579.tile",
+          "sha256": "f1459d82f08bbd98012136ad2b9a19f3778735d895be5198c280c0ae7dd357c9",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136481",
+          "x": 136481,
+          "y": 95579
+        },
+        {
+          "bytes": 25235,
+          "file": "orthophoto-tiles/18-136482-95579.tile",
+          "sha256": "1868a94bfa47b56282d602b0859ee2728b5ddc7f26c4866eac8f3a24607245a7",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136482",
+          "x": 136482,
+          "y": 95579
+        },
+        {
+          "bytes": 25519,
+          "file": "orthophoto-tiles/18-136483-95579.tile",
+          "sha256": "dc49280988363f64292e989ab7b8a4712bd937d7954d8e4d2869f8fb721741df",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136483",
+          "x": 136483,
+          "y": 95579
+        },
+        {
+          "bytes": 24188,
+          "file": "orthophoto-tiles/18-136484-95579.tile",
+          "sha256": "109f222a7cdc255714a05852543932b2f56f5d225e01e9c45932ee3472b248a6",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136484",
+          "x": 136484,
+          "y": 95579
+        },
+        {
+          "bytes": 27703,
+          "file": "orthophoto-tiles/18-136474-95580.tile",
+          "sha256": "6e00a1eea70258f8b13966780fcaa1577817b7185f731041ea96da35df4fde94",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136474",
+          "x": 136474,
+          "y": 95580
+        },
+        {
+          "bytes": 27869,
+          "file": "orthophoto-tiles/18-136475-95580.tile",
+          "sha256": "cf120ad52c7396635919756f547e18384e8135dc1051cdbdad7367f7970b13fa",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136475",
+          "x": 136475,
+          "y": 95580
+        },
+        {
+          "bytes": 32768,
+          "file": "orthophoto-tiles/18-136476-95580.tile",
+          "sha256": "7bf3034169f626c399bfded5e70174c5725b404dc8a165032a032463d999aa51",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136476",
+          "x": 136476,
+          "y": 95580
+        },
+        {
+          "bytes": 32515,
+          "file": "orthophoto-tiles/18-136477-95580.tile",
+          "sha256": "3de7f0faa37dbdb174991ffbc50c6f1583266fca6ed331fed1ce5988dea7d71e",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136477",
+          "x": 136477,
+          "y": 95580
+        },
+        {
+          "bytes": 29862,
+          "file": "orthophoto-tiles/18-136478-95580.tile",
+          "sha256": "f1bb02143257a2dbddc2ac65414596ff0c417f1157e027a40087b666572d6cd8",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136478",
+          "x": 136478,
+          "y": 95580
+        },
+        {
+          "bytes": 31239,
+          "file": "orthophoto-tiles/18-136479-95580.tile",
+          "sha256": "6ce25e1c8aeadce4c644a9979ee463177133304337e1483d765ae435b990bb0a",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136479",
+          "x": 136479,
+          "y": 95580
+        },
+        {
+          "bytes": 29452,
+          "file": "orthophoto-tiles/18-136480-95580.tile",
+          "sha256": "e38c3e760c19640dc0c238edaa9eb210dbf320268a8a3cee9f700e21659bc4f7",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136480",
+          "x": 136480,
+          "y": 95580
+        },
+        {
+          "bytes": 29558,
+          "file": "orthophoto-tiles/18-136481-95580.tile",
+          "sha256": "0cc66a47eedb7246c0780989d80faf62fae80d61bcf35a457e10c43e756beb06",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136481",
+          "x": 136481,
+          "y": 95580
+        },
+        {
+          "bytes": 25718,
+          "file": "orthophoto-tiles/18-136482-95580.tile",
+          "sha256": "1083ab831128ca53972809c8846158201e12fc5c32a0b146517f82bf77293019",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136482",
+          "x": 136482,
+          "y": 95580
+        },
+        {
+          "bytes": 24956,
+          "file": "orthophoto-tiles/18-136483-95580.tile",
+          "sha256": "87c02b2fc1d2237a2159d008549735c92fb9efeeab75541141b7402e1b9873d1",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136483",
+          "x": 136483,
+          "y": 95580
+        },
+        {
+          "bytes": 25106,
+          "file": "orthophoto-tiles/18-136484-95580.tile",
+          "sha256": "71f783e593b4b69dd469fb00b3b9aafbd347d8ec20ef5b9e3160f5c9b08cd0fa",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136484",
+          "x": 136484,
+          "y": 95580
+        },
+        {
+          "bytes": 29054,
+          "file": "orthophoto-tiles/18-136474-95581.tile",
+          "sha256": "2d38d968f0673401b16415c9fb2ba422a0c9f19389494bdefb4c4c25ee127152",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136474",
+          "x": 136474,
+          "y": 95581
+        },
+        {
+          "bytes": 31762,
+          "file": "orthophoto-tiles/18-136475-95581.tile",
+          "sha256": "f2ee8016f5dfedcca423a6dd36ec27b2b69d030028f85e9da25177c4aed68107",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136475",
+          "x": 136475,
+          "y": 95581
+        },
+        {
+          "bytes": 31486,
+          "file": "orthophoto-tiles/18-136476-95581.tile",
+          "sha256": "02dceb2c18b2ff5c9b8a5d9d1c27ef964e1a4c196ba48ddf21bc56fd96377d58",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136476",
+          "x": 136476,
+          "y": 95581
+        },
+        {
+          "bytes": 30632,
+          "file": "orthophoto-tiles/18-136477-95581.tile",
+          "sha256": "577367589393e35479e0a0a1dd552dcfdbe529eff76c6d6f78e9ad11f7596fbc",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136477",
+          "x": 136477,
+          "y": 95581
+        },
+        {
+          "bytes": 31417,
+          "file": "orthophoto-tiles/18-136478-95581.tile",
+          "sha256": "49301145cb3be419829eb9970dd2f9848c123e35b4ab73bcb804136d7bea2558",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136478",
+          "x": 136478,
+          "y": 95581
+        },
+        {
+          "bytes": 30362,
+          "file": "orthophoto-tiles/18-136479-95581.tile",
+          "sha256": "183a5d64bdbb2e004e8a1ec1a54dced44ed0f8c8ffff0c00f6adba5bd2051aa7",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136479",
+          "x": 136479,
+          "y": 95581
+        },
+        {
+          "bytes": 29702,
+          "file": "orthophoto-tiles/18-136480-95581.tile",
+          "sha256": "bfc2dad7ccceb46e509a54192cd5360b891713c5a6cee4c0ac9944c089f25c23",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136480",
+          "x": 136480,
+          "y": 95581
+        },
+        {
+          "bytes": 28093,
+          "file": "orthophoto-tiles/18-136481-95581.tile",
+          "sha256": "550f2f5ff6a3e1805bec0bcb9b9eae46e18b801e66457e9e29bdf55a67dcc182",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136481",
+          "x": 136481,
+          "y": 95581
+        },
+        {
+          "bytes": 28119,
+          "file": "orthophoto-tiles/18-136482-95581.tile",
+          "sha256": "7b7234120cc70b0b55cf14592e737dab840f4e01bf864af56b14b27329c366da",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136482",
+          "x": 136482,
+          "y": 95581
+        },
+        {
+          "bytes": 23793,
+          "file": "orthophoto-tiles/18-136483-95581.tile",
+          "sha256": "572d152a61d8570f899d013fb88051f83550a75494fad60de8130461e2b07c9d",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136483",
+          "x": 136483,
+          "y": 95581
+        },
+        {
+          "bytes": 24765,
+          "file": "orthophoto-tiles/18-136484-95581.tile",
+          "sha256": "e85c7bc8ab9d4c9f69d7aaa857963e7e89ce8eea91a021543a155a68092a60df",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136484",
+          "x": 136484,
+          "y": 95581
+        },
+        {
+          "bytes": 31475,
+          "file": "orthophoto-tiles/18-136474-95582.tile",
+          "sha256": "2a30155fb05a0d5b9c436de737b1a59ab245f055ab51f6156654b6c54403250f",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136474",
+          "x": 136474,
+          "y": 95582
+        },
+        {
+          "bytes": 30302,
+          "file": "orthophoto-tiles/18-136475-95582.tile",
+          "sha256": "e25c80b40f15eefdb3d1f7f3b2a9e35f77998ca1d74f63fa9e4c7845c6042e87",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136475",
+          "x": 136475,
+          "y": 95582
+        },
+        {
+          "bytes": 31812,
+          "file": "orthophoto-tiles/18-136476-95582.tile",
+          "sha256": "18d82efb1ff684f1e774074d7376c5af49a3f101a90c2dbfdd23429f2181120f",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136476",
+          "x": 136476,
+          "y": 95582
+        },
+        {
+          "bytes": 30518,
+          "file": "orthophoto-tiles/18-136477-95582.tile",
+          "sha256": "36cf1cfbfd8336d2bd11992e4be6f4af60aab7a429c80a7b76b10565311f3881",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136477",
+          "x": 136477,
+          "y": 95582
+        },
+        {
+          "bytes": 30114,
+          "file": "orthophoto-tiles/18-136478-95582.tile",
+          "sha256": "1b9d73835820dab249e0b03bbfc00ae24c623350d4eff9a9baa8485f53f06036",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136478",
+          "x": 136478,
+          "y": 95582
+        },
+        {
+          "bytes": 28508,
+          "file": "orthophoto-tiles/18-136479-95582.tile",
+          "sha256": "7d880e69ab25cde9b4701990d8adebe289fc80f871f4972db0de5beefb9a2cee",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136479",
+          "x": 136479,
+          "y": 95582
+        },
+        {
+          "bytes": 28795,
+          "file": "orthophoto-tiles/18-136480-95582.tile",
+          "sha256": "85560d7ee51551a33765064c66e696919539336dafa266685c9fbea5ca27aa5c",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136480",
+          "x": 136480,
+          "y": 95582
+        },
+        {
+          "bytes": 26646,
+          "file": "orthophoto-tiles/18-136481-95582.tile",
+          "sha256": "4bf163d04a6b96668a8e7506a6ec2429ae4c53af5e1303e6a95cfb5fbc039138",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136481",
+          "x": 136481,
+          "y": 95582
+        },
+        {
+          "bytes": 26701,
+          "file": "orthophoto-tiles/18-136482-95582.tile",
+          "sha256": "b93231bc87d018747d43d09d5cdb596a3a676e4d82ae5b398f07daeb6f7c58d8",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136482",
+          "x": 136482,
+          "y": 95582
+        },
+        {
+          "bytes": 29371,
+          "file": "orthophoto-tiles/18-136483-95582.tile",
+          "sha256": "32cf48a1459f6b83061e50d3e5f5fb629d4294c5d6f79e50ed8ac1224c02a29d",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136483",
+          "x": 136483,
+          "y": 95582
+        },
+        {
+          "bytes": 22668,
+          "file": "orthophoto-tiles/18-136484-95582.tile",
+          "sha256": "87336f4d3eb7921326ec6b3f762e8c711c0e33ef6f777e6ec2120ca2741f882c",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136484",
+          "x": 136484,
+          "y": 95582
+        },
+        {
+          "bytes": 30074,
+          "file": "orthophoto-tiles/18-136474-95583.tile",
+          "sha256": "ae941860692d289a9766f90fa043b005c5af55b2d5e08d6c7342612ea7435bfd",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136474",
+          "x": 136474,
+          "y": 95583
+        },
+        {
+          "bytes": 31276,
+          "file": "orthophoto-tiles/18-136475-95583.tile",
+          "sha256": "2743cd0e4ae45fb5f6cdd967fc78dacd0e15b604769ff686f5eeb2efbf7e34ea",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136475",
+          "x": 136475,
+          "y": 95583
+        },
+        {
+          "bytes": 30553,
+          "file": "orthophoto-tiles/18-136476-95583.tile",
+          "sha256": "0b131771f2f1f746bcd657f9fb2f5021d09236b089d66062b206d436a4c21b3e",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136476",
+          "x": 136476,
+          "y": 95583
+        },
+        {
+          "bytes": 29175,
+          "file": "orthophoto-tiles/18-136477-95583.tile",
+          "sha256": "c20731876b8c99a80141a526703d4d8d0ac2346f986e3f02fbba1f7eadf91775",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136477",
+          "x": 136477,
+          "y": 95583
+        },
+        {
+          "bytes": 28954,
+          "file": "orthophoto-tiles/18-136478-95583.tile",
+          "sha256": "0fbfc254958a30118a7fb4012c3774efd99692a357280b5f20ce6e513d0773e6",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136478",
+          "x": 136478,
+          "y": 95583
+        },
+        {
+          "bytes": 32053,
+          "file": "orthophoto-tiles/18-136479-95583.tile",
+          "sha256": "1741daca474a0fcefb1772ed4b817dd67b79da22312056599c81363348c337ce",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136479",
+          "x": 136479,
+          "y": 95583
+        },
+        {
+          "bytes": 28903,
+          "file": "orthophoto-tiles/18-136480-95583.tile",
+          "sha256": "5ea56e4365a1b01e192971a44da91431e6216b9b1f83fc4aa92b6b91efe78bac",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136480",
+          "x": 136480,
+          "y": 95583
+        },
+        {
+          "bytes": 28255,
+          "file": "orthophoto-tiles/18-136481-95583.tile",
+          "sha256": "fe1eae006ef636b82bc8d7c2872f0265896877d39441800c978b1679e4667825",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136481",
+          "x": 136481,
+          "y": 95583
+        },
+        {
+          "bytes": 29184,
+          "file": "orthophoto-tiles/18-136482-95583.tile",
+          "sha256": "34d55e2c6bfa8d93d70ad384a116bdb2629dd5fb68d39c8f4b5db270a4dd9aab",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136482",
+          "x": 136482,
+          "y": 95583
+        },
+        {
+          "bytes": 25588,
+          "file": "orthophoto-tiles/18-136483-95583.tile",
+          "sha256": "0a3ac09f35edf4eb1c5df96068f0c8f402bfa2e41c4248646ae7755eeee8f384",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136483",
+          "x": 136483,
+          "y": 95583
+        },
+        {
+          "bytes": 25876,
+          "file": "orthophoto-tiles/18-136484-95583.tile",
+          "sha256": "6764b169333f577d9c4ff411c830c74c10fe050accbb29ac6e450a8df2ab220e",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136484",
+          "x": 136484,
+          "y": 95583
+        },
+        {
+          "bytes": 29482,
+          "file": "orthophoto-tiles/18-136474-95584.tile",
+          "sha256": "767c7c96572de5c4c9d43f846cf769384fb0c4335c3ea7f840ed0d9565204870",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136474",
+          "x": 136474,
+          "y": 95584
+        },
+        {
+          "bytes": 30568,
+          "file": "orthophoto-tiles/18-136475-95584.tile",
+          "sha256": "615103afc1ac9696df61ee854ecb4736df8b92dcd72fa5df92fcdbc0695c37d8",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136475",
+          "x": 136475,
+          "y": 95584
+        },
+        {
+          "bytes": 30944,
+          "file": "orthophoto-tiles/18-136476-95584.tile",
+          "sha256": "2e1a38fe13d40511ebc2dc13b056196bb70b0670532be4cb8bfbad85f98edc6a",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136476",
+          "x": 136476,
+          "y": 95584
+        },
+        {
+          "bytes": 29248,
+          "file": "orthophoto-tiles/18-136477-95584.tile",
+          "sha256": "90ca651e4fdc971f7e4de9e9f4dc54a51a7465ba7f4c79ec0847298bb8ed0c2b",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136477",
+          "x": 136477,
+          "y": 95584
+        },
+        {
+          "bytes": 28078,
+          "file": "orthophoto-tiles/18-136478-95584.tile",
+          "sha256": "7b19b6515e60797fb306cea8fc9fcc66b43536a2f906b0628d64b373bb549c73",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136478",
+          "x": 136478,
+          "y": 95584
+        },
+        {
+          "bytes": 27745,
+          "file": "orthophoto-tiles/18-136479-95584.tile",
+          "sha256": "811e20194402a792a7ef9cb12b1026862fcb16d4049b1fa1efaa85485329efcf",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136479",
+          "x": 136479,
+          "y": 95584
+        },
+        {
+          "bytes": 29480,
+          "file": "orthophoto-tiles/18-136480-95584.tile",
+          "sha256": "e0bf89e010f75e956dab863a2c5285766a65919b42b708a6b2a61ea81006a1d1",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136480",
+          "x": 136480,
+          "y": 95584
+        },
+        {
+          "bytes": 26600,
+          "file": "orthophoto-tiles/18-136481-95584.tile",
+          "sha256": "19c7ba2aef99f71c1bc2b9674e315467d262a090dec4b2f6809759507cce9a78",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136481",
+          "x": 136481,
+          "y": 95584
+        },
+        {
+          "bytes": 26040,
+          "file": "orthophoto-tiles/18-136482-95584.tile",
+          "sha256": "f298d1b1969363d7e993e051339bdefffbe950e1e29c5e4e9c2c08fa8535c97b",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136482",
+          "x": 136482,
+          "y": 95584
+        },
+        {
+          "bytes": 21283,
+          "file": "orthophoto-tiles/18-136483-95584.tile",
+          "sha256": "4a8f6f2a714a26001b9e5ecd1de69a306d22e6908a5e332ac340c96a5bea7b63",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136483",
+          "x": 136483,
+          "y": 95584
+        },
+        {
+          "bytes": 11783,
+          "file": "orthophoto-tiles/18-136484-95584.tile",
+          "sha256": "0512598004a2354958f541ad7e99292f7c9aaed3339e7b39418cbadfd80c555d",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136484",
+          "x": 136484,
+          "y": 95584
+        },
+        {
+          "bytes": 27610,
+          "file": "orthophoto-tiles/18-136474-95585.tile",
+          "sha256": "8492ba6d4fd81d61cd3ea1a1e32016219adbd3f4b455560eaabf12def22513ae",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136474",
+          "x": 136474,
+          "y": 95585
+        },
+        {
+          "bytes": 26397,
+          "file": "orthophoto-tiles/18-136475-95585.tile",
+          "sha256": "43b94e2d97ae98dcc8836ae263c5950f5d3c06a3a48b3971ffbe4a91d02987c2",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136475",
+          "x": 136475,
+          "y": 95585
+        },
+        {
+          "bytes": 29275,
+          "file": "orthophoto-tiles/18-136476-95585.tile",
+          "sha256": "8e2146bfdb77f26ca76d4a9dc3b0db0bfa47d5baf80707cd2cd002960c21e6e5",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136476",
+          "x": 136476,
+          "y": 95585
+        },
+        {
+          "bytes": 28876,
+          "file": "orthophoto-tiles/18-136477-95585.tile",
+          "sha256": "8a09603740181ff1cf86c27d982c45d0708ce4bb41c072f79d6fb7459feb3348",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136477",
+          "x": 136477,
+          "y": 95585
+        },
+        {
+          "bytes": 28241,
+          "file": "orthophoto-tiles/18-136478-95585.tile",
+          "sha256": "87d86fc37bbf359e09976ef7094ebfba0538e7475566f86b0757142a86f2e919",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136478",
+          "x": 136478,
+          "y": 95585
+        },
+        {
+          "bytes": 28636,
+          "file": "orthophoto-tiles/18-136479-95585.tile",
+          "sha256": "9386355b7e48bdda577740e09ed47f4b951c82a1e9c753d474cb669431f1bd5a",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136479",
+          "x": 136479,
+          "y": 95585
+        },
+        {
+          "bytes": 27574,
+          "file": "orthophoto-tiles/18-136480-95585.tile",
+          "sha256": "c809004f30da16afa023248cc36e96a9fe56a9da5a0d97aefa9f21dcbb871649",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136480",
+          "x": 136480,
+          "y": 95585
+        },
+        {
+          "bytes": 29521,
+          "file": "orthophoto-tiles/18-136481-95585.tile",
+          "sha256": "a10af30992420d0f1c9fa8bc5d4e2ac88a75f86ca18b6367b89e2088855512ab",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136481",
+          "x": 136481,
+          "y": 95585
+        },
+        {
+          "bytes": 29412,
+          "file": "orthophoto-tiles/18-136482-95585.tile",
+          "sha256": "352ad39d4df21a5174b9ef880c49fe815207cd7732ee2bbd9e98253cc8f83935",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136482",
+          "x": 136482,
+          "y": 95585
+        },
+        {
+          "bytes": 15945,
+          "file": "orthophoto-tiles/18-136483-95585.tile",
+          "sha256": "6727239b8cc06421e66695579aa276327729897ecb1c081c7b8433c93a534948",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136483",
+          "x": 136483,
+          "y": 95585
+        },
+        {
+          "bytes": 7569,
+          "file": "orthophoto-tiles/18-136484-95585.tile",
+          "sha256": "67d9ba9d828c507ec908e7671c66c76a1dfeb622d56b0ff0ee08a25c8911bc3c",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136484",
+          "x": 136484,
+          "y": 95585
+        },
+        {
+          "bytes": 29888,
+          "file": "orthophoto-tiles/18-136474-95586.tile",
+          "sha256": "e8c649e4390b6a81284f5214b546461274fa584eca82ed12133872445699f2a0",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136474",
+          "x": 136474,
+          "y": 95586
+        },
+        {
+          "bytes": 26667,
+          "file": "orthophoto-tiles/18-136475-95586.tile",
+          "sha256": "25433941e58c9e8a14a465f8f5b67c15b316dceff9d3cbb7b8375a416eeef486",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136475",
+          "x": 136475,
+          "y": 95586
+        },
+        {
+          "bytes": 24684,
+          "file": "orthophoto-tiles/18-136476-95586.tile",
+          "sha256": "f237e1a5b2d82efb84a4c6091fd8e84cd33ed6a132de42bec3aa68dcc571c806",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136476",
+          "x": 136476,
+          "y": 95586
+        },
+        {
+          "bytes": 25110,
+          "file": "orthophoto-tiles/18-136477-95586.tile",
+          "sha256": "8dd869cb72a3a32a666c0941ca3de243b3031928b4a353264ec0357b6f4f1c17",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136477",
+          "x": 136477,
+          "y": 95586
+        },
+        {
+          "bytes": 20755,
+          "file": "orthophoto-tiles/18-136478-95586.tile",
+          "sha256": "2c02c5c149954fb0650b163164d853c301850b9281b22bc8e9c13d7779972905",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136478",
+          "x": 136478,
+          "y": 95586
+        },
+        {
+          "bytes": 17565,
+          "file": "orthophoto-tiles/18-136479-95586.tile",
+          "sha256": "4dc201cc19f7200b8b34d8035fc6f52631e448f40ce7ffef223a65f6b0a6e024",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136479",
+          "x": 136479,
+          "y": 95586
+        },
+        {
+          "bytes": 28258,
+          "file": "orthophoto-tiles/18-136480-95586.tile",
+          "sha256": "332f827b1ad02f44a9562d5b1d6ef2a22b7f0e6b85b3e5d00bb7186b3e416f0e",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136480",
+          "x": 136480,
+          "y": 95586
+        },
+        {
+          "bytes": 24922,
+          "file": "orthophoto-tiles/18-136481-95586.tile",
+          "sha256": "0751b695fb08c4ae1fb94f18311a4f44dfd570fbdc3a0f9dbe2161eb4a55f2d1",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136481",
+          "x": 136481,
+          "y": 95586
+        },
+        {
+          "bytes": 25204,
+          "file": "orthophoto-tiles/18-136482-95586.tile",
+          "sha256": "8198c1aa9c91efead1696ce9df7079f15cbe836c1bfa292c61ec6a6db7da1391",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136482",
+          "x": 136482,
+          "y": 95586
+        },
+        {
+          "bytes": 22417,
+          "file": "orthophoto-tiles/18-136483-95586.tile",
+          "sha256": "782b223ae7cfdf590be84deecb28bd36b2455cc406af59036ac804ce7e7c0bf2",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136483",
+          "x": 136483,
+          "y": 95586
+        },
+        {
+          "bytes": 10169,
+          "file": "orthophoto-tiles/18-136484-95586.tile",
+          "sha256": "159b7ad3361f8b2f09e4173ca753edb07acb895869c630c83923dcbbe6cc580a",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136484",
+          "x": 136484,
+          "y": 95586
+        },
+        {
+          "bytes": 29355,
+          "file": "orthophoto-tiles/18-136474-95587.tile",
+          "sha256": "806dc68c9d73da1e3c8e4ae1f56df1e0914248c9ce62239c43830871fd2ebdba",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136474",
+          "x": 136474,
+          "y": 95587
+        },
+        {
+          "bytes": 28993,
+          "file": "orthophoto-tiles/18-136475-95587.tile",
+          "sha256": "653b28263fcbfa6ea9c52d06ec29c052aea552adbbf980946acac8e4a2058ac5",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136475",
+          "x": 136475,
+          "y": 95587
+        },
+        {
+          "bytes": 21341,
+          "file": "orthophoto-tiles/18-136476-95587.tile",
+          "sha256": "6b9a9f6c2f8a63e34303cbbb6f070f9624791f71bd634abb6e2d8533511ec838",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136476",
+          "x": 136476,
+          "y": 95587
+        },
+        {
+          "bytes": 15835,
+          "file": "orthophoto-tiles/18-136477-95587.tile",
+          "sha256": "bd68a7e26459feac643abcda1773bd610c2e13f605afae0b43f682a7d8c22898",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136477",
+          "x": 136477,
+          "y": 95587
+        },
+        {
+          "bytes": 5279,
+          "file": "orthophoto-tiles/18-136478-95587.tile",
+          "sha256": "8cc5d34cf57face54f903ea0c788154e1229055645a6f50f460a9860b01ea59d",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136478",
+          "x": 136478,
+          "y": 95587
+        },
+        {
+          "bytes": 14143,
+          "file": "orthophoto-tiles/18-136479-95587.tile",
+          "sha256": "69f2b4b33fbc26aad2d90fefdb5adffd1d15766e811514ad61300b475bde71a9",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136479",
+          "x": 136479,
+          "y": 95587
+        },
+        {
+          "bytes": 28191,
+          "file": "orthophoto-tiles/18-136480-95587.tile",
+          "sha256": "6812e852fd06570d6d9931709ded472eaa2a7acf68d3159d14311aecfb5b07a7",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136480",
+          "x": 136480,
+          "y": 95587
+        },
+        {
+          "bytes": 19932,
+          "file": "orthophoto-tiles/18-136481-95587.tile",
+          "sha256": "b709653070114ced619fdd2bc49d2e19e9b6009a745c50cea28fb28c93194c0b",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136481",
+          "x": 136481,
+          "y": 95587
+        },
+        {
+          "bytes": 22096,
+          "file": "orthophoto-tiles/18-136482-95587.tile",
+          "sha256": "c8fc1387a81ed69a4b47538d53fa6dea91f0df5d2e2fdba43a0f8baa62d06ee4",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136482",
+          "x": 136482,
+          "y": 95587
+        },
+        {
+          "bytes": 20556,
+          "file": "orthophoto-tiles/18-136483-95587.tile",
+          "sha256": "6455a8d8dc80f2f80c8993b7650f05d6d940574c0f901d64475a23bb4aa59d6d",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136483",
+          "x": 136483,
+          "y": 95587
+        },
+        {
+          "bytes": 5835,
+          "file": "orthophoto-tiles/18-136484-95587.tile",
+          "sha256": "7f6748b6e821274a476522a96bcee325043c0504c55cae41d5a4be137741cf40",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136484",
+          "x": 136484,
+          "y": 95587
+        },
+        {
+          "bytes": 29172,
+          "file": "orthophoto-tiles/18-136474-95588.tile",
+          "sha256": "ad58d988af08b923580786cce255766d86e36530f9c3aa3c815a07625513f21d",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136474",
+          "x": 136474,
+          "y": 95588
+        },
+        {
+          "bytes": 28094,
+          "file": "orthophoto-tiles/18-136475-95588.tile",
+          "sha256": "6225c5b9fce3e747bb30800b887208c706248af4a75c3bbb17f567e0e1c4cf52",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136475",
+          "x": 136475,
+          "y": 95588
+        },
+        {
+          "bytes": 22043,
+          "file": "orthophoto-tiles/18-136476-95588.tile",
+          "sha256": "939434917ab78bd27dc670b31868854afde4bff2a514dd6325b39540b970b745",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136476",
+          "x": 136476,
+          "y": 95588
+        },
+        {
+          "bytes": 25992,
+          "file": "orthophoto-tiles/18-136477-95588.tile",
+          "sha256": "077525678871644075645178b72bf2a9623b06948efb0c8f4c4f5c0b3c04ae9b",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136477",
+          "x": 136477,
+          "y": 95588
+        },
+        {
+          "bytes": 6150,
+          "file": "orthophoto-tiles/18-136478-95588.tile",
+          "sha256": "7b8423bddda2184fe0ac9edc7fa8ca522a650e9e0cf0cf5474ebaf9728bc8fac",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136478",
+          "x": 136478,
+          "y": 95588
+        },
+        {
+          "bytes": 4552,
+          "file": "orthophoto-tiles/18-136479-95588.tile",
+          "sha256": "1548d6ec3de85859836eaad3933204d7c1acc426b84978f2bfc924afed4313ef",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136479",
+          "x": 136479,
+          "y": 95588
+        },
+        {
+          "bytes": 24990,
+          "file": "orthophoto-tiles/18-136480-95588.tile",
+          "sha256": "071d13f006b37281a5679607249eed4ad482c17290516e9483655eeb246f19a4",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136480",
+          "x": 136480,
+          "y": 95588
+        },
+        {
+          "bytes": 19258,
+          "file": "orthophoto-tiles/18-136481-95588.tile",
+          "sha256": "1ed3a2a37ec1be672fcf2a45a9209c98479819efa5666167c55eec46b29039df",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136481",
+          "x": 136481,
+          "y": 95588
+        },
+        {
+          "bytes": 21998,
+          "file": "orthophoto-tiles/18-136482-95588.tile",
+          "sha256": "28ad85959690ec391dc44a9a2ae900b45608baf610c66fb268aebaaedfa8890b",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136482",
+          "x": 136482,
+          "y": 95588
+        },
+        {
+          "bytes": 9453,
+          "file": "orthophoto-tiles/18-136483-95588.tile",
+          "sha256": "ae918cbb5c3cc4540605ca26df3e9c6a08bcbf3da154f88aea659a154a55f756",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136483",
+          "x": 136483,
+          "y": 95588
+        },
+        {
+          "bytes": 3655,
+          "file": "orthophoto-tiles/18-136484-95588.tile",
+          "sha256": "8e784da8cba8044bbea26e0217198ec7462783c454f91f8913afc38bf0c769af",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136484",
+          "x": 136484,
+          "y": 95588
+        },
+        {
+          "bytes": 28331,
+          "file": "orthophoto-tiles/18-136474-95589.tile",
+          "sha256": "9fe3740c0e9876bb1c84361ecf4dffb8b6409da0cd9163bc4ab50e9c165c4427",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136474",
+          "x": 136474,
+          "y": 95589
+        },
+        {
+          "bytes": 28765,
+          "file": "orthophoto-tiles/18-136475-95589.tile",
+          "sha256": "101e68025f2ca8dbd5c9950166c568e4c575b4636e8b97620bc372188c4a70f7",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136475",
+          "x": 136475,
+          "y": 95589
+        },
+        {
+          "bytes": 18863,
+          "file": "orthophoto-tiles/18-136476-95589.tile",
+          "sha256": "10563f77b8cf17f0c5abcc39e33f583acbee65b0340b01cd68bdf67e7c9e31ab",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136476",
+          "x": 136476,
+          "y": 95589
+        },
+        {
+          "bytes": 20659,
+          "file": "orthophoto-tiles/18-136477-95589.tile",
+          "sha256": "7b276222c54bbc659ab2e97d26f4e5cb1b81000bd4334cf63fb84f217d8b5a71",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136477",
+          "x": 136477,
+          "y": 95589
+        },
+        {
+          "bytes": 22456,
+          "file": "orthophoto-tiles/18-136478-95589.tile",
+          "sha256": "138893314821980cf5a2f7150e7e5c7c790c42dedd178aa51432bc8abccd6db9",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136478",
+          "x": 136478,
+          "y": 95589
+        },
+        {
+          "bytes": 17699,
+          "file": "orthophoto-tiles/18-136479-95589.tile",
+          "sha256": "bfeb7f9183eb1223e34fc704969ef97e3f56734f2f4d39f2e5283a243c0ef7da",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136479",
+          "x": 136479,
+          "y": 95589
+        },
+        {
+          "bytes": 25514,
+          "file": "orthophoto-tiles/18-136480-95589.tile",
+          "sha256": "156e03f7c637913acafa161c76bd6e72155328cb125eecb8ded08a4ae6374b11",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136480",
+          "x": 136480,
+          "y": 95589
+        },
+        {
+          "bytes": 19525,
+          "file": "orthophoto-tiles/18-136481-95589.tile",
+          "sha256": "7fc16d45717d171942b3662dd8f107b2f784d73f442c2ed1e655b4c89ac4144a",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136481",
+          "x": 136481,
+          "y": 95589
+        },
+        {
+          "bytes": 8265,
+          "file": "orthophoto-tiles/18-136482-95589.tile",
+          "sha256": "c20134a2f9c36ff5edab0c79bcb632727f510e66f5d45077397881a887988593",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136482",
+          "x": 136482,
+          "y": 95589
+        },
+        {
+          "bytes": 2714,
+          "file": "orthophoto-tiles/18-136483-95589.tile",
+          "sha256": "dffcc6083478c0e23ccf49d838b1afe4c154f509ff358ec996a90db9705aadb2",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136483",
+          "x": 136483,
+          "y": 95589
+        },
+        {
+          "bytes": 2674,
+          "file": "orthophoto-tiles/18-136484-95589.tile",
+          "sha256": "39de8f9e492eb0faf303d649c6cf46c02cf3aa87cc2415a207184f5268ba27b3",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136484",
+          "x": 136484,
+          "y": 95589
+        },
+        {
+          "bytes": 29683,
+          "file": "orthophoto-tiles/18-136474-95590.tile",
+          "sha256": "9c5829d3364376fde8afae3507bcf04f78147d4480e533a0367a0003dd2d32cb",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136474",
+          "x": 136474,
+          "y": 95590
+        },
+        {
+          "bytes": 27548,
+          "file": "orthophoto-tiles/18-136475-95590.tile",
+          "sha256": "f4c48c61928f06a7367f462f8f31155304d5ee4b8865c85351549c1cb87a4eb1",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136475",
+          "x": 136475,
+          "y": 95590
+        },
+        {
+          "bytes": 25760,
+          "file": "orthophoto-tiles/18-136476-95590.tile",
+          "sha256": "05dd85565625c7a3798b63a89674f2805866dcc8c17de74a53f0a11e63bb68f6",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136476",
+          "x": 136476,
+          "y": 95590
+        },
+        {
+          "bytes": 21650,
+          "file": "orthophoto-tiles/18-136477-95590.tile",
+          "sha256": "e3589a5145bc0bfa0b1077743f81ad69b507556e2472ea4364708efd53c44170",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136477",
+          "x": 136477,
+          "y": 95590
+        },
+        {
+          "bytes": 25230,
+          "file": "orthophoto-tiles/18-136478-95590.tile",
+          "sha256": "7132097a1f73440f386b4dfdd21b62251c494f89067cd85468c9b5be1586ecca",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136478",
+          "x": 136478,
+          "y": 95590
+        },
+        {
+          "bytes": 24736,
+          "file": "orthophoto-tiles/18-136479-95590.tile",
+          "sha256": "2298ef0bb719149cbfea4b7e1fb5e5eb8c69b6b378bf2cbd4e6c7393798cafc4",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136479",
+          "x": 136479,
+          "y": 95590
+        },
+        {
+          "bytes": 24079,
+          "file": "orthophoto-tiles/18-136480-95590.tile",
+          "sha256": "cba5ecd2a4dc46658501f36bc7951c3c2e3047ede0036dbcf2142257e4081477",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136480",
+          "x": 136480,
+          "y": 95590
+        },
+        {
+          "bytes": 16574,
+          "file": "orthophoto-tiles/18-136481-95590.tile",
+          "sha256": "dbf914d652ed03eff9a10ee28e208213f7e846c50638fadb47eb7b947f973135",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136481",
+          "x": 136481,
+          "y": 95590
+        },
+        {
+          "bytes": 3233,
+          "file": "orthophoto-tiles/18-136482-95590.tile",
+          "sha256": "476b2fac2dab11bbb8e157dbdee5a8e3a1e5978212bb9d72de653a2f695440cb",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136482",
+          "x": 136482,
+          "y": 95590
+        },
+        {
+          "bytes": 2670,
+          "file": "orthophoto-tiles/18-136483-95590.tile",
+          "sha256": "92a7d0a7249d0b6247d1901efdecca9275180d71d282cc838646333b76f769d7",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136483",
+          "x": 136483,
+          "y": 95590
+        },
+        {
+          "bytes": 2730,
+          "file": "orthophoto-tiles/18-136484-95590.tile",
+          "sha256": "745789259b2ab19669d8a4156a79d6ae7d1e988b96dcc2db8c1bce5c4d262996",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136484",
+          "x": 136484,
+          "y": 95590
+        },
+        {
+          "bytes": 22075,
+          "file": "orthophoto-tiles/18-136474-95591.tile",
+          "sha256": "9c89b6b9ce759edcd8f9684bf6eed6f7979bab92ddc97ac03366b665efce19ba",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136474",
+          "x": 136474,
+          "y": 95591
+        },
+        {
+          "bytes": 25643,
+          "file": "orthophoto-tiles/18-136475-95591.tile",
+          "sha256": "8806f3ab0015b8e5f3a7fde6c2c3ebd34f85820c1ad0440771dc8f93e83c24bc",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136475",
+          "x": 136475,
+          "y": 95591
+        },
+        {
+          "bytes": 24017,
+          "file": "orthophoto-tiles/18-136476-95591.tile",
+          "sha256": "86c3f4aae13153a39bd00df3263abe8b90addb7ea3e3b80d85d3c8143b3b2701",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136476",
+          "x": 136476,
+          "y": 95591
+        },
+        {
+          "bytes": 25553,
+          "file": "orthophoto-tiles/18-136477-95591.tile",
+          "sha256": "911771fad99a50710e95e6559f3b53a3b805736a5606df5d1805b2eca1fa8582",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136477",
+          "x": 136477,
+          "y": 95591
+        },
+        {
+          "bytes": 25297,
+          "file": "orthophoto-tiles/18-136478-95591.tile",
+          "sha256": "ee2396be05d704d8940b4d1486dc27ad95dab0952b74911707b132675c621584",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136478",
+          "x": 136478,
+          "y": 95591
+        },
+        {
+          "bytes": 26538,
+          "file": "orthophoto-tiles/18-136479-95591.tile",
+          "sha256": "26572dae148cb8108dc31bfdf5bafe775956511c3721b81ce832496fc1b4e9ff",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136479",
+          "x": 136479,
+          "y": 95591
+        },
+        {
+          "bytes": 25056,
+          "file": "orthophoto-tiles/18-136480-95591.tile",
+          "sha256": "6f0eab6dad30c65d44ec4224ea952e15b955b8e974d207e91f93585a594fa955",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136480",
+          "x": 136480,
+          "y": 95591
+        },
+        {
+          "bytes": 13934,
+          "file": "orthophoto-tiles/18-136481-95591.tile",
+          "sha256": "9e7f6341b01d97b4f7f704fdeea9644c1f0716c6d0ef21c27e8ccf3f2cf4baad",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136481",
+          "x": 136481,
+          "y": 95591
+        },
+        {
+          "bytes": 2841,
+          "file": "orthophoto-tiles/18-136482-95591.tile",
+          "sha256": "e45e0bc5a249b8af3f6ad1c67b226aced2b6cb28617d8e3f04cf05aa75d63c32",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136482",
+          "x": 136482,
+          "y": 95591
+        },
+        {
+          "bytes": 2746,
+          "file": "orthophoto-tiles/18-136483-95591.tile",
+          "sha256": "cf724eec8f442814dccb6d47b96c9ce062b24b1c1520b3da4f51121f3a12bd53",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136483",
+          "x": 136483,
+          "y": 95591
+        },
+        {
+          "bytes": 2782,
+          "file": "orthophoto-tiles/18-136484-95591.tile",
+          "sha256": "3967b9107349ecc3e1e61f85129812813efac2551d9ae52ecd01c5bc85a86efe",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136484",
+          "x": 136484,
+          "y": 95591
+        },
+        {
+          "bytes": 21263,
+          "file": "orthophoto-tiles/18-136474-95592.tile",
+          "sha256": "8f89b0d17155cd0a758bd1c89da6667f1dcc7a6338f3e0f4819e2cea2bd7e741",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136474",
+          "x": 136474,
+          "y": 95592
+        },
+        {
+          "bytes": 22826,
+          "file": "orthophoto-tiles/18-136475-95592.tile",
+          "sha256": "507995798fdeb9adcf0a12a6d40a59d8028dd5521cd05f2830f83e973225bc57",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136475",
+          "x": 136475,
+          "y": 95592
+        },
+        {
+          "bytes": 28840,
+          "file": "orthophoto-tiles/18-136476-95592.tile",
+          "sha256": "5e815c030c608604cfb8515557f299e40fdf81938282b6bb62890563a0201a35",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136476",
+          "x": 136476,
+          "y": 95592
+        },
+        {
+          "bytes": 31425,
+          "file": "orthophoto-tiles/18-136477-95592.tile",
+          "sha256": "4bd292c5821bccd488aa56c89d6e53252cfaa83034e245d4277073e54b7efce1",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136477",
+          "x": 136477,
+          "y": 95592
+        },
+        {
+          "bytes": 27678,
+          "file": "orthophoto-tiles/18-136478-95592.tile",
+          "sha256": "4f7cf024b83d977f5fad2c1967e55d261254ac36719cbe66eeac2971cf29269c",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136478",
+          "x": 136478,
+          "y": 95592
+        },
+        {
+          "bytes": 26827,
+          "file": "orthophoto-tiles/18-136479-95592.tile",
+          "sha256": "e8c9c69eebd1342c82f84ccbbe8aef300eadd579078e46c1bbcc47de4e4984a2",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136479",
+          "x": 136479,
+          "y": 95592
+        },
+        {
+          "bytes": 20091,
+          "file": "orthophoto-tiles/18-136480-95592.tile",
+          "sha256": "9b9aea9f03d28dad54ee02117dba638d18f84ffb60b57e05258265e8f5340f78",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136480",
+          "x": 136480,
+          "y": 95592
+        },
+        {
+          "bytes": 3793,
+          "file": "orthophoto-tiles/18-136481-95592.tile",
+          "sha256": "685893040fb1007c78e83c320ce29d2f70b59ef013d831b309cab8b0762db9d8",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136481",
+          "x": 136481,
+          "y": 95592
+        },
+        {
+          "bytes": 2804,
+          "file": "orthophoto-tiles/18-136482-95592.tile",
+          "sha256": "290d012a69a996065a25d82f2618237cc7111dfa1f7139fb1deb6c5642708432",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136482",
+          "x": 136482,
+          "y": 95592
+        },
+        {
+          "bytes": 2814,
+          "file": "orthophoto-tiles/18-136483-95592.tile",
+          "sha256": "b29ae9bd9f1f4145f98bd818cf2b2a06901fcf744ead86297310b235dd465a4b",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136483",
+          "x": 136483,
+          "y": 95592
+        },
+        {
+          "bytes": 5098,
+          "file": "orthophoto-tiles/18-136484-95592.tile",
+          "sha256": "458b6c49a0918665cacbe70bdb045ba47d6a56658bfd5ff832904cec618c1d4f",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136484",
+          "x": 136484,
+          "y": 95592
+        },
+        {
+          "bytes": 23597,
+          "file": "orthophoto-tiles/18-136474-95593.tile",
+          "sha256": "b238924cde735c953fb9456a1eb94accb011b7e891f784f4a42045f9a4ee943a",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136474",
+          "x": 136474,
+          "y": 95593
+        },
+        {
+          "bytes": 20941,
+          "file": "orthophoto-tiles/18-136475-95593.tile",
+          "sha256": "7cffff905ff926db06f304ef012e744f86c6bbaa01ab6af2af481843f2690253",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136475",
+          "x": 136475,
+          "y": 95593
+        },
+        {
+          "bytes": 25471,
+          "file": "orthophoto-tiles/18-136476-95593.tile",
+          "sha256": "958b510b224eb914fa5eb61d85a32293bd2ceb16dfe64747c8188e1edf2242ff",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136476",
+          "x": 136476,
+          "y": 95593
+        },
+        {
+          "bytes": 26001,
+          "file": "orthophoto-tiles/18-136477-95593.tile",
+          "sha256": "2e2d2e92a107e0693354ef2e8f8e994047130c23309b5cec831f36a8aa7a6749",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136477",
+          "x": 136477,
+          "y": 95593
+        },
+        {
+          "bytes": 22472,
+          "file": "orthophoto-tiles/18-136478-95593.tile",
+          "sha256": "e491a33f2198387f5bb2f54c471142595da1d94ba4f8ce555927d1863d5f354b",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136478",
+          "x": 136478,
+          "y": 95593
+        },
+        {
+          "bytes": 6469,
+          "file": "orthophoto-tiles/18-136479-95593.tile",
+          "sha256": "365f006387ddd0c789d6850f2df481c15ffd05b40f9cc70f8f46e353ccb13924",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136479",
+          "x": 136479,
+          "y": 95593
+        },
+        {
+          "bytes": 2922,
+          "file": "orthophoto-tiles/18-136480-95593.tile",
+          "sha256": "c7a8eebd620b4172f0a42a456eb67fa1c4344572f98efbc32f89542d780d6aef",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136480",
+          "x": 136480,
+          "y": 95593
+        },
+        {
+          "bytes": 2771,
+          "file": "orthophoto-tiles/18-136481-95593.tile",
+          "sha256": "97f75694dc4c6f1fb9dd709bfcdc91efe8c14e007537e11a3040ef46910b51f3",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136481",
+          "x": 136481,
+          "y": 95593
+        },
+        {
+          "bytes": 2758,
+          "file": "orthophoto-tiles/18-136482-95593.tile",
+          "sha256": "d6296788723fe5f5ab033af5199fb08cb99e82afc23166c3356ce69a91cc2465",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136482",
+          "x": 136482,
+          "y": 95593
+        },
+        {
+          "bytes": 4180,
+          "file": "orthophoto-tiles/18-136483-95593.tile",
+          "sha256": "9ad578b2d518d01278e5f7e6e7fc53f5fef1d162a9078136e85df713bf316ea0",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136483",
+          "x": 136483,
+          "y": 95593
+        },
+        {
+          "bytes": 10708,
+          "file": "orthophoto-tiles/18-136484-95593.tile",
+          "sha256": "9b616734bcd3a2884fb9d740fa79364db8bb82635def17e1f16344af2a412138",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136484",
+          "x": 136484,
+          "y": 95593
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95579.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95579/136473",
+          "x": 136473,
+          "y": 95579,
+          "bytes": 23383,
+          "sha256": "3bc27b5535a3ace6a385dc86560e107a0fa4f38387ce9640cffc2e08c61982e9"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95580.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95580/136473",
+          "x": 136473,
+          "y": 95580,
+          "bytes": 24801,
+          "sha256": "583a15ba6837beece279b1aac83a9f213a25fdf188d14384dc47a8df6b7ff985"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95581.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95581/136473",
+          "x": 136473,
+          "y": 95581,
+          "bytes": 28287,
+          "sha256": "4b2621879e9094b83afd9779c16b3c3766d5c8198338228f330f2838b0245410"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95582.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95582/136473",
+          "x": 136473,
+          "y": 95582,
+          "bytes": 27169,
+          "sha256": "928c871abbb1b1c3cf791801723c91483573f7a7d069600028f8d6d2924e76b5"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95583.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95583/136473",
+          "x": 136473,
+          "y": 95583,
+          "bytes": 27867,
+          "sha256": "a13473dbcd2f41d424146a3a9a5d0f4904f1f7c37f43244d4ab5d04ad929f69b"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95584.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95584/136473",
+          "x": 136473,
+          "y": 95584,
+          "bytes": 29680,
+          "sha256": "9edb31c2913119ca385d319c4cc81834687f5cc588463fd870244724aec16d0d"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95585.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95585/136473",
+          "x": 136473,
+          "y": 95585,
+          "bytes": 27112,
+          "sha256": "4719ae6fc8b93494973fdd8a140d202ed09e108c2eacc06251335192fea96288"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95586.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95586/136473",
+          "x": 136473,
+          "y": 95586,
+          "bytes": 28251,
+          "sha256": "8fbe96255f82a71a94bc36861c1cb28c8c1929c78d4cee7895bf20a464bac2a7"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95587.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95587/136473",
+          "x": 136473,
+          "y": 95587,
+          "bytes": 31596,
+          "sha256": "cb6538ccaf1b2648d77f425e07b12b1302b73005cfde900e33ca398c8466eae5"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95588.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95588/136473",
+          "x": 136473,
+          "y": 95588,
+          "bytes": 30578,
+          "sha256": "b723f88009ae0d0b2a0d8d223441104bf56bc3b48aa462921326eeb7e3fccce5"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95589.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95589/136473",
+          "x": 136473,
+          "y": 95589,
+          "bytes": 28693,
+          "sha256": "887b62c686928f412a1e34616cf83031da652d44cf8efe74a44363375e6afead"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95590.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95590/136473",
+          "x": 136473,
+          "y": 95590,
+          "bytes": 28874,
+          "sha256": "d2c655374a1c0509e3bc3ffe0187c6dd414732b7ab6026c9041d9872b36f0eb8"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95591.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95591/136473",
+          "x": 136473,
+          "y": 95591,
+          "bytes": 26809,
+          "sha256": "280e56941dda0061799f7d2bfbf0a998bac4cb5642e76d2dc6965a7e9d54cc78"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95592.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95592/136473",
+          "x": 136473,
+          "y": 95592,
+          "bytes": 27094,
+          "sha256": "83f7f0ae79c06e466aa6979d1cbdb4230a94245dab1502444219c4d25c960927"
+        },
+        {
+          "file": "orthophoto-tiles/18-136473-95593.tile",
+          "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer/tile/18/95593/136473",
+          "x": 136473,
+          "y": 95593,
+          "bytes": 27792,
+          "sha256": "775f4a7cc0fd8d2625aa30ade09781615482895aee336bd187bf1cddb9c29ace"
+        },
+        {
+          "bytes": 97700,
+          "file": "elevation-tiles/12-2132-1493.tile",
+          "sha256": "58e2daf75987f6f7279c107afb775e3cdc64b3405b7c1b066b6de2a4b4a54718",
+          "url": "https://tiles.versatiles.org/tiles/elevation/12/2132/1493",
+          "x": 2132,
+          "y": 1493
+        }
+      ],
+      "resolution": "official orthophoto z18 (~0.60 m/pixel); Terrarium elevation z12 (~19 m/pixel)",
+      "role": "ground and roof colours; legacy Terrarium tiles retained for provenance, IGN LiDAR is the active elevation source",
+      "sha256": "0899db6e93abbf2c6217d4072a6b0155dca9778a070668e6100489429c609fa3",
+      "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer",
+      "verticalDatum": "Terrarium source DEM metres"
+    },
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 5506,
+      "crs": "EPSG:3857 tiles prepared to EPSG:32632",
+      "date": "service metadata retrieved 2026-08-13; imagery status 2020 with documented 2019/2015 source areas",
+      "file": "monaco-orthophoto-service-metadata.json",
+      "license": "Copyright DPUM, Gouvernement Princier de Monaco; public tiled service, attribution required",
+      "resolution": "ArcGIS service metadata JSON",
+      "role": "official orthophoto provenance, spatial reference and tile capabilities",
+      "sha256": "b0432b9b021f09f4a8f6e2a9152cd7a7cdf4b8dc060fa93d45fb8122f8224acd",
+      "url": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer?f=pjson",
+      "verticalDatum": null
+    },
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 1050780,
+      "crs": "EPSG:4326 / document reference",
+      "date": "2026-06-03; map version 3 issued 2026-05-31",
+      "file": "fia-2026-monaco-circuit-map.pdf",
+      "license": "official FIA event document; reference use",
+      "resolution": "vector PDF",
+      "role": "support-series circuit map; geometry cross-check only, F1 controls use Document 7",
+      "sha256": "7bb3c0adba4b7cb6b096a0fdf5ac3aa3ed65b043347041d88b8b33332ed48e64",
+      "url": "https://www.fia.com/system/files/decision-document/2026_monaco_event_-_circuit_map_-_monaco_2026_v1.pdf",
+      "verticalDatum": null
+    },
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 2647335,
+      "crs": "EPSG:4326 / document reference",
+      "date": "current 2026 Monaco Grand Prix competition notes",
+      "file": "fia-2026-monaco-competition-notes.pdf",
+      "license": "official FIA event document; reference use",
+      "resolution": "vector PDF",
+      "role": "current circuit map, pit-lane drawing, emergency exits and red zone",
+      "sha256": "d7334536ab4bd791d5410d3aa86c2d0a70305257259dd8ff08ebbf0980262b62",
+      "url": "https://www.fia.com/system/files/decision-document/2026_monaco_grand_prix_-_competition_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_and_red_zone.pdf",
+      "verticalDatum": null
+    },
+    {
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 898960,
+      "crs": "EPSG:4326 / document reference",
+      "date": "official ACM Formula 1 2026 event inventory published 2025-05",
+      "file": "acm-2026-formula-1-event-map.jpg",
+      "license": "official Automobile Club de Monaco event reference; reference use",
+      "resolution": "published event image",
+      "role": "current 2026 grandstand inventory and ticket categories",
+      "sha256": "fb8dc19e2c433b2a479135e0b3ab958be150ab2d75ba88255400089114855504",
+      "url": "https://acm.mc/wp-content/uploads/2025/05/Plein-tarif-GB-2026-F1.jpg",
+      "verticalDatum": null
+    },
+    {
+      "file": "audi-monaco-2026-garages.html",
+      "url": "https://www.audif1.com/en/news/2026/the-race-between-races",
+      "role": "three-storey Monaco garages and separate paddock location; no footprint survey",
+      "resolution": "team event account",
+      "date": "2026-06-10",
+      "attribution": "Audi Revolut F1 Team",
+      "license": "copyright Audi; factual reference only",
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 812471,
+      "crs": "document reference / EPSG:4326",
+      "retrievedAt": "2026-09-22T10:58:35.645Z",
+      "sha256": "0da3d503a97fc71437870698190401e7982696d21bcaef50a71ee066a5aeaca7",
+      "verticalDatum": null
+    },
+    {
+      "file": "acm-hospitality-2026.pdf",
+      "url": "https://acm.mc/wp-content/uploads/2025/05/Hospitalites_ACM_F12026_F-3.pdf",
+      "role": "ACM 2026 stand names and harbour hospitality map (page 2)",
+      "resolution": "vector PDF",
+      "license": "ACM official event reference; reference use",
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 5278571,
+      "crs": "document reference / EPSG:4326",
+      "date": "2026-06-03",
+      "retrievedAt": "2026-09-22T10:18:28.618Z",
+      "attribution": "FIA / Automobile Club de Monaco",
+      "sha256": "cb99a81467c6327ccd5fa34426ef0921c4a4957f648f8d3255466b3d094066ee",
+      "verticalDatum": null
+    },
+    {
+      "file": "ign-mnt-1m.tif",
+      "url": "https://data.geopf.fr/wms-r?SERVICE=WMS&VERSION=1.3.0&EXCEPTIONS=text/xml&REQUEST=GetMap&LAYERS=IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93&FORMAT=image/geotiff&STYLES=&CRS=EPSG:32632&BBOX=372640,4843100,373820,4844620&WIDTH=1180&HEIGHT=1520",
+      "role": "bare-earth terrain",
+      "resolution": "1 m export of 0.5 m IGN LiDAR HD MNT",
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 7174882,
+      "crs": "EPSG:32632",
+      "date": "acquired 2021-05-13 / 2021-06-27; published 2025-06-20",
+      "retrievedAt": "2026-09-22T10:18:28.634Z",
+      "license": "Etalab Open Licence 2.0",
+      "attribution": "IGN LiDAR HD",
+      "sha256": "e521e68caffb07a18d240c5cc81cdc7d659c892d4e87edf54384e8105f77a176",
+      "verticalDatum": "IGN69 (EPSG:5720)"
+    },
+    {
+      "file": "ign-mns-1m.tif",
+      "url": "https://data.geopf.fr/wms-r?SERVICE=WMS&VERSION=1.3.0&EXCEPTIONS=text/xml&REQUEST=GetMap&LAYERS=IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93&FORMAT=image/geotiff&STYLES=&CRS=EPSG:32632&BBOX=372640,4843100,373820,4844620&WIDTH=1180&HEIGHT=1520",
+      "role": "measured building roof elevations",
+      "resolution": "1 m export of 0.5 m IGN LiDAR HD MNS",
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 7174882,
+      "crs": "EPSG:32632",
+      "date": "acquired 2021-05-13 / 2021-06-27; published 2025-06-20",
+      "retrievedAt": "2026-09-22T10:18:28.639Z",
+      "license": "Etalab Open Licence 2.0",
+      "attribution": "IGN LiDAR HD",
+      "sha256": "9a5435c11b3948ca64c97106643709c35a36bc3b263207f6c87e054cd808c7f0",
+      "verticalDatum": "IGN69 (EPSG:5720)"
+    },
+    {
+      "file": "ign-lidar-coverage.json",
+      "url": "https://data.geopf.fr/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=IGNF_LIDAR-HD_METADONNEE:metadata&outputFormat=application/json&srsName=EPSG:4326&bbox=43.7304,7.4188,43.7435,7.4327,urn:ogc:def:crs:EPSG::4326",
+      "role": "LiDAR acquisition dates, vertical datum and source tile catalogue",
+      "resolution": "source tile footprints",
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 9925,
+      "crs": "document reference / EPSG:4326",
+      "date": "acquired 2021-05-13 / 2021-06-27; published 2025-06-20",
+      "retrievedAt": "2026-09-22T10:18:28.642Z",
+      "license": "Etalab Open Licence 2.0",
+      "attribution": "IGN LiDAR HD",
+      "sha256": "0b0bf2b8f7b6d15fdb9edeac2d90d2ec61409b8e96bf658cc23a4acc96d49483",
+      "verticalDatum": "IGN69 (EPSG:5720)"
+    },
+    {
+      "file": "fia-media-kit-2026.pdf",
+      "url": "https://www.fia.com/sites/default/files/media_kit_2026_gb_03.06_1.pdf",
+      "role": "ACM 27 May 2026 event footprints; FIA garage dimensions and allocation (pages 15\u201316, 38\u201339)",
+      "resolution": "vector PDF",
+      "license": "FIA / ACM official event reference; reference use",
+      "bbox": {
+        "minX": 372640,
+        "minY": 4843100,
+        "maxX": 373820,
+        "maxY": 4844620
+      },
+      "bytes": 21341285,
+      "crs": "document reference / EPSG:4326",
+      "date": "2026-06-03",
+      "retrievedAt": "2026-09-22T10:18:28.654Z",
+      "attribution": "FIA / Automobile Club de Monaco",
+      "sha256": "cc2292a7243fc367f89df76cf08973728ba71731442ae62ff76359080833e04b",
+      "verticalDatum": null
+    }
+  ],
+  "sourceNotes": {
+    "elevation": "https://www.data.gouv.fr/datasets/mnt-lidar-hd",
+    "orthophoto": "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer",
+    "orthophotoCopyright": "DPUM, Gouvernement Princier de Monaco",
+    "legacyElevation": "https://docs.versatiles.org/basics/tilesets.html"
+  },
+  "verticalDatum": "IGN69 (EPSG:5720); no vertical exaggeration"
+}

@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/table";
 import { loadAdminNews, parseAdminTableQuery } from "@/data/admin-repository";
 import { isNewsRemovedFromFeed } from "@/lib/admin-policies";
+import { newsReviewIssueLabel, newsArticleTypeLabel, NEWS_ARTICLE_TYPE_OPTIONS } from "@/lib/news-editorial";
 import { requireAdmin } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -75,6 +76,7 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
               search={query.search}
               status={query.status}
               statuses={[
+                { value: "review", label: "Нужна проверка" },
                 { value: "published", label: "Опубликованы" },
                 { value: "draft", label: "Черновики" },
                 { value: "removed", label: "Сняты с ленты" },
@@ -108,7 +110,7 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
                             {isNewsRemovedFromFeed(article.publication_status, article.published_at) ? (
                               <AdminStatusBadge status="removed_from_feed" />
                             ) : (
-                              <AdminStatusBadge status={article.publication_status} />
+                              <AdminStatusBadge status={article.publication_status === "draft" && article.editorialReview?.decision === "MANUAL_REVIEW" ? "review" : article.publication_status} />
                             )}
                             {article.aiFailureLabel ? (
                               <p className="mt-1 text-xs leading-4 text-destructive">{article.aiFailureLabel}</p>
@@ -164,7 +166,7 @@ export default async function AdminNewsPage({ searchParams }: PageProps) {
                           {isNewsRemovedFromFeed(article.publication_status, article.published_at) ? (
                             <AdminStatusBadge status="removed_from_feed" />
                           ) : (
-                            <AdminStatusBadge status={article.publication_status} />
+                            <AdminStatusBadge status={article.publication_status === "draft" && article.editorialReview?.decision === "MANUAL_REVIEW" ? "review" : article.publication_status} />
                           )}
                         </div>
                       </div>
@@ -312,16 +314,34 @@ function ArticleEditor({
 }) {
   return (
     <div className="grid gap-4 text-left">
+      {article.editorialReview?.issues.length ? <section aria-label="Результат проверки" className="grid gap-2 text-sm leading-6">
+        <h3 className="font-semibold">Что нужно проверить</h3>
+        <ul className="list-disc pl-5">{article.editorialReview.issues.map((issue, index) => <li key={index}>{newsReviewIssueLabel(issue)}</li>)}</ul>
+        <Link className="text-primary underline-offset-4 hover:underline" href={article.canonical_url} target="_blank" rel="noreferrer">Сверить с оригиналом</Link>
+      </section> : null}
       <AdminConfirmedForm
         action={saveNewsArticleAction}
         confirmLabel="Сохранить"
-        description="Если выбрана публикация, материал сразу появится в публичной ленте."
+        description={article.editorialReview?.decision === "MANUAL_REVIEW"
+          ? "Материал остановлен автоматической проверкой. Публикуй его только после сверки фактов, авторства и оговорок с оригиналом."
+          : "Если выбрана публикация, материал сразу появится в публичной ленте."}
         submitLabel="Сохранить материал"
         submitVariant="secondary"
         title="Сохранить материал?"
       >
         <input name="articleId" type="hidden" value={article.id} />
         <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor={`type-${article.id}`}>Тип материала</FieldLabel>
+            <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" defaultValue={article.editorialMeta?.article_type ?? "news"} id={`type-${article.id}`} name="articleType">
+              {NEWS_ARTICLE_TYPE_OPTIONS.map(type => <option key={type} value={type}>{newsArticleTypeLabel(type)}</option>)}
+            </select>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`authors-${article.id}`}>Автор оригинала</FieldLabel>
+            <Input defaultValue={article.editorialMeta?.source_authors?.join(", ") ?? ""} id={`authors-${article.id}`} name="sourceAuthors" placeholder="Имя автора из источника" />
+            <FieldDescription>Если подписи нет, оставь пустым. Несколько авторов — через запятую.</FieldDescription>
+          </Field>
           <Field>
             <FieldLabel htmlFor={`title-${article.id}`}>Русский заголовок</FieldLabel>
             <Input defaultValue={article.ai_title_ru ?? ""} id={`title-${article.id}`} name="title" />

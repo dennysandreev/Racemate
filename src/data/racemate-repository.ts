@@ -244,6 +244,7 @@ type NewsTagAllowlist = {
 };
 
 type ArticleRow = {
+  editorial_meta?: NewsItem["editorial"];
   id: string;
   slug?: string | null;
   canonical_url: string;
@@ -980,7 +981,7 @@ type NewsItemsOptions = {
 };
 
 export async function getSitemapNewsEntries(): Promise<
-  Array<{ publishedAt: string | null; slug: string }>
+  Array<{ publishedAt: string | null; modifiedAt?: string | null; slug: string }>
 > {
   const supabase = await createSupabaseServerClient();
 
@@ -988,19 +989,28 @@ export async function getSitemapNewsEntries(): Promise<
     return [];
   }
 
-  const entries: Array<{ publishedAt: string | null; slug: string }> = [];
+  const entries: Array<{ publishedAt: string | null; modifiedAt?: string | null; slug: string }> = [];
   const pageSize = 1_000;
 
   for (let from = 0; from < 48_000; from += pageSize) {
     let { data, error } = await supabase
       .from("news_articles")
-      .select("id, slug, published_at")
+      .select("id, slug, published_at, content_modified_at")
       .eq("status", "processed")
       .eq("publication_status", "published")
       .or("ai_model.is.null,ai_model.neq.fallback")
       .is("duplicate_of", null)
       .order("published_at", { ascending: false, nullsFirst: false })
       .range(from, from + pageSize - 1);
+
+    if (error && /content_modified_at/.test(error.message)) {
+      const fallback = await supabase.from("news_articles").select("id, slug, published_at")
+        .eq("status", "processed").eq("publication_status", "published")
+        .or("ai_model.is.null,ai_model.neq.fallback").is("duplicate_of", null)
+        .order("published_at", { ascending: false, nullsFirst: false }).range(from, from + pageSize - 1);
+      data = fallback.data as typeof data;
+      error = fallback.error;
+    }
 
     if (error && isMissingNewsArticleColumnsError(error)) {
       const fallback = await supabase
@@ -1024,6 +1034,7 @@ export async function getSitemapNewsEntries(): Promise<
     entries.push(
       ...data.map((row) => ({
         publishedAt: row.published_at,
+        modifiedAt: row.content_modified_at && Date.parse(row.content_modified_at) > Date.parse(row.published_at ?? "") ? row.content_modified_at : row.published_at,
         slug: row.slug ?? row.id,
       })),
     );
@@ -1171,7 +1182,12 @@ export async function getNewsItems(
   }
 
   const rows = (data ?? []) as unknown as ArticleRow[];
-  await fillLegacyNewsCardImages(supabase, rows);
+  const [editorialResult] = await Promise.all([
+    rows.length ? supabase.from("news_articles").select("id,editorial_meta").in("id", rows.map(row => row.id)) : Promise.resolve({ data: [] }),
+    fillLegacyNewsCardImages(supabase, rows),
+  ]);
+  const metadata = new Map((editorialResult.data ?? []).map(row => [row.id, row.editorial_meta]));
+  for (const row of rows) row.editorial_meta = metadata.get(row.id) as NewsItem["editorial"];
   const totalCount = count ?? rows.length;
 
   return {
@@ -7560,7 +7576,19 @@ export async function getNewsArticle(slugOrId: string) {
 
   const tagAllowlist = await getCurrentNewsTagAllowlist();
 
-  return mapArticleRow(data as unknown as ArticleRow, tagAllowlist);
+  const article = mapArticleRow(data as unknown as ArticleRow, tagAllowlist);
+  // Optional enrichment keeps the article readable during a rolling schema deployment.
+  const [{ data: editorial }, { data: sources }] = await Promise.all([
+    supabase.from("news_articles").select("editorial_meta, content_modified_at").eq("id", article.id).maybeSingle(),
+    supabase.from("news_article_sources").select("source_url,source_name,source_authors,source_published_at").eq("article_id", article.id).order("added_at"),
+  ]);
+  if (editorial) {
+    article.editorial = editorial.editorial_meta as NewsItem["editorial"];
+    article.modifiedAt = editorial.content_modified_at && Date.parse(editorial.content_modified_at) > Date.parse(article.publishedAt ?? "")
+      ? editorial.content_modified_at : article.publishedAt;
+    article.sources = sources as NewsItem["sources"];
+  }
+  return article;
 }
 
 export async function getArticleReactionCounts(articleId: string) {
@@ -7605,6 +7633,7 @@ function mapArticleRow(row: ArticleRow, tagAllowlist?: NewsTagAllowlist): NewsIt
     slug: row.slug ?? row.id,
     href: row.canonical_url,
     source: getRelationName(row.news_sources, "Источник"),
+    editorial: row.editorial_meta,
     title,
     summary,
     details,

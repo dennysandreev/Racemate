@@ -1,4 +1,8 @@
 export const TRACK_MODEL_ALIASES = {
+  sepang: [
+    "sepang international circuit", "sepang", "сепанг", "malaysian grand prix",
+    "гран-при малайзии", "bahrain grand prix in malaysia",
+  ],
   baku: [
     "baku city circuit", "baku", "baki", "баку", "azerbaijan grand prix", "гран-при азербайджана",
   ],

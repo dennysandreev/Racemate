@@ -9,49 +9,42 @@ import {
   MONACO_SYNTHETIC_PIT_WAY_ID,
 } from "./download-monaco-data.mjs";
 
+import { monacoPitExit } from "./monaco-geometry.mjs";
+
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "../..");
 
 const START_FINISH_REFERENCE = { lat: 43.7350269, lon: 7.4212652 };
 
+// Apex positions checked on the registered OSM line and FIA corner sequence.
+// FIA sector/control distances remain independent of these visual anchors.
 const TURNS = [
-  [1, 198, "Sainte Dévote"],
+  [1, 219, "Sainte Dévote"],
   [2, 604, "Beau Rivage"],
-  [3, 769, "Massenet"],
-  [4, 892, "Casino"],
-  [5, 1_123, "Mirabeau Haute"],
-  [6, 1_242, "Grand Hotel Hairpin"],
-  [7, 1_325, "Mirabeau Bas"],
-  [8, 1_414, "Portier"],
+  [3, 759, "Massenet"],
+  [4, 897, "Casino"],
+  [5, 1_124, "Mirabeau Haute"],
+  [6, 1_255, "Grand Hotel Hairpin"],
+  [7, 1_345, "Mirabeau Bas"],
+  [8, 1_438, "Portier"],
   [9, 1_750, "Tunnel"],
-  [10, 2_086, "Nouvelle Chicane"],
-  [11, 2_142, "Nouvelle Chicane"],
-  [12, 2_375, "Tabac"],
-  [13, 2_527, "Louis Chiron"],
-  [14, 2_556, "Piscine"],
-  [15, 2_694, "Piscine"],
-  [16, 2_716, "Piscine"],
+  [10, 2_090, "Nouvelle Chicane"],
+  [11, 2_132, "Nouvelle Chicane"],
+  [12, 2_374, "Tabac"],
+  [13, 2_537, "Louis Chiron"],
+  [14, 2_573, "Piscine"],
+  [15, 2_698, "Piscine"],
+  [16, 2_726, "Piscine"],
   [17, 2_788, "Piscine"],
-  [18, 2_911, "La Rascasse"],
-  [19, 3_004, "Anthony Noghès"],
+  [18, 2_921, "La Rascasse"],
+  [19, 3_015, "Anthony Noghès"],
 ].map(([number, distanceMeters, name]) => ({
-  anchorOffsetMeters: number === 9 ? 13 : 16,
+  anchorOffsetMeters: 0,
+  anchorHeightMeters: number === 9 ? 6 : 1.2,
   distanceMeters,
   name,
   number,
 }));
-
-const GRANDSTANDS = [
-  stand("Tribune A — Sainte Dévote", 85, 178, "right", 18, 11, 9, 14),
-  stand("Tribune B — Casino", 805, 875, "left", 17, 10, 8, 12),
-  stand("Tribune K — Quai Albert Ier", 2_255, 2_365, "right", 18, 12, 10, 16),
-  stand("Tribune L — Piscine", 2_386, 2_470, "left", 18, 11, 9, 14),
-  stand("Tribune N — Piscine", 2_485, 2_570, "right", 19, 11, 9, 14),
-  stand("Tribune O — Piscine", 2_585, 2_660, "left", 19, 11, 9, 14),
-  stand("Tribune P — Piscine", 2_665, 2_745, "right", 18, 11, 9, 14),
-  stand("Tribune T — Rascasse", 2_785, 2_875, "left", 18, 12, 10, 16),
-  stand("Tribune X — Anthony Noghès", 2_940, 3_035, "right", 18, 11, 9, 14),
-];
 
 export async function exportMonacoTrackData({
   forceSources = false,
@@ -78,9 +71,13 @@ export async function exportMonacoTrackData({
     sourceCenterline,
     utm32nFromWgs84(START_FINISH_REFERENCE.lat, START_FINISH_REFERENCE.lon),
   );
+  const pitWay = osm.elements.find((element) => element.id === MONACO_SYNTHETIC_PIT_WAY_ID);
+  const pitLaneGeometry = monacoPitExit(sourceCenterline, pitWay.geometry.map(({ lat, lon }) => utm32nFromWgs84(lat, lon)), sourceStartFinishOffsetMeters, osm.elements.find((element) => element.id === 1388331347).geometry.map(({ lat, lon }) => utm32nFromWgs84(lat, lon)));
+  const eventLayout = JSON.parse(await readFile(path.join(scriptDirectory, "monaco-event-layout.json"), "utf8"));
   const payload = {
-    generatorVersion: "5.0.0",
-    grandstands: GRANDSTANDS,
+    generatorVersion: "6.0.0",
+    grandstands: eventLayout.grandstands,
+    eventLayout,
     model: {
       bounds: MONACO_BOUNDS_UTM32N,
       center: {
@@ -93,10 +90,12 @@ export async function exportMonacoTrackData({
       pitBoxes: 11,
       pitLaneWayId: MONACO_SYNTHETIC_PIT_WAY_ID,
       pitLaneWidthMeters: 9,
+      pitLaneGeometry,
       sourceStartFinishOffsetMeters: round(sourceStartFinishOffsetMeters),
       startFinishDistanceMeters: 0,
       trackWidthMeters: 9,
-      tunnel: { endDistanceMeters: 1_855, startDistanceMeters: 1_390 },
+      tunnel: { endDistanceMeters: 1_876.65, startDistanceMeters: 1_514.9 },
+      portierCover: { startDistanceMeters: 1_411.73, endDistanceMeters: 1_429.73 },
       turns: TURNS,
     },
     officialControlPoints: {
@@ -112,7 +111,7 @@ export async function exportMonacoTrackData({
     },
     officialSources: [
       {
-        role: "FIA Monaco 2026 circuit map: 3.337 km, 19 turns, sectors, speed trap and overtake-mode points",
+        role: "FIA Monaco 2026 support-series circuit map; geometry cross-check only, F1 control points use Document 7 below",
         url: "https://www.fia.com/system/files/decision-document/2026_monaco_event_-_circuit_map_-_monaco_2026_v1.pdf",
       },
       {
@@ -128,11 +127,19 @@ export async function exportMonacoTrackData({
         url: "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer",
       },
       {
-        role: "Terrarium elevation format and attribution chain",
-        url: "https://docs.versatiles.org/basics/tilesets.html#elevation",
+        role: "IGN LiDAR HD 0.5 m MNT/MNS; IGN69 datum, 2021 acquisition",
+        url: "https://www.data.gouv.fr/datasets/mnt-lidar-hd",
+      },
+      {
+        role: "ACM 2026 engineering event plan and FIA garage dimensions",
+        url: "https://www.fia.com/sites/default/files/media_kit_2026_gb_03.06_1.pdf",
+      },
+      {
+        role: "Audi Monaco 2026 account: three-storey garages and separate paddock on Quai Antoine I",
+        url: "https://www.audif1.com/en/news/2026/the-race-between-races",
       },
     ],
-    schemaVersion: 5,
+    schemaVersion: 6,
     sourceDirectory: resolvedSourceDirectory,
     sourceManifest,
   };
@@ -140,10 +147,6 @@ export async function exportMonacoTrackData({
   await mkdir(path.dirname(outputPath), { recursive: true });
   await writeFile(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
   return payload;
-}
-
-function stand(name, start, end, side, offset, depth, height, rows) {
-  return { depth, end, height, name, offset, rows, side, start };
 }
 
 export function utm32nFromWgs84(lat, lon) {

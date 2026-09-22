@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,23 +13,17 @@ export async function writeMonacoClientModel({
   metadataPath = path.join(projectRoot, "public/f1/tracks/3d/monaco-metadata.json"),
   outputPath = path.join(projectRoot, "src/data/monaco-model.ts"),
 } = {}) {
-  const preparedDirectory = path.join(projectRoot, ".track-model-build/monaco-prepared");
-  const [config, metadata, rasterMetadata, dtmBuffer] = await Promise.all([
+  const [config, metadata, asset, preview] = await Promise.all([
     readJson(configPath),
     readJson(metadataPath),
-    readJson(path.join(preparedDirectory, "raster-metadata.json")),
-    readFile(path.join(preparedDirectory, "monaco-dtm.f32le")),
+    readFile(path.join(path.dirname(metadataPath), "monaco.glb")),
+    readFile(path.join(path.dirname(metadataPath), "monaco-preview.webp")),
   ]);
   const osm = await readJson(path.join(config.sourceDirectory, "openstreetmap-raceway.json"));
   const sourceCenterline = assembleMainCircuit(osm, config.model.mainCircuitWayIds);
   const centerline = rotateClosedLine(sourceCenterline, config.model.sourceStartFinishOffsetMeters);
   const cumulative = cumulativeDistances(centerline);
   const totalLength = cumulative.at(-1);
-  const dtm = createHeightRasterSampler(
-    dtmBuffer,
-    rasterMetadata.rasters.dtm,
-    config.model.bounds,
-  );
   const pointCount = 180;
   const points = Array.from({ length: pointCount + 1 }, (_, index) => {
     const distanceAlongTrack = totalLength * index / pointCount;
@@ -49,7 +44,7 @@ export async function writeMonacoClientModel({
     element.type === "way" && element.id === config.model.pitLaneWayId
   );
   if (!pitWay?.geometry?.length) throw new Error(`Monaco pit lane ${config.model.pitLaneWayId} is missing`);
-  const pitCenterline = pitWay.geometry.map(({ lat, lon }) => utm32nFromWgs84(lat, lon));
+  const pitCenterline = config.model.pitLaneGeometry.points;
   const pitCumulative = cumulativeDistances(pitCenterline);
   const pitLength = pitCumulative.at(-1);
   const pitPointCount = 96;
@@ -59,7 +54,7 @@ export async function writeMonacoClientModel({
       round(index / pitPointCount, 6),
       round(point[0] - config.model.center.x, 3),
       round(point[1] - config.model.center.y, 3),
-      round(dtm.sample(point[0], point[1]) * 10, 3),
+      round(sampleElevationProfile(metadata.pitElevationProfile, pitLength * index / pitPointCount) * 10, 3),
     ];
   });
   const elevations = metadata.elevationProfile.map((sample) => sample.elevationMeters);
@@ -79,6 +74,7 @@ export async function writeMonacoClientModel({
   const sectorBreaks = config.officialControlPoints.sectorBoundaries
     .map((boundary) => round(boundary.absoluteDistanceMeters / totalLength, 6));
   const turnLabelOffsets = Object.fromEntries(turns.map(({ number }) => [number, [0, 0]]));
+  const revision = (buffer) => createHash("sha256").update(buffer).digest("hex").slice(0, 12);
   const content = `import type {
   CircuitModelPoint,
   CircuitModelTurn,
@@ -87,7 +83,7 @@ export async function writeMonacoClientModel({
 
 /**
  * Generated from the Circuit de Monaco Blender digital twin. Do not hand-edit.
- * Geometry: current OSM; terrain: Terrarium DEM; official markers: FIA 2026.
+ * Geometry: current OSM; terrain/roofs: IGN LiDAR HD, IGN69; official markers: FIA 2026.
  * Run \`pnpm track:3d:build monaco\` to regenerate this controller metadata.
  */
 
@@ -106,8 +102,8 @@ export const MONACO_MODEL = ${JSON.stringify({
     .replace('"__TURNS__"', `${JSON.stringify(turns, null, 2)} satisfies readonly CircuitModelTurn[]`)} as const;
 
 export const MONACO_TERRAIN = ${JSON.stringify({
-    attribution: "Orthophoto: DPUM, Gouvernement Princier de Monaco · Elevation: VersaTiles",
-    attributionUrl: "https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer",
+    attribution: "© OpenStreetMap · DPUM, Gouvernement Princier de Monaco · IGN LiDAR HD · FIA 2026",
+    attributionUrl: "/f1/tracks/3d/monaco-metadata.json",
     bounds: { maxX: 1, maxY: 1, minX: -1, minY: -1 },
     columns: 2,
     elevationMaxM: round(Math.max(...elevations), 3),
@@ -120,10 +116,10 @@ export const MONACO_TERRAIN = ${JSON.stringify({
   }, null, 2)} as const;
 
 export const MONACO_REPLAY_PATH = ${JSON.stringify({
-    baseElevationMeters: round(rasterMetadata.rasters.dtm.minimum, 5),
+    baseElevationMeters: metadata.baseElevationMeters,
     pitLanePoints: "__PIT_POINTS__",
     startFinishProgress: 0,
-    surfaceOffsetMeters: 1,
+    surfaceOffsetMeters: 0.18,
     trackPoints: "__TRACK_POINTS__",
     trackWidthMeters: config.model.trackWidthMeters,
   }, null, 2)
@@ -140,7 +136,7 @@ export const MONACO_TRACK_MODEL = ${JSON.stringify({
       "monaco grand prix",
       "гран-при монако",
     ],
-    camera: { centerY: 0, rotationDeg: 0, scale: 1, tiltDeg: 10, verticalExaggeration: 1 },
+    camera: { centerY: 0, rotationDeg: 20, scale: 1, tiltDeg: 10, verticalExaggeration: 1 },
     data: "__MODEL__",
     id: "monaco",
     rendering: {
@@ -153,10 +149,10 @@ export const MONACO_TRACK_MODEL = ${JSON.stringify({
     },
     terrain: "__TERRAIN__",
     webgl: {
-      assetPath: "/f1/tracks/3d/monaco.glb",
-      camera: { fitHeight: 1_760, fitWidth: 1_420, lookAtY: 22, radius: 2_350 },
-      elevationDatumLabel: "м DEM",
-      previewPath: "/f1/tracks/3d/monaco-preview.webp",
+      assetPath: `/f1/tracks/3d/monaco.glb?v=${revision(asset)}`,
+      camera: { fitHeight: 1_250, fitWidth: 2_300, narrowFitWidth: 1_700, lookAtY: 18, radius: 2_000 },
+      elevationDatumLabel: "м",
+      previewPath: `/f1/tracks/3d/monaco-preview.webp?v=${revision(preview)}`,
       turnCount: 19,
     },
   }, null, 2)
@@ -215,27 +211,6 @@ function sampleLine(points, cumulative, requestedDistance) {
   return points[lower].map((value, axis) => value * (1 - blend) + points[upper][axis] * blend);
 }
 
-function createHeightRasterSampler(buffer, metadata, bounds) {
-  const width = Number(metadata.width);
-  const height = Number(metadata.height);
-  const values = Array.from({ length: width * height }, (_, index) => buffer.readFloatLE(index * 4));
-  const sample = (x, y) => {
-    const fx = clamp((x - bounds.minX) / (bounds.maxX - bounds.minX) * (width - 1), 0, width - 1);
-    const fy = clamp((bounds.maxY - y) / (bounds.maxY - bounds.minY) * (height - 1), 0, height - 1);
-    const x0 = Math.floor(fx);
-    const y0 = Math.floor(fy);
-    const x1 = Math.min(x0 + 1, width - 1);
-    const y1 = Math.min(y0 + 1, height - 1);
-    const tx = fx - x0;
-    const ty = fy - y0;
-    return values[y0 * width + x0] * (1 - tx) * (1 - ty)
-      + values[y0 * width + x1] * tx * (1 - ty)
-      + values[y1 * width + x0] * (1 - tx) * ty
-      + values[y1 * width + x1] * tx * ty;
-  };
-  return { sample };
-}
-
 function sampleElevationProfile(profile, requestedDistance) {
   const distanceAlongTrack = Math.min(
     Math.max(requestedDistance, 0),
@@ -262,8 +237,4 @@ async function readJson(filePath) {
 function round(value, digits = 3) {
   const scale = 10 ** digits;
   return Math.round(value * scale) / scale;
-}
-
-function clamp(value, minimum, maximum) {
-  return Math.max(minimum, Math.min(maximum, value));
 }

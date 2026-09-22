@@ -49,6 +49,7 @@ import {
 } from "@/data/red-bull-ring-model";
 import type { CircuitModelPoint } from "@/data/track-model-types";
 import { cn } from "@/lib/utils";
+import { alignPitTrackProgress, connectModelPitLane, type PitTrackProgress } from "../lib/pit-path";
 
 const ZANDVOORT_ASSET_PATH = "/f1/tracks/3d/zandvoort.glb";
 const ZANDVOORT_PREVIEW_PATH = "/f1/tracks/3d/zandvoort-preview.webp";
@@ -61,6 +62,7 @@ export type ReplayTrackCar = {
   isSelected: boolean;
   lateralOffset: number;
   pitLaneProgress: number | null;
+  pitTrackProgress?: PitTrackProgress;
   progress: number;
   teamColor: string;
 };
@@ -79,6 +81,7 @@ type ReplayTrackConfig = {
     radius: number;
   };
   path: {
+    pitTrackProgress?: PitTrackProgress;
     baseElevationMeters: number;
     pitLanePoints: readonly CircuitModelPoint[];
     startFinishProgress: number;
@@ -218,7 +221,11 @@ export function RaceReplayTrack3D({
 }: RaceReplayTrack3DProps) {
   const [isReady, setIsReady] = useState(false);
   const [eventSource, setEventSource] = useState<HTMLDivElement | null>(null);
-  const config = REPLAY_TRACK_CONFIGS[trackId];
+  const config = useMemo(() => {
+    const source = REPLAY_TRACK_CONFIGS[trackId];
+    const pit = connectModelPitLane(source.path.trackPoints, source.path.pitLanePoints);
+    return { ...source, path: { ...source.path, pitLanePoints: pit.points, pitTrackProgress: pit.anchors } };
+  }, [trackId]);
   const poses = useMemo(() => cars.map((car) => buildCarPose(car, config)), [cars, config]);
   const followPosition = followDriver === null
     ? null
@@ -539,7 +546,9 @@ function buildCarPose(car: ReplayTrackCar, config: ReplayTrackConfig): CarPose {
     : config.path.trackPoints;
   const progress = car.isPitLane && car.pitLaneProgress !== null
     ? car.pitLaneProgress
-    : normalizeProgress(car.progress + config.path.startFinishProgress);
+    : car.pitTrackProgress && config.path.pitTrackProgress
+      ? alignPitTrackProgress(car.progress, car.pitTrackProgress, config.path.pitTrackProgress)
+      : normalizeProgress(car.progress + config.path.startFinishProgress);
   const sample = sampleReplayPath(path, progress, config.path);
   const lateralOffsetMeters = car.isPitLane
     ? 0
@@ -566,13 +575,14 @@ function sampleReplayPath(
   const progress = Math.max(0, Math.min(1, requestedProgress));
   let upper = points.findIndex((point) => point[0] >= progress);
 
-  if (upper <= 0) {
+  if (upper < 0) upper = points.length - 1;
+  if (upper === 0) {
     upper = 1;
   }
 
   const first = points[upper - 1];
   const second = points[Math.min(upper, points.length - 1)];
-  const blend = (progress - first[0]) / Math.max(second[0] - first[0], 1e-9);
+  const blend = MathUtils.clamp((progress - first[0]) / Math.max(second[0] - first[0], 1e-9), 0, 1);
   const x = first[1] + (second[1] - first[1]) * blend;
   const sourceY = first[2] + (second[2] - first[2]) * blend;
   const elevationNapMeters = (first[3] + (second[3] - first[3]) * blend) / 10;

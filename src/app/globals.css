@@ -808,10 +808,16 @@ html[data-theme="light"] .plus-theme-image[data-theme-image="light"] {
     padding-top: 8px;
     gap: 6px;
   }
-  .raceside-sidebar-account > * {
+  .raceside-sidebar-account > :not(.raceside-account-dock) {
     min-height: 36px;
     height: 36px;
     padding-block: 3px;
+  }
+  .raceside-sidebar-account > .raceside-account-dock {
+    min-height: 72px;
+  }
+  .raceside-sidebar-account > .raceside-account-dock > a {
+    height: 36px;
   }
   .raceside-desktop-navigation {
     gap: 0;

@@ -1,3 +1,7 @@
+import { NEWS_EDITORIAL_VERSION, runNewsEditorialPipeline, buildDigestInput, renderVerifiedDigest, verificationPasses, parseSourceFacts, combineNewsSources } from "./news-editorial.mjs";
+import { loadNewsContext, selectNewsContext } from "./news-context.mjs";
+import { newsResponseFormat, newsRequestOptions } from "./news-response-format.mjs";
+import { extractNewsSourceHtml, extractNewsSourceMarkdown, decodeNewsEntities } from "./news-source-text.mjs";
 import { runTelemetryTask } from "./telemetry/service.mjs";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -124,6 +128,10 @@ import {
   makeYooMoneyReconciliationHash,
   readRequiredEnvironmentValue,
 } from "./yoomoney-reconciliation.mjs";
+import {
+  findMatchingTributeTransaction,
+  makeTributeReconciliationHash,
+} from "./tribute-reconciliation.mjs";
 import "./load-env.mjs";
 import {
   captureWorkerException,
@@ -179,6 +187,7 @@ const commands = new Map([
   ["billing.process_emails", processBillingEmails],
   ["billing.expire_subscriptions", expireBillingSubscriptions],
   ["billing.expire_orders", expireBillingOrders],
+  ["billing.reconcile_tribute", reconcileTributePayments],
   ["billing.reconcile_yoomoney", reconcileYooMoneyPayments],
   ["billing.retry_failed_events", retryFailedBillingEvents],
   ["billing.audit", auditBilling],
@@ -1142,6 +1151,7 @@ async function fetchAllRss() {
             rss_guid: item.guid,
             source_content_hash: sourceContentHash,
             original_title: item.title,
+            editorial_meta: { version: NEWS_EDITORIAL_VERSION, status: "pending" },
             original_description: item.description,
             original_language: source.language,
             source_published_at: item.pubDate,
@@ -3979,294 +3989,180 @@ async function reprocessFallbackNewsWithAi() {
 
 async function processNewsArticleBatch({ mode }) {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model =
-    process.env.AI_SUMMARY_MODEL ?? process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
-  const limit = Math.max(
-    1,
-    Math.min(Number(getCliOption("limit") ?? process.env.AI_MAX_ARTICLES_PER_RUN ?? 20), 100),
-  );
+  const limit = Math.max(1, Math.min(Number(getCliOption("limit") ?? process.env.AI_MAX_ARTICLES_PER_RUN ?? 20), 100));
   const articleId = normalizeString(getCliOption("id"));
-
-  let query = supabase
-    .from("news_articles")
-    .select("id, canonical_url, original_url, original_title, original_description, source_image_url, raw_payload, source_published_at, ingested_at, published_at, publication_status")
-    .is("duplicate_of", null)
-    .order("ingested_at", { ascending: true })
-    .limit(limit);
-
-  if (articleId) {
-    query = query.eq("id", articleId);
-  }
-
-  if (mode === "fallback") {
-    query = query.eq("status", "processed").eq("ai_model", "fallback");
-  } else {
-    query = query.eq("status", "pending");
-  }
-
+  let query = supabase.from("news_articles")
+    .select("id, source_id, canonical_url, original_url, original_title, original_description, source_image_url, raw_payload, source_published_at, ingested_at, published_at, publication_status, news_sources(name)")
+    .is("duplicate_of", null).order("ingested_at", { ascending: true }).limit(limit);
+  if (articleId) query = query.eq("id", articleId);
+  query = mode === "fallback" ? query.eq("status", "processed").eq("ai_model", "fallback") : query.eq("status", "pending");
   const { data: articles, error } = await query;
+  if (error) throw error;
+  if (!articles?.length) return { itemsProcessed: 0 };
+  if (!apiKey) throw new Error("OPENROUTER_API_KEY is missing");
+  // Fail before any paid request when the editorial migration is not installed.
+  const { error: schemaError } = await supabase.from("news_editorial_reviews").select("id").limit(0);
+  if (schemaError) throw schemaError;
 
-  if (error) {
-    throw error;
-  }
-
-  const [races, drivers, teams] = await Promise.all([
-    getRaceChoices(),
-    getDriverTagChoices(),
-    getTeamTagChoices(),
-  ]);
+  const season = Number(process.env.F1_SEASON ?? new Date().getUTCFullYear());
+  const [context, drivers, teams] = await Promise.all([loadNewsContext(supabase, { season }), getDriverTagChoices(), getTeamTagChoices()]);
+  const races = context.races;
   let itemsProcessed = 0;
-  const modelsUsed = new Set();
-
-  for (const article of articles ?? []) {
+  let held = 0;
+  for (const article of articles) {
     const articleContext = await getArticleContext(article);
-    const fallback = makeFallbackNewsPayload(article);
-    let aiPayload = fallback;
-    let title = fallback.title;
-    let usage = null;
-    let aiSucceeded = false;
-    let editorialMetadata = null;
-    let relatedRace = matchRaceByText(article, races);
-    let selectedModel = model;
-
-    if (!apiKey) {
-      logWorkerWarning("openrouter.news_summary.pending", {
-        articleId: article.id,
-        reason: "OPENROUTER_API_KEY is missing",
-      });
-      await keepNewsArticlePending(article, articleContext, "missing_api_key");
-      continue;
-    }
-
-    if (apiKey) {
-      try {
-        const prompt = await resolveWorkerAiPrompt({
-          client: supabase,
-          promptKey: "news.article",
-          variables: {
-            source_url: article.canonical_url ?? article.original_url ?? "RSS",
-            original_title: article.original_title,
-            rss_description: article.original_description ?? "Нет",
-            article_text: articleContext.text || "Полный текст недоступен, используй только RSS-описание и не расширяй факты.",
-            races: races
-              .map((race) => `${race.round}: ${race.race_name} (${race.circuit_name}, ${race.country})`)
-              .join("\n"),
-            teams: teams
-              .map((team) => `${team.slug}: ${team.name}`)
-              .join("\n"),
-          },
-        });
-        selectedModel = prompt.model;
-        const { payload, response } = await requestOpenRouterCompletion({
-          apiKey,
-          model: prompt.model,
-          purpose: prompt.purpose,
-          relatedArticleId: article.id,
-          promptKey: prompt.key,
-          promptVersionId: prompt.promptVersionId,
-          body: {
-            messages: [
-              {
-                role: "system",
-                content: prompt.systemPrompt,
-              },
-              {
-                role: "user",
-                content: prompt.userPrompt,
-              },
-            ],
-            response_format: { type: "json_object" },
-            max_completion_tokens: prompt.maxTokens,
-          },
-        });
-        if (!response.ok) {
-          logWorkerWarning("openrouter.news_summary.fallback", {
-            articleId: article.id,
-            status: response.status,
-            reason: getOpenRouterFailureReason(payload),
-          });
-        } else {
-          const choice = payload.choices?.[0];
-          const content = choice?.message?.content;
-          const parsed = parseOpenRouterMessageJson(content);
-          const parsedTitle = normalizeString(parsed?.title_ru);
-          const parsedSummary = normalizeString(parsed?.summary_ru);
-          const parsedDetails = normalizeString(parsed?.details_ru);
-
-          if (!parsed) {
-            logWorkerWarning("openrouter.news_summary.invalid_json", {
-              articleId: article.id,
-              choiceError: getSafeErrorMessage(choice?.error ?? payload?.error ?? ""),
-              contentLength: typeof content === "string" ? content.length : null,
-              contentType: Array.isArray(content) ? "array" : typeof content,
-              finishReason: choice?.finish_reason ?? null,
-              model: selectedModel,
-              nativeFinishReason: choice?.native_finish_reason ?? null,
-              provider: payload?.provider ?? null,
-            });
-          } else if (!isUsableRussianNewsPayload({
-            details: parsedDetails,
-            summary: parsedSummary,
-            title: parsedTitle,
-          })) {
-            logWorkerWarning("openrouter.news_summary.non_russian", {
-              articleId: article.id,
-              detailsLength: parsedDetails?.length ?? 0,
-              finishReason: choice?.finish_reason ?? null,
-              model: selectedModel,
-              parsedKeys: Object.keys(parsed).sort(),
-              summaryLength: parsedSummary?.length ?? 0,
-              titleLength: parsedTitle?.length ?? 0,
-            });
-          } else {
-            title = parsedTitle ?? title;
-            aiPayload = {
-              summary: parsedSummary ?? aiPayload.summary,
-              details: parsedDetails ?? aiPayload.details,
-              highlights: selectArticleHighlights(
-                normalizeStringArray(parsed?.highlight_phrases_ru) ?? aiPayload.highlights,
-                parsedSummary ?? aiPayload.summary,
-                parsedDetails ?? aiPayload.details,
-              ),
-            };
-            const aiRace = races.find((race) => race.round === numberOrNull(parsed?.race_round));
-            relatedRace = aiRace ?? relatedRace;
-            aiPayload.teamSlugs = normalizeStringArray(parsed?.team_slugs) ?? [];
-            editorialMetadata = parseNewsEditorialMetadata(parsed);
-            usage = payload.usage ?? null;
-            aiSucceeded = true;
-          }
-        }
-      } catch (aiError) {
-        if (isOpenRouterBatchBlockedError(aiError)) {
-          await keepNewsArticlePending(article, articleContext, aiError.code);
-          throw aiError;
-        }
-
-        logWorkerWarning("openrouter.news_summary.fallback", {
-          articleId: article.id,
-          reason: getSafeErrorMessage(aiError),
-        });
-      }
-    }
-
-    if (!aiSucceeded) {
-      await keepNewsArticlePending(article, articleContext, "ai_processing_failed");
-      continue;
-    }
-
-    if (!editorialMetadata) {
-      try {
-        editorialMetadata = await requestNewsEditorialMetadata({
-          apiKey,
-          model,
-          article,
-          articleContext,
-          title,
-          aiPayload,
-        });
-      } catch (metadataError) {
-        logWorkerWarning("openrouter.news_metadata.failed", {
-          articleId: article.id,
-          reason: getSafeErrorMessage(metadataError),
-        });
-      }
-    }
-
-    const dedupArticle = {
-      id: article.id,
-      title,
-      summary: aiPayload.summary,
-      mainFact: editorialMetadata?.mainFact ?? aiPayload.summary,
-      eventType: editorialMetadata?.eventType ?? null,
-      eventStage: editorialMetadata?.eventStage ?? null,
-      eventDate: editorialMetadata?.eventDate ?? article.source_published_at?.slice(0, 10) ?? null,
-      eventFingerprint: editorialMetadata?.eventFingerprint ?? null,
-      normalizedEntities: editorialMetadata?.normalizedEntities ?? [],
-      ingestedAt: article.ingested_at,
-      publishedAt: mode === "fallback" ? article.published_at : null,
+    let source = {
+      article_id: article.id,
+      url: article.original_url ?? article.canonical_url,
+      name: getRelationObject(article.news_sources)?.name ?? new URL(article.canonical_url).hostname,
+      title: decodeNewsEntities(article.original_title),
+      description: decodeNewsEntities(article.original_description),
+      text: articleContext.text,
+      authors: [normalizeString(article.raw_payload?.author)].filter(Boolean),
+      published_at: article.source_published_at,
+      retrieved_at: new Date().toISOString(),
+      coverage: articleContext.coverage,
     };
-
-    const { error: updateArticleError } = await supabase
-      .from("news_articles")
-      .update({
-        ai_title_ru: title,
-        ai_summary_ru: aiPayload.summary,
-        ai_summary_long_ru: aiPayload.details,
-        ai_key_points_ru: [],
-        ai_highlights_ru: aiPayload.highlights,
-        source_image_url: article.source_image_url ?? articleContext.imageUrl ?? null,
-        related_race_id: relatedRace?.id ?? null,
-        ai_model: usage ? selectedModel : "fallback",
-        ai_processed_at: new Date().toISOString(),
-        main_fact: dedupArticle.mainFact,
-        event_type: dedupArticle.eventType,
-        event_stage: dedupArticle.eventStage,
-        event_date: dedupArticle.eventDate,
-        event_fingerprint: dedupArticle.eventFingerprint,
-        normalized_entities: dedupArticle.normalizedEntities,
-        publication_status: "processing_dedup",
-        raw_payload: clearNewsAiFailure(article.raw_payload),
-        dedup_status: "checking",
-        status: "processed",
-      })
-      .eq("id", article.id);
-
-    if (updateArticleError) {
-      throw updateArticleError;
-    }
-
-    if (relatedRace) {
-      await upsertRaceTagForArticle(article.id, relatedRace, 0.84, "ai");
-    }
-
-    const matchedTeams = new Map();
-
-    for (const team of matchTeamsByText(article, teams)) {
-      matchedTeams.set(team.slug, { team, confidence: 0.66, method: "rule" });
-    }
-
-    for (const teamSlug of aiPayload.teamSlugs ?? []) {
-      const team = teams.find((item) => item.slug === teamSlug);
-
-      if (team) {
-        matchedTeams.set(team.slug, { team, confidence: 0.82, method: "ai" });
-      }
-    }
-
-    for (const driver of matchDriversByText(article, drivers)) {
-      await upsertDriverTagForArticle(article.id, driver, 0.7, "rule");
-
-      if (driver.team) {
-        matchedTeams.set(driver.team.slug, {
-          team: driver.team,
-          confidence: 0.72,
-          method: "driver-rule",
-        });
-      }
-    }
-
-    for (const { team, confidence, method } of matchedTeams.values()) {
-      await upsertTeamTagForArticle(article.id, team, confidence, method);
-    }
-
-    await processNewsArticleDeduplication(dedupArticle, {
-      metadataWasRepaired: Boolean(editorialMetadata),
+    const models = [];
+    const request = (promptKey, userPayload) => requestOpenRouterNewsJson({
+      apiKey, promptKey, userPayload, retries: 1, articleId: article.id,
+      logKey: `openrouter.${promptKey}`, purpose: promptKey,
+      onPrompt: prompt => models.push({ key: prompt.key, model: prompt.model, version_id: prompt.promptVersionId }),
     });
+    let result;
+    let updateTarget = null;
+    try {
+      let extraction = await request("news.extract", { source });
+      const plan = await planNewsArticleUpdate(article, source, extraction, request);
+      if (plan) {
+        source = plan.source;
+        updateTarget = plan.target;
+        extraction = await request("news.extract", { source });
+      }
+      result = await runNewsEditorialPipeline({
+        source, extraction,
+        context: selectNewsContext(context, source, teams),
+        request,
+      });
+    } catch (processingError) {
+      await keepNewsArticlePending(article, articleContext, isOpenRouterBatchBlockedError(processingError) ? processingError.code : "editorial_service_unavailable");
+      if (isOpenRouterBatchBlockedError(processingError)) throw processingError;
+      logWorkerWarning("news.editorial.failed", { articleId: article.id, reason: getSafeErrorMessage(processingError) });
+      continue;
+    }
 
+    const { data: savedReview, error: reviewError } = await supabase.from("news_editorial_reviews").insert({
+      article_id: updateTarget?.id ?? article.id, decision: result.decision, source_hash: result.source_hash,
+      source_snapshot: source, context_snapshot: result.context, extraction: result.extraction ?? result.extraction_response,
+      attempts: result.attempts, issues: result.issues, models,
+    }).select("id").single();
+    if (reviewError) throw reviewError;
+    const draft = result.draft;
+    const metadata = result.extraction ? parseNewsEditorialMetadata(result.extraction) : null;
+    const usable = draft && isUsableRussianNewsPayload({ title: draft.title_ru, summary: draft.summary_ru, details: draft.details_ru });
+    const passed = result.decision === "PASS" && usable && metadata;
+    const relatedRace = usable && Number(draft.race_confidence) >= 0.9
+      ? races.find(race => race.round === numberOrNull(draft.race_round)) : null;
+    const checkedAt = new Date().toISOString();
+    const editorialMeta = {
+      version: NEWS_EDITORIAL_VERSION,
+      status: passed ? "passed" : result.decision === "REJECT" ? "rejected" : "review",
+      article_type: result.extraction?.article_type ?? "news",
+      source_authors: result.extraction?.source_authors ?? source.authors,
+      checked_at: checkedAt,
+      context: passed ? (draft.context_claims ?? []).flatMap(claim => {
+        const fact = result.context.facts.find(item => item.id === claim.id);
+        return fact && ["championship_position", "championship_points", "championship_wins", "session_position"].includes(fact.kind) ? [fact] : [];
+      }).slice(0, 6) : [],
+    };
+    if (updateTarget) {
+      if (passed) {
+        const { data: merged, error: mergeError } = await supabase.rpc("apply_verified_news_update", {
+          p_article_id: article.id, p_target_id: updateTarget.id, p_review_id: savedReview.id,
+          p_expected_updated_at: updateTarget.updated_at, p_editorial_meta: editorialMeta,
+          p_model: models.find(item => item.key === "news.article")?.model ?? null,
+        });
+        if (mergeError) throw mergeError;
+        if (merged) { itemsProcessed += 1; continue; }
+      }
+      // A changed/manual target or conflicting multi-source draft must be reviewed,
+      // never fall through and publish the combined text as a second article.
+      const { error: heldReviewError } = await supabase.from("news_editorial_reviews").insert({
+        article_id: article.id, decision: "MANUAL_REVIEW", source_hash: result.source_hash,
+        source_snapshot: source, context_snapshot: result.context, extraction: result.extraction,
+        attempts: result.attempts, issues: passed ? ["update_target_changed"] : result.issues, models,
+      });
+      if (heldReviewError) throw heldReviewError;
+      const { error: holdError } = await supabase.from("news_articles").update({
+        status: "failed", publication_status: "draft", editorial_meta: { ...editorialMeta, status: "review" },
+        raw_payload: { ...clearNewsAiFailure(article.raw_payload), aiFailureReason: "editorial_review_required" },
+      }).eq("id", article.id);
+      if (holdError) throw holdError;
+      held += 1;
+      continue;
+    }
+    const { error: updateError } = await supabase.from("news_articles").update({
+      ...(usable ? { ai_title_ru: draft.title_ru, ai_summary_ru: draft.summary_ru, ai_summary_long_ru: draft.details_ru, ai_highlights_ru: selectArticleHighlights(draft.highlight_phrases_ru, draft.summary_ru, draft.details_ru) } : {}),
+      ...(metadata ? { main_fact: metadata.mainFact, event_type: metadata.eventType, event_stage: metadata.eventStage, event_date: metadata.eventDate, event_fingerprint: metadata.eventFingerprint, normalized_entities: metadata.normalizedEntities } : {}),
+      source_image_url: article.source_image_url ?? articleContext.imageUrl ?? null,
+      related_race_id: relatedRace?.id ?? null,
+      ai_model: models.find(item => item.key === "news.article")?.model ?? models[0]?.model,
+      ai_processed_at: checkedAt,
+      editorial_meta: editorialMeta,
+      published_manually: false,
+      publication_status: passed ? "processing_dedup" : result.decision === "REJECT" ? "rejected" : "draft",
+      dedup_status: passed ? "checking" : "pending",
+      status: usable ? "processed" : "failed",
+      raw_payload: passed ? clearNewsAiFailure(article.raw_payload) : { ...clearNewsAiFailure(article.raw_payload), aiFailureReason: "editorial_review_required" },
+    }).eq("id", article.id);
+    if (updateError) throw updateError;
+    if (!passed) { held += 1; continue; }
+
+    const primaryEntities = result.extraction.entities.filter(entity => entity.role === "primary");
+    const tagArticle = { original_title: primaryEntities.map(entity => entity.name).join(" "), original_description: "" };
+    const { error: tagError } = await supabase.from("news_article_tags").delete().eq("article_id", article.id).neq("method", "admin");
+    if (tagError) throw tagError;
+    if (relatedRace) await upsertRaceTagForArticle(article.id, { ...relatedRace, circuit_name: getRelationObject(relatedRace.circuits)?.name }, 0.95, "ai");
+    for (const driver of matchDriversByText(tagArticle, drivers)) await upsertDriverTagForArticle(article.id, driver, 0.95, "rule");
+    for (const team of matchTeamsByText(tagArticle, teams)) await upsertTeamTagForArticle(article.id, team, 0.95, "rule");
+    await saveNewsArticleSource(article.id, article, source, result.extraction.source_authors);
+    await processNewsArticleDeduplication({ id: article.id, articleType: result.extraction.article_type, title: draft.title_ru, summary: draft.summary_ru, ...metadata, ingestedAt: article.ingested_at, publishedAt: article.published_at }, { metadataWasRepaired: true });
     itemsProcessed += 1;
-    modelsUsed.add(selectedModel);
   }
+  return { itemsProcessed, metadata: { held, mode, pipelineVersion: NEWS_EDITORIAL_VERSION } };
+}
 
-  return {
-    itemsProcessed,
-    metadata: {
-      model: [...modelsUsed].join(", ") || model,
-      openrouter: Boolean(apiKey),
-      mode,
-      limit,
-    },
-  };
+async function planNewsArticleUpdate(article, source, extraction, request) {
+  if (!parseSourceFacts(extraction, source) || !extraction.relevant || extraction.risk !== "normal") return null;
+  const metadata = parseNewsEditorialMetadata(extraction);
+  if (!metadata) return null;
+  const candidateArticle = { id: article.id, articleType: extraction.article_type, title: source.title, summary: source.description, ...metadata, ingestedAt: article.ingested_at };
+  const config = getNewsDedupConfig();
+  if (!config.enabled) return null;
+  const candidates = await loadNewsDedupCandidates(candidateArticle, config);
+  if (!candidates.length) return null;
+  const relation = await request("news.dedup", makeNewsDedupClassifierInput(candidateArticle, candidates));
+  if (relation?.relation !== "update" || relation.merge_recommended !== true || relation.is_duplicate !== false ||
+      typeof relation.confidence !== "number" || relation.confidence < 0.95 || relation.confidence > 1) return null;
+  const match = candidates.find(candidate => candidate.id === relation.update_of);
+  if (!match || !isNewsDedupIdentityMatch(candidateArticle, match)) return null;
+  const [{ data: target, error }, { data: review, error: reviewError }] = await Promise.all([
+    supabase.from("news_articles").select("id,updated_at,editorial_meta,published_manually,publication_status").eq("id", match.id).maybeSingle(),
+    supabase.from("news_editorial_reviews").select("source_snapshot").eq("article_id", match.id).eq("decision", "PASS").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  if (error) throw error;
+  if (reviewError) throw reviewError;
+  if (!target || target.publication_status !== "published" || target.published_manually || target.editorial_meta?.status !== "passed" || !review?.source_snapshot) return null;
+  const combined = combineNewsSources(review.source_snapshot, source);
+  return combined ? { source: combined, target } : null;
+}
+
+async function saveNewsArticleSource(targetId, article, source, authors = []) {
+  const { error } = await supabase.from("news_article_sources").upsert({
+    article_id: targetId, source_article_id: article.id, source_url: source.url,
+    source_name: source.name, source_authors: authors, source_published_at: source.published_at,
+  }, { onConflict: "article_id,source_article_id" });
+  if (error) throw error;
 }
 
 function clearNewsAiFailure(rawPayload) {
@@ -4297,43 +4193,6 @@ async function keepNewsArticlePending(article, articleContext, failureReason) {
     .eq("id", article.id);
 }
 
-async function requestNewsEditorialMetadata({
-  apiKey,
-  model,
-  article,
-  articleContext,
-  title,
-  aiPayload,
-}) {
-  const config = getNewsDedupConfig();
-  const payload = await requestOpenRouterNewsJson({
-    apiKey,
-    promptKey: "news.metadata",
-    userPayload: {
-      source_url: article.canonical_url ?? article.original_url ?? null,
-      source_published_at: article.source_published_at ?? null,
-      original_title: article.original_title,
-      original_description: article.original_description,
-      title_ru: title,
-      summary_ru: aiPayload.summary,
-      details_ru: aiPayload.details,
-      source_text: articleContext.text || null,
-    },
-    retries: config.aiRetryCount,
-    logKey: "openrouter.news_metadata",
-    articleId: article.id,
-    purpose: "news.metadata",
-  });
-
-  const metadata = parseNewsEditorialMetadata(payload);
-
-  if (!metadata) {
-    logWorkerWarning("openrouter.news_metadata.invalid", { articleId: article.id, model });
-  }
-
-  return metadata;
-}
-
 async function requestOpenRouterNewsJson({
   apiKey,
   promptKey,
@@ -4342,6 +4201,7 @@ async function requestOpenRouterNewsJson({
   logKey,
   articleId,
   purpose,
+  onPrompt,
 }) {
   let lastError = null;
 
@@ -4354,6 +4214,7 @@ async function requestOpenRouterNewsJson({
           payload_json: JSON.stringify(userPayload),
         },
       });
+      onPrompt?.(prompt);
       const { payload, response } = await requestOpenRouterCompletion({
         apiKey,
         model: prompt.model,
@@ -4366,9 +4227,9 @@ async function requestOpenRouterNewsJson({
             { role: "system", content: prompt.systemPrompt },
             { role: "user", content: prompt.userPrompt },
           ],
-          response_format: { type: "json_object" },
+          response_format: newsResponseFormat(promptKey),
           max_completion_tokens: prompt.maxTokens,
-          temperature: 0,
+          ...newsRequestOptions(promptKey, prompt.model),
         },
       });
 
@@ -4392,6 +4253,7 @@ async function requestOpenRouterNewsJson({
 
       return parsed;
     } catch (error) {
+      if (isOpenRouterBatchBlockedError(error)) throw error;
       lastError = error;
       logWorkerWarning(`${logKey}.retry`, {
         articleId,
@@ -4414,8 +4276,10 @@ async function processNewsArticleDeduplication(article, options = {}) {
   return runNewsDeduplicationPipeline({
     article,
     config,
-    acquireLock: acquireNewsDedupLock,
-    releaseLock: releaseNewsDedupLock,
+    // Publication is brief and infrequent. A shared lock also covers synonymous
+    // fingerprints generated independently by different sources/workers.
+    acquireLock: (_key, articleId) => acquireNewsDedupLock("news_publication", articleId),
+    releaseLock: (_key, articleId) => releaseNewsDedupLock("news_publication", articleId),
     loadCandidates: loadNewsDedupCandidates,
     classify: classifyNewsDedupWithAi,
     saveDecision: (decision) => saveNewsDedupDecision(decision, options.decisionSource ?? "pipeline"),
@@ -4507,11 +4371,11 @@ async function releaseNewsDedupLock(lockKey, articleId) {
 }
 
 async function loadNewsDedupCandidates(article, config) {
-  const referenceTime = new Date(article.ingestedAt ?? new Date().toISOString());
+  const referenceTime = new Date();
   const windowStart = new Date(referenceTime.getTime() - config.windowHours * 3_600_000).toISOString();
   const { data, error } = await supabase
     .from("news_articles")
-    .select("id, ai_title_ru, original_title, ai_summary_ru, original_description, main_fact, event_type, event_stage, event_date, event_fingerprint, normalized_entities, ingested_at, published_at, publication_status")
+    .select("id, ai_title_ru, original_title, ai_summary_ru, original_description, main_fact, event_type, event_stage, event_date, event_fingerprint, normalized_entities, ingested_at, published_at, publication_status, editorial_meta")
     .eq("publication_status", "published")
     .is("duplicate_of", null)
     .gte("ingested_at", windowStart)
@@ -4523,11 +4387,22 @@ async function loadNewsDedupCandidates(article, config) {
     throw error;
   }
 
-  return rankNewsDedupCandidates(article, data ?? [], config);
+  return rankNewsDedupCandidates(article, data ?? [], { ...config, referenceTime: referenceTime.toISOString() });
 }
 
 async function saveNewsDedupDecision(decision, decisionSource = "pipeline") {
   const checkedAt = new Date().toISOString();
+  if (decision.duplicateOf) {
+    const { data: sources, error: sourceError } = await supabase.from("news_article_sources")
+      .select("source_article_id,source_url,source_name,source_authors,source_published_at").eq("article_id", decision.articleId);
+    if (sourceError) throw sourceError;
+    if (sources?.length) {
+      const { error: mergeError } = await supabase.from("news_article_sources").upsert(
+        sources.map(source => ({ ...source, article_id: decision.duplicateOf })), { onConflict: "article_id,source_article_id" },
+      );
+      if (mergeError) throw mergeError;
+    }
+  }
   const { error } = await supabase
     .from("news_articles")
     .update({
@@ -4588,7 +4463,7 @@ async function retryNewsDeduplication() {
   const articleId = normalizeString(getCliOption("id"));
   let articlesQuery = supabase
     .from("news_articles")
-    .select("id, ai_title_ru, original_title, ai_summary_ru, original_description, main_fact, event_type, event_stage, event_date, event_fingerprint, normalized_entities, ingested_at, published_at")
+    .select("id, ai_title_ru, original_title, ai_summary_ru, original_description, main_fact, event_type, event_stage, event_date, event_fingerprint, normalized_entities, ingested_at, published_at, editorial_meta")
     .eq("status", "processed")
     .eq("publication_status", "processing_dedup")
     .order("ingested_at", { ascending: true })
@@ -4611,6 +4486,7 @@ async function retryNewsDeduplication() {
 
 function mapStoredNewsArticleForDedup(article) {
   return {
+    articleType: article.editorial_meta?.article_type,
     id: article.id,
     title: article.ai_title_ru ?? article.original_title,
     summary: article.ai_summary_ru ?? article.original_description,
@@ -4637,7 +4513,7 @@ async function auditRecentNewsDeduplication() {
 
   const { data, error } = await supabase
     .from("news_articles")
-    .select("id, ai_title_ru, original_title, ai_summary_ru, original_description, ai_summary_long_ru, main_fact, event_type, event_stage, event_date, event_fingerprint, normalized_entities, source_published_at, ingested_at, published_at, publication_status")
+    .select("id, ai_title_ru, original_title, ai_summary_ru, original_description, ai_summary_long_ru, main_fact, event_type, event_stage, event_date, event_fingerprint, normalized_entities, source_published_at, ingested_at, published_at, publication_status, editorial_meta")
     .eq("status", "processed")
     .eq("publication_status", "published")
     .is("duplicate_of", null)
@@ -4961,7 +4837,7 @@ async function backfillNewsSourceImages() {
 async function retagNewsWithAi() {
   const { data: articles, error } = await supabase
     .from("news_articles")
-    .select("id, original_title, original_description")
+    .select("id, original_title, original_description, editorial_meta")
     .eq("status", "processed")
     .eq("publication_status", "published")
     .is("duplicate_of", null)
@@ -4980,6 +4856,9 @@ async function retagNewsWithAi() {
   let itemsProcessed = 0;
 
   for (const article of articles ?? []) {
+    // Version 1 already tags primary participants from verified extraction.
+    // The legacy backfill must not restore incidental mentions or inferred teams.
+    if (article.editorial_meta?.version === NEWS_EDITORIAL_VERSION) continue;
     const race = matchRaceByText(article, races);
     const matchedDrivers = matchDriversByText(article, drivers);
     const matchedTeams = new Map();
@@ -5508,14 +5387,14 @@ async function generateDailyDigest() {
 
   const { data: articles, error } = await supabase
     .from("news_articles")
-    .select("id, ai_title_ru, original_title, ai_summary_ru, ai_summary_long_ru")
+    .select("id, slug, canonical_url, ai_title_ru, original_title, ai_summary_ru, ai_summary_long_ru, main_fact, event_fingerprint, editorial_meta, news_sources(name)")
     .eq("status", "processed")
     .eq("publication_status", "published")
     .is("duplicate_of", null)
     .gte("published_at", windowStart)
     .lt("published_at", now.toISOString())
     .order("published_at", { ascending: false, nullsFirst: false })
-    .limit(12);
+    .limit(100);
 
   if (error) {
     throw error;
@@ -5531,12 +5410,7 @@ async function generateDailyDigest() {
         client: supabase,
         promptKey: "news.daily_digest",
         variables: {
-          articles_text: articles
-            .map(
-              (article, index) =>
-                `${index + 1}. ${article.ai_title_ru ?? article.original_title}\n${article.ai_summary_long_ru ?? article.ai_summary_ru ?? ""}`,
-            )
-            .join("\n\n"),
+          articles_text: JSON.stringify(buildDigestInput(articles)),
         },
       });
       const { payload, response } = await requestOpenRouterCompletion({
@@ -5566,9 +5440,19 @@ async function generateDailyDigest() {
           reason: getOpenRouterFailureReason(payload),
         });
       } else {
-        const parsed = safeJson(payload.choices?.[0]?.message?.content);
-        body = normalizeString(parsed?.body_md) ?? body;
-        usedModel = prompt.model;
+        const parsed = parseOpenRouterMessageJson(payload.choices?.[0]?.message?.content);
+        const rendered = renderVerifiedDigest(parsed, articles);
+        if (rendered) {
+          const review = await requestOpenRouterNewsJson({
+            apiKey, promptKey: "news.verify", retries: 0, logKey: "news.digest_verification", purpose: "news.verify",
+            userPayload: {
+              source: { text: JSON.stringify(buildDigestInput(articles)), name: "RaceSide: published articles" },
+              extraction: { facts: [], caveats: [] }, context: { current_date: now.toISOString(), facts: [] },
+              draft: { title_ru: title, summary_ru: "", details_ru: rendered }, hard_issues: [],
+            },
+          });
+          if (verificationPasses(review)) { body = rendered; usedModel = prompt.model; }
+        }
       }
     } catch (aiError) {
       logWorkerWarning("openrouter.daily_digest.fallback", {
@@ -10800,6 +10684,9 @@ async function prepareCompletedRaceReplays() {
 
     try {
       const result = await prepareRaceReplayForRace(race, { sourceSeason: Number(race.season_year) });
+      if (result.metadata?.skippedReason && result.metadata.skippedReason !== "race_not_finished") {
+        throw new Error(result.metadata.skippedReason);
+      }
       itemsProcessed += result.itemsProcessed ?? 0;
       prepared.push({
         round: race.round,
@@ -10815,6 +10702,10 @@ async function prepareCompletedRaceReplays() {
         round: race.round,
       });
     }
+  }
+
+  if (failed.length) {
+    throw new Error(`Race Replay: ${failed.map((item) => `${item.race}: ${item.message}`).join("; ")}`);
   }
 
   return {
@@ -10867,6 +10758,7 @@ async function getExistingReadyReplayForRace(raceId, sourceSeason = null) {
     .select("id, source_session_key")
     .eq("race_id", raceId)
     .eq("status", "ready")
+    .eq("source_session_name", "Race")
     .limit(1);
 
   if (sourceSeason) {
@@ -10910,6 +10802,11 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
   }
 
   const sourceSessionKey = Number(sourceSession.session_key);
+  // Never freeze an in-progress feed into a supposedly completed archive.
+  const sourceEndMs = Date.parse(sourceSession.date_end);
+  if (!Number.isFinite(sourceEndMs) || Date.now() < sourceEndMs + 120_000) {
+    return { itemsProcessed: 0, metadata: { skippedReason: "race_not_finished", sourceSessionKey } };
+  }
   const sourceErrors = [];
   const [
     driversPayload,
@@ -11001,6 +10898,10 @@ async function prepareRaceReplayForRace(currentRace, options = {}) {
     trackDefinition,
     weatherPayload,
   });
+
+  if (!replayPayload.positions.length || !replayPayload.lapTimings.length) {
+    throw new Error(`Incomplete Race Replay data for session ${sourceSessionKey}; retry when telemetry and laps are available`);
+  }
 
   const replayRow = {
     circuit_id: circuit.id,
@@ -11670,10 +11571,7 @@ function buildReplaySnapshot({
   const driversWithReplayPositions = new Set(replayPositions.map((event) => event.driverNumber));
   const intervalTimings = buildReplayIntervalTimings(intervalsPayload, raceStartMs);
   const lapTimings = buildReplayLapTimings(timedLapsPayload, raceStartMs);
-  const durationMs = Math.max(
-    ...replayPositions.map((event) => event.offsetMs),
-    1,
-  );
+  const durationMs = getReplayDurationMs(replayPositions, lapTimings);
   const driverNumbers = [
     ...new Set([
       ...driverMap.keys(),
@@ -11740,6 +11638,14 @@ function buildReplaySnapshot({
     track: trackDefinition,
     weather: buildReplayWeather(weatherPayload),
   };
+}
+
+export function getReplayDurationMs(positions, lapTimings) {
+  return Math.max(
+    1,
+    positions.reduce((end, event) => Math.max(end, event.offsetMs), 0),
+    lapTimings.reduce((end, timing) => Math.max(end, timing[2] + timing[3]), 0),
+  );
 }
 
 function buildReplayIntervalTimings(intervalsPayload, raceStartMs) {
@@ -14745,6 +14651,106 @@ async function expireBillingOrders() {
   return { itemsProcessed: orders?.length ?? 0, metadata: { expiredOrders: orders?.length ?? 0 } };
 }
 
+async function reconcileTributePayments() {
+  const apiKey = readRequiredEnvironmentValue(process.env, "TRIBUTE_API_KEY");
+  const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1_000).toISOString();
+  const selection = "id,provider_order_id,payment_method,amount_minor,currency,created_at";
+  const [pendingResult, expiredResult] = await Promise.all([
+    supabase
+      .from("billing_orders")
+      .select(selection)
+      .eq("provider", "tribute")
+      .eq("status", "pending")
+      .gte("created_at", cutoff)
+      .not("provider_order_id", "is", null)
+      .order("created_at", { ascending: true })
+      .limit(50),
+    supabase
+      .from("billing_orders")
+      .select(selection)
+      .eq("provider", "tribute")
+      .eq("status", "failed")
+      .eq("failure_reason", "CHECKOUT_EXPIRED")
+      .gte("created_at", cutoff)
+      .not("provider_order_id", "is", null)
+      .order("created_at", { ascending: true })
+      .limit(50),
+  ]);
+  const selectionError = pendingResult.error ?? expiredResult.error;
+  if (selectionError) throw selectionError;
+
+  const orders = [...(pendingResult.data ?? []), ...(expiredResult.data ?? [])];
+  let matched = 0;
+  let checked = 0;
+  for (const order of orders) {
+    checked += 1;
+    const status = await fetchTributeApi(
+      `/shop/orders/${encodeURIComponent(order.provider_order_id)}/status`,
+      apiKey,
+    );
+    if (status?.status !== "paid") {
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, 150));
+      continue;
+    }
+    const transactions = await fetchTributeApi(
+      `/shop/orders/${encodeURIComponent(order.provider_order_id)}/transactions`,
+      apiKey,
+    );
+    const transaction = findMatchingTributeTransaction(order, transactions);
+    if (!transaction) {
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, 150));
+      continue;
+    }
+    const payloadHash = makeTributeReconciliationHash({
+      ...transaction,
+      orderId: order.provider_order_id,
+    });
+    const eventId = `tribute_api_reconciliation:${order.provider_order_id}:${transaction.transactionId}`;
+    const { error } = await supabase.rpc("billing_apply_payment", {
+      p_currency: "RUB",
+      p_gross_amount_minor: transaction.grossAmountMinor,
+      p_net_amount_minor: transaction.netAmountMinor,
+      p_occurred_at: transaction.occurredAt,
+      p_order_id: order.id,
+      p_payload_hash: payloadHash,
+      p_payment_method: order.payment_method,
+      p_provider: "tribute",
+      p_provider_event_id: eventId,
+      p_provider_event_type: "shop_api_reconciliation",
+      p_provider_reference: order.provider_order_id,
+      p_provider_transaction_id: transaction.transactionId,
+      p_safe_payload: {
+        grossAmountMinor: transaction.grossAmountMinor,
+        netAmountMinor: transaction.netAmountMinor,
+        occurredAt: transaction.occurredAt,
+        source: "tribute_shop_api",
+        transactionId: transaction.transactionId,
+      },
+    });
+    if (error) throw error;
+    matched += 1;
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 150));
+  }
+
+  return {
+    itemsProcessed: matched,
+    metadata: { candidates: orders.length, checked, matched },
+  };
+}
+
+async function fetchTributeApi(path, apiKey) {
+  const response = await fetch(`https://tribute.tg/api/v1${path}`, {
+    headers: {
+      Accept: "application/json",
+      "Api-Key": apiKey,
+      "User-Agent": "RaceSide-Billing/1.0",
+    },
+    signal: AbortSignal.timeout(12_000),
+  });
+  if (!response.ok) throw new Error(`TRIBUTE_RECONCILE_HTTP_${response.status}`);
+  return response.json();
+}
+
 async function reconcileYooMoneyPayments() {
   const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1_000).toISOString();
   const selection = "id,provider_label,payment_method,amount_minor,currency,created_at";
@@ -16188,17 +16194,21 @@ async function getArticleContext(article) {
   const sourceUrl = article.original_url ?? article.canonical_url;
   let fetchedArticle = await fetchReadableArticleMetadata(sourceUrl);
 
-  if (!fetchedArticle.imageUrl && shouldUseReaderFallback(sourceUrl)) {
+  if (((fetchedArticle.text?.length ?? 0) < 400 || !fetchedArticle.imageUrl) && shouldUseReaderFallback(sourceUrl)) {
+    if ((fetchedArticle.text?.length ?? 0) < 400) fetchedArticle.text = null;
     fetchedArticle = await fetchReadableArticleMetadataViaReader(sourceUrl, fetchedArticle);
   }
 
   if (fetchedArticle.text) {
-    snippets.push(fetchedArticle.text);
+    snippets.unshift(fetchedArticle.text);
   }
 
+  const sourceText = dedupeTextBlocks(snippets).join("\n\n");
+  const maxLength = Number(process.env.AI_ARTICLE_TEXT_MAX_CHARS ?? 12000);
   return {
-    text: clampText(dedupeTextBlocks(snippets).join("\n\n"), Number(process.env.AI_ARTICLE_TEXT_MAX_CHARS ?? 12000)),
+    text: clampText(sourceText, maxLength),
     imageUrl: article.source_image_url ?? article.raw_payload?.imageUrl ?? fetchedArticle.imageUrl ?? null,
+    coverage: fetchedArticle.text ? sourceText.length > maxLength ? "article_truncated" : "article" : "rss_only",
   };
 }
 
@@ -16223,7 +16233,7 @@ async function fetchReadableArticleMetadata(url) {
     const contentType = response.headers.get("content-type") ?? "";
 
     if (contentType && !contentType.includes("text/html") && !contentType.includes("application/xhtml")) {
-      return null;
+      return { text: null, imageUrl: null };
     }
 
     const html = await response.text();
@@ -16246,7 +16256,7 @@ async function fetchReadableArticleMetadataViaReader(url, fallback = { text: nul
   }
 
   try {
-    const response = await fetch(`https://r.jina.ai/http://${url}`, {
+    const response = await fetch(`https://r.jina.ai/${url}`, {
       headers: {
         accept: "text/plain, text/markdown;q=0.9, */*;q=0.8",
         "user-agent": "RaceSide/1.0 (+https://raceside.online)",
@@ -16283,45 +16293,11 @@ function shouldUseReaderFallback(url) {
 }
 
 function extractReadableTextFromHtml(html) {
-  const body =
-    html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1] ??
-    html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1] ??
-    html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)?.[1] ??
-    html;
-  const text = decodeXml(
-    body
-      .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
-      .replace(/<noscript\b[\s\S]*?<\/noscript>/gi, " ")
-      .replace(/<svg\b[\s\S]*?<\/svg>/gi, " ")
-      .replace(/<!--[\s\S]*?-->/g, " ")
-      .replace(/<\/(?:p|div|section|article|h[1-6]|li|blockquote)>/gi, "\n")
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\u00a0/g, " "),
-  );
-
-  const paragraphs = text
-    .split(/\n+/)
-    .map((line) => line.replace(/\s+/g, " ").trim())
-    .filter((line) => line.length >= 80)
-    .filter((line) => !/^(advertisement|subscribe|sign up|read more|cookies?|privacy|terms)/i.test(line))
-    .slice(0, 24);
-
-  return paragraphs.length ? paragraphs.join("\n\n") : null;
+  return extractNewsSourceHtml(html, decodeXml);
 }
 
 function extractReadableTextFromMarkdown(markdown) {
-  const lines = String(markdown ?? "")
-    .split(/\n+/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter((line) => !/^(Title:|URL Source:|Published Time:|Markdown Content:|#+\s|[*-]\s+\[|Advert\b|Menu and widgets|Follow RaceFans)/i.test(line))
-    .map((line) => line.replace(/\[[^\]]+]\([^)]+\)/g, " ").replace(/\s+/g, " ").trim())
-    .filter((line) => line.length >= 80)
-    .slice(0, 24);
-
-  return lines.length ? lines.join("\n\n") : null;
+  return extractNewsSourceMarkdown(markdown);
 }
 
 function extractMetadataImageFromHtml(html, baseUrl) {
@@ -16465,21 +16441,6 @@ function clampText(value, maxLength) {
   return `${text.slice(0, maxLength).replace(/\s+\S*$/, "")}\n\n[Текст обрезан для лимита AI-контекста]`;
 }
 
-function makeFallbackNewsPayload(article) {
-  const description = normalizeString(article.original_description);
-  const sourceText = description
-    ? `В RSS-описании источника есть только краткий фрагмент: ${description}`
-    : "Источник пока не передал достаточно деталей для уверенного пересказа.";
-
-  return {
-    title: "Новость Формулы-1: детали уточняются",
-    summary: "Источник сообщил новую информацию по Формуле-1, но деталей пока недостаточно для уверенного русского пересказа. Мы не добавляем неподтвержденные факты и обновим материал после повторной обработки.",
-    details: `${sourceText}\n\nПодробная русская версия появится после повторной обработки. До этого RaceSide показывает только осторожное описание без дополнительных выводов и домыслов.`,
-    highlights: ["Подробная русская версия готовится"],
-    teamSlugs: [],
-  };
-}
-
 function isUsableRussianNewsPayload({ details, summary, title }) {
   return (
     isMostlyRussianText(title, { minCyrillic: 4, minRatio: 0.25 }) &&
@@ -16524,11 +16485,9 @@ function selectArticleHighlights(value, summary, details) {
 
 function makeDigestFallback(articles) {
   if (!articles.length) {
-    return "Свежих обработанных новостей пока нет. Запусти RSS и AI-обработку, чтобы собрать сводку дня.";
+    return "Пока нет новостей для сводки. Она появится после первых публикаций дня.";
   }
 
-  return articles
-    .slice(0, 6)
-    .map((article) => `- ${article.ai_title_ru ?? article.original_title}: ${article.ai_summary_ru ?? "детали уточняются"}`)
-    .join("\n");
+  const selected = buildDigestInput(articles).slice(0, 6).map(event => event.articles[0]);
+  return renderVerifiedDigest({ items: selected.map(article => ({ headline: article.title, summary: article.summary || article.title, article_ids: [article.id] })) }, articles) ?? "Сегодня пока нет новых материалов.";
 }

@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "modelId": "miami",
+  "sources": [
+    {
+      "file": "osm.xml",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-80.248,25.952,-80.225,25.965",
+      "role": "circuit, road, building and vegetation geometry",
+      "license": "ODbL 1.0",
+      "attribution": "\u00a9 OpenStreetMap contributors",
+      "retrievedAt": "2026-09-22T08:52:44.188717+00:00",
+      "bbox": [
+        -80.248,
+        25.952,
+        -80.225,
+        25.965
+      ],
+      "crs": "EPSG:4326",
+      "verticalDatum": null,
+      "resolution": "vector/document reference",
+      "bytes": 5302559,
+      "sha256": "4cd75333ae87dcf17155774533baeb36d1f0bdb7b07372c3f6bdeab07710d44a"
+    },
+    {
+      "file": "fia-2026.pdf",
+      "url": "https://www.fia.com/system/files/decision-document/2026_miami_grand_prix_-_competition_notes_-_circuit_map_pit_lane_drawing_emergency_exits_map_and_red_zone.pdf",
+      "role": "official 2026 controls and pit allocation",
+      "license": "Copyright FIA/FOM; reference only, not embedded or redistributed in the GLB",
+      "attribution": "FIA / Formula One World Championship Limited",
+      "retrievedAt": "2026-09-22T08:52:44.192272+00:00",
+      "bbox": null,
+      "crs": null,
+      "verticalDatum": null,
+      "resolution": "vector/document reference",
+      "bytes": 3965270,
+      "sha256": "57e96ed983ca1cd7d951fc8485f88a93e971f93736bbaf758d49733ac791c261"
+    },
+    {
+      "file": "fia-media-kit-2026.pdf",
+      "url": "https://www.fia.com/sites/default/files/final_2026_media_kit.pdf",
+      "role": "official 2026 venue and temporary event infrastructure reference",
+      "license": "Copyright FIA/FOM; reference only, not embedded or redistributed in the GLB",
+      "attribution": "FIA / Formula One World Championship Limited",
+      "retrievedAt": "2026-09-22T08:52:44.199243+00:00",
+      "bbox": null,
+      "crs": null,
+      "verticalDatum": null,
+      "resolution": "vector/document reference",
+      "bytes": 17499763,
+      "sha256": "bcfc0c97c5cd2bedcb645d8c9a630be3c079345a42344974f1acd0c87ff994e3"
+    },
+    {
+      "file": "ortho.jpg",
+      "url": "https://gisweb.miamidade.gov/arcgis/rest/services/MapCache/MDCImagery_WebMercator/MapServer/export?bbox=575450%2C2870450%2C577550%2C2871850&bboxSR=32617&imageSR=32617&size=4095%2C2730&format=jpg&f=image",
+      "role": "orthophoto and public-use terms",
+      "license": "Miami-Dade County: For Public Use, as-is; attribution retained",
+      "attribution": "Miami-Dade County | GIS Groups",
+      "retrievedAt": "2026-09-22T08:52:44.206505+00:00",
+      "bbox": [
+        575450,
+        2870450,
+        577550,
+        2871850
+      ],
+      "crs": "EPSG:32617",
+      "verticalDatum": null,
+      "resolution": "0.51282 m/px export",
+      "bytes": 2982123,
+      "sha256": "d28467963dedd6cbeb81bb28e2c8ea549b7a1445daea7aadb707858cf718c74e"
+    },
+    {
+      "file": "usgs-d23-1m.tif",
+      "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage?bbox=575450%2C2870700%2C577250%2C2871800&bboxSR=32617&imageSR=32617&size=1800%2C1100&format=tiff&pixelType=F32&interpolation=RSP_BilinearInterpolation&renderingRule=%7B%22rasterFunction%22%3A+%22None%22%7D&mosaicRule=%7B%22mosaicMethod%22%3A+%22esriMosaicLockRaster%22%2C+%22lockRasterIds%22%3A+%5B91889%5D%7D&f=image",
+      "role": "bare-earth terrain and provenance",
+      "license": "USGS public domain",
+      "attribution": "USGS 3DEP",
+      "retrievedAt": "2026-09-22T08:52:44.210665+00:00",
+      "bbox": [
+        575450,
+        2870700,
+        577250,
+        2871800
+      ],
+      "crs": "EPSG:32617",
+      "verticalDatum": "NAVD88",
+      "resolution": "1 m source; 1 m export",
+      "bytes": 8849560,
+      "sha256": "9a1ac568be5293e50c0e639d6de887c136ea70c7fd51d18a4857200452c27690"
+    },
+    {
+      "file": "county-imagery-service.json",
+      "url": "https://gisweb.miamidade.gov/arcgis/rest/services/MapCache/MDCImagery_WebMercator/MapServer?f=pjson",
+      "role": "orthophoto and public-use terms",
+      "license": "Miami-Dade County: For Public Use, as-is; attribution retained",
+      "attribution": "Miami-Dade County | GIS Groups",
+      "retrievedAt": "2026-09-22T08:52:44.214231+00:00",
+      "bbox": null,
+      "crs": null,
+      "verticalDatum": null,
+      "resolution": "vector/document reference",
+      "bytes": 5532,
+      "sha256": "18a64f499de81f400f3067c44b63ec9c74fe80f89e24cba68aae617eb24a76de"
+    },
+    {
+      "file": "county-license.json",
+      "url": "https://www.arcgis.com/sharing/rest/content/items/2e7e836d383a44b688b36a6ae4a4763d?f=pjson",
+      "role": "orthophoto and public-use terms",
+      "license": "Miami-Dade County: For Public Use, as-is; attribution retained",
+      "attribution": "Miami-Dade County | GIS Groups",
+      "retrievedAt": "2026-09-22T08:52:44.214439+00:00",
+      "bbox": null,
+      "crs": null,
+      "verticalDatum": null,
+      "resolution": "vector/document reference",
+      "bytes": 3584,
+      "sha256": "3f36a0733573dad22223a6747b66801345b79736a3242772cdec89a6a860368b"
+    },
+    {
+      "file": "dem-local-catalog.json",
+      "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/query?geometry=%7B%22xmin%22%3A+575450%2C+%22ymin%22%3A+2870700%2C+%22xmax%22%3A+577250%2C+%22ymax%22%3A+2871800%2C+%22spatialReference%22%3A+%7B%22wkid%22%3A+32617%7D%7D&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=%2A&returnGeometry=false&f=json",
+      "role": "bare-earth terrain and provenance",
+      "license": "USGS public domain",
+      "attribution": "USGS 3DEP",
+      "retrievedAt": "2026-09-22T08:52:44.214985+00:00",
+      "bbox": [
+        575450,
+        2870700,
+        577250,
+        2871800
+      ],
+      "crs": "EPSG:32617",
+      "verticalDatum": "NAVD88",
+      "resolution": "vector/document reference",
+      "bytes": 602182,
+      "sha256": "e406760850b547c65b40e68968cd6ea2e1ac28c2a118999dd7f5205a07e301aa"
+    }
+  ]
+}

@@ -15,6 +15,7 @@ import { RED_BULL_RING_TRACK_MODEL } from "./red-bull-ring-model.ts";
 import { SHANGHAI_TRACK_MODEL } from "./shanghai-model.ts";
 import { SILVERSTONE_TRACK_MODEL } from "./silverstone-model.ts";
 import { SPA_TRACK_MODEL } from "./spa-model.ts";
+import { SEPANG_TRACK_MODEL } from "./sepang-model.ts";
 import { SUZUKA_TRACK_MODEL } from "./suzuka-model.ts";
 import { ZANDVOORT_TRACK_MODEL } from "./zandvoort-model.ts";
 import {
@@ -27,10 +28,11 @@ const generatedModels = [
   [ALBERT_PARK_TRACK_MODEL, 14, "albert-park-model.ts"],
   [SHANGHAI_TRACK_MODEL, 16, "shanghai-model.ts"],
   [SUZUKA_TRACK_MODEL, 18, "suzuka-model.ts"],
-  [MIAMI_TRACK_MODEL, 19, "miami-model.ts"],
 ];
 
 const digitalTwinModels = [
+  MIAMI_TRACK_MODEL,
+  SEPANG_TRACK_MODEL,
   BAKU_TRACK_MODEL,
   CATALUNYA_TRACK_MODEL,
   HUNGARORING_TRACK_MODEL,
@@ -89,7 +91,7 @@ for (const [model, turnCount] of generatedModels) {
 }
 
 test("every generated track resolves from its circuit name and aliases", () => {
-  assert.equal(Object.keys(TRACK_MODEL_ALIASES).length, 15);
+  assert.equal(Object.keys(TRACK_MODEL_ALIASES).length, 16);
 
   const allModels = [
     ...generatedModels.map(([model]) => model),

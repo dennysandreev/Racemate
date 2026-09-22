@@ -1,5 +1,11 @@
 # Blender track builder
 
+Miami: `pnpm track:3d:build miami --offline` rebuilds the pinned 2026 scene.
+Set `PYTHON_BIN` to Python with NumPy, rasterio and Pillow. Geometry uses UTM
+17N/NAVD88, USGS 1 m DTM and Miami-Dade county orthophoto. The validator decodes
+the GLB and checks all driving corridors, paint support and bridge clearance.
+Sources and limitations: `docs/track-model-miami-source-card.md`.
+
 Baku: `pnpm track:3d:build baku --offline` rebuilds the pinned-source scene.
 Set `PYTHON_BIN` to a Python runtime with rasterio, OpenCV, NumPy and Pillow.
 The source card is `docs/track-model-baku-source-card.md`. Baku's urban road
@@ -56,7 +62,7 @@ The Red Bull Ring branch pins the current OSM circuit and venue objects, FIA Aus
 
 The Catalunya branch patches the legacy OSM circuit ring with the current three-way T13-T14 bypass, pins the three connected pit-lane ways and venue objects, the FIA Barcelona 2026 circuit and pit-lane drawings, the official 2026 Circuit de Barcelona-Catalunya event map, the ICGC 2025 25 cm RGB orthophoto, the ICGC territorial DTM, and 2024 ICGC surface-height samples. It builds the site in EPSG:25831 at 1:1 scale with no vertical exaggeration, keeps the detailed 40-garage pit complex while excluding its duplicate grey OSM `Boxes` footprint, adds the 475 m pit-wall debris fence, regenerates `src/data/catalunya-model.ts`, and validates source hashes, the 4.657 km FIA lap, all 14 anchors, pit continuity, scene completeness and web budgets.
 
-The Monaco branch pins OSM circuit relation 148194 and current city objects, FIA Monaco 2026 Document 7, the official ACM 2026 grandstand inventory, the Monaco government z18 orthophoto service and open Terrarium elevation. It builds the street circuit in EPSG:32632 at 1:1 scale, keeps the OSM tunnel as a separately measured underground profile, creates the current 11-team pit lane, regenerates `src/data/monaco-model.ts`, and validates source hashes, all 19 FIA anchors, city completeness and web budgets.
+The Monaco branch uses pinned OSM relation 148194 (including building multipolygons), IGN LiDAR HD MNT/MNS in IGN69, correctly reprojected DPUM Orthophoto 2020 and FIA/ACM 2026 circuit, pit and grandstand plans. It builds at 1:1 scale in EPSG:32632, separates the 361.75 m tunnel from the 18 m Portier cover, preserves 11 three-storey garages and 19 stand sections, and audits the decoded Meshopt asset for road, paint and structural conflicts. Rebuild with `pnpm track:3d:build monaco`; validate with `pnpm track:3d:validate monaco`. The downloader verifies cached hashes and only refreshes with `--force-sources`. See `docs/track-model-monaco-source-card.md` and `docs/track-model-monaco-build-report.md` for the source age, geometry estimates, unverified 2026 motorhomes and DPUM redistribution limitation.
 
 The Montreal branch pins the current OSM circuit and venue objects, FIA Canadian GP 2026 Document 8, the official 2026 promoter grandstand catalogue, the official 2024 spectator map used as the geolocation baseline, the CMM 2019 25 cm orthophoto and NRCan HRDEM DTM/DSM. It builds Circuit Gilles-Villeneuve in EPSG:32188 + CGVD2013 at 1:1 scale with no vertical exaggeration, creates the FIA 43-box pit lane, the 10 visually accepted current-event grandstand zones, the smooth pit entry/exit with a continuous exit guide line, and the concrete pit wall with its high debris fence and gate sections. It regenerates `src/data/montreal-model.ts` and validates source hashes, FIA anchors, reviewed placement corrections, terrain clearance, scene completeness and web budgets.
 

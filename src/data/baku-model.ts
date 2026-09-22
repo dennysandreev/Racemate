@@ -4132,7 +4132,7 @@ export const BAKU_TRACK_MODEL = {
     }
   },
   "webgl": {
-    "assetPath": "/f1/tracks/3d/baku.glb?v=2e59bb68358a",
+    "assetPath": "/f1/tracks/3d/baku.glb?v=cc2e9204a9e0",
     "previewPath": "/f1/tracks/3d/baku-preview.webp",
     "turnCount": 20,
     "elevationDatumLabel": "м DEM",

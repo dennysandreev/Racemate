@@ -88,6 +88,7 @@ export type TrackModelDefinition = {
     camera: {
       fitHeight: number;
       fitWidth: number;
+      narrowFitWidth?: number;
       lookAtY: number;
       radius: number;
     };

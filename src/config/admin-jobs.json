@@ -517,7 +517,7 @@
     "description": "Проверит завершённые гонки и подготовит недостающие повторы.",
     "group": "sport",
     "expectedIntervalMinutes": 1440,
-    "maxAttempts": 1,
+    "maxAttempts": 3,
     "parameters": [
       {
         "name": "limit",
@@ -580,6 +580,15 @@
     "description": "Закроет незавершённые попытки оплаты после окончания их срока.",
     "group": "billing",
     "expectedIntervalMinutes": 15,
+    "maxAttempts": 2,
+    "parameters": []
+  },
+  {
+    "name": "billing.reconcile_tribute",
+    "title": "Сверить оплаты Tribute",
+    "description": "Проверит Shop API и подтвердит оплаченные заказы, для которых не пришёл webhook.",
+    "group": "billing",
+    "expectedIntervalMinutes": 2,
     "maxAttempts": 2,
     "parameters": []
   },

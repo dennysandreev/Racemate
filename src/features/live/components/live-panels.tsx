@@ -9,6 +9,7 @@ import { Headphones, Flag, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLive, useLiveStore } from "./live-provider";
 import { compoundText, lapTime } from "../lib/format";
+import { eventCategory, eventDriverNumbers } from "../lib/event-display";
 import { DriverDetail } from "./live-driver-detail";
 import { DriverPortrait } from "./live-timing";
 import type { FeedEvent, RadioMessage, TelemetrySample } from "../lib/types";
@@ -222,8 +223,15 @@ export function Analytics() {
     </div>
   );
 }
-export function EventFeed() {
+export function EventFeed({
+  filter,
+  onFilter,
+}: {
+  filter: number | null;
+  onFilter: (driverNumber: number | null) => void;
+}) {
   const events = useLive("events"),
+    drivers = useLive("drivers"),
     session = useLive("session");
   const [archive, setArchive] = useState<{
     sessionKey: number;
@@ -239,6 +247,19 @@ export function EventFeed() {
     [seen, setSeen] = useState<string | null>(null);
   const [frozen, setFrozen] = useState(events);
   const visible = archived ?? (paused ? frozen : events);
+  const driverList = Object.values(drivers).sort(
+    (a, b) =>
+      (a.position ?? 99) - (b.position ?? 99) ||
+      a.acronym.localeCompare(b.acronym),
+  );
+  const decorated = visible.map((event) => ({
+    event,
+    category: eventCategory(event),
+    driverNumbers: eventDriverNumbers(event, driverList),
+  }));
+  const filtered = decorated.filter(
+    ({ driverNumbers }) => filter === null || driverNumbers.includes(filter),
+  );
   const unread = paused ? events.findIndex((e) => e.id === seen) : 0;
   const loadEarlier = async () => {
     const before = visible.at(-1)?.timestamp;
@@ -263,7 +284,23 @@ export function EventFeed() {
     }
   };
   return (
-    <div className="live-feed-wrap">
+    <div className="live-feed-wrap live-event-feed">
+      <label className="live-event-filter">
+        <span className="sr-only">События пилота</span>
+        <select
+          value={filter ?? ""}
+          onChange={(event) =>
+            onFilter(event.target.value ? Number(event.target.value) : null)
+          }
+        >
+          <option value="">Все пилоты</option>
+          {driverList.map((driver) => (
+            <option key={driver.driverNumber} value={driver.driverNumber}>
+              {driver.acronym} · {driver.fullName}
+            </option>
+          ))}
+        </select>
+      </label>
       {(archived || (paused && unread !== 0)) && (
         <Button
           className="live-new-events"
@@ -298,17 +335,48 @@ export function EventFeed() {
           setPaused(next);
         }}
       >
-        {visible.map((e) => (
-          <article className="live-event" key={e.id}>
+        {filtered.map(({ event: e, category, driverNumbers }) => (
+          <article className="live-event" data-tone={category.tone} key={e.id}>
             <div className="live-event-meta">
-              <Flag aria-hidden="true" />
-              <span>{e.lap ? `${e.lap} круг` : time(e.timestamp)}</span>
+              <span className="live-event-kind">{category.label}</span>
+              {driverNumbers.map((driverNumber) => {
+                const driver = drivers[driverNumber];
+                return (
+                  <button
+                    className="live-event-driver"
+                    key={driverNumber}
+                    onClick={() => onFilter(driverNumber)}
+                    style={
+                      {
+                        "--driver-color":
+                          driver?.teamColour ?? "var(--muted-foreground)",
+                      } as CSSProperties
+                    }
+                    title={`Показать события ${driver?.fullName ?? driverNumber}`}
+                    type="button"
+                  >
+                    {driver?.acronym ?? driverNumber}
+                  </button>
+                );
+              })}
+              <span className="live-event-lap">
+                {e.lap ? `${e.lap} круг` : "Сессия"}
+              </span>
               <time>{time(e.timestamp)}</time>
             </div>
             <p>{e.message}</p>
             {e.duration && <strong>{e.duration.toFixed(3)} с</strong>}
           </article>
         ))}
+        {!filtered.length && filter !== null && (
+          <div className="live-empty live-event-empty">
+            <Flag />
+            <p>Событий этого пилота пока нет</p>
+            <button type="button" onClick={() => onFilter(null)}>
+              Показать все события
+            </button>
+          </div>
+        )}
         {visible.length > 0 && (
           <Button
             variant="ghost"
@@ -328,7 +396,7 @@ export function EventFeed() {
             Не удалось загрузить события. Попробуйте ещё раз.
           </p>
         )}
-        {!visible.length && (
+        {!visible.length && filter === null && (
           <div className="live-empty">
             <Flag />
             <p>На трассе пока тихо</p>

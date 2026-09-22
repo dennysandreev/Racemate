@@ -688,6 +688,8 @@ export type Database = {
         updated_at: string;
       }>;
       news_articles: TableDefinition<{
+        editorial_meta: Json;
+        content_modified_at: string | null;
         id: string;
         slug: string;
         source_id: string | null;
@@ -748,6 +750,28 @@ export type Database = {
         article_id: string;
         acquired_at: string;
         expires_at: string;
+      }>;
+      news_editorial_reviews: TableDefinition<{
+        id: string;
+        article_id: string;
+        decision: string;
+        source_hash: string;
+        source_snapshot: Json;
+        context_snapshot: Json;
+        extraction: Json | null;
+        attempts: Json;
+        issues: Json;
+        models: Json;
+        created_at: string;
+      }>;
+      news_article_sources: TableDefinition<{
+        article_id: string;
+        source_article_id: string;
+        source_url: string;
+        source_name: string;
+        source_authors: Json;
+        source_published_at: string | null;
+        added_at: string;
       }>;
       news_dedup_decisions: TableDefinition<{
         id: number;
@@ -1293,6 +1317,21 @@ export type Database = {
           p_summary: string | null;
           p_tag_names: string[];
           p_title: string | null;
+        };
+        Returns: undefined;
+      };
+      admin_save_news_article_editorial: {
+        Args: {
+          p_actor_user_id: string;
+          p_article_id: string;
+          p_body: string | null;
+          p_now: string;
+          p_publication_status: string;
+          p_summary: string | null;
+          p_tag_names: string[];
+          p_title: string | null;
+          p_article_type: string;
+          p_source_authors: string[];
         };
         Returns: undefined;
       };

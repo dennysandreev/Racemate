@@ -50,7 +50,6 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty";
 import type {
-  Catalog,
   CompareConfig,
   Comparison,
   Meeting,
@@ -59,8 +58,13 @@ import type {
   Channel,
   SavedComparison,
   LapSelection,
+  TelemetryBootstrapData,
+  TelemetryBootstrapStage,
+  TelemetrySetupCatalog,
 } from "../lib/types";
 import {
+  telemetryBootstrapLabel,
+  telemetryBootstrapRequest,
   telemetryRequest,
   createCursorStore,
   trackTelemetry,
@@ -97,6 +101,12 @@ const views = [
 const isRaceSession = (session?: Session | null) =>
   session?.type.toLowerCase() === "race" ||
   session?.name.toLowerCase() === "race";
+const initialDrivers = (catalog?: TelemetrySetupCatalog | null) => {
+  const sorted = [...(catalog?.drivers ?? [])].sort(
+    (a, b) => (a.position ?? 99) - (b.position ?? 99),
+  );
+  return [sorted[0]?.number ?? 0, sorted[1]?.number ?? 0];
+};
 export function TelemetryHub({
   demoMode = false,
   initialSeason,
@@ -105,6 +115,7 @@ export function TelemetryHub({
   initialMode = "best",
   saved,
   initialMeetingName,
+  initialBootstrap,
 }: {
   demoMode?: boolean;
   initialSeason?: number;
@@ -113,16 +124,30 @@ export function TelemetryHub({
   initialMode?: Mode;
   saved?: SavedComparison;
   initialMeetingName?: string;
+  initialBootstrap?: TelemetryBootstrapData;
 }) {
-  const [seasons, setSeasons] = useState<number[]>([]),
+  const bootstrapCatalog = initialBootstrap?.catalog ?? null;
+  const [seasons, setSeasons] = useState<number[]>(
+      initialBootstrap?.seasons ?? [],
+    ),
     [season, setSeason] = useState(
-      initialSeason ?? new Date().getUTCFullYear(),
+      initialBootstrap?.season ??
+        initialSeason ??
+        new Date().getUTCFullYear(),
     );
-  const [meetings, setMeetings] = useState<Meeting[]>([]),
-    [meeting, setMeeting] = useState(initialMeeting ?? 0),
-    [sessions, setSessions] = useState<Session[]>([]);
-  const [catalogs, setCatalogs] = useState<(Catalog | null)[]>([null, null]),
-    [drivers, setDrivers] = useState([0, 0]),
+  const [meetings, setMeetings] = useState<Meeting[]>(
+      initialBootstrap?.meetings ?? [],
+    ),
+    [meeting, setMeeting] = useState(
+      initialBootstrap?.meeting ?? initialMeeting ?? 0,
+    ),
+    [sessions, setSessions] = useState<Session[]>(
+      initialBootstrap?.sessions ?? [],
+    );
+  const [catalogs, setCatalogs] = useState<
+      (TelemetrySetupCatalog | null)[]
+    >([bootstrapCatalog, bootstrapCatalog]),
+    [drivers, setDrivers] = useState(initialDrivers(bootstrapCatalog)),
     [laps, setLaps] = useState<LapSelection[]>(["best", "best"]);
   const [mode, setMode] = useState<Mode>(
       saved?.comparison.config.mode ?? initialMode,
@@ -145,10 +170,14 @@ export function TelemetryHub({
     [corner, setCorner] = useState<number | undefined>(
       saved?.comparison.config.corner,
     );
-  const [loading, setLoading] = useState(!saved),
+  const bootstrapReady = initialBootstrap?.stage === "ready";
+  const [loading, setLoading] = useState(!saved && !bootstrapReady),
     [loadingPhase, setLoadingPhase] = useState<
       "initial" | "catalog" | "comparison" | null
-    >(saved ? null : "initial"),
+    >(saved || bootstrapReady ? null : "initial"),
+    [bootstrapStage, setBootstrapStage] = useState<TelemetryBootstrapStage>(
+      initialBootstrap?.stage ?? "seasons",
+    ),
     [error, setError] = useState(""),
     [share, setShare] = useState(false),
     [editing, setEditing] = useState(false),
@@ -177,15 +206,43 @@ export function TelemetryHub({
     telemetryRequest<T>(path, {
       signal,
     });
+  function applyBootstrap(data: TelemetryBootstrapData) {
+    setBootstrapStage(data.stage);
+    setSeasons(data.seasons);
+    if (data.season != null) setSeason(data.season);
+    setMeetings(data.meetings);
+    if (data.meeting != null) setMeeting(data.meeting);
+    setSessions(data.sessions);
+    if (data.catalog) {
+      setCatalogs([data.catalog, data.catalog]);
+      setDrivers(initialDrivers(data.catalog));
+      setLaps(["best", "best"]);
+    }
+    if (data.stage === "ready") {
+      setLoading(false);
+      setLoadingPhase(null);
+    }
+  }
+  async function loadInitialBootstrap(signal: AbortSignal) {
+    const data = await telemetryBootstrapRequest(
+      {
+        season: initialSeason,
+        meeting: initialMeeting,
+        session: initialSession,
+      },
+      { signal, onProgress: applyBootstrap },
+    );
+    if (!signal.aborted) applyBootstrap(data);
+  }
   async function pickSession(id: number, signal: AbortSignal, index = 0) {
-    const catalog = await load<Catalog>(`catalog?session=${id}`, signal);
+    const catalog = await load<TelemetrySetupCatalog>(
+      `setup-catalog?session=${id}`,
+      signal,
+    );
     if (signal.aborted) return;
     if (index === 0) {
       setCatalogs([catalog, catalog]);
-      const sorted = [...catalog.drivers].sort(
-        (a, b) => (a.position ?? 99) - (b.position ?? 99),
-      );
-      setDrivers([sorted[0]?.number ?? 0, sorted[1]?.number ?? 0]);
+      setDrivers(initialDrivers(catalog));
       setLaps(["best", "best"]);
     } else {
       setCatalogs((old) => [old[0], catalog]);
@@ -239,25 +296,17 @@ export function TelemetryHub({
   useEffect(() => {
     trackTelemetry("telemetry_open", saved?.id);
     if (saved) return () => controller.current?.abort();
+    if (initialBootstrap?.stage === "ready")
+      return () => controller.current?.abort();
     const c = new AbortController();
     controller.current = c;
-    void load<number[]>("seasons", c.signal)
-      .then(async (years) => {
-        setSeasons(years);
-        if (years.length)
-          await pickSeason(
-            years.includes(initialSeason ?? 0) ? initialSeason! : years[0],
-            c.signal,
-            initialMeeting,
-            initialSession,
-          );
-        else {
-          setLoading(false);
-          setLoadingPhase(null);
-        }
-      })
-      .catch(fail);
-    return () => c.abort();
+    const timer = window.setTimeout(() => {
+      void loadInitialBootstrap(c.signal).catch(fail);
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      c.abort();
+    };
     // Initial route selection is loaded once; subsequent changes are explicit user actions.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -929,7 +978,7 @@ export function TelemetryHub({
               onClick={() =>
                 catalogs[0]
                   ? void compare()
-                  : void pickSeason(season, begin()).catch(fail)
+                  : void loadInitialBootstrap(begin()).catch(fail)
               }
             >
               Попробовать ещё раз
@@ -941,7 +990,11 @@ export function TelemetryHub({
         <div role="status" className="telemetry-loading stitch-panel">
           <Cog aria-hidden="true" className="telemetry-loading-gear" />
           <div>
-            <p className="telemetry-loading-title">Готовим данные</p>
+            <p className="telemetry-loading-title">
+              {loadingPhase === "initial"
+                ? telemetryBootstrapLabel[bootstrapStage]
+                : "Готовим данные"}
+            </p>
             <p className="telemetry-loading-description">
               Первый запуск может занять немного времени.
             </p>

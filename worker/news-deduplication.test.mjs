@@ -5,6 +5,7 @@ import {
   createNewsSourceContentHash,
   getNewsDedupConfig,
   isNewsFeedItemPublishable,
+  isNewsDedupIdentityMatch,
   normalizeNewsSourceUrl,
   parseNewsDedupDecision,
   parseNewsEditorialMetadata,
@@ -27,6 +28,21 @@ const baseArticle = {
   ],
   ingestedAt: "2026-07-19T12:00:00.000Z",
 };
+
+test("classification keeps an opinion separate from an announcement with the same fingerprint", () => {
+  assert.equal(isNewsDedupIdentityMatch({ ...baseArticle, articleType: "opinion" }, { ...baseArticle, articleType: "news" }), false);
+});
+
+test("Slater transfer synonyms do not override a correct duplicate decision", () => {
+  const first = { eventType: "racing_driver_move", eventStage: "announced", eventFingerprint: "freddie_slater_f2_move_2027" };
+  const second = { eventType: "driver_transfer", eventStage: "announcement", eventFingerprint: "freddie_slater_joins_invicta_f2_2027" };
+  assert.equal(isNewsDedupIdentityMatch(first, second), true);
+});
+
+test("the same fingerprint cannot suppress a different stage or an independent analysis", () => {
+  assert.equal(isNewsDedupIdentityMatch(baseArticle, { ...baseArticle, eventStage: "rumour" }), false);
+  assert.equal(isNewsDedupIdentityMatch(baseArticle, { ...baseArticle, eventType: "technical_analysis" }), false);
+});
 
 test("empty dedup model falls back to the configured summary model", () => {
   assert.equal(

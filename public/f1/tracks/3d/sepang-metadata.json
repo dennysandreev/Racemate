@@ -1,0 +1,1831 @@
+{
+  "schemaVersion": 4,
+  "generatedWith": "Blender 5.2.0 LTS",
+  "coordinateReferenceSystem": "EPSG:32647",
+  "verticalDatum": "EGM2008 orthometric metres",
+  "verticalExaggeration": 1,
+  "realWorldScale": "1 unit = 1 metre; no vertical exaggeration",
+  "boundsMeters": {
+    "width": 2000,
+    "depth": 1400
+  },
+  "lapLength": {
+    "geometryMeters": 5545.855027241388,
+    "officialFiaMeters": 5543,
+    "relativeErrorPercent": 0.051506895929779695
+  },
+  "finishDistanceMeters": 0,
+  "sectorBoundaryDistancesMeters": [
+    1443.521687691165,
+    3256.912983863652
+  ],
+  "elevationProfile": [
+    {
+      "distanceMeters": 0.0,
+      "elevationMeters": 40.998
+    },
+    {
+      "distanceMeters": 30.81,
+      "elevationMeters": 41.776
+    },
+    {
+      "distanceMeters": 61.621,
+      "elevationMeters": 42.522
+    },
+    {
+      "distanceMeters": 92.431,
+      "elevationMeters": 42.712
+    },
+    {
+      "distanceMeters": 123.241,
+      "elevationMeters": 42.395
+    },
+    {
+      "distanceMeters": 154.052,
+      "elevationMeters": 42.596
+    },
+    {
+      "distanceMeters": 184.862,
+      "elevationMeters": 42.841
+    },
+    {
+      "distanceMeters": 215.672,
+      "elevationMeters": 43.178
+    },
+    {
+      "distanceMeters": 246.482,
+      "elevationMeters": 43.605
+    },
+    {
+      "distanceMeters": 277.293,
+      "elevationMeters": 42.058
+    },
+    {
+      "distanceMeters": 308.103,
+      "elevationMeters": 40.377
+    },
+    {
+      "distanceMeters": 338.913,
+      "elevationMeters": 38.212
+    },
+    {
+      "distanceMeters": 369.724,
+      "elevationMeters": 36.868
+    },
+    {
+      "distanceMeters": 400.534,
+      "elevationMeters": 37.139
+    },
+    {
+      "distanceMeters": 431.344,
+      "elevationMeters": 37.729
+    },
+    {
+      "distanceMeters": 462.155,
+      "elevationMeters": 37.541
+    },
+    {
+      "distanceMeters": 492.965,
+      "elevationMeters": 37.699
+    },
+    {
+      "distanceMeters": 523.775,
+      "elevationMeters": 37.45
+    },
+    {
+      "distanceMeters": 554.586,
+      "elevationMeters": 37.757
+    },
+    {
+      "distanceMeters": 585.396,
+      "elevationMeters": 37.997
+    },
+    {
+      "distanceMeters": 616.206,
+      "elevationMeters": 38.426
+    },
+    {
+      "distanceMeters": 647.016,
+      "elevationMeters": 38.219
+    },
+    {
+      "distanceMeters": 677.827,
+      "elevationMeters": 37.634
+    },
+    {
+      "distanceMeters": 708.637,
+      "elevationMeters": 37.379
+    },
+    {
+      "distanceMeters": 739.447,
+      "elevationMeters": 37.05
+    },
+    {
+      "distanceMeters": 770.258,
+      "elevationMeters": 36.328
+    },
+    {
+      "distanceMeters": 801.068,
+      "elevationMeters": 35.685
+    },
+    {
+      "distanceMeters": 831.878,
+      "elevationMeters": 34.498
+    },
+    {
+      "distanceMeters": 862.689,
+      "elevationMeters": 32.715
+    },
+    {
+      "distanceMeters": 893.499,
+      "elevationMeters": 31.087
+    },
+    {
+      "distanceMeters": 924.309,
+      "elevationMeters": 29.347
+    },
+    {
+      "distanceMeters": 955.119,
+      "elevationMeters": 27.764
+    },
+    {
+      "distanceMeters": 985.93,
+      "elevationMeters": 26.28
+    },
+    {
+      "distanceMeters": 1016.74,
+      "elevationMeters": 25.394
+    },
+    {
+      "distanceMeters": 1047.55,
+      "elevationMeters": 24.199
+    },
+    {
+      "distanceMeters": 1078.361,
+      "elevationMeters": 23.285
+    },
+    {
+      "distanceMeters": 1109.171,
+      "elevationMeters": 23.19
+    },
+    {
+      "distanceMeters": 1139.981,
+      "elevationMeters": 23.017
+    },
+    {
+      "distanceMeters": 1170.792,
+      "elevationMeters": 22.734
+    },
+    {
+      "distanceMeters": 1201.602,
+      "elevationMeters": 22.848
+    },
+    {
+      "distanceMeters": 1232.412,
+      "elevationMeters": 23.542
+    },
+    {
+      "distanceMeters": 1263.223,
+      "elevationMeters": 24.315
+    },
+    {
+      "distanceMeters": 1294.033,
+      "elevationMeters": 25.203
+    },
+    {
+      "distanceMeters": 1324.843,
+      "elevationMeters": 26.186
+    },
+    {
+      "distanceMeters": 1355.653,
+      "elevationMeters": 27.649
+    },
+    {
+      "distanceMeters": 1386.464,
+      "elevationMeters": 28.927
+    },
+    {
+      "distanceMeters": 1417.274,
+      "elevationMeters": 30.158
+    },
+    {
+      "distanceMeters": 1448.084,
+      "elevationMeters": 30.9
+    },
+    {
+      "distanceMeters": 1478.895,
+      "elevationMeters": 32.109
+    },
+    {
+      "distanceMeters": 1509.705,
+      "elevationMeters": 33.32
+    },
+    {
+      "distanceMeters": 1540.515,
+      "elevationMeters": 34.995
+    },
+    {
+      "distanceMeters": 1571.326,
+      "elevationMeters": 36.333
+    },
+    {
+      "distanceMeters": 1602.136,
+      "elevationMeters": 37.43
+    },
+    {
+      "distanceMeters": 1632.946,
+      "elevationMeters": 37.907
+    },
+    {
+      "distanceMeters": 1663.757,
+      "elevationMeters": 38.896
+    },
+    {
+      "distanceMeters": 1694.567,
+      "elevationMeters": 39.951
+    },
+    {
+      "distanceMeters": 1725.377,
+      "elevationMeters": 41.11
+    },
+    {
+      "distanceMeters": 1756.187,
+      "elevationMeters": 41.053
+    },
+    {
+      "distanceMeters": 1786.998,
+      "elevationMeters": 40.731
+    },
+    {
+      "distanceMeters": 1817.808,
+      "elevationMeters": 40.56
+    },
+    {
+      "distanceMeters": 1848.618,
+      "elevationMeters": 39.954
+    },
+    {
+      "distanceMeters": 1879.429,
+      "elevationMeters": 39.28
+    },
+    {
+      "distanceMeters": 1910.239,
+      "elevationMeters": 38.242
+    },
+    {
+      "distanceMeters": 1941.049,
+      "elevationMeters": 38.063
+    },
+    {
+      "distanceMeters": 1971.86,
+      "elevationMeters": 37.39
+    },
+    {
+      "distanceMeters": 2002.67,
+      "elevationMeters": 36.832
+    },
+    {
+      "distanceMeters": 2033.48,
+      "elevationMeters": 36.989
+    },
+    {
+      "distanceMeters": 2064.29,
+      "elevationMeters": 37.266
+    },
+    {
+      "distanceMeters": 2095.101,
+      "elevationMeters": 37.797
+    },
+    {
+      "distanceMeters": 2125.911,
+      "elevationMeters": 37.813
+    },
+    {
+      "distanceMeters": 2156.721,
+      "elevationMeters": 38.558
+    },
+    {
+      "distanceMeters": 2187.532,
+      "elevationMeters": 38.526
+    },
+    {
+      "distanceMeters": 2218.342,
+      "elevationMeters": 38.631
+    },
+    {
+      "distanceMeters": 2249.152,
+      "elevationMeters": 38.813
+    },
+    {
+      "distanceMeters": 2279.963,
+      "elevationMeters": 38.987
+    },
+    {
+      "distanceMeters": 2310.773,
+      "elevationMeters": 38.703
+    },
+    {
+      "distanceMeters": 2341.583,
+      "elevationMeters": 39.05
+    },
+    {
+      "distanceMeters": 2372.394,
+      "elevationMeters": 39.074
+    },
+    {
+      "distanceMeters": 2403.204,
+      "elevationMeters": 39.114
+    },
+    {
+      "distanceMeters": 2434.014,
+      "elevationMeters": 39.487
+    },
+    {
+      "distanceMeters": 2464.824,
+      "elevationMeters": 39.557
+    },
+    {
+      "distanceMeters": 2495.635,
+      "elevationMeters": 39.582
+    },
+    {
+      "distanceMeters": 2526.445,
+      "elevationMeters": 39.78
+    },
+    {
+      "distanceMeters": 2557.255,
+      "elevationMeters": 40.522
+    },
+    {
+      "distanceMeters": 2588.066,
+      "elevationMeters": 39.632
+    },
+    {
+      "distanceMeters": 2618.876,
+      "elevationMeters": 38.669
+    },
+    {
+      "distanceMeters": 2649.686,
+      "elevationMeters": 38.517
+    },
+    {
+      "distanceMeters": 2680.497,
+      "elevationMeters": 38.892
+    },
+    {
+      "distanceMeters": 2711.307,
+      "elevationMeters": 38.529
+    },
+    {
+      "distanceMeters": 2742.117,
+      "elevationMeters": 37.981
+    },
+    {
+      "distanceMeters": 2772.928,
+      "elevationMeters": 37.648
+    },
+    {
+      "distanceMeters": 2803.738,
+      "elevationMeters": 37.736
+    },
+    {
+      "distanceMeters": 2834.548,
+      "elevationMeters": 37.926
+    },
+    {
+      "distanceMeters": 2865.358,
+      "elevationMeters": 37.518
+    },
+    {
+      "distanceMeters": 2896.169,
+      "elevationMeters": 37.267
+    },
+    {
+      "distanceMeters": 2926.979,
+      "elevationMeters": 37.006
+    },
+    {
+      "distanceMeters": 2957.789,
+      "elevationMeters": 37.2
+    },
+    {
+      "distanceMeters": 2988.6,
+      "elevationMeters": 37.082
+    },
+    {
+      "distanceMeters": 3019.41,
+      "elevationMeters": 36.597
+    },
+    {
+      "distanceMeters": 3050.22,
+      "elevationMeters": 36.097
+    },
+    {
+      "distanceMeters": 3081.031,
+      "elevationMeters": 35.381
+    },
+    {
+      "distanceMeters": 3111.841,
+      "elevationMeters": 35.109
+    },
+    {
+      "distanceMeters": 3142.651,
+      "elevationMeters": 34.965
+    },
+    {
+      "distanceMeters": 3173.461,
+      "elevationMeters": 35.078
+    },
+    {
+      "distanceMeters": 3204.272,
+      "elevationMeters": 35.962
+    },
+    {
+      "distanceMeters": 3235.082,
+      "elevationMeters": 37.559
+    },
+    {
+      "distanceMeters": 3265.892,
+      "elevationMeters": 38.692
+    },
+    {
+      "distanceMeters": 3296.703,
+      "elevationMeters": 40.547
+    },
+    {
+      "distanceMeters": 3327.513,
+      "elevationMeters": 41.706
+    },
+    {
+      "distanceMeters": 3358.323,
+      "elevationMeters": 42.459
+    },
+    {
+      "distanceMeters": 3389.134,
+      "elevationMeters": 43.309
+    },
+    {
+      "distanceMeters": 3419.944,
+      "elevationMeters": 43.995
+    },
+    {
+      "distanceMeters": 3450.754,
+      "elevationMeters": 44.29
+    },
+    {
+      "distanceMeters": 3481.565,
+      "elevationMeters": 44.487
+    },
+    {
+      "distanceMeters": 3512.375,
+      "elevationMeters": 44.523
+    },
+    {
+      "distanceMeters": 3543.185,
+      "elevationMeters": 44.173
+    },
+    {
+      "distanceMeters": 3573.995,
+      "elevationMeters": 43.721
+    },
+    {
+      "distanceMeters": 3604.806,
+      "elevationMeters": 43.321
+    },
+    {
+      "distanceMeters": 3635.616,
+      "elevationMeters": 42.737
+    },
+    {
+      "distanceMeters": 3666.426,
+      "elevationMeters": 41.951
+    },
+    {
+      "distanceMeters": 3697.237,
+      "elevationMeters": 41.473
+    },
+    {
+      "distanceMeters": 3728.047,
+      "elevationMeters": 40.217
+    },
+    {
+      "distanceMeters": 3758.857,
+      "elevationMeters": 39.114
+    },
+    {
+      "distanceMeters": 3789.668,
+      "elevationMeters": 38.511
+    },
+    {
+      "distanceMeters": 3820.478,
+      "elevationMeters": 37.532
+    },
+    {
+      "distanceMeters": 3851.288,
+      "elevationMeters": 37.281
+    },
+    {
+      "distanceMeters": 3882.099,
+      "elevationMeters": 36.119
+    },
+    {
+      "distanceMeters": 3912.909,
+      "elevationMeters": 35.553
+    },
+    {
+      "distanceMeters": 3943.719,
+      "elevationMeters": 34.701
+    },
+    {
+      "distanceMeters": 3974.529,
+      "elevationMeters": 34.067
+    },
+    {
+      "distanceMeters": 4005.34,
+      "elevationMeters": 33.319
+    },
+    {
+      "distanceMeters": 4036.15,
+      "elevationMeters": 32.902
+    },
+    {
+      "distanceMeters": 4066.96,
+      "elevationMeters": 32.88
+    },
+    {
+      "distanceMeters": 4097.771,
+      "elevationMeters": 33.184
+    },
+    {
+      "distanceMeters": 4128.581,
+      "elevationMeters": 33.75
+    },
+    {
+      "distanceMeters": 4159.391,
+      "elevationMeters": 34.657
+    },
+    {
+      "distanceMeters": 4190.202,
+      "elevationMeters": 35.366
+    },
+    {
+      "distanceMeters": 4221.012,
+      "elevationMeters": 35.936
+    },
+    {
+      "distanceMeters": 4251.822,
+      "elevationMeters": 36.276
+    },
+    {
+      "distanceMeters": 4282.632,
+      "elevationMeters": 36.617
+    },
+    {
+      "distanceMeters": 4313.443,
+      "elevationMeters": 36.775
+    },
+    {
+      "distanceMeters": 4344.253,
+      "elevationMeters": 36.771
+    },
+    {
+      "distanceMeters": 4375.063,
+      "elevationMeters": 36.434
+    },
+    {
+      "distanceMeters": 4405.874,
+      "elevationMeters": 36.386
+    },
+    {
+      "distanceMeters": 4436.684,
+      "elevationMeters": 36.681
+    },
+    {
+      "distanceMeters": 4467.494,
+      "elevationMeters": 38.33
+    },
+    {
+      "distanceMeters": 4498.305,
+      "elevationMeters": 38.563
+    },
+    {
+      "distanceMeters": 4529.115,
+      "elevationMeters": 39.01
+    },
+    {
+      "distanceMeters": 4559.925,
+      "elevationMeters": 38.434
+    },
+    {
+      "distanceMeters": 4590.736,
+      "elevationMeters": 37.033
+    },
+    {
+      "distanceMeters": 4621.546,
+      "elevationMeters": 37.41
+    },
+    {
+      "distanceMeters": 4652.356,
+      "elevationMeters": 38.336
+    },
+    {
+      "distanceMeters": 4683.166,
+      "elevationMeters": 39.105
+    },
+    {
+      "distanceMeters": 4713.977,
+      "elevationMeters": 39.176
+    },
+    {
+      "distanceMeters": 4744.787,
+      "elevationMeters": 39.524
+    },
+    {
+      "distanceMeters": 4775.597,
+      "elevationMeters": 38.62
+    },
+    {
+      "distanceMeters": 4806.408,
+      "elevationMeters": 38.203
+    },
+    {
+      "distanceMeters": 4837.218,
+      "elevationMeters": 39.227
+    },
+    {
+      "distanceMeters": 4868.028,
+      "elevationMeters": 38.864
+    },
+    {
+      "distanceMeters": 4898.839,
+      "elevationMeters": 39.115
+    },
+    {
+      "distanceMeters": 4929.649,
+      "elevationMeters": 38.889
+    },
+    {
+      "distanceMeters": 4960.459,
+      "elevationMeters": 39.103
+    },
+    {
+      "distanceMeters": 4991.27,
+      "elevationMeters": 39.076
+    },
+    {
+      "distanceMeters": 5022.08,
+      "elevationMeters": 38.767
+    },
+    {
+      "distanceMeters": 5052.89,
+      "elevationMeters": 39.635
+    },
+    {
+      "distanceMeters": 5083.7,
+      "elevationMeters": 39.427
+    },
+    {
+      "distanceMeters": 5114.511,
+      "elevationMeters": 39.078
+    },
+    {
+      "distanceMeters": 5145.321,
+      "elevationMeters": 38.634
+    },
+    {
+      "distanceMeters": 5176.131,
+      "elevationMeters": 38.411
+    },
+    {
+      "distanceMeters": 5206.942,
+      "elevationMeters": 37.708
+    },
+    {
+      "distanceMeters": 5237.752,
+      "elevationMeters": 36.736
+    },
+    {
+      "distanceMeters": 5268.562,
+      "elevationMeters": 37.814
+    },
+    {
+      "distanceMeters": 5299.373,
+      "elevationMeters": 40.565
+    },
+    {
+      "distanceMeters": 5330.183,
+      "elevationMeters": 40.662
+    },
+    {
+      "distanceMeters": 5360.993,
+      "elevationMeters": 40.086
+    },
+    {
+      "distanceMeters": 5391.803,
+      "elevationMeters": 39.893
+    },
+    {
+      "distanceMeters": 5422.614,
+      "elevationMeters": 40.213
+    },
+    {
+      "distanceMeters": 5453.424,
+      "elevationMeters": 38.801
+    },
+    {
+      "distanceMeters": 5484.234,
+      "elevationMeters": 39.277
+    },
+    {
+      "distanceMeters": 5515.045,
+      "elevationMeters": 40.459
+    },
+    {
+      "distanceMeters": 5545.855,
+      "elevationMeters": 40.998
+    }
+  ],
+  "elevationsMeters": {
+    "low": 22.734066636332027,
+    "high": 44.5535073670786
+  },
+  "baseElevationMeters": 16.290075302124023,
+  "objects": {
+    "turnAnchors": 15,
+    "buildingsTotal": 114,
+    "grandstandSections": 128,
+    "pitGarageBoxes": 33,
+    "raceMotorhomes": 0,
+    "mappedTrees": 1258,
+    "fenceSegments": 269,
+    "serviceRoadSegments": 1872
+  },
+  "layoutQuality": {
+    "surfaceClearance": {
+      "minimumTrackTerrainClearanceMeters": 0.245,
+      "startStraightMinimumClearanceMeters": 0.289,
+      "terrainBreakthroughSamples": 0
+    },
+    "pitLane": {
+      "lengthMeters": 993.3840297816955,
+      "laneWidthMeters": 8,
+      "widthSource": "estimated from mapped building and driving-line clearance; not surveyed",
+      "pitBoxes": 33,
+      "fastLaneSeparator": true,
+      "pitWall": {
+        "fenceHeightMeters": 1.15,
+        "lengthMeters": 526.494,
+        "panels": 176,
+        "wallHeightMeters": 1.05
+      },
+      "entryGapMeters": 0.0,
+      "exitGapMeters": 0.0,
+      "surfaceClearance": {
+        "minimumTrackTerrainClearanceMeters": 0.295,
+        "startStraightMinimumClearanceMeters": 0.295,
+        "terrainBreakthroughSamples": 0
+      }
+    },
+    "buildings": {
+      "renderedCurrentFootprints": 114,
+      "rendered": [
+        {
+          "id": 107364040,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 107364078,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 107364092,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144359492,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144362327,
+          "heightMeters": 13,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144362328,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144362332,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144362333,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144367527,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144367529,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144367532,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144367534,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144367536,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144367542,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144520904,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144520906,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144520908,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144520909,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144520910,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144529846,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144529851,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144529857,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144529859,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144529860,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144529864,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144529866,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144532107,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144533525,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144533526,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144536775,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144536776,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144536777,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144536780,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 144536782,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232836,
+          "heightMeters": 7.2,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232837,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232838,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232839,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232840,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232841,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232842,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232843,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232844,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232845,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1105232846,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106524879,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106524880,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106524881,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106524882,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106524883,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106524884,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106524885,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106576349,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106756634,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106756635,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106762509,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1106762513,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1315275026,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1315275027,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1315275028,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1315275031,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1315275032,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1315275033,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598232,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598233,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598234,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598235,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598236,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598237,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598238,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598239,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598240,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598241,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598242,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598243,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598244,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598245,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598246,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598247,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598248,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598249,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598250,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598251,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598252,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598253,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598254,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598255,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598256,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598257,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598258,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598259,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598260,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598261,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598262,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598263,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598264,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598265,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598266,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598267,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598268,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598269,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598270,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598271,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598273,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598275,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330598301,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330601072,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1330601073,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1560042159,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1561237669,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1561237677,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1561237678,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1561243403,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        },
+        {
+          "id": 1561243404,
+          "heightMeters": 3.6,
+          "heightSource": "estimated from mapped levels/venue photographs"
+        }
+      ],
+      "excluded": [],
+      "remainingTrackConflicts": 0,
+      "maximumFootprintDriftMeters": 0,
+      "roofWindingRepairs": 339,
+      "roofTriangles": 490,
+      "downwardFacingRoofTriangles": 0
+    },
+    "grandstands": {
+      "sections": 128,
+      "stands": [
+        {
+          "id": 107364038,
+          "name": "F Grandstand",
+          "sections": 14,
+          "footprintSource": "current OSM",
+          "heightSource": "photographic estimate; no LoD2/DSM roof survey"
+        },
+        {
+          "id": 107364100,
+          "name": "K1 Grandstand",
+          "sections": 17,
+          "footprintSource": "current OSM",
+          "heightSource": "photographic estimate; no LoD2/DSM roof survey"
+        },
+        {
+          "id": 144247993,
+          "name": "Main Grandstand",
+          "sections": 97,
+          "footprintSource": "current OSM",
+          "heightSource": "photographic estimate; no LoD2/DSM roof survey"
+        }
+      ],
+      "minimumFrontageTrackClearanceMeters": 1.62,
+      "remainingTrackConflicts": 0
+    },
+    "curbs": {
+      "sections": 810,
+      "source": "FIA map and Sentinel-2 visible turn zones; extents approximate"
+    },
+    "terrainSurface": {
+      "style": "mapped-materials",
+      "syntheticGroundOverlays": false,
+      "detailSource": "current OpenStreetMap ground geometry",
+      "macroColorSource": "Copernicus Sentinel-2 L2A TCI 2026-08-15",
+      "sourceResolutionMeters": 10,
+      "textureWidth": 4096,
+      "textureHeight": 2868,
+      "currentGroundPolygons": 133,
+      "polygonCounts": {
+        "paved": 17,
+        "gravel": 11,
+        "grass": 86,
+        "water": 4,
+        "wood": 6,
+        "orchard": 6,
+        "asphalt": 3
+      },
+      "sourceWayIds": [
+        107364043,
+        107364044,
+        107364046,
+        107364061,
+        107364064,
+        107364098,
+        107367359,
+        107367360,
+        107367363,
+        107367365,
+        107367375,
+        107367392,
+        107367395,
+        107367402,
+        107367406,
+        107367413,
+        107367414,
+        144286351,
+        144286367,
+        144286372,
+        144367486,
+        144367513,
+        144529867,
+        144533524,
+        144536145,
+        697087696,
+        793457298,
+        793457302,
+        793457315,
+        1105232828,
+        1105232829,
+        1105232830,
+        1105232831,
+        1105232832,
+        1105232833,
+        1105232834,
+        1105232835,
+        1105232848,
+        1106524868,
+        1106524886,
+        1106756641,
+        1106756642,
+        1106756643,
+        1106756644,
+        1106756645,
+        1106756646,
+        1106756647,
+        1106756648,
+        1106756649,
+        1106756650,
+        1106756651,
+        1106756652,
+        1106762515,
+        1315275058,
+        1315275059,
+        1315275060,
+        1330126004,
+        1330126007,
+        1330126009,
+        1330598281,
+        1331945229,
+        1331945230,
+        1331945231,
+        1558953428,
+        1558953429,
+        1558953430,
+        1559418707,
+        1559418708,
+        1559418709,
+        1559418710,
+        1559418711,
+        1559418713,
+        1559418714,
+        1559418715,
+        1559418719,
+        1559418720,
+        1560042154,
+        1560042155,
+        1560042156,
+        1560042157,
+        1560042158,
+        1560042160,
+        1560042161,
+        1560042162,
+        1560042163,
+        1560042164,
+        1560042167,
+        1560042169,
+        1560042170,
+        1560042171,
+        1560042172,
+        1560042173,
+        1560042174,
+        1560042175,
+        1560042176,
+        1560289538,
+        1560289539,
+        1560289540,
+        1560289541,
+        1560289543,
+        1560289544,
+        1560289545,
+        1560289546,
+        1560289547,
+        1560289548,
+        1560289549,
+        1560289550,
+        1560289551,
+        1560289552,
+        1560289553,
+        1560289554,
+        1560289570,
+        1560289586,
+        1560289588,
+        1560289589,
+        1560303736,
+        1560303737,
+        1560303751,
+        1560303753,
+        1560303758,
+        1560303770,
+        1561237668,
+        1561237684,
+        1561237685,
+        1561243407
+      ],
+      "decorativeMaterialGrain": true,
+      "sourceRelationIds": [
+        14729002,
+        18264481,
+        21393969,
+        21403995,
+        21403996,
+        21403997,
+        21425046,
+        21425047
+      ],
+      "skippedIncompleteRelations": [
+        1954702,
+        1956301,
+        11013504,
+        14786577,
+        20179826
+      ],
+      "multipolygonHolesPreserved": true,
+      "description": "Mapped land-cover boundaries with subdued satellite tint and decorative material grain; not high-resolution aerial imagery."
+    }
+  },
+  "surfaceExport": {
+    "meshoptPositionBits": 18,
+    "paintVerticesDrapedOnDeliveredRoad": 8374
+  },
+  "sourceManifest": {
+    "schemaVersion": 1,
+    "generatedAt": "2026-09-22T06:59:18.207Z",
+    "bounds": {
+      "minX": 803400,
+      "minY": 304800,
+      "maxX": 805400,
+      "maxY": 306200
+    },
+    "coordinateReferenceSystem": "EPSG:32647",
+    "verticalDatum": "EGM2008 orthometric metres",
+    "sources": [
+      {
+        "file": "openstreetmap-map.osm",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=101.727,2.744,101.75,2.769",
+        "license": "ODbL 1.0",
+        "attribution": "\u00a9 OpenStreetMap contributors",
+        "role": "current raceway, pit lanes, footprints, barriers and individually mapped trees",
+        "crs": "EPSG:4326",
+        "resolution": "vector snapshot",
+        "bytes": 3214378,
+        "sha256": "53b7b6b92a0ba30d8fe8cb8ff360be86aec8e2cccbe3ab46262b194cf1c8d110",
+        "bbox": [
+          101.727,
+          2.744,
+          101.75,
+          2.769
+        ],
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-22T06:59:18.203Z",
+        "bboxCrs": "EPSG:4326"
+      },
+      {
+        "file": "fia-2017-circuit-map.pdf",
+        "url": "https://www.fia.com/sites/default/files/formula_one_malaysian_grand_prix_2017_document_-_doc_1.pdf",
+        "license": "FIA document; reference only",
+        "attribution": "FIA / Formula One",
+        "role": "2017 control map; 2026 sporting positions remain unconfirmed",
+        "crs": "document reference",
+        "resolution": "vector PDF, page 2",
+        "bytes": 446252,
+        "sha256": "1388a9183de64fd135d54657ae85a573cd2f99bca73bfa78ff8c18e69e509ce6",
+        "bbox": [
+          101.727,
+          2.744,
+          101.75,
+          2.769
+        ],
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-22T06:59:18.204Z",
+        "bboxCrs": "EPSG:4326"
+      },
+      {
+        "file": "official-architecture.html",
+        "url": "https://www.sepangcircuit.com/architecture",
+        "license": "official venue reference; not redistributed",
+        "attribution": "PETRONAS Sepang International Circuit",
+        "role": "dimensions of track, 33 garages and permanent paddock infrastructure",
+        "crs": "document reference",
+        "resolution": "venue specification",
+        "bytes": 199153,
+        "sha256": "83af27ad941e1f112e1952892daf51581b4df65eecd41525e2250f225c38933b",
+        "bbox": [
+          101.727,
+          2.744,
+          101.75,
+          2.769
+        ],
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-22T06:59:18.204Z",
+        "bboxCrs": "EPSG:4326"
+      },
+      {
+        "file": "official-main-grandstand.html",
+        "url": "https://www.sepangcircuit.com/main-grandstand",
+        "license": "official venue reference; not redistributed",
+        "attribution": "PETRONAS Sepang International Circuit",
+        "role": "current double-frontage main stand and seating",
+        "crs": "document reference",
+        "resolution": "venue reference",
+        "bytes": 178617,
+        "sha256": "09230a5e3bffdeec261d1c6bea94690492701cb9d0fc736118f70fb8ff5ac2d7",
+        "bbox": [
+          101.727,
+          2.744,
+          101.75,
+          2.769
+        ],
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-22T06:59:18.204Z",
+        "bboxCrs": "EPSG:4326"
+      },
+      {
+        "file": "main-grandstand-photo.jpg",
+        "url": "https://www.sepangcircuit.com/media/mageplus/tickets/main-grandstand.jpg",
+        "license": "official venue reference; not redistributed",
+        "attribution": "PETRONAS Sepang International Circuit",
+        "role": "canopy form, columns and seat colours; observational reference only",
+        "crs": "document reference",
+        "resolution": "photograph",
+        "bytes": 1399632,
+        "sha256": "4bc80566bdaa59a04210aa7a02f1fdd756117adf424c8c6d3fc99e686c95e6a7",
+        "bbox": [
+          101.727,
+          2.744,
+          101.75,
+          2.769
+        ],
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-22T06:59:18.205Z",
+        "bboxCrs": "EPSG:4326"
+      },
+      {
+        "file": "official-event-guide.pdf",
+        "url": "https://www.sepangcircuit.com/media/wysiwyg/pdf/MGP25_Spectator_Guide_v2.pdf",
+        "license": "official venue reference; not redistributed",
+        "attribution": "PETRONAS Sepang International Circuit",
+        "role": "2025 venue spectator layout; not a 2026 F1 temporary-object source",
+        "crs": "document reference",
+        "resolution": "PDF",
+        "bytes": 1609091,
+        "sha256": "c69148b75f20e9533b781014be27a036e4df46ee757c86eb2e60058912dd2918",
+        "bbox": [
+          101.727,
+          2.744,
+          101.75,
+          2.769
+        ],
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-22T06:59:18.206Z",
+        "bboxCrs": "EPSG:4326"
+      },
+      {
+        "file": "sentinel-tci.tif",
+        "url": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/47/N/RD/2026/8/S2C_47NRD_20260815_0_L2A/TCI.tif",
+        "license": "Copernicus Sentinel Data Terms",
+        "attribution": "Contains modified Copernicus Sentinel data 2026",
+        "role": "real surface colours; acquisition 2026-08-15",
+        "crs": "EPSG:32647",
+        "resolution": "10 m native TCI; clipped COG",
+        "bytes": 81424,
+        "sha256": "5e8158144a52738008e4db010ded66d07f4445269bb2df1022858013e5f40316",
+        "bbox": {
+          "minX": 803400,
+          "minY": 304800,
+          "maxX": 805400,
+          "maxY": 306200
+        },
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-22T06:59:18.206Z",
+        "bboxCrs": "EPSG:32647"
+      },
+      {
+        "file": "copernicus-dem.tif",
+        "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N02_00_E101_00_DEM/Copernicus_DSM_COG_10_N02_00_E101_00_DEM.tif",
+        "license": "Copernicus DEM GLO-30 public licence",
+        "attribution": "\u00a9 DLR e.V. 2010\u20132014 and \u00a9 Airbus Defence and Space GmbH 2014\u20132018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+        "role": "terrain height proxy; DSM, not surveyed bare-earth DTM",
+        "crs": "EPSG:4326 + EGM2008",
+        "resolution": "30 m native DSM; clipped COG",
+        "bytes": 16911,
+        "sha256": "749f9317e5716131e08641e4768040ebcd7d88a3b671aed23be3cb466ee02ed3",
+        "bbox": {
+          "minX": 803400,
+          "minY": 304800,
+          "maxX": 805400,
+          "maxY": 306200
+        },
+        "verticalDatum": "EGM2008 orthometric metres",
+        "retrievedAt": "2026-09-22T06:59:18.206Z",
+        "bboxCrs": "EPSG:32647"
+      },
+      {
+        "file": "openstreetmap.json",
+        "url": "https://api.openstreetmap.org/api/0.6/map?bbox=101.727,2.744,101.75,2.769",
+        "license": "ODbL 1.0",
+        "attribution": "\u00a9 OpenStreetMap contributors",
+        "role": "lossless parsed vector snapshot with original IDs",
+        "crs": "EPSG:4326",
+        "resolution": "vector",
+        "bytes": 843588,
+        "sha256": "a6a475fb95819bb4fd862b5f2a6c1e36d95b7be852610f852da50a3434488db2",
+        "bbox": [
+          101.727,
+          2.744,
+          101.75,
+          2.769
+        ],
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-22T06:59:18.207Z",
+        "bboxCrs": "EPSG:4326"
+      },
+      {
+        "file": "main-grandstand-map.jpg",
+        "url": "https://www.sepangcircuit.com/media/mageplus/tickets/SIC-Map_MGS.jpg",
+        "license": "official venue reference; not redistributed",
+        "attribution": "PETRONAS Sepang International Circuit",
+        "role": "main stand footprint and circular umbrella roof",
+        "crs": "document reference",
+        "resolution": "venue map",
+        "bytes": 278484,
+        "sha256": "ce4ca97a21efdc233c26e5d74f53bedae058e08510002a382eb55a6ceae3d0fb",
+        "bbox": [
+          101.727,
+          2.744,
+          101.75,
+          2.769
+        ],
+        "bboxCrs": "EPSG:4326",
+        "verticalDatum": null,
+        "retrievedAt": "2026-09-22T07:18:54.406Z"
+      }
+    ]
+  },
+  "officialSources": [
+    {
+      "url": "https://www.fia.com/sites/default/files/formula_one_malaysian_grand_prix_2017_document_-_doc_1.pdf",
+      "role": "2017 control map; 2026 sporting positions remain unconfirmed"
+    },
+    {
+      "url": "https://www.sepangcircuit.com/architecture",
+      "role": "dimensions of track, 33 garages and permanent paddock infrastructure"
+    },
+    {
+      "url": "https://www.sepangcircuit.com/main-grandstand",
+      "role": "current double-frontage main stand and seating"
+    },
+    {
+      "url": "https://www.sepangcircuit.com/media/wysiwyg/pdf/MGP25_Spectator_Guide_v2.pdf",
+      "role": "2025 venue spectator layout; not a 2026 F1 temporary-object source"
+    }
+  ],
+  "controlPointReference": {
+    "referenceYear": 2017,
+    "currentEventVerified": false,
+    "sectorBoundaries": [
+      {
+        "sector": 2,
+        "absoluteDistanceMeters": 1443.521687691165
+      },
+      {
+        "sector": 3,
+        "absoluteDistanceMeters": 3256.912983863652
+      }
+    ],
+    "speedTrap": {
+      "turn": 15,
+      "beforeTurnMeters": 207
+    },
+    "drs": []
+  },
+  "limitations": [
+    "Control markers use FIA 2017 Document 1; a 2026 operational map has not been verified. No 2017 DRS zones are asserted for 2026.",
+    "Ground is a 30 m Copernicus surface DEM, not surveyed bare-earth terrain; banking cannot be reconstructed from it.",
+    "Ground materials use mapped OSM boundaries, subdued Sentinel-2 colour at 10 m and decorative grain; the 4K texture is not surveyed high-resolution imagery. Parking materials without surface tags are estimated. Building roof shapes and heights without OSM measurements are explicitly estimated.",
+    "No unverified 2026 temporary grandstands or motorhomes are invented. Permanent paddock buildings use current mapped footprints."
+  ],
+  "publicationStatus": "review-required"
+}

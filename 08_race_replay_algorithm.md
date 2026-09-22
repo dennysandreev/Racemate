@@ -28,6 +28,15 @@ The prepare job loads and caches:
 
 The normalized output is saved as replay events and a compact session snapshot.
 
+After a main race finishes, LIVE queues archive recovery after 2 minutes, 15
+minutes and 1 hour. An enabled `race_replay.prepare_completed` schedule also
+checks once per day as a fallback, including after worker restarts. Ready
+replays are skipped before any external fetch or preparation. Only a ready main
+race from the same season satisfies recovery; a sprint does not. Preparation
+waits until the source session has ended, rejects missing locations/laps, and
+retries failures. Duration includes the final lap timing even if coordinates
+end earlier. Availability still depends on the source and running workers.
+
 ## Track Construction
 
 1. Build a technical centerline from OpenF1 location points.
@@ -48,6 +57,13 @@ The UI renders the track from the cached map definition. Sectors are visual only
 2. Between telemetry samples, the player interpolates by replay time.
 3. Around the start / finish line, interpolation must prefer lap continuity so a car does not jump backward between the end of one lap and the beginning of the next.
 4. Stale or missing telemetry is not drawn as an active car. Retired cars move into the `OUT` list instead of staying on the track.
+
+The replay uses the shared LIVE terminal with playback controls below the
+workspace. Its monotonic clock starts at 1× and is sampled on every animation
+frame by both 2D and 3D renderers, without the LIVE network jitter buffer.
+Lap-based motion follows the circuit, including long timed laps; pit entry and
+exit anchor the trajectory. The 3D model aligns those anchors to its own pit
+geometry. Seeking restores only events and timing available at that moment.
 
 ## Pit Lane
 

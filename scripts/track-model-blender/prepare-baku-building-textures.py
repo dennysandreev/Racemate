@@ -6,9 +6,30 @@ import json
 from pathlib import Path
 import urllib.request
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def prepare_window_bay(output):
+    """One repeatable architectural bay, tinted by each building's vertex colour.
+
+    This is an approximate diagram of a window, not an invented photograph.
+    Padding at the tile edges keeps corners and floor joins free of cut windows.
+    """
+    tile = Image.new("RGB", (128, 128), (255, 255, 255))
+    draw = ImageDraw.Draw(tile)
+    draw.rectangle((0, 6, 127, 10), fill=(209, 207, 199))
+    draw.rectangle((0, 11, 127, 14), fill=(250, 250, 247))
+    draw.rectangle((37, 28, 94, 105), fill=(167, 158, 143))
+    draw.rectangle((34, 24, 91, 102), fill=(247, 242, 227))
+    draw.rectangle((39, 29, 86, 97), fill=(56, 75, 87))
+    draw.polygon(((41, 31), (61, 31), (41, 72)), fill=(87, 106, 114))
+    draw.polygon(((66, 54), (84, 35), (84, 82), (66, 97)), fill=(67, 88, 100))
+    draw.rectangle((61, 28, 65, 99), fill=(224, 222, 210))
+    draw.rectangle((39, 52, 87, 55), fill=(224, 222, 210))
+    draw.rectangle((32, 100, 93, 104), fill=(250, 246, 232))
+    tile.save(output, optimize=True)
 SOURCES = [
     {"id": "ismailiyya", "file": "ismailiyya.jpg", "author": "Sefer azeri", "date": "2015-09-17",
      "page": "https://commons.wikimedia.org/wiki/File:Ismailiyye_palace_main_fa%C3%A7ade,_Baku,_2015.jpg",
@@ -49,10 +70,14 @@ def main():
         image = Image.open(destination).convert("RGB").crop(source["cropPixels"])
         atlas.paste(image.resize((x1-x0,y1-y0), Image.Resampling.LANCZOS), (x0,y0))
     output = ROOT / ".track-model-build/baku-prepared/baku-landmark-facades.jpg"
-    atlas.save(output, quality=87, optimize=True)
+    atlas.save(output, quality=82, optimize=True)
+    window_output = output.with_name("baku-window-bay.png")
+    prepare_window_bay(window_output)
     manifest = {"sources": SOURCES, "license": "https://creativecommons.org/licenses/by-sa/4.0/",
                 "atlasSize": list(atlas.size), "outputSha256": hashlib.sha256(output.read_bytes()).hexdigest(),
-                "limits": "Two actual photographed landmarks; other facades use approximate stone colours. Roofs use the georegistered Planet image."}
+                "windowBay": {"file": window_output.name, "sha256": hashlib.sha256(window_output.read_bytes()).hexdigest(),
+                              "accuracy": "Procedural window frames, glazing, sill and floor cornice; not a surveyed or photographed facade."},
+                "limits": "Two actual photographed landmarks; other facades use approximate window bays and stone colours. Roofs use the georegistered Planet image."}
     manifest_path.write_text(json.dumps(manifest, indent=2)+"\n")
     print(json.dumps({"atlasBytes": output.stat().st_size, "landmarks": len(SOURCES)}))
 

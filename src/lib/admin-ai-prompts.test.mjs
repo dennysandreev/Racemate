@@ -13,7 +13,7 @@ test("AI prompt catalog covers every declared task and validates its templates",
   const validation = validateAdminAiPromptCatalog();
 
   assert.equal(validation.ok, true);
-  assert.equal(adminAiPromptCatalog.length, 10);
+  assert.equal(adminAiPromptCatalog.length, 11);
   assert.deepEqual(
     [...new Set(adminAiPromptCatalog.map((definition) => definition.key))].length,
     adminAiPromptCatalog.length,

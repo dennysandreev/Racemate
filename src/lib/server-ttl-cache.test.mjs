@@ -60,6 +60,23 @@ test("failed cold loads are retried instead of poisoning the cache", async () =>
   assert.equal(await cache("public:news", 100, async () => "recovered"), "recovered");
 });
 
+test("values rejected by the cache policy are returned but never retained", async () => {
+  const { cache } = setup();
+  const options = { shouldCache: (value) => value.ready };
+  assert.deepEqual(
+    await cache("public:bootstrap", 100, async () => ({ ready: false }), options),
+    { ready: false },
+  );
+  assert.deepEqual(
+    await cache("public:bootstrap", 100, async () => ({ ready: true }), options),
+    { ready: true },
+  );
+  assert.deepEqual(
+    await cache("public:bootstrap", 100, async () => assert.fail("ready value missed"), options),
+    { ready: true },
+  );
+});
+
 test("explicit invalidation refreshes exact and prefixed entries", async () => {
   const { cache, invalidate, invalidatePrefix } = setup();
   await cache("auth:subscription:user-1", 100, async () => "old-1");

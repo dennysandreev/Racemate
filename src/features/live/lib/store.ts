@@ -43,6 +43,10 @@ export class LiveStore {
   private listeners = new Map<string, Set<() => void>>();
   locations = new Map<number, LocationSample[]>();
   telemetry = new Map<number, TelemetrySample[]>();
+  private replaySampler: ((driverNumber: number) => (LocationSample & { stale: boolean }) | null) | null = null;
+  setReplaySampler(sampler: typeof this.replaySampler) {
+    this.replaySampler = sampler;
+  }
   subscribe = (key: string, fn: () => void) => {
     if (!this.listeners.has(key)) this.listeners.set(key, new Set());
     this.listeners.get(key)!.add(fn);
@@ -58,6 +62,14 @@ export class LiveStore {
       this.connection = value;
       this.notify("connection");
     }
+  }
+  resetSamples() {
+    const telemetryDrivers = [...this.telemetry.keys()];
+    this.locations.clear();
+    this.telemetry.clear();
+    telemetryDrivers.forEach((driverNumber) =>
+      this.notify(`telemetry:${driverNumber}`),
+    );
   }
   accept(message: LiveMessage) {
     const offset = message.serverTime - Date.now();
@@ -171,6 +183,7 @@ export class LiveStore {
     n: number,
     now = Date.now() + this.clockOffset - this.playbackDelayMs,
   ) {
+    if (this.replaySampler) return this.replaySampler(n);
     if (
       ["DNF", "DNS", "RETIRED", "DSQ"].includes(this.state.drivers[n]?.status)
     )

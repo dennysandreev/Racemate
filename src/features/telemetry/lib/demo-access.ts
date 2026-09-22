@@ -3,6 +3,7 @@ import "server-only";
 import { selectTelemetryDemoCandidates } from "@/features/telemetry/lib/demo-selection";
 import { resultKey, telemetryStore } from "@/features/telemetry/lib/server";
 import type { Meeting, Session } from "@/features/telemetry/lib/types";
+import { withServerTtlCache } from "@/lib/server-ttl-cache";
 
 export type TelemetryDemoScope = {
   meeting: Meeting;
@@ -10,6 +11,15 @@ export type TelemetryDemoScope = {
 };
 
 export async function getTelemetryDemoScope(): Promise<TelemetryDemoScope | null> {
+  return withServerTtlCache(
+    "telemetry:demo-scope",
+    60_000,
+    loadTelemetryDemoScope,
+    { staleWhileRevalidateMs: 5 * 60_000 },
+  );
+}
+
+async function loadTelemetryDemoScope(): Promise<TelemetryDemoScope | null> {
   const store = telemetryStore();
   const years = (await store.get<number[]>(resultKey({ kind: "seasons" }))) ?? [];
   const seasons = await Promise.all(

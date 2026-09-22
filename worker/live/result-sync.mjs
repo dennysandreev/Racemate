@@ -39,7 +39,20 @@ export async function queueSessionResultSync(db, session, now = Date.now()) {
       title: "Проверить официальный итог сессии Jolpica",
     },
   }));
-  const jobs = [...openF1Jobs, ...jolpicaJobs];
+  const replayJobs = session.session_name === "Race"
+    ? [120_000, 900_000, 3_600_000].map((delay) => ({
+        job_name: "race_replay.prepare_completed",
+        status: "queued",
+        queue_version: 1,
+        available_at: new Date(now + delay).toISOString(),
+        attempt_count: 0,
+        max_attempts: 3,
+        request_key: `live-race-replay:${sessionKey}:${delay}`,
+        items_processed: 0,
+        metadata: { source: "live_session_end", args: {}, sessionKey, title: "Сохранить повтор гонки" },
+      }))
+    : [];
+  const jobs = [...openF1Jobs, ...jolpicaJobs, ...replayJobs];
   const keys = jobs.map((job) => job.request_key);
   const { data: existing, error: readError } = await db
     .from("job_runs")

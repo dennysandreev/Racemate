@@ -64,7 +64,9 @@ source and checksum explicitly.
 
 The public `tracks/3d/baku-metadata.json` records source hashes, provenance, approximation limits and scene metrics. Reference WorldView tiles are not embedded or redistributed in the model.
 
-Building texture additions: Sefer azeri, [Ismailiyye palace main façade, Baku, 2015](https://commons.wikimedia.org/wiki/File:Ismailiyye_palace_main_fa%C3%A7ade,_Baku,_2015.jpg), 17 September 2015; Ludvig14, [Baku Maiden Tower 004 7736](https://commons.wikimedia.org/wiki/File:Baku_Maiden_Tower_004_7736.jpg), 19 April 2019. Both photographs are CC BY-SA 4.0. Images were cropped, resized, assembled into a texture atlas and mapped onto their corresponding OSM buildings. The tower uses a repeated masonry detail from its own photograph; unphotographed facades remain approximate. All building roofs use georeferenced pixels from the Planet image credited above.
+Building texture additions: Sefer azeri, [Ismailiyye palace main façade, Baku, 2015](https://commons.wikimedia.org/wiki/File:Ismailiyye_palace_main_fa%C3%A7ade,_Baku,_2015.jpg), 17 September 2015; Ludvig14, [Baku Maiden Tower 004 7736](https://commons.wikimedia.org/wiki/File:Baku_Maiden_Tower_004_7736.jpg), 19 April 2019. Both photographs are CC BY-SA 4.0. Images were cropped, resized, assembled into a texture atlas and mapped onto their corresponding OSM buildings. The tower uses a repeated masonry detail from its own photograph; unphotographed facades remain approximate. Generic building roofs use georeferenced pixels from the Planet image credited above.
+
+Individual hotel geometry: Nemoralis, [Hilton Hotel and Government House, Baku](https://commons.wikimedia.org/wiki/File:Hilton_Hotel_and_Government_House,_Baku.jpg) and [JW Marriott Absheron](https://commons.wikimedia.org/wiki/File:JW_Marriott_Absheron.jpg), 13 March 2024, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). These photographs were used as architectural references for approximate glazing, stone bands, balconies and roof geometry; the photographs are not embedded as textures. Mapped footprints come from OSM ways 152192792 and 153128834. The restored courtyard building uses OSM relation 2249851, including both inner rings. Source records and accuracy notes: `docs/track-model-baku-hotels.json`.
 
 ## Team Logos
 
@@ -79,3 +81,19 @@ Building texture additions: Sefer azeri, [Ismailiyye palace main façade, Baku, 
 - Racing Bulls: https://media.formula1.com/image/upload/c_lfill,w_160/q_auto/v1740000001/common/f1/2026/racingbulls/2026racingbullslogowhite.webp
 - Red Bull Racing: https://www.redbullracing.com/_next/static/media/ORBR_logo_2026.4059dac5.svg
 - Williams: https://media.formula1.com/image/upload/c_lfill,w_160/q_auto/v1740000001/common/f1/2026/williams/2026williamslogowhite.webp
+
+## Miami 2026 Blender model
+
+- Circuit, pit, roads, current footprints and mapped vegetation: © OpenStreetMap contributors, ODbL 1.0, https://www.openstreetmap.org/copyright.
+- Ground imagery and sampled roof colours: Miami-Dade County | GIS Groups, county imagery service labelled 2025, "For Public Use", supplied as-is. Terms: https://www.arcgis.com/sharing/rest/content/items/2e7e836d383a44b688b36a6ae4a4763d?f=pjson.
+- Terrain: USGS 3DEP, FL_MiamiDade_D23, NAVD88 bare-earth DTM 1 m; US public domain.
+- FIA Miami 2026 Document 5 and FIA/FOM Miami 2026 Media Kit: control and event-layout reference only. Copyright documents are not embedded or republished in the GLB.
+- Exact source URLs, hashes, dates, resolution and limitations are published in `/f1/tracks/3d/miami-metadata.json`; repository source card: `docs/track-model-miami-source-card.md`.
+
+## Monaco 2026 Blender model
+
+- Circuit, pit lane, current building footprints and mapped trees: © OpenStreetMap contributors, [ODbL 1.0](https://www.openstreetmap.org/copyright), relation 148194. Geometry projected to EPSG:32632; multipolygon outer/inner rings retained.
+- Ground and roof imagery: DPUM, Gouvernement Princier de Monaco, [SIGM Orthophoto 2020 WGS84](https://tiles.arcgis.com/tiles/DkYiS0lDHb5soLgl/arcgis/rest/services/SIGM_Orthophoto_2020_WGS84_2/MapServer). Source areas dated 2019/2015. Tiles reprojected, resampled and mapped onto terrain and roof caps. Publicly accessible service; its metadata does not state an explicit redistribution licence. No open-data licence is asserted for this imagery.
+- Ground and roof elevations: IGN, [LiDAR HD MNT/MNS](https://www.data.gouv.fr/datasets/mnt-lidar-hd), May/June 2021 acquisition, IGN69 vertical datum, 0.5 m source exported at 1 m. Etalab Open Licence 2.0. Road heights regularised locally; no vertical exaggeration.
+- FIA Monaco 2026 Document 7, FIA/ACM 2026 Media Kit, ACM Hospitality 2026 and Audi's “The race between races” (10 June 2026): factual event-layout references. Documents and photographs are not embedded in the model.
+- Exact URLs, dates, hashes and modelling limits: `/f1/tracks/3d/monaco-metadata.json` and repository `docs/track-model-monaco-source-card.md`. Unverified individual 2026 motorhomes are omitted.

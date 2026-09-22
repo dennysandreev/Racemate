@@ -54,6 +54,11 @@
     1792,
     768
   ],
-  "outputSha256": "e37eb162be10196e6b47a3ad447d67a8a999b36b6be86ddad4a2e34917da5e3f",
-  "limits": "Two actual photographed landmarks; other facades use approximate stone colours. Roofs use the georegistered Planet image."
+  "outputSha256": "a9ad6e6d4422b49c254d33bec2fbf4b9e4218cd5432884e90508d153f511b05a",
+  "windowBay": {
+    "file": "baku-window-bay.png",
+    "sha256": "6036945baf4df3b58ff9ebc0ca0e99b1244ab2653d90e5e2d09e2ebb80b29ca7",
+    "accuracy": "Procedural window frames, glazing, sill and floor cornice; not a surveyed or photographed facade."
+  },
+  "limits": "Two actual photographed landmarks; other facades use approximate window bays and stone colours. Roofs use the georegistered Planet image."
 }

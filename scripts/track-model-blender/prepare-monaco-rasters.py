@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare Monaco government orthophoto and Terrarium elevation for Blender."""
+"""Reproject Monaco's orthophoto and prepare measured IGN69 LiDAR rasters."""
 
 from __future__ import annotations
 
@@ -7,13 +7,13 @@ import argparse
 import json
 import math
 import struct
+from array import array
 from pathlib import Path
 
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image
+import importlib.util
 
 
-GRID_WIDTH = 121
-GRID_HEIGHT = 153
 GROUND_TEXTURE_NAME = "monaco-government-orthophoto.jpg"
 
 
@@ -46,42 +46,43 @@ class TileSet:
         y = (1.0 - math.asinh(math.tan(latitude)) / math.pi) / 2.0 * scale
         return x, y
 
-    def sample(self, lon, lat):
-        global_x, global_y = self.global_pixel(lon, lat)
-        tile_x = math.floor(global_x / self.tile_size)
-        tile_y = math.floor(global_y / self.tile_size)
-        image = self.images[(tile_x, tile_y)]
-        local_x = min(max(int(global_x - tile_x * self.tile_size), 0), image.width - 1)
-        local_y = min(max(int(global_y - tile_y * self.tile_size), 0), image.height - 1)
-        return image.getpixel((local_x, local_y))
+    def reproject(self, bounds, maximum_dimension=3_072):
+        """Inverse-map UTM pixel centres into Web Mercator, never stretch a bbox.
 
-    def crop(self, bounds):
-        west, north = self.global_pixel(bounds["west"], bounds["north"])
-        east, south = self.global_pixel(bounds["east"], bounds["south"])
-        min_tile_x = min(x for x, _ in self.images)
-        min_tile_y = min(y for _, y in self.images)
-        max_tile_x = max(x for x, _ in self.images)
-        max_tile_y = max(y for _, y in self.images)
-        mosaic = Image.new(
-            "RGB",
-            (
-                (max_tile_x - min_tile_x + 1) * self.tile_size,
-                (max_tile_y - min_tile_y + 1) * self.tile_size,
-            ),
-        )
-        for (tile_x, tile_y), image in self.images.items():
-            mosaic.paste(
-                image,
-                ((tile_x - min_tile_x) * self.tile_size, (tile_y - min_tile_y) * self.tile_size),
-            )
-        origin_x = min_tile_x * self.tile_size
-        origin_y = min_tile_y * self.tile_size
-        return mosaic.crop((
-            round(west - origin_x),
-            round(north - origin_y),
-            round(east - origin_x),
-            round(south - origin_y),
+        Pillow's mesh uses sub-pixel quadrilateral interpolation within 32px
+        cells. The UTM projection is evaluated at every cell corner.
+        """
+        min_x = min(x for x, _ in self.images) * self.tile_size
+        min_y = min(y for _, y in self.images) * self.tile_size
+        mosaic = Image.new("RGB", (
+            (max(x for x, _ in self.images) + 1) * self.tile_size - min_x,
+            (max(y for _, y in self.images) + 1) * self.tile_size - min_y,
         ))
+        for (x, y), image in self.images.items():
+            mosaic.paste(image, (x * self.tile_size - min_x, y * self.tile_size - min_y))
+        width_m = bounds["maxX"] - bounds["minX"]
+        height_m = bounds["maxY"] - bounds["minY"]
+        scale = maximum_dimension / max(width_m, height_m)
+        size = (round(width_m * scale), round(height_m * scale))
+
+        def source_pixel(x, y):
+            lat, lon = wgs84_from_utm32n(
+                bounds["minX"] + x / size[0] * width_m,
+                bounds["maxY"] - y / size[1] * height_m,
+            )
+            px, py = self.global_pixel(lon, lat)
+            if not (0 <= px - min_x <= mosaic.width and 0 <= py - min_y <= mosaic.height):
+                raise ValueError("Orthophoto tile coverage does not contain the UTM scene")
+            return px - min_x, py - min_y
+
+        mesh = []
+        for y in range(0, size[1], 32):
+            for x in range(0, size[0], 32):
+                x1, y1 = min(x + 32, size[0]), min(y + 32, size[1])
+                quad = [coordinate for point in ((x, y), (x, y1), (x1, y1), (x1, y))
+                        for coordinate in source_pixel(*point)]
+                mesh.append(((x, y, x1, y1), quad))
+        return mosaic.transform(size, Image.Transform.MESH, mesh, Image.Resampling.BICUBIC)
 
 
 def wgs84_from_utm32n(easting, northing):
@@ -125,29 +126,31 @@ def wgs84_from_utm32n(easting, northing):
     return math.degrees(latitude), math.degrees(longitude)
 
 
-def terrarium_elevation(rgb):
-    red, green, blue = rgb
-    return red * 256 + green + blue / 256 - 32_768
-
-
 def write_grid(path, values):
     with path.open("wb") as handle:
         for value in values:
             handle.write(struct.pack("<f", value))
 
 
-def prepare_orthophoto(image):
-    maximum_dimension = 1_920
-    scale = min(1.0, maximum_dimension / max(image.size))
-    if scale < 1:
-        image = image.resize(
-            (round(image.width * scale), round(image.height * scale)),
-            Image.Resampling.LANCZOS,
-        )
-    image = ImageEnhance.Color(image).enhance(0.88)
-    image = ImageEnhance.Contrast(image).enhance(1.06)
-    image = ImageEnhance.Brightness(image).enhance(0.94)
-    return image.filter(ImageFilter.UnsharpMask(radius=1.0, percent=45, threshold=3))
+def prepare_lidar(source, destination, bounds):
+    image = Image.open(source)
+    if image.mode != "F":
+        raise ValueError(f"Expected floating-point elevation GeoTIFF: {source}")
+    values = array("f", image.getdata())
+    missing = sum(not math.isfinite(v) or v < -10 for v in values)
+    # No-data at the offshore tile edge is blended by WMS into values down to -947 m.
+    # This coastal scene has no ground below -10 m; retain invalid cells as NaN.
+    values = array("f", (v if math.isfinite(v) and v >= -10 else math.nan for v in values))
+    write_grid(destination, values)
+    valid = [v for v in values if math.isfinite(v)]
+    return {
+        "height": image.height, "width": image.width,
+        "minimum": min(valid), "maximum": max(valid), "mean": sum(valid) / len(valid),
+        "noDataSamples": missing, "noDataThresholdMeters": -10, "sourceResolutionMeters": 0.5, "exportResolutionMeters": 1,
+        "verticalDatum": "IGN69 (EPSG:5720)",
+        "sampleBounds": {"minX": bounds["minX"] + 0.5, "maxX": bounds["maxX"] - 0.5,
+                         "minY": bounds["minY"] + 0.5, "maxY": bounds["maxY"] - 0.5},
+    }
 
 
 def main():
@@ -155,40 +158,27 @@ def main():
     source_directory = Path(args.source).resolve()
     output_directory = Path(args.output).resolve()
     output_directory.mkdir(parents=True, exist_ok=True)
+    spec = importlib.util.spec_from_file_location("monaco_facades", Path(__file__).with_name("prepare-monaco-facades.py"))
+    facades = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(facades)
+    facades.prepare_facades(output_directory)
     tile_manifest = load_json(source_directory / "terrain-tile-manifest.json")
     source_manifest = load_json(source_directory / "source-manifest.json")
     bounds = source_manifest["bounds"]
-    elevation_tiles = TileSet(source_directory, tile_manifest["elevation"])
     orthophoto_tiles = TileSet(source_directory, tile_manifest["orthophoto"])
-
-    values = []
-    for row in range(GRID_HEIGHT):
-        y = bounds["maxY"] - (bounds["maxY"] - bounds["minY"]) * row / (GRID_HEIGHT - 1)
-        for column in range(GRID_WIDTH):
-            x = bounds["minX"] + (bounds["maxX"] - bounds["minX"]) * column / (GRID_WIDTH - 1)
-            lat, lon = wgs84_from_utm32n(x, y)
-            values.append(terrarium_elevation(elevation_tiles.sample(lon, lat)))
-
-    write_grid(output_directory / "monaco-dtm.f32le", values)
-    write_grid(output_directory / "monaco-dsm.f32le", values)
-    orthophoto = prepare_orthophoto(orthophoto_tiles.crop(tile_manifest["boundsWgs84"]))
+    rasters = {
+        key: prepare_lidar(source_directory / file, output_directory / f"monaco-{key}.f32le", bounds)
+        for key, file in (("dtm", "ign-mnt-1m.tif"), ("dsm", "ign-mns-1m.tif"))
+    }
+    orthophoto = orthophoto_tiles.reproject(bounds)
     orthophoto.save(
         output_directory / GROUND_TEXTURE_NAME,
         format="JPEG",
-        quality=90,
+        quality=80,
         optimize=True,
         progressive=True,
     )
 
-    raster = {
-        "height": GRID_HEIGHT,
-        "maximum": max(values),
-        "mean": sum(values) / len(values),
-        "minimum": min(values),
-        "sourceResolutionMeters": 19.0,
-        "verticalDatum": "Terrarium source DEM metres",
-        "width": GRID_WIDTH,
-    }
     metadata = {
         "bounds": bounds,
         "coordinateReferenceSystem": "EPSG:32632",
@@ -196,17 +186,19 @@ def main():
             "attribution": "DPUM, Gouvernement Princier de Monaco",
             "height": orthophoto.height,
             "source": "official SIGM Orthophoto 2020 WGS84 tiled service",
+            "projection": "inverse UTM32N to Web Mercator mesh; 32 pixel cells",
+            "bounds": bounds,
             "width": orthophoto.width,
         },
-        "rasters": {"dsm": raster, "dtm": raster},
-        "schemaVersion": 1,
+        "rasters": rasters,
+        "schemaVersion": 2,
         "terrainSurface": {
             "detailSource": "official Monaco government orthophoto",
             "sourceResolutionMetersPerPixel": 0.60,
             "textureHeight": orthophoto.height,
             "textureWidth": orthophoto.width,
         },
-        "verticalDatum": "source DEM metres; no vertical exaggeration",
+        "verticalDatum": "IGN69 (EPSG:5720); no vertical exaggeration",
     }
     (output_directory / "raster-metadata.json").write_text(
         f"{json.dumps(metadata, indent=2)}\n", encoding="utf-8"

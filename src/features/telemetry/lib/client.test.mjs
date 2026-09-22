@@ -1,6 +1,45 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCursorStore } from './client.ts';
+import {
+  createCursorStore,
+  telemetryBootstrapRequest,
+} from './client.ts';
+
+test('telemetry bootstrap loads the initial setup in one request', async () => {
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  const progress = [];
+  const data = {
+    seasons: [2026],
+    season: 2026,
+    meetings: [{ id: 1294 }],
+    meeting: 1294,
+    sessions: [{ id: 11365 }],
+    session: 11365,
+    catalog: { session: { id: 11365 }, drivers: [], laps: [] },
+    stage: 'ready',
+  };
+  globalThis.fetch = async (input) => {
+    requests.push(String(input));
+    return new Response(JSON.stringify({ status: 200, data }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+  try {
+    const result = await telemetryBootstrapRequest(
+      { season: 2026, meeting: 1294, session: 11365 },
+      { onProgress: (value) => progress.push(value.stage) },
+    );
+    assert.deepEqual(result, data);
+    assert.deepEqual(progress, ['ready']);
+    assert.deepEqual(requests, [
+      '/api/telemetry/bootstrap?season=2026&meeting=1294&session=11365',
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
 
 test('cursor resumes notifications after cleanup cancels a pending frame', () => {
   const originalRequest = globalThis.requestAnimationFrame;
