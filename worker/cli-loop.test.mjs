@@ -6,6 +6,7 @@ import {
   calculateLoopDelayMs,
   getItemsProcessed,
   parseLoopArguments,
+  runChildProcess,
 } from "./cli-loop.mjs";
 
 test("worker loop polls quickly while work remains and backs off while idle", () => {
@@ -27,19 +28,37 @@ test("worker loop reads the last structured result without swallowing worker out
   assert.equal(getItemsProcessed('not-json\n'), null);
 });
 
+test("worker loop terminates a child command that exceeds its timeout", async () => {
+  const startedAt = Date.now();
+  const result = await runChildProcess({
+    args: ["-e", "setInterval(() => {}, 1_000)"],
+    commandName: "test.hang",
+    executable: process.execPath,
+    onSpawn() {},
+    timeoutMs: 50,
+  });
+
+  assert.equal(result.exitCode, 124);
+  assert.ok(Date.now() - startedAt < 2_000);
+});
+
 test("worker loop keeps its own options away from the worker command", () => {
   assert.deepEqual(parseLoopArguments([
     "--loop-idle-ms=15000",
     "--loop-busy-ms=1000",
     "--loop-max-backoff-ms=300000",
+    "--loop-command-timeout-ms=1800000",
+    "--loop-heartbeat-timeout-ms=45000",
     "--loop-heartbeat-service=admin-job-runner",
     "jobs.consume_queued",
     "--limit",
     "3",
   ]), {
     busyDelayMs: 1_000,
+    commandTimeoutMs: 1_800_000,
     commandArgs: ["jobs.consume_queued", "--limit", "3"],
     heartbeatService: "admin-job-runner",
+    heartbeatTimeoutMs: 45_000,
     idleDelayMs: 15_000,
     maxBackoffMs: 300_000,
   });
@@ -59,6 +78,9 @@ test("production workers use resilient polling intervals", () => {
   assert.match(compose, /--loop-idle-ms=15000/);
   assert.match(compose, /--loop-idle-ms=60000/);
   assert.match(compose, /--loop-idle-ms=300000/);
+  assert.match(compose, /--loop-command-timeout-ms=120000/);
+  assert.match(compose, /--loop-command-timeout-ms=1800000/);
+  assert.match(compose, /--loop-heartbeat-timeout-ms=45000/);
   assert.doesNotMatch(compose, /sleep 3|sleep 15/);
   assert.match(warmer, /isApplicationHealthy/);
   assert.match(warmer, /const intervalMs = 4 \* 60_000/);

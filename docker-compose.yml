@@ -60,6 +60,8 @@ services:
       - --loop-idle-ms=15000
       - --loop-busy-ms=1000
       - --loop-max-backoff-ms=300000
+      - --loop-command-timeout-ms=1800000
+      - --loop-heartbeat-timeout-ms=45000
       - --loop-heartbeat-service=admin-job-runner
       - jobs.consume_queued
       - --limit
@@ -78,6 +80,8 @@ services:
       - --loop-idle-ms=60000
       - --loop-busy-ms=60000
       - --loop-max-backoff-ms=600000
+      - --loop-command-timeout-ms=120000
+      - --loop-heartbeat-timeout-ms=45000
       - --loop-heartbeat-service=cron
       - jobs.enqueue_schedules
       - --limit

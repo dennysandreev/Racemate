@@ -4,12 +4,15 @@ import { pathToFileURL } from "node:url";
 
 const heartbeatIntervalMs = 60_000;
 const maxCapturedOutputLength = 32_000;
+const forcedTerminationDelayMs = 5_000;
 
 export function parseLoopArguments(args) {
   const options = {
     busyDelayMs: 1_000,
+    commandTimeoutMs: 30 * 60_000,
     commandArgs: [],
     heartbeatService: null,
+    heartbeatTimeoutMs: 45_000,
     idleDelayMs: 15_000,
     maxBackoffMs: 300_000,
   };
@@ -21,6 +24,10 @@ export function parseLoopArguments(args) {
       options.busyDelayMs = parsePositiveInteger(argument, "--loop-busy-ms=");
     } else if (argument.startsWith("--loop-max-backoff-ms=")) {
       options.maxBackoffMs = parsePositiveInteger(argument, "--loop-max-backoff-ms=");
+    } else if (argument.startsWith("--loop-command-timeout-ms=")) {
+      options.commandTimeoutMs = parsePositiveInteger(argument, "--loop-command-timeout-ms=");
+    } else if (argument.startsWith("--loop-heartbeat-timeout-ms=")) {
+      options.heartbeatTimeoutMs = parsePositiveInteger(argument, "--loop-heartbeat-timeout-ms=");
     } else if (argument.startsWith("--loop-heartbeat-service=")) {
       options.heartbeatService = argument.slice("--loop-heartbeat-service=".length).trim() || null;
     } else if (argument.startsWith("--loop-")) {
@@ -96,6 +103,7 @@ async function runLoop() {
         (child) => {
           activeChild = child;
         },
+        options.heartbeatTimeoutMs,
       );
       activeChild = null;
       nextHeartbeatAt = Date.now() + heartbeatIntervalMs;
@@ -103,9 +111,13 @@ async function runLoop() {
 
     if (stopping) break;
 
-    const result = await runWorkerCommand(options.commandArgs, (child) => {
-      activeChild = child;
-    });
+    const result = await runWorkerCommand(
+      options.commandArgs,
+      (child) => {
+        activeChild = child;
+      },
+      options.commandTimeoutMs,
+    );
     activeChild = null;
 
     if (stopping) break;
@@ -131,20 +143,52 @@ async function runLoop() {
   }
 }
 
-function runWorkerCommand(commandArgs, onSpawn) {
+function runWorkerCommand(commandArgs, onSpawn, timeoutMs) {
+  return runChildProcess({
+    args: ["worker/cli.mjs", ...commandArgs],
+    commandName: commandArgs[0],
+    executable: process.execPath,
+    onSpawn,
+    timeoutMs,
+  });
+}
+
+export function runChildProcess({ args, commandName, executable, onSpawn, timeoutMs }) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, ["worker/cli.mjs", ...commandArgs], {
+    const child = spawn(executable, args, {
       stdio: ["ignore", "pipe", "inherit"],
     });
     let output = "";
+    let settled = false;
+    let timedOut = false;
+    let forcedTerminationTimer = null;
+
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      process.stderr.write(
+        `[worker.loop] command=${commandName} timeoutMs=${timeoutMs} action=terminate\n`,
+      );
+      child.kill("SIGTERM");
+      forcedTerminationTimer = setTimeout(() => child.kill("SIGKILL"), forcedTerminationDelayMs);
+      forcedTerminationTimer.unref();
+    }, timeoutMs);
+    timeout.unref();
+
+    const settle = (exitCode) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      if (forcedTerminationTimer) clearTimeout(forcedTerminationTimer);
+      resolve({ exitCode: timedOut ? 124 : exitCode, output });
+    };
 
     onSpawn(child);
     child.stdout.on("data", (chunk) => {
       process.stdout.write(chunk);
       output = `${output}${chunk}`.slice(-maxCapturedOutputLength);
     });
-    child.once("error", () => resolve({ exitCode: 1, output }));
-    child.once("exit", (code) => resolve({ exitCode: code ?? 1, output }));
+    child.once("error", () => settle(1));
+    child.once("exit", (code) => settle(code ?? 1));
   });
 }
 
