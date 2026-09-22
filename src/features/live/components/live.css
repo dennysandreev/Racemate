@@ -552,8 +552,7 @@ body:has(.live-terminal) {
   color: var(--muted-foreground);
   font-size: 11px;
 }
-.live-event-kind,
-.live-event-driver {
+.live-event-kind {
   min-height: 22px;
   border: 1px solid color-mix(in srgb, var(--event-color) 38%, transparent);
   border-radius: 5px;
@@ -569,9 +568,16 @@ body:has(.live-terminal) {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  border-color: color-mix(in srgb, var(--driver-color) 55%, var(--live-line));
+  min-height: 22px;
+  border: 1px solid
+    color-mix(in srgb, var(--driver-color) 55%, var(--live-line));
+  border-radius: 5px;
   background: color-mix(in srgb, var(--driver-color) 10%, transparent);
   color: var(--foreground);
+  padding: 3px 7px;
+  font: 700 10px/1 var(--font-geist-sans);
+  letter-spacing: 0.025em;
+  white-space: nowrap;
   cursor: pointer;
 }
 .live-event-driver::before {
@@ -602,6 +608,12 @@ body:has(.live-terminal) {
   line-height: 1.65;
   margin-top: 8px;
   overflow-wrap: anywhere;
+}
+.live-event-drivers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
 }
 .live-event-empty {
   min-height: 180px;

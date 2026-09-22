@@ -19,19 +19,19 @@ export function eventCategory(
   event: Pick<FeedEvent, "message" | "original" | "type">,
 ): EventCategory {
   const source = `${event.original ?? ""} ${event.message}`.toUpperCase();
+  const sportingNotice =
+    /INFRINGEMENT|INVESTIGAT(?:ION|ED)|FIA STEWARDS|PENALTY|NOTED/.test(source);
 
   if (event.type === "fastest_lap")
     return { label: "Лучший круг", tone: "purple" };
   if (event.type === "pit") return { label: "Пит", tone: "cyan" };
-  if (event.type === "tyre_change")
-    return { label: "Шины", tone: "blue" };
-  if (event.type === "overtake")
-    return { label: "Обгон", tone: "orange" };
+  if (event.type === "tyre_change") return { label: "Шины", tone: "blue" };
+  if (event.type === "overtake") return { label: "Обгон", tone: "orange" };
   if (event.type === "stewards")
     return /PENALTY|ШТРАФ|DISQUAL/i.test(source)
       ? { label: "Штраф", tone: "red" }
       : { label: "Стюарды", tone: "orange" };
-  if (/DOUBLE YELLOW|YELLOW FLAG|ЖЁЛТ/i.test(source))
+  if (!sportingNotice && /DOUBLE YELLOW|YELLOW FLAG|ЖЁЛТ/i.test(source))
     return { label: "Жёлтый флаг", tone: "yellow" };
   if (/RED FLAG|КРАСНЫЙ ФЛАГ|TEMPORARILY STOPPED|SUSPENDED/i.test(source))
     return { label: "Красный флаг", tone: "red" };
@@ -62,8 +62,7 @@ export function eventDriverNumbers(
   const source = `${event.original ?? ""} ${event.message}`.toUpperCase();
   const matches = new Map<number, number>();
 
-  if (event.driverNumber !== null)
-    matches.set(event.driverNumber, -1);
+  if (event.driverNumber !== null) matches.set(event.driverNumber, -1);
 
   for (const driver of drivers) {
     const acronym = escapeRegExp(driver.acronym.toUpperCase());

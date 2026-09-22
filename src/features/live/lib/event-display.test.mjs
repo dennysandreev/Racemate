@@ -11,15 +11,27 @@ const drivers = [
 
 test("event categories distinguish track, sporting and race events", () => {
   assert.deepEqual(
-    eventCategory({ type: "race_control", message: "Жёлтый флаг", original: "YELLOW FLAG" }),
+    eventCategory({
+      type: "race_control",
+      message: "Жёлтый флаг",
+      original: "YELLOW FLAG",
+    }),
     { label: "Жёлтый флаг", tone: "yellow" },
   );
   assert.deepEqual(
-    eventCategory({ type: "stewards", message: "Штраф", original: "5 SECOND TIME PENALTY" }),
+    eventCategory({
+      type: "stewards",
+      message: "Штраф",
+      original: "5 SECOND TIME PENALTY",
+    }),
     { label: "Штраф", tone: "red" },
   );
   assert.deepEqual(
-    eventCategory({ type: "overtake", message: "HAM обгоняет LEC", original: null }),
+    eventCategory({
+      type: "overtake",
+      message: "HAM обгоняет LEC",
+      original: null,
+    }),
     { label: "Обгон", tone: "orange" },
   );
   assert.deepEqual(
@@ -37,6 +49,15 @@ test("event categories distinguish track, sporting and race events", () => {
       original: "MARSHALS ON TRACK AT TURN 5",
     }),
     { label: "На трассе", tone: "orange" },
+  );
+  assert.deepEqual(
+    eventCategory({
+      type: "race_control",
+      message:
+        "FIA STEWARDS: INCIDENT INVOLVING CAR 14 (ALO) WILL BE INVESTIGATED AFTER THE RACE - YELLOW FLAG INFRINGEMENT",
+      original: null,
+    }),
+    { label: "Дирекция", tone: "neutral" },
   );
 });
 

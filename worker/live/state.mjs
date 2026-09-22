@@ -645,7 +645,9 @@ export class LiveState {
             delete s.locations[exit.driverNumber];
           }
           this.feed(
-            /PENALTY|INVESTIGATION|NOTED/i.test(m)
+            /PENALTY|INVESTIGAT(?:ION|ED)|INFRINGEMENT|NOTED|FIA STEWARDS/i.test(
+              m,
+            )
               ? "stewards"
               : "race_control",
             exit
@@ -664,7 +666,9 @@ export class LiveState {
             const sector = number(row.sector);
             const activeYellowSectors = new Set(s.yellowSectors ?? []);
             const sectorYellow =
-              row.scope === "Sector" && /YELLOW/.test(row.flag ?? "");
+              row.scope === "Sector" &&
+              /YELLOW/.test(row.flag ?? "") &&
+              !/INFRINGEMENT|INVESTIGAT(?:ION|ED)|FIA STEWARDS/i.test(m);
             const sectorClear =
               row.scope === "Sector" &&
               (row.flag === "CLEAR" || /CLEAR IN TRACK SECTOR/i.test(m));

@@ -248,17 +248,7 @@ export function replayMessages(replay) {
       message: e.message,
       lap_number: e.lapNumber,
       driver_number: e.driverNumber,
-      flag: /CLEAR IN TRACK SECTOR/i.test(e.message)
-        ? "CLEAR"
-        : /CHEQUERED|CHECKERED|Клетчат/i.test(e.message)
-          ? "CHEQUERED"
-          : /RED FLAG/i.test(e.message)
-            ? "RED"
-            : /GREEN FLAG/i.test(e.message)
-              ? "GREEN"
-              : /YELLOW/i.test(e.message)
-                ? "YELLOW"
-                : null,
+      flag: replayRaceControlFlag(e.message),
       scope: Number.isInteger(trackSector) ? "Sector" : null,
       sector: Number.isInteger(trackSector) ? trackSector : null,
     });
@@ -271,6 +261,27 @@ export function replayMessages(replay) {
       wind_speed: (replay.weather.windSpeedKmh ?? 0) / 3.6,
     });
   return messages.sort((a, b) => a.offset - b.offset);
+}
+
+export function replayRaceControlFlag(message) {
+  const text = String(message ?? "").trim();
+
+  if (
+    /INFRINGEMENT|INVESTIGAT(?:ION|ED)|FIA STEWARDS|PENALTY|NOTED/i.test(text)
+  )
+    return null;
+  if (/CLEAR IN TRACK SECTOR/i.test(text)) return "CLEAR";
+  if (/CHEQUERED|CHECKERED|Клетчат/i.test(text)) return "CHEQUERED";
+  if (/RED FLAG/i.test(text)) return "RED";
+  if (/GREEN FLAG/i.test(text)) return "GREEN";
+  if (
+    /^(?:DOUBLE\s+)?YELLOW(?:\s+FLAG)?(?:\s+IN\s+TRACK\s+SECTOR\s+\d+)?(?:\s|$)/i.test(
+      text,
+    )
+  )
+    return "YELLOW";
+
+  return null;
 }
 export class ReplaySimulationSource extends LiveDataSource {
   constructor({

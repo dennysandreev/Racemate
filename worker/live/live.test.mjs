@@ -13,7 +13,7 @@ import {
 import { LiveWriter, historyRow } from "./persistence.mjs";
 import { transcribeRadio, allowedRecording } from "./radio.mjs";
 import { normalizeMessage, hydrationMessages } from "./normalize.mjs";
-import { ReplaySimulationSource } from "./sources.mjs";
+import { ReplaySimulationSource, replayRaceControlFlag } from "./sources.mjs";
 import { buildReplayFromHistory } from "./replay-adapter.mjs";
 const session = {
   session_key: 1,
@@ -846,6 +846,46 @@ test("SC and VSC expose ending states and clear only on the green signal", () =>
     }),
   );
   assert.equal(s.state.flag, "GREEN");
+});
+test("stewards yellow references do not activate a flag and SC keeps priority", () => {
+  const infringement =
+    "FIA STEWARDS: INCIDENT INVOLVING CAR 14 (ALO) WILL BE INVESTIGATED AFTER THE RACE - YELLOW FLAG INFRINGEMENT";
+  assert.equal(replayRaceControlFlag(infringement), null);
+  assert.equal(replayRaceControlFlag("YELLOW IN TRACK SECTOR 7"), "YELLOW");
+
+  const s = state();
+  s.apply("race_control", row({ message: infringement, flag: "YELLOW" }));
+  assert.notEqual(s.state.flag, "YELLOW");
+  assert.equal(s.state.events[0].type, "stewards");
+
+  s.apply(
+    "race_control",
+    row({ message: "SAFETY CAR DEPLOYED", date: "2026-09-11T12:02:00Z" }),
+  );
+  s.apply(
+    "race_control",
+    row({
+      message: "YELLOW IN TRACK SECTOR 7",
+      flag: "YELLOW",
+      scope: "Sector",
+      sector: 7,
+      date: "2026-09-11T12:03:00Z",
+    }),
+  );
+  assert.equal(s.state.flag, "SC");
+  assert.deepEqual(s.state.yellowSectors, [7]);
+  s.apply(
+    "race_control",
+    row({
+      message: "CLEAR IN TRACK SECTOR 7",
+      flag: "CLEAR",
+      scope: "Sector",
+      sector: 7,
+      date: "2026-09-11T12:04:00Z",
+    }),
+  );
+  assert.equal(s.state.flag, "SC");
+  assert.deepEqual(s.state.yellowSectors, []);
 });
 test("sector yellow clears only after every affected sector is clear", () => {
   const s = state();

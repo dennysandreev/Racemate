@@ -339,32 +339,36 @@ export function EventFeed({
           <article className="live-event" data-tone={category.tone} key={e.id}>
             <div className="live-event-meta">
               <span className="live-event-kind">{category.label}</span>
-              {driverNumbers.map((driverNumber) => {
-                const driver = drivers[driverNumber];
-                return (
-                  <button
-                    className="live-event-driver"
-                    key={driverNumber}
-                    onClick={() => onFilter(driverNumber)}
-                    style={
-                      {
-                        "--driver-color":
-                          driver?.teamColour ?? "var(--muted-foreground)",
-                      } as CSSProperties
-                    }
-                    title={`Показать события ${driver?.fullName ?? driverNumber}`}
-                    type="button"
-                  >
-                    {driver?.acronym ?? driverNumber}
-                  </button>
-                );
-              })}
               <span className="live-event-lap">
                 {e.lap ? `${e.lap} круг` : "Сессия"}
               </span>
               <time>{time(e.timestamp)}</time>
             </div>
             <p>{e.message}</p>
+            {driverNumbers.length > 0 && (
+              <div className="live-event-drivers" aria-label="Пилоты события">
+                {driverNumbers.map((driverNumber) => {
+                  const driver = drivers[driverNumber];
+                  return (
+                    <button
+                      className="live-event-driver"
+                      key={driverNumber}
+                      onClick={() => onFilter(driverNumber)}
+                      style={
+                        {
+                          "--driver-color":
+                            driver?.teamColour ?? "var(--muted-foreground)",
+                        } as CSSProperties
+                      }
+                      title={`Показать события ${driver?.fullName ?? driverNumber}`}
+                      type="button"
+                    >
+                      {driver?.acronym ?? driverNumber}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {e.duration && <strong>{e.duration.toFixed(3)} с</strong>}
           </article>
         ))}

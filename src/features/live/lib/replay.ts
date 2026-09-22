@@ -9,7 +9,10 @@ import {
   trackProgressAt,
   type DriverMotion,
 } from "../../race-replay/lib/motion.ts";
-import { buildPitGeometry, buildTrackGeometry } from "../../race-replay/lib/track-geometry.ts";
+import {
+  buildPitGeometry,
+  buildTrackGeometry,
+} from "../../race-replay/lib/track-geometry.ts";
 import type {
   RaceReplaySnapshot,
   ReplayPositionEvent,
@@ -45,7 +48,9 @@ export class LiveReplayAdapter {
   private readonly motions = new Map<number, DriverMotion>();
   private readonly geometry: ReturnType<typeof buildTrackGeometry>;
   private readonly pitGeometry: ReturnType<typeof buildPitGeometry>;
-  private readonly pitTrackProgress: { entry: number; exit: number } | undefined;
+  private readonly pitTrackProgress:
+    | { entry: number; exit: number }
+    | undefined;
   private readonly pits: ReplayPit[];
   private readonly replay: RaceReplaySnapshot;
   private readonly trackSectorCount: number | null;
@@ -61,14 +66,26 @@ export class LiveReplayAdapter {
     this.durationMs = Math.max(1, replay.durationMs);
     this.playbackStartMs = getPlaybackStartMs(replay);
     this.baseTimestampMs = getBaseTimestampMs(replay);
-    this.geometry = buildTrackGeometry(replay.track.centerline, replay.track.startFinish.progress);
+    this.geometry = buildTrackGeometry(
+      replay.track.centerline,
+      replay.track.startFinish.progress,
+    );
     const pitPoints = replay.track.pitLane?.points ?? [];
     const entry = this.nearestTrackPoint(pitPoints[0]);
     const exit = this.nearestTrackPoint(pitPoints.at(-1));
-    this.pitTrackProgress = entry && exit ? { entry: entry.progress, exit: exit.progress } : undefined;
-    this.pitGeometry = buildPitGeometry(entry && exit ? [
-      {svgX: entry.x, svgY: entry.y}, ...pitPoints, {svgX: exit.x, svgY: exit.y},
-    ] : pitPoints);
+    this.pitTrackProgress =
+      entry && exit
+        ? { entry: entry.progress, exit: exit.progress }
+        : undefined;
+    this.pitGeometry = buildPitGeometry(
+      entry && exit
+        ? [
+            { svgX: entry.x, svgY: entry.y },
+            ...pitPoints,
+            { svgX: exit.x, svgY: exit.y },
+          ]
+        : pitPoints,
+    );
 
     for (const position of replay.positions) {
       const items = this.positionsByDriver.get(position.driverNumber) ?? [];
@@ -78,56 +95,94 @@ export class LiveReplayAdapter {
 
     for (const [driverNumber, items] of this.positionsByDriver) {
       items.sort((left, right) => left.offsetMs - right.offsetMs);
-      this.motions.set(driverNumber, buildDriverMotion(items, {
-        lapTimings: this.replay.lapTimings?.filter((lap) => lap.driverNumber === driverNumber),
-      }));
+      this.motions.set(
+        driverNumber,
+        buildDriverMotion(items, {
+          lapTimings: this.replay.lapTimings?.filter(
+            (lap) => lap.driverNumber === driverNumber,
+          ),
+        }),
+      );
     }
 
     this.pits = buildPits(this.positionsByDriver, this.baseTimestampMs);
     if (entry && exit) {
       for (const [driverNumber, motion] of this.motions) {
-        this.motions.set(driverNumber, anchorMotionToPits(motion,
-          this.pits.filter((pit) => pit.driverNumber === driverNumber),
-          entry.progress, exit.progress));
+        this.motions.set(
+          driverNumber,
+          anchorMotionToPits(
+            motion,
+            this.pits.filter((pit) => pit.driverNumber === driverNumber),
+            entry.progress,
+            exit.progress,
+          ),
+        );
       }
     }
     this.trackSectorCount = getTrackSectorCount(replay);
   }
 
-  private nearestTrackPoint(point: {svgX: number; svgY: number} | undefined) {
+  private nearestTrackPoint(point: { svgX: number; svgY: number } | undefined) {
     if (!point || !this.geometry) return null;
     return this.geometry.samples.reduce((nearest, sample) =>
       Math.hypot(sample.x - point.svgX, sample.y - point.svgY) <
-      Math.hypot(nearest.x - point.svgX, nearest.y - point.svgY) ? sample : nearest);
+      Math.hypot(nearest.x - point.svgX, nearest.y - point.svgY)
+        ? sample
+        : nearest,
+    );
   }
 
   // Both renderers sample this trajectory on every animation frame. Replay
   // never goes through the delayed network interpolation used by real LIVE.
   sampleLocation(driverNumber: number, elapsedMs: number) {
-    const position = this.positionAt(driverNumber, clamp(elapsedMs, 0, this.durationMs));
+    const position = this.positionAt(
+      driverNumber,
+      clamp(elapsedMs, 0, this.durationMs),
+    );
     if (!position || position.retired) return null;
     return {
-      ...toLocation(position, new Date(this.baseTimestampMs + elapsedMs).toISOString()),
+      ...toLocation(
+        position,
+        new Date(this.baseTimestampMs + elapsedMs).toISOString(),
+      ),
       pitTrackProgress: this.pitTrackProgress,
       stale: false,
     };
   }
 
-  private positionAt(driverNumber: number, elapsedMs: number): ReplayFramePosition | null {
+  private positionAt(
+    driverNumber: number,
+    elapsedMs: number,
+  ): ReplayFramePosition | null {
     const motion = this.motions.get(driverNumber);
     if (!motion) return null;
     const position = positionAt(motion.events, elapsedMs);
     if (!position) return null;
     const sample = trackProgressAt(motion, elapsedMs);
-    const progress = sample ? ((sample.unwrapped % 1) + 1) % 1 : position.progress;
-    const pit = this.pits.find((item) => item.driverNumber === driverNumber &&
-      elapsedMs >= item.startOffsetMs && elapsedMs < item.endOffsetMs);
-    const pitLaneProgress = pit && this.pitGeometry ? pitLaneParamAt({
-      startMs: pit.startOffsetMs, endMs: pit.endOffsetMs, pitStopSeconds: pit.duration,
-    }, elapsedMs) : null;
-    const point = pitLaneProgress !== null
-      ? this.pitGeometry!.pointAt(pitLaneProgress)
-      : this.geometry?.pointAt(progress);
+    const progress = sample
+      ? ((sample.unwrapped % 1) + 1) % 1
+      : position.progress;
+    const pit = this.pits.find(
+      (item) =>
+        item.driverNumber === driverNumber &&
+        elapsedMs >= item.startOffsetMs &&
+        elapsedMs < item.endOffsetMs,
+    );
+    const pitLaneProgress =
+      pit && this.pitGeometry
+        ? pitLaneParamAt(
+            {
+              startMs: pit.startOffsetMs,
+              endMs: pit.endOffsetMs,
+              pitStopSeconds: pit.duration,
+            },
+            elapsedMs,
+          )
+        : null;
+    const point =
+      pitLaneProgress !== null
+        ? this.pitGeometry!.pointAt(pitLaneProgress)
+        : this.geometry?.pointAt(progress);
     return {
       ...position,
       progress,
@@ -136,7 +191,13 @@ export class LiveReplayAdapter {
       svgX: point?.x ?? position.svgX,
       svgY: point?.y ?? position.svgY,
       headingRad: point?.headingRad ?? position.headingRad,
-      retired: !pit && isDriverRetiredOnTrack(motion.events, elapsedMs, motion.finalLapComplete),
+      retired:
+        !pit &&
+        isDriverRetiredOnTrack(
+          motion.events,
+          elapsedMs,
+          motion.finalLapComplete,
+        ),
     };
   }
 
@@ -183,10 +244,11 @@ export class LiveReplayAdapter {
         const finalSample = this.positionsByDriver
           .get(driver.driverNumber)
           ?.at(-1);
-        const retired = position?.retired || (
-          isRetiredStatus(driver.status) &&
-          finalSample !== undefined &&
-          boundedElapsed >= finalSample.offsetMs);
+        const retired =
+          position?.retired ||
+          (isRetiredStatus(driver.status) &&
+            finalSample !== undefined &&
+            boundedElapsed >= finalSample.offsetMs);
         const state: DriverLiveState = {
           acronym: driver.abbreviation,
           bestLap: bestLap ?? parseTiming(driver.bestLapTime),
@@ -228,11 +290,7 @@ export class LiveReplayAdapter {
           position:
             timedPosition?.position ?? position?.position ?? driver.position,
           sectors: currentSectors,
-          status: retired
-            ? "RETIRED"
-            : position?.isPitLane
-              ? "PIT"
-              : "RUNNING",
+          status: retired ? "RETIRED" : position?.isPitLane ? "PIT" : "RUNNING",
           team: driver.teamName,
           teamColour: driver.teamColor,
           tyreAge: position?.tyreAge ?? driver.tyreAge,
@@ -357,7 +415,8 @@ function positionAt(
   const current = positions[Math.max(0, high)];
   const next = positions[Math.min(positions.length - 1, high + 1)];
   const span = next.offsetMs - current.offsetMs;
-  const ratio = span > 0 ? clamp((elapsedMs - current.offsetMs) / span, 0, 1) : 0;
+  const ratio =
+    span > 0 ? clamp((elapsedMs - current.offsetMs) / span, 0, 1) : 0;
   let progressDelta = next.progress - current.progress;
   if (progressDelta < -0.5) progressDelta += 1;
   if (progressDelta > 0.5) progressDelta -= 1;
@@ -519,9 +578,12 @@ function buildPits(
           // Legacy OpenF1 snapshots put the full lane duration in both
           // fields. Treating it as stationary time makes cars rush through
           // the lane in the few seconds left around that artificial stop.
-          duration: start.pitStopDuration != null &&
-            (start.pitLaneDuration == null || start.pitStopDuration < start.pitLaneDuration - 1)
-            ? start.pitStopDuration : null,
+          duration:
+            start.pitStopDuration != null &&
+            (start.pitLaneDuration == null ||
+              start.pitStopDuration < start.pitLaneDuration - 1)
+              ? start.pitStopDuration
+              : null,
           endOffsetMs: position.offsetMs,
           id: `replay-pit-${driverNumber}-${start.offsetMs}`,
           laneDuration:
@@ -538,7 +600,10 @@ function buildPits(
   return pits.sort((left, right) => right.startOffsetMs - left.startOffsetMs);
 }
 
-function visibleEvents(replay: RaceReplaySnapshot, elapsedMs: number): FeedEvent[] {
+function visibleEvents(
+  replay: RaceReplaySnapshot,
+  elapsedMs: number,
+): FeedEvent[] {
   return replay.raceEvents
     .filter((event) => event.offsetMs <= elapsedMs)
     .slice()
@@ -554,7 +619,10 @@ function visibleEvents(replay: RaceReplaySnapshot, elapsedMs: number): FeedEvent
     }));
 }
 
-function visibleRadio(items: ReplayRadioText[], elapsedMs: number): RadioMessage[] {
+function visibleRadio(
+  items: ReplayRadioText[],
+  elapsedMs: number,
+): RadioMessage[] {
   return items
     .filter((item) => item.offsetMs <= elapsedMs)
     .slice()
@@ -582,13 +650,17 @@ function getRaceSignal(
   for (const event of events) {
     if (event.offsetMs > elapsedMs) continue;
     const text = event.message.toUpperCase();
+    if (isStewardsYellowReference(text)) continue;
     const sector = Number(text.match(/TRACK SECTOR\s+(\d+)/)?.[1]);
-    if (text.includes("TRACK CLEAR") || text.includes("GREEN")) {
+    if (text.includes("GREEN")) {
       flag = "GREEN";
+      yellowSectors.clear();
+    } else if (text.includes("TRACK CLEAR")) {
+      if (flag === "YELLOW") flag = "GREEN";
       yellowSectors.clear();
     } else if (text.includes("CLEAR") && Number.isFinite(sector)) {
       yellowSectors.delete(sector);
-      if (!yellowSectors.size) flag = "GREEN";
+      if (!yellowSectors.size && flag === "YELLOW") flag = "GREEN";
     } else if (text.includes("RED FLAG")) {
       flag = "RED";
       yellowSectors.clear();
@@ -596,14 +668,27 @@ function getRaceSignal(
     else if (text.includes("VSC")) flag = "VSC";
     else if (text.includes("SAFETY CAR IN")) flag = "SC_ENDING";
     else if (text.includes("SAFETY CAR")) flag = "SC";
-    else if (text.includes("YELLOW")) {
-      flag = "YELLOW";
+    else if (isActiveYellowSignal(text)) {
+      if (!["RED", "SC", "SC_ENDING", "VSC", "VSC_ENDING"].includes(flag ?? ""))
+        flag = "YELLOW";
       if (Number.isFinite(sector)) yellowSectors.add(sector);
     } else if (text.includes("CHEQUERED") || text.includes("CHECKERED")) {
       flag = "CHEQUERED";
     }
   }
   return { flag, yellowSectors: [...yellowSectors].sort((a, b) => a - b) };
+}
+
+function isStewardsYellowReference(text: string) {
+  return /INFRINGEMENT|INVESTIGAT(?:ION|ED)|FIA STEWARDS|PENALTY|NOTED/.test(
+    text,
+  );
+}
+
+function isActiveYellowSignal(text: string) {
+  return /^(?:DOUBLE\s+)?YELLOW(?:\s+FLAG)?(?:\s+IN\s+TRACK\s+SECTOR\s+\d+)?(?:\s|$)/.test(
+    text.trim(),
+  );
 }
 
 function getTrackSectorCount(replay: RaceReplaySnapshot) {
@@ -622,9 +707,7 @@ function parseTiming(value: string | null | undefined) {
 }
 
 function isRetiredStatus(status: string) {
-  return ["DNF", "DNS", "DSQ", "OUT", "RETIRED"].includes(
-    status.toUpperCase(),
-  );
+  return ["DNF", "DNS", "DSQ", "OUT", "RETIRED"].includes(status.toUpperCase());
 }
 
 function minimum(values: Array<number | null>) {
